@@ -1,6 +1,6 @@
 # Storyboard: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v4, 5 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v5, 5 Oct 2026
 
 The whole story in 15 panels: from the night a party wakes the raccoon to the night it all starts again. There's no dialogue. Every beat comes across through what the player does and what happens next, with big, slapstick, non-verbal reactions.
 
@@ -15,7 +15,8 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
   - He bolts. The fed-up partiers chase him out of the forest, and he swipes the red beanie off the camper's head on the way.
 - **The town (panels 9–13).**
   - He comes out of the forest at the edge of town. It's even louder than the party, but there are trash bags everywhere.
-  - He raids the diner's dumpster and its raccoon-proof bins, and the neighbourhood group chat fills up with photos of the masked bandit in the beanie.
+  - He raids the diner's dumpster and its raccoon-proof bins, and the neighbours start snapping photos of the masked bandit in the beanie.
+  - The neighbourhood dogs chase him. He fools them with a false trail and leaves them barking up the wrong tree, but all the barking brings animal control.
   - His biggest heist is the block party barbecue. But animal control has been watching, and a trail of marshmallows finally catches him.
 - **Ending (panels 14–15).**
   - The beanie camper recognises his own beanie in the photos going round. He's the only one who knows where the raccoon lives, so he drives him home and lets him keep the beanie. It's quiet at last.
@@ -24,11 +25,11 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 ## How the storyboard tells it
 
 - **Slapstick, cause then effect.** Every beat is a physical gag: tiptoes, freezes, double-takes, trips and chain reactions. Nobody gets hurt.
-  - Some causes carry across panels. Cutting the music in panel 6 is what lets the party hear him in panel 7, and the officer seen waiting in panel 12 springs the trap in panel 13.
+  - Some causes carry across panels. Cutting the music in panel 6 is what lets the party hear him in panel 7. The dogs' barking in panel 11 brings the animal-control van, and the officer seen waiting in panel 12 springs the trap in panel 13.
 - **No dialogue, no speech bubbles.** The humans grumble, gasp, yelp and laugh, and their reactions are big enough to read from the game camera.
 - **Text-based ideas from CONCEPT.md became visual events:**
   - The camper's paranoid journal: he gets visibly jumpier instead, with his phone light out in panel 7 and a frying pan in panel 8.
-  - The neighbourhood group chat: a phone screen with no words, only photos, emoji and faces (panel 11), plus window photos and a poster with only his picture (panels 10 and 13).
+  - His fame in town: neighbours snapping photos from their windows, and a poster with only his picture (panels 10, 11 and 13). These replace CONCEPT.md's group chat, which you cut from the storyboard.
   - "The End?": a cartoon iris-out.
 - **The only words on screen** are the to-do list's short labels in panel 4. Every card also has a doodle that works without them, and the in-game cards show only the doodles.
 
@@ -39,9 +40,10 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
   - The raccoon swipes it in panel 8.
   - He wears it from panel 9 on (the trap knocks it up off his head in panel 13), and pulls it on again in panel 15.
 - **The camper** (mustard jacket, short beard) is the story's other main character. He looks the same throughout, so he's recognisable when he brings the raccoon home in panel 14.
-- **The beanie photo** is the same picture everywhere it appears: the poster (panels 10 and 13), the group chat (11) and the camper's phone (14). It's how the camper finds him.
+- **The beanie photo** is the same picture everywhere it appears: the poster (panels 10 and 13) and the camper's phone (14). It's how the camper finds him.
 - **The marshmallows** he goes after at the party (panels 5 and 7) are what the officer brings to the block party (12) and the bait in the trap (13).
-- **Animal control:** the van in the group chat (11) is the one parked at the block party (13). Its paw logo is also on the carrier that traps him (13) and that the camper opens under his tree (14).
+- **The dogs:** the three dogs in panel 11 keep their looks and collar colours. The sausage dog is the one that leaps for the sausages in panel 12.
+- **Animal control:** the van that turns into the lane in panel 11 is the one parked at the block party (13). Its paw logo is also on the carrier that traps him (13) and that the camper opens under his tree (14).
 - **The diner's pink neon cup** marks the town, from the edge of town (9) to the alley (10).
 - **The block party street** has the same houses, bunting and snack table in panels 12 and 13.
 - **The party layout never changes:**
@@ -73,9 +75,9 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 | Failure | 7 |
 | Recovery or retry | 8 (the getaway after the bust) |
 | End of a play session | 15 (level 1 ends at 8, the town at 13) |
-| Shot sizes | close-up 1, 4, 11 · medium 5, 6, 7, 12, 13 · wide 2, 3, 8, 9, 10, 14, 15 |
-| Angles | eye level 1, 4, 8, 11, 13, 14 · high 3/4 3, 5, 6, 10, 12 · high over the shoulder 2, 15 · low 7, 9 |
-| Views | gameplay 3, 4, 5, 6, 10, 12 · design 1, 2, 7, 8, 9, 11, 13, 14, 15 |
+| Shot sizes | close-up 1, 4 · medium 5, 6, 7, 12, 13 · wide 2, 3, 8, 9, 10, 11, 14, 15 |
+| Angles | eye level 1, 4, 8, 13, 14 · high 3/4 3, 5, 6, 10, 11, 12 · high over the shoulder 2, 15 · low 7, 9 |
+| Views | gameplay 3, 4, 5, 6, 10, 11, 12 · design 1, 2, 7, 8, 9, 13, 14, 15 |
 
 ---
 
@@ -191,23 +193,29 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 - **Assets:** CHAR-BEANIE-FIDDLE, ENV-TOWN-ALLEY, PROP-BIN, PROP-BUNGEE, PROP-POSTER, NPC-WATCHER, UI-TODO-CARDS, SFX-TWANG, SFX-CAMERA-CLICK, AMB-TOWN, MUS-PIANO-TOWN
 - **Design reason (pillar 4, Every prank lands):** each job pays off twice, once with the gag and once with the town noticing him: phones out, and his face on a poster.
 
-## Panel 11 — The group chat
-![Panel 11](design/storyboard/11-the-group-chat.svg)
-- **Shot:** close-up · eye level · design view (a short cutscene between town jobs)
-- **Player action:** none; a short cutscene. A neighbour's phone buzzes nonstop as the group chat fills with photos of the masked bandit. Their thumb goes to share the beanie photo. Through the window behind them, the bandit himself is on the back fence.
+## Panel 11 — Barking up the wrong tree
+![Panel 11](design/storyboard/11-barking-up-the-wrong-tree.svg)
+- **Shot:** wide · high 3/4 · gameplay view
+- **Player action:** shakes off the neighbourhood dogs.
+  - The big shaggy dog wakes in the back alley with one huge bark. The tiny dog yaps after him, and the sausage dog follows his scent.
+  - They're all faster than him, so he uses his head. He runs rings round a tree to lay a false trail, slips behind the bins, and hops up onto the fence.
+  - The dogs follow the trail to the tree and end up barking up it, while he grins down at them from the fence.
 - **See:**
-  - The phone filling the frame. The chat has no words, only photos, emoji and coloured avatars.
-  - The photos: his eyes over the rim of the diner dumpster; him in the beanie; and the animal-control van that someone has called.
-  - Shocked and laughing emoji, and someone typing.
-  - Through the window: the raccoon on the back fence in his beanie, next to a bin he has tipped over.
-- **Hear:** message pings stacking up faster and faster; muffled traffic outside. *Music:* the town piano loop, with a pluck on every ping.
-- **Assets:** ENV-LIVING-ROOM, PROP-PHONE-CHAT, NPC-NEIGHBOUR-HAND, CHAR-PERCH, PROP-BIN, PROP-ANIMAL-VAN, SFX-PHONE-PING, AMB-TOWN, MUS-PIANO-TOWN
-- **Design reason (pillar 4, Every prank lands):** the whole town is talking about him without a word, and the beanie photo they pass round is the one the campers will recognise.
+  - The back alley at night: the backs of the houses, a wooden fence, the bins and the tree.
+  - The three dogs piled up at the tree: the big shaggy one up on its hind legs against the trunk, barking up it; the tiny one bouncing and yapping; the sausage dog sniffing round in circles.
+  - His dotted trail: round and round the tree, then behind the bins and up onto the fence.
+  - The raccoon in the beanie on top of the fence.
+  - A neighbour leaning out of a window to snap a photo.
+  - The animal-control van turning into the lane, its headlights on.
+  - The town's to-do cards: the dumpster and the bungee bin crossed off.
+- **Hear:** one big "woof", nonstop yapping, sniffing and skidding paws; a window opening and a camera click; the van's engine. *Music:* the town piano loop speeds up into a chase, then drops to a sly pluck as the dogs bark at the empty tree.
+- **Assets:** CHAR-RUN, CHAR-PERCH, ENV-BACK-ALLEY, PROP-FENCE, PROP-BIN, NPC-DOG-BIG-BARK, NPC-DOG-TINY-YAP, NPC-DOG-SAUSAGE-SNIFF, NPC-WATCHER, PROP-ANIMAL-VAN, UI-TODO-CARDS, SFX-BARK, SFX-YAP, SFX-SKID, SFX-CAMERA-CLICK, AMB-TOWN, MUS-PIANO-TOWN
+- **Design reason (pillar 1, Outsmart the humans, and their dogs):** the dogs are faster than him, so he wins with his head, not his legs. And all their barking is what brings animal control.
 
 ## Panel 12 — The barbecue heist
 ![Panel 12](design/storyboard/12-the-barbecue-heist.svg)
 - **Shot:** medium · high 3/4 · gameplay view
-- **Player action:** his biggest heist. As the grill master flips a burger sky-high and every head turns to watch, he grabs the end of a string of sausages and runs. It pays out behind him across the block party: a kid limbos under it and a sausage dog leaps for it.
+- **Player action:** his biggest heist. As the grill master flips a burger sky-high and every head turns to watch, he grabs the end of a string of sausages and runs. It pays out behind him across the block party: a kid limbos under it, and the sausage dog from panel 11 leaps for it.
 - **See:**
   - The block party street: bunting, string lights, chalk drawings and confetti.
   - The burger mid-flip and the neighbours staring up at it.
@@ -215,7 +223,7 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
   - At the back, the animal-control officer peeking over the snack table with a bag of marshmallows.
   - The town's to-do cards: the dumpster and the bungee bin crossed off, the barbecue highlighted.
 - **Hear:** sizzling, the crowd's "ooh" at the flip, a happy bark, and the sausages zipping off the grill. *Music:* the town piano loop picks up speed.
-- **Assets:** CHAR-RUN, ENV-BLOCK-PARTY, PROP-GRILL, PROP-SAUSAGES, PROP-BURGER, PROP-MARSHMALLOWS, NPC-GRILL-MASTER, NPC-NEIGHBOUR-WATCH, NPC-KID-LIMBO, NPC-DACHSHUND, NPC-OFFICER-LURK, UI-TODO-CARDS, SFX-SIZZLE, SFX-CROWD-OOH, SFX-BARK, SFX-WHOOSH, MUS-PIANO-TOWN
+- **Assets:** CHAR-RUN, ENV-BLOCK-PARTY, PROP-GRILL, PROP-SAUSAGES, PROP-BURGER, PROP-MARSHMALLOWS, NPC-GRILL-MASTER, NPC-NEIGHBOUR-WATCH, NPC-KID-LIMBO, NPC-DOG-SAUSAGE-LEAP, NPC-OFFICER-LURK, UI-TODO-CARDS, SFX-SIZZLE, SFX-CROWD-OOH, SFX-BARK, SFX-WHOOSH, MUS-PIANO-TOWN
 - **Design reason (pillar 1, Outsmart the humans):** the campsite's lesson pays off, because everyone is watching the flip and not him. Only the player spots the officer waiting at the back.
 
 ## Panel 13 — The marshmallow trap
@@ -238,7 +246,7 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 ![Panel 14](design/storyboard/14-home-at-last.svg)
 - **Shot:** wide · eye level · design view (ending cutscene)
 - **Player action:** none; this cutscene follows the capture.
-  - The beanie camper, the only person who knows where the raccoon lives, kneels under the raccoon's tree and opens the animal-control carrier, with the beanie photo from the group chat on his phone.
+  - The beanie camper, the only person who knows where the raccoon lives, kneels under the raccoon's tree and opens the animal-control carrier, with the bandit's beanie photo on his phone.
   - The raccoon tumbles out, straightens the beanie and scurries up to his hole. The camper lets him keep it.
   - The camper's friend shrugs, and they drive off.
 - **See:** the raccoon's tree and hole in moonlight; the teal station wagon's headlights; the open carrier; the camper kneeling with the beanie photo on his phone; the raccoon mid-tumble in the beanie; a dotted arrow up the trunk to his hole; crickets in the grass.
@@ -275,7 +283,7 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
   - the noise and the smell hitting him at once at the edge of town;
   - the bungee frisbee;
   - the window photos and the poster;
-  - the group chat told only in photos and emoji, with the bandit on the fence outside;
+  - the dogs' chase: the false trail round the tree, the dogs barking up it, and their racket bringing the van;
   - the burger flip, the sausage string, the limbo and the sausage dog;
   - the officer waiting with marshmallows, the trail, the stick on a string and the sad trombone;
   - the iris-out.
@@ -285,12 +293,12 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 
 | Group | IDs |
 |---|---|
-| Raccoon | CHAR-SLEEP, CHAR-PEEK, CHAR-CLIMB, CHAR-FIDDLE, CHAR-DRAG, CHAR-STARTLED, CHAR-RUN-BEANIE, CHAR-SNIFF, CHAR-BEANIE-FIDDLE, CHAR-PERCH, CHAR-RUN, CHAR-TRAPPED, CHAR-TUMBLE, CHAR-GRIN-BEANIE |
-| People and animals | NPC-CAMPER-ROAST, NPC-CAMPER-LUNGE, NPC-CAMPER-CHASE, NPC-CAMPER-KNEEL, NPC-PARTIER-DANCE, NPC-PARTIER-FREEZE, NPC-PARTIER-TRIP, NPC-PARTIER-REEL, NPC-WATCHER, NPC-NEIGHBOUR-HAND, NPC-NEIGHBOUR-WATCH, NPC-GRILL-MASTER, NPC-KID-LIMBO, NPC-DACHSHUND, NPC-OFFICER-LURK, NPC-OFFICER-YANK, NPC-FRIEND-SHRUG |
-| Places | ENV-HOLE-INSIDE, ENV-TREE, ENV-CAMPSITE, ENV-TOWN-EDGE, ENV-TOWN-ALLEY, ENV-LIVING-ROOM, ENV-BLOCK-PARTY |
-| Props | PROP-ACORNS, PROP-STRING-LIGHTS, PROP-SPEAKER, PROP-PLUG, PROP-FIRE, PROP-GRILL, PROP-TENT, PROP-COOLER, PROP-BACKPACK, PROP-MARSHMALLOWS, PROP-PHONE, PROP-PAN, PROP-BEANIE, PROP-CAR, PROP-VAN, PROP-TRASH-BAGS, PROP-TOWN-CAR, PROP-BIN, PROP-BUNGEE, PROP-POSTER, PROP-PHONE-CHAT, PROP-SAUSAGES, PROP-BURGER, PROP-CARRIER, PROP-TRAP-STICK, PROP-NET, PROP-ANIMAL-VAN |
+| Raccoon | CHAR-SLEEP, CHAR-PEEK, CHAR-CLIMB, CHAR-FIDDLE, CHAR-DRAG, CHAR-STARTLED, CHAR-RUN-BEANIE, CHAR-SNIFF, CHAR-BEANIE-FIDDLE, CHAR-RUN, CHAR-PERCH, CHAR-TRAPPED, CHAR-TUMBLE, CHAR-GRIN-BEANIE |
+| People and animals | NPC-CAMPER-ROAST, NPC-PARTIER-DANCE, NPC-PARTIER-FREEZE, NPC-CAMPER-LUNGE, NPC-CAMPER-CHASE, NPC-PARTIER-TRIP, NPC-PARTIER-REEL, NPC-WATCHER, NPC-DOG-BIG-BARK, NPC-DOG-TINY-YAP, NPC-DOG-SAUSAGE-SNIFF, NPC-GRILL-MASTER, NPC-NEIGHBOUR-WATCH, NPC-KID-LIMBO, NPC-DOG-SAUSAGE-LEAP, NPC-OFFICER-LURK, NPC-OFFICER-YANK, NPC-CAMPER-KNEEL, NPC-FRIEND-SHRUG |
+| Places | ENV-HOLE-INSIDE, ENV-CAMPSITE, ENV-TREE, ENV-TOWN-EDGE, ENV-TOWN-ALLEY, ENV-BACK-ALLEY, ENV-BLOCK-PARTY |
+| Props | PROP-ACORNS, PROP-STRING-LIGHTS, PROP-SPEAKER, PROP-FIRE, PROP-GRILL, PROP-TENT, PROP-COOLER, PROP-BACKPACK, PROP-CAR, PROP-MARSHMALLOWS, PROP-PLUG, PROP-PHONE, PROP-PAN, PROP-BEANIE, PROP-TRASH-BAGS, PROP-BIN, PROP-BUNGEE, PROP-TOWN-CAR, PROP-POSTER, PROP-FENCE, PROP-ANIMAL-VAN, PROP-SAUSAGES, PROP-BURGER, PROP-CARRIER, PROP-TRAP-STICK, PROP-NET, PROP-VAN |
 | UI | UI-TODO-CARDS, UI-TODO-LIST |
-| Sound | SFX-BASS-THUMP, SFX-BONK, SFX-SLIDE, SFX-LAND, SFX-PAPER, SFX-ZIP, SFX-WHOOSH, SFX-PLUG-POP, SFX-MUSIC-WINDDOWN, SFX-FLOURISH, SFX-CRINKLE, SFX-GASP-YELP, SFX-THUD, SFX-CRASH, SFX-BOING, SFX-HORN, SFX-SNIFF, SFX-TWANG, SFX-CAMERA-CLICK, SFX-PHONE-PING, SFX-SIZZLE, SFX-CROWD-OOH, SFX-BARK, SFX-SLAM, SFX-CROWD-CHEER, SFX-SAD-TROMBONE, SFX-CAR-DOOR, SFX-ENGINE |
+| Sound | SFX-BASS-THUMP, SFX-BONK, SFX-SLIDE, SFX-LAND, SFX-PAPER, SFX-ZIP, SFX-WHOOSH, SFX-PLUG-POP, SFX-MUSIC-WINDDOWN, SFX-FLOURISH, SFX-CRINKLE, SFX-GASP-YELP, SFX-THUD, SFX-CRASH, SFX-BOING, SFX-HORN, SFX-SNIFF, SFX-TWANG, SFX-CAMERA-CLICK, SFX-BARK, SFX-YAP, SFX-SKID, SFX-SIZZLE, SFX-CROWD-OOH, SFX-SLAM, SFX-CROWD-CHEER, SFX-SAD-TROMBONE, SFX-ENGINE, SFX-CAR-DOOR |
 | Music and ambience | MUS-PARTY, MUS-PIANO-LOOP, MUS-PIANO-CHASE, MUS-PIANO-TOWN, MUS-THEME-SLOW, AMB-FOREST, AMB-TOWN |
 
 The slice won't need all of these. Which ones it builds is decided later, in CHANGE-BRIEF.md.
@@ -312,12 +320,14 @@ The slice won't need all of these. Which ones it builds is decided later, in CHA
   - one more panel in the town.
 - **Your change for draft v3 (5 Oct 2026):** three more town panels before he's caught, because the town was too light.
 - **Your change for draft v4 (5 Oct 2026):** the beanie camper is a man and the story's other main character, the one who brings the raccoon home and lets him go.
+- **Your change for draft v5 (5 Oct 2026):** the group chat is cut, because it made no sense to you. Panel 11 is now the neighbourhood dogs chasing him.
 - **Claude's contributions:**
   - the shot list and the wording of every panel;
   - the specific gags and choices listed under Open choices, including what happens in the marshmallow trap and the crinkle that links panels 6 and 7;
   - making panel 8 the recovery beat once Shooed off was cut, since the brief asks for one;
   - the camper's look: the short hair and beard that replaced the ponytail of earlier drafts;
   - staging the three new town panels from CONCEPT.md's Act 2 (the edge of town, the group chat, the block party barbecue), and the town's to-do cards from its town jobs;
+  - the dogs' chase that replaced the group chat in panel 11;
   - the thumbnails, drawn in code by `design/storyboard/make_thumbnails.py`. Run `python design/storyboard/make_thumbnails.py` to redraw them after edits.
 - **Generative models:** none. No panel was made with an image generator.
 - **Your edits:** ________

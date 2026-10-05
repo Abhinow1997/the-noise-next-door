@@ -1568,95 +1568,127 @@ def watcher(x, y, shirt, hair, flip=1):
     return g(*parts, transform=place(x, y, 1.0, 0, flip))
 
 
-def emoji(x, y, r, mood):
-    """A round yellow reaction face: 'shock' or 'laugh'."""
-    o = ol(2)
-    out = [circle(x, y, r, "#ffd166", **o)]
-    if mood == "shock":
-        out += [circle(x - r * 0.36, y - r * 0.2, r * 0.15, P["outline"]), circle(x + r * 0.36, y - r * 0.2, r * 0.15, P["outline"]),
-                ellipse(x, y + r * 0.4, r * 0.2, r * 0.27, P["outline"])]
-    else:
-        for side in (-1, 1):
-            ex = x + side * r * 0.36
-            out.append(path(f"M {num(ex - r * 0.18)} {num(y - r * 0.12)} Q {num(ex)} {num(y - r * 0.42)} {num(ex + r * 0.18)} "
-                            f"{num(y - r * 0.12)}", stroke=P["outline"], stroke_width=2.5, stroke_linecap="round"))
-        out += [path(f"M {num(x - r * 0.5)} {num(y + r * 0.08)} Q {num(x)} {num(y + r * 0.8)} {num(x + r * 0.5)} {num(y + r * 0.08)} Z",
-                     P["outline"]),
-                ellipse(x - r * 0.82, y + r * 0.05, r * 0.14, r * 0.22, P["sweat"])]
+def picket_fence(x0, x1, top, bottom, color="#7a5f4a", plank=46):
+    """A wooden backyard fence seen from the front. `top` is the tip of the planks, `bottom` the ground."""
+    out = []
+    for px in range(int(x0), int(x1), plank):
+        out.append(path(f"M {px} {num(bottom)} L {px} {num(top + 14)} L {num(px + plank / 2)} {num(top)} "
+                        f"L {px + plank} {num(top + 14)} L {px + plank} {num(bottom)} Z", color, **ol(2.5)))
+    for ry in (top + 44, bottom - 46):
+        out.append(rect(x0, ry, x1 - x0, 12, shade(color, 0.78)))
     return "".join(out)
 
 
-def avatar(x, y, color, r=22):
-    """A chat avatar: a coloured circle with a head and shoulders, and no name."""
-    return (circle(x, y, r, color, **ol(2.5)) + circle(x, y - r * 0.22, r * 0.36, P["skin"])
-            + path(f"M {num(x - r * 0.62)} {num(y + r * 0.7)} Q {num(x)} {num(y - r * 0.05)} {num(x + r * 0.62)} {num(y + r * 0.7)} Z",
-                   shade(color, 0.7)))
+def yard_tree(x, ground, top, k):
+    """A plain backyard tree, with no hole: a trunk from the ground up to `top` under a round canopy."""
+    sw = max(2.0, 0.03 * k)
+    w = 0.5 * k
+    out = [ellipse(x + 0.2 * k, ground + 4, 1.1 * k, 0.22 * k, P["shadow"], opacity=0.45),
+           path(f"M {num(x - w * 0.9)} {num(ground)} Q {num(x - w * 0.5)} {num(ground - 0.3 * k)} {num(x - w * 0.45)} "
+                f"{num(ground - 0.8 * k)} L {num(x - w * 0.38)} {num(top)} L {num(x + w * 0.38)} {num(top)} "
+                f"L {num(x + w * 0.45)} {num(ground - 0.8 * k)} Q {num(x + w * 0.5)} {num(ground - 0.3 * k)} "
+                f"{num(x + w * 0.9)} {num(ground)} Z", P["trunk"], **ol(sw))]
+    for i, dx in enumerate((-0.2, 0.05, 0.25)):
+        out.append(path(f"M {num(x + dx * w)} {num(ground - 0.3 * k)} q {num(0.04 * k)} {num(-1.2 * k)} 0 {num(-2.2 * k)}",
+                        stroke=P["bark"], stroke_width=max(2, 0.03 * k), stroke_linecap="round"))
+    for bx, by, r in ((0, -0.4, 1.6), (-1.2, 0.3, 1.2), (1.2, 0.2, 1.25), (-0.5, -1.5, 1.2), (0.8, -1.3, 1.1)):
+        out.append(circle(x + bx * k, top + by * k, r * k, P["foliage2"] if bx > 0 else P["foliage"]))
+    return "".join(out)
 
 
-def panel_the_group_chat(pid):
-    """The group chat: a neighbour's phone fills up with photos of the bandit, while he sits on the fence outside."""
+def big_dog(x, y, s=1.0, facing=1):
+    """The big shaggy dog, up on its hind legs with its front paws on a trunk, barking up it.
+    (x, y) is the ground under its hind feet."""
+    sw = 3 / s
+    o = ol(sw)
+    fur, dark, patch, collar = "#eee7da", "#cfc7b8", "#7c8798", "#f2c14e"
+
+    def leg(d, color, width=30):
+        return (path(d, stroke=P["outline"], stroke_width=width + 2 * sw, stroke_linecap="round")
+                + path(d, stroke=color, stroke_width=width, stroke_linecap="round"))
+
+    parts = [ellipse(10, 4, 66, 11, P["shadow"], opacity=0.45),
+             leg("M -36 -100 Q -80 -112 -88 -164", fur, 26),
+             leg("M -18 -70 L -20 -6", dark, 32), leg("M 22 -66 L 26 -6", fur, 34),
+             ellipse(-18, -2, 24, 10, dark, **o), ellipse(28, -2, 26, 10, fur, **o),
+             ellipse(36, -150, 106, 58, fur, rot=-58, **o),
+             ellipse(4, -112, 30, 22, patch, rot=-58), ellipse(60, -196, 22, 16, patch, rot=-58),
+             leg("M 86 -196 L 140 -222", dark), leg("M 74 -228 L 132 -264", fur),
+             ellipse(132, -222, 14, 11, dark, **o), ellipse(126, -264, 14, 11, fur, **o),
+             ellipse(78, -252, 13, 30, collar, rot=-32, **o),
+             circle(92, -298, 44, fur, **o),
+             ellipse(60, -286, 17, 34, dark, rot=20, **o),
+             ellipse(124, -324, 28, 20, fur, rot=-40, **o),
+             path("M 66 -324 Q 84 -356 118 -340 Q 112 -326 100 -330 Q 90 -312 74 -318 Z", dark, **o)]
+    # Shaggy clumps of fur along the back and chest.
+    for cx, cy, a in ((-6, -84, 150), (10, -132, 130), (30, -176, 120), (98, -168, -40), (110, -146, -50)):
+        parts.append(path(f"M {cx} {cy} q {num(14 * math.cos(math.radians(a)))} {num(14 * math.sin(math.radians(a)))} "
+                          f"{num(4 * math.cos(math.radians(a + 90)))} {num(22 * math.sin(math.radians(a + 60)))}",
+                          stroke=dark, stroke_width=4, stroke_linecap="round"))
+    parts += [
+             circle(140, -342, 8, P["outline"]),
+             path("M 106 -304 Q 130 -292 146 -318 L 136 -326 Q 126 -312 112 -314 Z", P["outline"]),
+             ellipse(126, -304, 8, 5, "#f09ab0")]
+    return g(*parts, transform=place(x, y, s, 0, facing))
+
+
+def tiny_dog(x, y, s=1.0, facing=1, hop=26):
+    """The tiny yappy dog, bouncing mid-yap. (x, y) is the ground under it."""
+    sw = 3 / s
+    o = ol(sw)
+    fur, collar = "#f0c08a", "#9b8fc9"
+    tail = "M -30 -40 q -24 -14 -16 -34 q 12 -8 16 6"
+    body = [path(tail, stroke=P["outline"], stroke_width=10 + 2 * sw, stroke_linecap="round"),
+            path(tail, stroke=fur, stroke_width=10, stroke_linecap="round"),
+            rect(-20, -20, 9, 20, fur, rx=4, **o), rect(10, -20, 9, 20, fur, rx=4, **o),
+            ellipse(0, -34, 32, 22, fur, **o)]
+    body += [circle(px, py, r, fur, **o) for px, py, r in ((-24, -40, 13), (-8, -50, 14), (10, -50, 13), (-12, -26, 14))]
+    body += [poly([(20, -78), (24, -102), (36, -82)], fur, **o), poly([(40, -80), (50, -100), (54, -76)], fur, **o),
+             circle(38, -66, 20, fur, **o), ellipse(22, -50, 6, 14, collar, rot=30, **o),
+             circle(42, -70, 3.5, P["outline"]), circle(57, -62, 4, P["outline"]), ellipse(49, -52, 7, 6, P["outline"])]
+    return g(ellipse(0, 3, 30, 7, P["shadow"], opacity=0.45), g(*body, transform=f"translate(0 {num(-hop)})"),
+             transform=place(x, y, s, 0, facing))
+
+
+def panel_barking_up_the_wrong_tree(pid):
+    """Barking up the wrong tree: the three dogs chase him; a false trail round a tree leaves them barking at nothing."""
     d = Defs(pid)
-    out = [rect(0, 0, W, H, "#3b2c3c"), ellipse(140, 300, 560, 560, d.radial("lamp", "#ffcf8a", 0.32))]
-    # Through the window: the bandit himself, on the back fence, by a bin he has already tipped over.
-    wx0, wy0, ww, wh = 960, 80, 580, 560
-    out += [rect(wx0, wy0, ww, wh, d.vertical("night", P["sky_top"], "#3a3f7a"), **ol(6)), circle(1452, 168, 40, P["moon"])]
-    rng = random.Random(15)
-    for _ in range(26):
-        out.append(circle(rng.uniform(wx0 + 10, wx0 + ww - 10), rng.uniform(wy0 + 10, wy0 + 300), rng.uniform(1.2, 2.2),
-                          P["star"], opacity=0.8))
-    out.append(rect(wx0 + 3, wy0 + 470, ww - 6, wh - 473, P["ground"]))
-    for fx in range(wx0 + 6, wx0 + ww - 30, 46):
-        out.append(path(f"M {fx} {wy0 + 500} L {fx} {wy0 + 360} L {fx + 19} {wy0 + 344} L {fx + 38} {wy0 + 360} L {fx + 38} {wy0 + 500} Z",
-                        "#6b5a4a", **ol(2.5)))
-    out += [rect(wx0 + 3, wy0 + 388, ww - 6, 14, "#57493c"),
-            bin_can(wx0 + 470, wy0 + 548, 90, lid=False),
-            g(ellipse(0, 0, 34, 11, P["bin"], **ol(2.5)), transform=f"translate({wx0 + 390} {wy0 + 540}) rotate(14)"),
-            raccoon(wx0 + 330, wy0 + 346, 0.42, facing=-1, pose="stand", beanie=True, mouth="grin", shadow=False),
-            line(wx0 + 200, wy0, wx0 + 200, wy0 + wh, "#5a4450", 14), line(wx0, wy0 + 210, wx0 + ww, wy0 + 210, "#5a4450", 14),
-            rect(wx0, wy0, ww, wh, "none", stroke="#5a4450", stroke_width=20),
-            rect(wx0 - 24, wy0 + wh - 4, ww + 48, 26, "#5a4450", **ol(3)),
-            path(f"M {wx0 - 40} {wy0 - 30} Q {wx0 + 30} {wy0 + 280} {wx0 - 10} {wy0 + wh + 20} L {wx0 - 80} {wy0 + wh + 20} "
-                 f"L {wx0 - 80} {wy0 - 30} Z", "#7a5a6a", **ol(3))]
+    rng = random.Random(11)
+    out = [rect(0, 0, W, H, "#3d5c50")]
+    # The backs of the houses beyond the fence. One neighbour leans out with a phone.
+    for hx_, hw, col in ((-30, 330, "#3b4566"), (300, 300, "#4a4060"), (600, 340, "#35505a"), (940, 300, "#4b4a63"),
+                         (1240, 400, "#3e5466")):
+        out.append(rect(hx_, -10, hw, 175, col, **ol(3)))
+        for wx in (hx_ + hw * 0.15, hx_ + hw * 0.62):
+            out.append(rect(wx, 24, hw * 0.22, 70, "#ffe7a8" if rng.random() < 0.6 else "#262c44", **ol(3)))
+    out += [rect(140, 20, 150, 112, "#ffe7a8", **ol(4)), watcher(215, 90, "#8fb59a", "#2f2a24"),
+            rect(132, 128, 166, 14, "#2e3a50", **ol(3)), burst(260, 28, 24, P["white"]),
+            picket_fence(-20, W + 46, 150, 330)]
+    for _ in range(70):
+        out.append(tuft(rng.uniform(0, W), rng.uniform(345, 690), 1.3))
+    # The lane along the bottom, where the animal-control van is turning in, its headlights on.
+    out += [rect(0, 712, W, 188, P["asphalt"]), rect(0, 704, W, 12, "#2f3238"),
+            line(0, 820, 1200, 820, "#d9c36a", 6, stroke_dasharray="46 34", opacity=0.7),
+            g(ellipse(0, 0, 44, 15, P["bin"], **ol(3)), rect(-9, -12, 18, 8, P["bin_dark"], **ol(2)),
+              transform="translate(330 780) rotate(-8)"),
+            poly([(1296, 808), (860, 730), (860, 900), (1296, 862)], P["beam"], opacity=0.16),
+            van(1480, 884, 80, hv=1.0, facing=-1, body="#e9e5da", top=P["carrier"], cargo=True)]
 
-    # The phone, filling the frame. No words in the chat: only photos, emoji and faces.
-    phone = [rect(-236, -420, 472, 840, "#22252c", rx=48, **ol(4)), rect(-212, -382, 424, 762, "#eef1f6", rx=26),
-             rect(-212, -382, 424, 66, "#d9dee8", rx=26), rect(-212, -340, 424, 24, "#d9dee8"),
-             avatar(-176, -349, "#9b8fc9", 16), avatar(-150, -349, "#4fb3a9", 16), avatar(-124, -349, "#f0a24a", 16)]
-    for i in range(3):
-        phone.append(circle(150 + i * 14, -349, 4, "#8a90a0"))
-    # A photo of him in the diner dumpster.
-    photo = [rect(-152, -300, 240, 124, P["white"], rx=16, **ol(2.5)), rect(-142, -290, 220, 104, "#2b3346", rx=10),
-             raccoon_face(-30, -244, 0.42, eyes="wide"), rect(-112, -226, 164, 40, "#56715f", **ol(2)),
-             rect(-120, -234, 180, 12, "#466251", **ol(2)), burst(46, -272, 12, P["white"])]
-    phone += [avatar(-184, -250, "#9b8fc9")] + photo
-    # Your reaction.
-    phone += [rect(78, -164, 120, 58, "#8fc1e8", rx=18, **ol(2.5)), emoji(108, -135, 18, "shock"), emoji(166, -135, 18, "shock")]
-    # The photo that goes round town: him in the beanie. A thumb goes to share it.
-    phone += [avatar(-184, 30, "#4fb3a9"), rect(-152, -88, 290, 170, P["white"], rx=16, **ol(2.5)),
-              rect(-142, -78, 270, 150, "#cfe6f2", rx=10), raccoon_face(-7, 4, 0.82, beanie=True, mouth="smirk"),
-              burst(100, -56, 14, P["white"])]
-    for i, mood in enumerate(("laugh", "laugh", "shock", "laugh")):
-        phone.append(emoji(-118 + i * 34, 96, 15, mood))
-    phone += [circle(176, -8, 22, "#d9dee8", **ol(2.5)),
-              path("M 166 0 Q 168 -16 184 -16 M 178 -24 L 186 -16 L 178 -8", stroke=P["ink"], stroke_width=3.5,
-                   stroke_linecap="round", stroke_linejoin="round")]
-    # Someone has sent the animal-control van. Someone else is typing.
-    phone += [avatar(-184, 196, "#f0a24a"), rect(-152, 132, 236, 112, P["white"], rx=16, **ol(2.5)),
-              rect(-142, 142, 216, 92, "#2b3346", rx=10),
-              g(van(0, 0, 22, hv=1.0, body="#e9e5da", top=P["carrier"], cargo=True), transform="translate(-34 222)"),
-              avatar(-184, 302, "#8fb59a"), rect(-152, 280, 92, 44, P["white"], rx=22, **ol(2.5))]
-    for i in range(3):
-        phone.append(circle(-128 + i * 22, 302, 6, "#8a90a0"))
-    phone += [rect(-198, 340, 396, 32, "#ffffff", rx=16, **ol(2)),
-              # The neighbour's hand: fingers round the left edge, thumb reaching for the share button.
-              ellipse(170, 560, 230, 150, P["skin"], **ol(4))]
-    for fy in (100, 168, 236):
-        phone.append(rect(-262, fy, 58, 54, P["skin"], rx=26, **ol(3.5)))
-    phone += [path("M 280 470 Q 240 210 198 50", stroke=P["outline"], stroke_width=78, stroke_linecap="round"),
-              path("M 280 470 Q 240 210 198 50", stroke=P["skin"], stroke_width=70, stroke_linecap="round"),
-              ellipse(201, 64, 20, 28, "#f3cfb3", rot=-14),
-              vibration(-250, -240, 30, 3, 18, 150, 210, P["fx"], 5), vibration(250, -300, 30, 3, 18, -30, 30, P["fx"], 5)]
-    out.append(g(*phone, transform="translate(560 470) rotate(-5)"))
+    # The tree he ran rings round, and his real way out: behind the bins and up onto the fence.
+    tx, ty = 560, 470
+    loop = [(tx + 190 * math.cos(math.radians(a)), ty + 40 + 62 * math.sin(math.radians(a))) for a in range(150, 560, 30)]
+    out += [yard_tree(tx, ty, 150, 80),
+            wisp([(0, 610), (200, 590)] + loop, color=P["spark"], width=5, opacity=0.7),
+            arrow([loop[-1], (920, 540), (1060, 470), (1140, 330), (1168, 210)], color=P["spark"], width=6, dash="4 12"),
+            bin_can(1100, 420, 110), bin_can(1220, 426, 110, lid=False),
+            raccoon(1180, 156, 0.42, facing=-1, pose="rear", beanie=True, eyes="open", mouth="grin", shadow=False)]
+
+    # The dogs end up at the tree, barking at nothing.
+    out += [dachshund(385, 560, 0.55, -1, -10), dust(440, 556, 0.4),
+            path("M 318 528 q -10 6 -4 16 M 306 520 q -14 8 -6 22", stroke=P["fx"], stroke_width=3, stroke_linecap="round"),
+            tiny_dog(470, 572, 0.9, 1), vibration(520, 470, 16, 2, 12, 260, 330, P["fx"], 4),
+            big_dog(700, 566, 0.75, -1), vibration(600, 300, 34, 3, 18, 200, 260, P["fx"], 5),
+            hud(done=("dumpster", "bungee"), tasks=TOWN_TASKS)]
     return d.svg(), "".join(out)
 
 
@@ -1974,7 +2006,7 @@ PANELS = [
     ("the-red-beanie", "The red beanie", "wide · eye level, side-on", "design", panel_the_red_beanie),
     ("edge-of-town", "Edge of town", "wide · low angle, at his height", "design", panel_edge_of_town),
     ("the-masked-bandit", "The masked bandit", "wide · high 3/4", "gameplay", panel_the_masked_bandit),
-    ("the-group-chat", "The group chat", "close-up · eye level", "design", panel_the_group_chat),
+    ("barking-up-the-wrong-tree", "Barking up the wrong tree", "wide · high 3/4", "gameplay", panel_barking_up_the_wrong_tree),
     ("the-barbecue-heist", "The barbecue heist", "medium · high 3/4", "gameplay", panel_the_barbecue_heist),
     ("the-marshmallow-trap", "The marshmallow trap", "medium · eye level, side-on", "design", panel_the_marshmallow_trap),
     ("home-at-last", "Home at last", "wide · eye level", "design", panel_home_at_last),
