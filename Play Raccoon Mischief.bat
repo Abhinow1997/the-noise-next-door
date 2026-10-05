@@ -1,0 +1,14 @@
+@echo off
+rem Double-click this file to play the game.
+rem Looks for Godot 4.7.2 in the GODOT variable, then %LOCALAPPDATA%\Programs\Godot,
+rem then the original Downloads folder. Extra arguments are passed to the game.
+set "GODOT_EXE=%GODOT%"
+if not defined GODOT_EXE if exist "%LOCALAPPDATA%\Programs\Godot\Godot_v4.7.2-stable_win64.exe" set "GODOT_EXE=%LOCALAPPDATA%\Programs\Godot\Godot_v4.7.2-stable_win64.exe"
+if not defined GODOT_EXE if exist "%USERPROFILE%\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe" set "GODOT_EXE=%USERPROFILE%\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe"
+if not defined GODOT_EXE (
+	echo Could not find Godot 4.7.2.
+	echo Install it to %LOCALAPPDATA%\Programs\Godot, or set GODOT to the path of its .exe.
+	pause
+	exit /b 1
+)
+start "" "%GODOT_EXE%" --path "%~dp0." %*

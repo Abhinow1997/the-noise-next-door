@@ -1,0 +1,12 @@
+# Godot's import cache and editor state
+.godot/
+/android/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS clutter
+Thumbs.db
+desktop.ini
+.DS_Store
