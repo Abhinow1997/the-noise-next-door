@@ -643,10 +643,10 @@ def hand_prop(kind, hand, angle, sw):
 
 
 def person(x, y, s=1.0, facing=1, shirt=P["jacket"], pants=P["jeans"], hair=P["hair"], skin=P["skin"],
-           beanie=False, pose="stand", face="smile", prop=None, prop2=None, ponytail=False, messy=False,
+           beanie=False, pose="stand", face="smile", prop=None, prop2=None, beard=False, messy=False,
            rot=0.0, shadow=True, cap=None, badge=False):
     """Side view, facing right before `facing` flips it. (x, y) is the ground under the feet.
-    `cap` is the colour of a peaked cap; `badge` pins a badge to the chest."""
+    `beard` adds a short rounded beard; `cap` is the colour of a peaked cap; `badge` pins a badge to the chest."""
     pz = PERSON_POSES[pose]
     sw = 3.0 / s
     o = ol(sw)
@@ -665,16 +665,15 @@ def person(x, y, s=1.0, facing=1, shirt=P["jacket"], pants=P["jeans"], hair=P["h
     torso = (path(torso_d, stroke=P["outline"], stroke_width=46 + 2 * sw, stroke_linecap="round")
              + path(torso_d, stroke=shirt, stroke_width=46, stroke_linecap="round"))
 
-    head = []
-    if ponytail and not beanie:
-        head.append(ellipse(hx - 24, hy + 8, 9, 16, hair, rot=24, **o))
-    elif ponytail:
-        head.append(ellipse(hx - 22, hy + 10, 8, 14, hair, rot=24, **o))
-    head += [circle(hx, hy, 22, skin, **o),
-             path(f"M {num(hx - 22)} {num(hy + 4)} Q {num(hx - 26)} {num(hy - 24)} {num(hx)} {num(hy - 24)} "
-                  f"Q {num(hx + 20)} {num(hy - 24)} {num(hx + 22)} {num(hy - 8)} Q {num(hx + 6)} {num(hy - 14)} "
-                  f"{num(hx - 4)} {num(hy - 6)} Q {num(hx - 12)} {num(hy + 8)} {num(hx - 22)} {num(hy + 4)} Z", hair, **o),
-             circle(hx + 21, hy + 3, 4.2, skin, **o)]
+    head = [circle(hx, hy, 22, skin, **o),
+            path(f"M {num(hx - 22)} {num(hy + 4)} Q {num(hx - 26)} {num(hy - 24)} {num(hx)} {num(hy - 24)} "
+                 f"Q {num(hx + 20)} {num(hy - 24)} {num(hx + 22)} {num(hy - 8)} Q {num(hx + 6)} {num(hy - 14)} "
+                 f"{num(hx - 4)} {num(hy - 6)} Q {num(hx - 12)} {num(hy + 8)} {num(hx - 22)} {num(hy + 4)} Z", hair, **o),
+            circle(hx + 21, hy + 3, 4.2, skin, **o)]
+    if beard:
+        head.append(path(f"M {num(hx - 10)} {num(hy + 2)} Q {num(hx - 12)} {num(hy + 24)} {num(hx + 4)} {num(hy + 28)} "
+                         f"Q {num(hx + 20)} {num(hy + 28)} {num(hx + 22)} {num(hy + 12)} Q {num(hx + 12)} {num(hy + 18)} "
+                         f"{num(hx + 2)} {num(hy + 14)} Q {num(hx - 4)} {num(hy + 10)} {num(hx - 10)} {num(hy + 2)} Z", hair, **o))
     if messy:
         for dx_, dy_ in ((-14, -22), (-4, -26), (8, -24), (16, -18)):
             head.append(line(hx + dx_, hy + dy_, hx + dx_ * 1.4, hy + dy_ * 1.5, hair, 4))
@@ -781,9 +780,9 @@ def person_front(x, y, s=1.0, shirt="#9b8fc9", pants=P["jeans"], hair=P["hair"],
 
 def camper(x, y, s, pose, facing=1, beanie=True, face="smile", prop=None, prop2=None, messy=False, shadow=True,
            shirt=P["jacket"], hair=P["hair"]):
-    """The camper whose red beanie the raccoon ends up wearing."""
+    """The camper whose red beanie the raccoon ends up wearing, and who brings him home: the other main character."""
     return person(x, y, s, facing=facing, shirt=shirt, hair=hair, beanie=beanie, pose=pose, face=face, prop=prop,
-                  prop2=prop2, ponytail=True, messy=messy, shadow=shadow)
+                  prop2=prop2, beard=True, messy=messy, shadow=shadow)
 
 
 # --- The party set -----------------------------------------------------------------
@@ -1345,7 +1344,7 @@ def panel_music_off(pid):
 
 
 def panel_busted(pid):
-    """Busted: with the music off, the bag's crinkle gives him away; the camper looms in with her phone light."""
+    """Busted: with the music off, the bag's crinkle gives him away; the camper looms in with his phone light."""
     d = Defs(pid)
     out = [rect(0, 0, W, H, d.vertical("sky", P["sky_top"], P["sky_low"]))]
     rng = random.Random(8)
@@ -1374,7 +1373,7 @@ def panel_busted(pid):
 
 
 def panel_the_red_beanie(pid):
-    """The red beanie: the getaway after the bust; partiers trip and bonk; he swipes her beanie and bolts."""
+    """The red beanie: the getaway after the bust; partiers trip and bonk; he swipes the camper's beanie and bolts."""
     d = Defs(pid)
     out = [rect(0, 0, W, H, d.vertical("sky", P["sky_top"], P["sky_low"])), circle(1320, 150, 58, P["moon"]),
            circle(1320, 150, 110, d.radial("moon", P["moon"], 0.25))]

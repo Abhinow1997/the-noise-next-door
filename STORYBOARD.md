@@ -1,6 +1,6 @@
 # Storyboard: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3, 5 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v4, 5 Oct 2026
 
 The whole story in 15 panels: from the night a party wakes the raccoon to the night it all starts again. There's no dialogue. Every beat comes across through what the player does and what happens next, with big, slapstick, non-verbal reactions.
 
@@ -18,7 +18,7 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
   - He raids the diner's dumpster and its raccoon-proof bins, and the neighbourhood group chat fills up with photos of the masked bandit in the beanie.
   - His biggest heist is the block party barbecue. But animal control has been watching, and a trail of marshmallows finally catches him.
 - **Ending (panels 14–15).**
-  - The beanie camper recognises her beanie in the photos going round. She's the only one who knows where he lives, so she brings him home. It's quiet at last.
+  - The beanie camper recognises his own beanie in the photos going round. He's the only one who knows where the raccoon lives, so he drives him home and lets him keep the beanie. It's quiet at last.
   - Then a new party starts below.
 
 ## How the storyboard tells it
@@ -27,7 +27,7 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
   - Some causes carry across panels. Cutting the music in panel 6 is what lets the party hear him in panel 7, and the officer seen waiting in panel 12 springs the trap in panel 13.
 - **No dialogue, no speech bubbles.** The humans grumble, gasp, yelp and laugh, and their reactions are big enough to read from the game camera.
 - **Text-based ideas from CONCEPT.md became visual events:**
-  - The camper's paranoid journal: she gets visibly jumpier instead, with her phone light out in panel 7 and a frying pan in panel 8.
+  - The camper's paranoid journal: he gets visibly jumpier instead, with his phone light out in panel 7 and a frying pan in panel 8.
   - The neighbourhood group chat: a phone screen with no words, only photos, emoji and faces (panel 11), plus window photos and a poster with only his picture (panels 10 and 13).
   - "The End?": a cartoon iris-out.
 - **The only words on screen** are the to-do list's short labels in panel 4. Every card also has a doodle that works without them, and the in-game cards show only the doodles.
@@ -35,11 +35,11 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 ## Continuity
 
 - **The red beanie** is the story's thread, and red is used for nothing else.
-  - The camper wears it whenever she's on screen before panel 8 (panels 2, 3, 5 and 7).
-  - He swipes it in panel 8.
+  - The camper wears it whenever he's on screen before panel 8 (panels 2, 3, 5 and 7).
+  - The raccoon swipes it in panel 8.
   - He wears it from panel 9 on (the trap knocks it up off his head in panel 13), and pulls it on again in panel 15.
-- **The camper** (mustard jacket, ponytail) looks the same throughout, so she's recognisable when she brings him home in panel 14.
-- **The beanie photo** is the same picture everywhere it appears: the poster (panels 10 and 13), the group chat (11) and the camper's phone (14). It's how the campers find him.
+- **The camper** (mustard jacket, short beard) is the story's other main character. He looks the same throughout, so he's recognisable when he brings the raccoon home in panel 14.
+- **The beanie photo** is the same picture everywhere it appears: the poster (panels 10 and 13), the group chat (11) and the camper's phone (14). It's how the camper finds him.
 - **The marshmallows** he goes after at the party (panels 5 and 7) are what the officer brings to the block party (12) and the bait in the trap (13).
 - **Animal control:** the van in the group chat (11) is the one parked at the block party (13). Its paw logo is also on the carrier that traps him (13) and that the camper opens under his tree (14).
 - **The diner's pink neon cup** marks the town, from the edge of town (9) to the alley (10).
@@ -126,7 +126,7 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 ## Panel 5 — Paws on the zipper
 ![Panel 5](design/storyboard/05-paws-on-the-zipper.svg)
 - **Shot:** medium · high 3/4 · gameplay view
-- **Player action:** holds Interact at the backpack while the camper roasts marshmallows with her back to him, and the zipper opens tooth by tooth. A dancer's elbow swings past his head and he freezes mid-pose.
+- **Player action:** holds Interact at the backpack while the camper roasts marshmallows with his back to the raccoon, and the zipper opens tooth by tooth. A dancer's elbow swings past the raccoon's head and he freezes mid-pose.
 - **See:** the raccoon up on his hind legs with his paws in the backpack and marshmallows peeking out; a sweat drop and freeze marks; the camper in the red beanie facing the fire; the marshmallow card highlighted.
 - **Hear:** zipper ticks under the party music; a whoosh as the elbow swings by. *Music:* the piano loop, steady.
 - **Assets:** CHAR-FIDDLE, PROP-BACKPACK, PROP-MARSHMALLOWS, NPC-CAMPER-ROAST, NPC-PARTIER-DANCE, UI-TODO-CARDS, SFX-ZIP, SFX-WHOOSH, MUS-PIANO-LOOP
@@ -144,9 +144,9 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 ## Panel 7 — Busted
 ![Panel 7](design/storyboard/07-busted.svg)
 - **Shot:** medium · low angle · design view (how being caught should feel; in game this plays in the 3/4 camera)
-- **Player action:** goes back for the marshmallows. With the music off the party has gone quiet, and the bag's crinkle carries. She spins round with her phone light. He does a double-take with his fur on end and the bag flies out of his mouth. She lunges and catches her foot on the cooler.
-- **See:** the camper in the red beanie looming with her phone light on him; the raccoon mid-jump with spiky fur and a double-take; the marshmallow bag flying with crinkle marks round it, and marshmallows everywhere; her foot hooked on the cooler.
-- **Hear:** no music to hide under, so the crinkle sounds huge; a gasp, a yelp, and a soft thud as she trips, unhurt. *Music:* the piano cuts out for a beat.
+- **Player action:** goes back for the marshmallows. With the music off the party has gone quiet, and the bag's crinkle carries. The camper spins round with his phone light. The raccoon does a double-take with his fur on end, and the bag flies out of his mouth. The camper lunges and catches his foot on the cooler.
+- **See:** the camper in the red beanie looming with his phone light on the raccoon; the raccoon mid-jump with spiky fur and a double-take; the marshmallow bag flying with crinkle marks round it, and marshmallows everywhere; the camper's foot hooked on the cooler.
+- **Hear:** no music to hide under, so the crinkle sounds huge; a gasp, a yelp, and a soft thud as the camper trips, unhurt. *Music:* the piano cuts out for a beat.
 - **Assets:** CHAR-STARTLED, NPC-CAMPER-LUNGE, PROP-PHONE, PROP-MARSHMALLOWS, PROP-COOLER, SFX-CRINKLE, SFX-GASP-YELP, SFX-THUD
 - **Design reason (pillar 2, Mischief, not malice):** getting caught is a pratfall for both of them, never a punishment. And it was his own prank, the silence, that gave him away.
 
@@ -155,8 +155,8 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 - **Shot:** wide · eye level, side-on · design view (how the getaway should feel; in game the player steers it in the 3/4 camera)
 - **Player action:** runs for it. Being caught isn't game over: the player steers the getaway.
   - The fed-up partiers give chase: one trips over a tent rope, two bonk heads, and the camper's frying pan swings and misses.
-  - As he zips past her, he swipes the red beanie off her head and vanishes into the trees with it. Reaching the trees ends level 1.
-- **See:** the chase under the moon; impact stars; the pan's missed swing; a dotted trail from her bare head to the beanie in his mouth; dark trees swallowing him.
+  - As the raccoon zips past the camper, he snatches the red beanie right off the camper's head and vanishes into the trees with it. Reaching the trees ends level 1.
+- **See:** the chase under the moon; impact stars; the pan's missed swing; a dotted trail from the camper's bare head to the beanie in the raccoon's mouth; dark trees swallowing him.
 - **Hear:** crashes, boings and yelps. *Music:* a loud, fast piano chase that ends on a playful sting.
 - **Assets:** CHAR-RUN-BEANIE, NPC-CAMPER-CHASE, NPC-PARTIER-TRIP, NPC-PARTIER-REEL, PROP-PAN, PROP-BEANIE, SFX-CRASH, SFX-BOING, MUS-PIANO-CHASE
 - **Design reason (pillar 2):** this is the recovery. The bust turns into a getaway he wins, the humans fall over each other, and he leaves with a trophy.
@@ -238,13 +238,13 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 ![Panel 14](design/storyboard/14-home-at-last.svg)
 - **Shot:** wide · eye level · design view (ending cutscene)
 - **Player action:** none; this cutscene follows the capture.
-  - The beanie camper, the only person who knows where he lives, kneels under his tree and opens the animal-control carrier, with the beanie photo from the group chat on her phone.
-  - He tumbles out, straightens the beanie and scurries up to his hole.
-  - Her friend shrugs and they drive off.
-- **See:** his tree and hole in moonlight; the teal station wagon's headlights; the open carrier; the camper kneeling with the beanie photo on her phone; the raccoon mid-tumble in the beanie; a dotted arrow up the trunk to his hole; crickets in the grass.
+  - The beanie camper, the only person who knows where the raccoon lives, kneels under the raccoon's tree and opens the animal-control carrier, with the beanie photo from the group chat on his phone.
+  - The raccoon tumbles out, straightens the beanie and scurries up to his hole. The camper lets him keep it.
+  - The camper's friend shrugs, and they drive off.
+- **See:** the raccoon's tree and hole in moonlight; the teal station wagon's headlights; the open carrier; the camper kneeling with the beanie photo on his phone; the raccoon mid-tumble in the beanie; a dotted arrow up the trunk to his hole; crickets in the grass.
 - **Hear:** the engine idling, a car door, the car fading away, then only crickets. *Music:* the theme, slow and gentle.
 - **Assets:** CHAR-TUMBLE, ENV-TREE, PROP-CARRIER, PROP-CAR, PROP-PHONE, NPC-CAMPER-KNEEL, NPC-FRIEND-SHRUG, SFX-ENGINE, SFX-CAR-DOOR, AMB-FOREST, MUS-THEME-SLOW
-- **Design reason (pillars 2 and 3):** the humans turn out kind, and for the first time in the game his home is quiet.
+- **Design reason (pillars 2 and 3):** the camper he pranked all night turns out kind, and for the first time in the game the raccoon's home is quiet.
 
 ## Panel 15 — Here we go again
 ![Panel 15](design/storyboard/15-here-we-go-again.svg)
@@ -311,10 +311,12 @@ The slice won't need all of these. Which ones it builds is decided later, in CHA
   - Shooed off is cut;
   - one more panel in the town.
 - **Your change for draft v3 (5 Oct 2026):** three more town panels before he's caught, because the town was too light.
+- **Your change for draft v4 (5 Oct 2026):** the beanie camper is a man and the story's other main character, the one who brings the raccoon home and lets him go.
 - **Claude's contributions:**
   - the shot list and the wording of every panel;
   - the specific gags and choices listed under Open choices, including what happens in the marshmallow trap and the crinkle that links panels 6 and 7;
   - making panel 8 the recovery beat once Shooed off was cut, since the brief asks for one;
+  - the camper's look: the short hair and beard that replaced the ponytail of earlier drafts;
   - staging the three new town panels from CONCEPT.md's Act 2 (the edge of town, the group chat, the block party barbecue), and the town's to-do cards from its town jobs;
   - the thumbnails, drawn in code by `design/storyboard/make_thumbnails.py`. Run `python design/storyboard/make_thumbnails.py` to redraw them after edits.
 - **Generative models:** none. No panel was made with an image generator.

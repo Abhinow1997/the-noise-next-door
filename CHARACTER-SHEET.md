@@ -1,21 +1,23 @@
-# Character sheet: the raccoon
+# Character sheet: the raccoon and the camper
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v1, 5 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v2, 5 Oct 2026
 
-This is the contract every generated image of the raccoon must meet. It's committed before any new generation, so the poses are a plan for now. The generated images go in `design/character/` once the reference image is accepted, and each one is judged against this sheet.
+The story has two main characters: the raccoon, whom the player controls, and the camper, whose red beanie he steals and who in the end brings him home. This sheet is the contract every generated image of them must meet. It was first committed before any new generation, so the poses are a plan for now. The generated images go in `design/character/` once each reference image is accepted, and each one is judged against this sheet.
 
 ![The style target](design/reference/Gemini_Generated_Image_kfpcx2kfpcx2kfpc.jpg)
 
-*The style target, generated with Gemini before any design doc was committed (logged in [SOURCES.md](SOURCES.md)).*
+*The style target for both characters, generated with Gemini before any design doc was committed (logged in [SOURCES.md](SOURCES.md)).*
 
-## Who he is
+## The raccoon (the player character)
+
+### Who he is
 
 - A raccoon who lives alone in a hole in an old tree by a campsite. He loves three things: quiet, naps and snacks.
 - He's curious, sneaky and greedy, but never mean (pillar 2). When he's caught he's more embarrassed than scared, and a minute later he's back at it.
 - At a glance, the player should read "a raccoon up to something": a chunky body low to the ground, a masked face and a striped tail.
 - He swipes the camper's red beanie in panel 8 of the storyboard and wears it from then on.
 
-## How he looks
+### How he looks
 
 He follows the style target.
 
@@ -33,7 +35,7 @@ He follows the style target.
 - **Tail:** five charcoal rings alternating with grey, evenly spaced. The fifth ring is the tip.
 - **The beanie** (panel 9 on): a knitted red beanie with a folded brim and a pompom, pulled on over the top of his head with his ears poking up through it. It's the only red thing in the game.
 
-## Palette
+### Palette
 
 The four raccoon colours are measured from the style target's lit areas. The beanie's colours come from the storyboard.
 
@@ -61,7 +63,7 @@ What this means for the images:
 - So every image must keep his strong light-and-dark pattern, with cream and charcoal against grey. Reject images that drift towards an all-mid-grey raccoon.
 - The beanie stands out by its colour rather than its brightness: it's the only red on screen.
 
-## Facing
+### Facing
 
 The player sees him through the game camera: a tilted three-quarter view, about 50° down, that follows him. See the legend in STORYBOARD.md.
 
@@ -71,17 +73,17 @@ The player sees him through the game camera: a tilted three-quarter view, about 
 - Every pose is generated facing front-right. The states the slice uses also get a back-right version. CHANGE-BRIEF.md picks those states.
 - Side views only appear in the storyboard's design-view cutscenes, so the game doesn't need them.
 
-## Silhouette test
+### Silhouette test
 
 *To do once the reference image is accepted.* Fill the image solid black and shrink it to his on-screen size. In the prototype's 1280 × 720 window he's about 130 px tall on screen at the default zoom, and the mouse wheel zooms in or out from there. So test him at 128 px and at 64 px. He passes if his ears, hunched back and ringed tail still read at 64 px.
 
-## Collision
+### Collision
 
 The prototype's player collides as a capsule lying along his body, 0.8 m long and 0.4 m wide and tall, with its bottom at his feet (`scripts/player.gd`). Draw it over every pose at the same scale.
 
 The capsule covers his legs and lower body. His snout, upper back, head and most of his tail stick out past it. That's fair to the player because nothing in the game needs to hit those parts: there's no jumping or ducking. And if humans check the same capsule when they look for him, a tail poking out of a hiding place never gets him caught.
 
-## Poses
+### Poses
 
 The plan is 12 poses, each a single image for one game state. Every pose except the turnaround faces front-right in the game view. Generate each one from the accepted reference image, never from text alone.
 
@@ -102,7 +104,7 @@ The plan is 12 poses, each a single image for one game state. Every pose except 
 
 From panel 9 on he wears the beanie. Make the beanie version of a pose by editing its accepted image with prompt B below, not by generating from scratch.
 
-## Consistency rules
+### Consistency rules
 
 Every image must keep these exactly the same:
 - the proportions above, checked against the turnaround;
@@ -126,16 +128,93 @@ Every image must keep these exactly the same:
 - there's any text, logo or watermark;
 - the beanie hides his ears or changes shape between poses.
 
+## The camper (the other main character)
+
+### Who he is
+
+- He's the camper whose red beanie the raccoon ends up wearing, and the story turns on him. He's the one who chases the raccoon out of the forest, and in the end he's the one who brings him home and lets him go.
+- **At the party (panels 2–8)** he's a creature of habit: he roasts marshmallows, sips cocoa and keeps a journal. As his things go missing he gets jumpier. His phone light comes out in panel 7, and a frying pan in panel 8. He catches the raccoon, trips over the cooler, chases him, and loses his beanie to him.
+- **In town** he isn't on screen. But when the photo of the masked bandit goes round, he recognises his own beanie.
+- **At the end (panel 14)** he's the only one who knows where the raccoon lives, because he chased him out of there. He drives him home, opens the carrier under his tree, and lets him keep the beanie.
+- He never wants to hurt the raccoon, only to get his stuff back (pillar 2), and his tumbles are pratfalls, never injuries. He's the story's straight man: the raccoon's pranks need someone to land on, and the ending needs that someone to turn out kind.
+- He has no lines. He grumbles, gasps, yelps and laughs, and his posture does the rest.
+
+### How he looks
+
+This is Claude's suggestion, and it matches the storyboard.
+
+- **Finish:** the same as the raccoon's: a soft, matte, rounded 3D toy look, like smooth modelling clay. Simple chunky shapes, a round head with small dot eyes, no outlines.
+- **Proportions:** chunky, about 4½ heads tall. Standing beside him, the raccoon's back comes up to about his mid-thigh.
+- **Clothes:** a mustard-yellow zip-up jacket, blue jeans and dark shoes. No logos or text.
+- **Hair and beard:** short, messy brown hair and a short, rounded brown beard. The beard makes him easy to pick out from the other partiers, even from the game camera.
+- **The beanie:** the same knitted red beanie with a folded brim and a pompom. He wears it until panel 8, and after that his hair sticks up where it was.
+- **Props:** a marshmallow-roasting stick, his phone (its light in panel 7, the beanie photo in panel 14), and a frying pan (panel 8).
+
+### Palette
+
+| Colour | Hex | Where |
+|---|---|---|
+| Mustard | `#E0B03C` | jacket |
+| Denim blue | `#3F5A86` | jeans |
+| Brown | `#4A3426` | hair and beard |
+| Skin | `#E6B48F` | face and hands |
+| Beanie red | `#D7263D`, brim shadow `#A51C2E` | the beanie, until panel 8 |
+
+| Ground | Jacket | Jeans | Hair | Skin | Beanie |
+|---|---|---|---|---|---|
+| Campsite ground at night `#2B474C` | 5.0 | 1.4 | 1.2 | 5.4 | 2.0 |
+| Campsite grass at night `#40665F` | 3.2 | 1.1 | 1.8 | 3.4 | 1.3 |
+| Town asphalt `#474B54` | 4.3 | 1.3 | 1.3 | 4.7 | 1.8 |
+
+At night his mustard jacket is what you see first, so keep it in every image. His jeans and hair sink into the dark, like the raccoon's socks. Next to the raccoon the two are told apart by colour, warm mustard against cool grey, rather than by brightness (1.6:1).
+
+### Facing
+
+- In level 1 he's in the gameplay view, so he gets the raccoon's two facings: front-right and back-right, mirrored for the left.
+- His big moments (panels 7, 8 and 14) are design-view cutscenes, so their images can use whatever angle tells the moment best.
+- Collision is only needed if he walks around in the slice. Then he'd use a standing capsule about 0.6 m wide and 1.75 m tall.
+
+### Poses
+
+The plan is 9 poses, one for each beat of his story.
+
+| # | Pose | Story beat | Storyboard panels |
+|---|---|---|---|
+| C1 | Turnaround: front, side, three-quarter and back, all the same height | Reference | — |
+| C2 | Sitting on a log, roasting a marshmallow on a stick, relaxed | His routine | 2, 3, 5 |
+| C3 | Spinning round, phone light held out, mouth open | Catching the raccoon | 7 |
+| C4 | Lunging forward, one foot hooked on a cooler | The pratfall | 7 |
+| C5 | Running with a frying pan raised, no beanie, hair sticking up | The chase | 8 |
+| C6 | Bare-headed, a hand on his hair where the beanie was, huffy | Losing the beanie | 8 |
+| C7 | Looking at his phone, eyebrows up, recognising his beanie in a photo | Finding the bandit | just before 14 |
+| C8 | Kneeling to open a pet carrier, with a gentle smile | Bringing him home | 14 |
+| C9 | Hands in his jacket pockets, smiling as he watches the raccoon go | Letting him keep the beanie | 14 |
+
+### Consistency rules
+
+Every image of him must keep these exactly the same:
+- the finish and proportions of his turnaround: chunky, about 4½ heads tall, a round head with dot eyes;
+- the mustard jacket, blue jeans, dark shoes, messy brown hair and short beard;
+- before panel 8 he wears the beanie, and from panel 8 on he's bare-headed with his hair sticking up;
+- his beanie is exactly the raccoon's beanie: the same knit, folded brim, pompom and red;
+- no other red on him, and no text or logos on his clothes;
+- the same background and no-shadow rules as the raccoon.
+
+**Reject an image if** his jacket colour drifts, his beard or hair changes, the beanie changes shape or colour, he looks realistic rather than like a clay toy, his proportions drift from the turnaround, or there's any text or logo.
+
 ## Generating with Gemini
 
-1. **Reference turnaround (prompt R1).** Attach the style target image. Generate a few and pick the one that best matches this sheet. Save it as `design/character/ref-turnaround.png`, then add the height bar yourself as two lines across the tops and bottoms of the views. Asking Gemini for a height bar tends to add numbers. If you later turn him into a 3D model with an image-to-3D tool, this turnaround is the input those tools want.
-2. **Game-view reference (prompt R2).** Attach the accepted turnaround.
-3. **Poses (prompt P).** For each pose, start a new image from the accepted game-view reference. Make one pose per image.
-4. **Check before accepting.** Look at each image at game size, against the consistency rules and the reject list. You can ask Gemini to fix one thing in an image ("give the tail five evenly spaced rings"); record that in the Edits column.
-5. **Remove the background colour afterwards.** Don't ask for "transparent": that gives a drawn checkerboard.
-6. **Log as you go.** Add a row to SOURCES.md for every image you keep or seriously consider. Record the exact prompt, the attached image, the aspect ratio, the date, and the model name and version Gemini shows. Gemini doesn't show a seed, so say so. Keep rejects as small thumbnails.
+1. **Reference turnarounds (prompts R1 and C-R1).** Attach the style target image. Generate a few of each and pick the one that best matches this sheet. Save them as `design/character/ref-raccoon-turnaround.png` and `design/character/ref-camper-turnaround.png`. Then add the height bar yourself, as two lines across the tops and bottoms of the views; asking Gemini for one tends to add numbers. If you later turn either character into a 3D model with an image-to-3D tool, these turnarounds are the input those tools want.
+2. **Game-view references (prompts R2 and C-R2).** Attach the accepted turnaround.
+3. **Scale check (prompt S).** Attach both game-view references, to lock how big they are next to each other.
+4. **Poses (prompts P and C-P).** For each pose, start a new image from the accepted game-view reference. Make one pose per image.
+5. **Check before accepting.** Look at each image at game size, against the consistency rules and the reject list. You can ask Gemini to fix one thing in an image ("give the tail five evenly spaced rings"); record that in the Edits column.
+6. **Remove the background colour afterwards.** Don't ask for "transparent": that gives a drawn checkerboard.
+7. **Log as you go.** Add a row to SOURCES.md for every image you keep or seriously consider. Record the exact prompt, the attached image, the aspect ratio, the date, and the model name and version Gemini shows. Gemini doesn't show a seed, so say so. Keep rejects as small thumbnails.
 
 The prompts follow the brief's rules: no brand, studio, artist or game names; a flat background colour; no text.
+
+### Raccoon prompts
 
 **R1: reference turnaround.** Attach the style target.
 
@@ -176,31 +255,76 @@ For the back-right facing, change "front-right facing" to "back-right facing, se
 Use the attached image exactly: the same raccoon, pose, camera angle and background. Change only one thing: he now wears a knitted red beanie (#D7263D) with a folded brim and a red pompom, pulled on over the top of his head, with his ears poking up through it. No other red anywhere. No text, no watermark.
 ```
 
+### Camper prompts
+
+**C-R1: reference turnaround.** Attach the style target for its finish and lighting.
+
+```text
+Use the attached image only as the style reference for the finish and lighting. Make a character turnaround sheet of one cartoon young man, a camper: the same man four times, side by side and exactly the same height, as a front view, a side view facing right, a three-quarter view facing front-right, and a back view. Soft, matte, rounded 3D toy look, like smooth modelling clay: simple chunky shapes, about 4.5 heads tall, a round head with small dot eyes, no outlines. He wears a mustard-yellow (#E0B03C) zip-up jacket, blue jeans (#3F5A86), dark shoes, and a knitted red beanie (#D7263D) with a folded brim and a pompom. Short, messy brown (#4A3426) hair shows under the beanie, and he has a short, rounded brown beard. Friendly, a bit anxious. Soft light from the upper left. No cast shadows. Plain, flat, solid bright green background (#22C55E), no floor line, no gradient. Wide 16:9 image. No text, no labels, no logos, no watermark.
+```
+
+**C-R2: game-view reference.** Attach the accepted turnaround.
+
+```text
+Use the attached man as the exact reference: keep his proportions, clothes, colours, hair, beard, beanie and clay finish exactly the same. Show him once, standing, seen from a high three-quarter angle, as if the camera is above and in front of him looking down at about 50 degrees, with his body turned to face front-right. Full body in frame and centred, with space around him. No cast shadow. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. Square image. No text, no logos, no watermark.
+```
+
+**C-P: each pose.** Attach the accepted game-view reference, and replace `[POSE]` with the pose's line below. Each line says whether he has the beanie.
+
+```text
+Use the attached man as the exact reference: keep his proportions, clothes, colours, hair, beard and clay finish exactly the same. Change only his pose: [POSE]. Full body in frame and centred. No cast shadow. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. Square image. No text, no logos, no watermark.
+```
+
+| # | Pose | `[POSE]` |
+|---|---|---|
+| C2 | Roasting | sitting on a log, relaxed, roasting a marshmallow on a long stick, wearing his red beanie |
+| C3 | Spinning round | spinning round in surprise, holding his phone out with its light on, mouth open, wearing his red beanie |
+| C4 | The pratfall | lunging forward with his arms out, one foot hooked on a blue cooler, about to trip, wearing his red beanie |
+| C5 | The chase | running with a frying pan raised, no beanie, his messy hair sticking up |
+| C6 | Lost beanie | standing with no beanie, one hand on top of his messy hair where it used to be, looking huffy |
+| C7 | Recognising | looking at his phone with his eyebrows raised, recognising something in a photo, no beanie |
+| C8 | Bringing him home | kneeling to open the door of a pet carrier, with a gentle smile, no beanie |
+| C9 | Letting go | standing with his hands in his jacket pockets, smiling softly as he watches something go, no beanie |
+
+### Both together
+
+**S: scale check.** Attach both accepted game-view references.
+
+```text
+Use the two attached characters as exact references and keep both exactly as they are. Show them standing side by side, seen from a high three-quarter angle, so their sizes can be compared: the top of the raccoon's back comes up to about the man's mid-thigh. No cast shadows. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. No text, no logos, no watermark.
+```
+
 ## Other characters, for inspiration only
 
 The slice doesn't need these. Use the same style and background rules, and end each prompt with: *Soft, matte, rounded 3D toy look, like smooth modelling clay: simple chunky shapes, a round head, dot eyes, no outlines. Standing, front three-quarter view, full body. No cast shadow. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. No text, no logos, no watermark.*
 
-- **The camper** (panels 2–8 and 14). She's friendly, easily startled, and gets jumpier through level 1. Prompt: *A cartoon camper: a young adult in a mustard-yellow (#E0B03C) zip-up jacket, blue jeans (#3F5A86) and a brown (#4A3426) ponytail, wearing a knitted red beanie (#D7263D) with a folded brim and a pompom.*
 - **The animal-control officer** (panels 11–13). Patient, and smug when the trap works. Prompt: *A cartoon animal-control officer in a khaki (#B9A66F) uniform shirt with a round yellow badge, dark olive (#4B5233) trousers and an olive (#5E6B3A) peaked cap, holding a long-handled catch net upright.*
 - **Partiers and neighbours.** Rounded people in plain colours (lilac, coral, mint, sky blue and pink, but never red), with no logos or text on their clothes.
 
 ## Open choices (yours to decide)
 
-- **Eyes.** The style target's eyes are tiny dots, while the storyboard's are big and expressive. At game size his face is only a few pixels, so this sheet keeps the small eyes and lets his pose, ears and tail carry the emotion. Bigger eyes would read better in close-ups.
+- **Eyes.** The style target's eyes are tiny dots, while the storyboard's are big and expressive. At game size the raccoon's face is only a few pixels, so this sheet keeps the small eyes and lets his pose, ears and tail carry the emotion. Bigger eyes would read better in close-ups.
 - **Ears through the beanie.** This keeps his silhouette the same with and without it. The alternative is ears tucked under the brim.
 - **Two facings, mirrored.** This halves the images to generate. Four separate facings would look a little better but take twice the work.
-- **No cast shadow in the images.** The game draws a soft shadow under him, so background removal stays clean.
-- **Humans spot him by his collision capsule.** This is Claude's suggestion, and it's what makes the art beyond the capsule fair.
+- **No cast shadow in the images.** The game draws a soft shadow under each character, so background removal stays clean.
+- **Humans spot the raccoon by his collision capsule.** This is Claude's suggestion, and it's what makes the art beyond the capsule fair.
+- **The camper's look.** His short hair and beard are Claude's suggestion. They replace the ponytail of earlier storyboard drafts, and you can change anything.
+- **The camper's name.** He has none yet. The game never needs one, since there's no dialogue, but a name would make the docs easier to read.
 - **Which states go in the slice.** CHANGE-BRIEF.md decides that; the brief needs at least two.
 
 ## Provenance
 
-- **Your decisions:** the raccoon as the main character (CONCEPT.md), the style target as his look, the red beanie as the story's thread, and the tilted 3/4 game camera.
+- **Your decisions:**
+  - the raccoon as the main character (CONCEPT.md), with the style target as his look;
+  - the red beanie as the story's thread;
+  - the tilted 3/4 game camera;
+  - on 5 Oct 2026: the beanie camper is a man and the story's other main character, the one who releases the raccoon at his home.
 - **Claude's contributions:**
   - the wording of this sheet;
-  - the proportions and palette, measured from the style target;
-  - the contrast check;
-  - the facing plan, the pose list, the consistency and reject rules, and the prompts.
+  - the raccoon's proportions and palette, measured from the style target;
+  - the contrast checks;
+  - the camper's look, palette and pose plan;
+  - the facing plan, the pose lists, the consistency and reject rules, and the prompts.
   Claude doesn't make images; Gemini will.
 - **Generative models:** none were used for this sheet. The style target was made with Gemini before any design doc was committed; see SOURCES.md.
 - **Your edits:** ________

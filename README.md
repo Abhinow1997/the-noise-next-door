@@ -2,7 +2,7 @@
 
 A raccoon just wants a quiet night in his tree. Then a party starts right underneath it.
 
-He sneaks down to prank the partiers, gets chased into town wearing a camper's red beanie, becomes the neighbourhood's masked bandit, and is finally driven home, just in time for the next party. It's slapstick with no dialogue: the story is told through what the player does and how people react.
+He sneaks down to prank the partiers, gets chased into town wearing a camper's red beanie, becomes the neighbourhood's masked bandit, and is finally driven home by that same camper, just in time for the next party. It's slapstick with no dialogue: the story is told through what the player does and how people react.
 
 Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for Your Game.
 
@@ -14,7 +14,7 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 |---|---|
 | [CONCEPT.md](CONCEPT.md) | The one-page concept: story, core loop, pillars, art and audio direction |
 | [STORYBOARD.md](STORYBOARD.md) | The whole story in 15 panels, with each panel's shot, sounds and assets |
-| [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The raccoon's spec: look, palette, facing, poses, collision, and the Gemini prompts |
+| [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The two main characters, the raccoon and the camper: looks, palettes, poses, and the Gemini prompts |
 | [SOURCES.md](SOURCES.md) | The generative models used, and the asset log |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/reference/](design/reference/) | The raccoon's style target |
