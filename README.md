@@ -14,7 +14,10 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 |---|---|
 | [CONCEPT.md](CONCEPT.md) | The one-page concept: story, core loop, pillars, art and audio direction |
 | [STORYBOARD.md](STORYBOARD.md) | The whole story in 15 panels, with each panel's shot, sounds and assets |
+| [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The raccoon's spec: look, palette, facing, poses, collision, and the Gemini prompts |
+| [SOURCES.md](SOURCES.md) | The generative models used, and the asset log |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
+| [design/reference/](design/reference/) | The raccoon's style target |
 | `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project |
 
 ## Run it
@@ -42,4 +45,4 @@ Two changes were made with Claude Code on 4 Oct 2026, before this repo existed:
 
 - **The author:** the prototype, the story, and the design decisions. The provenance notes at the end of CONCEPT.md and STORYBOARD.md list them.
 - **Claude Code:** drafts and wording for the docs, the storyboard thumbnails (drawn in code), the two prototype changes above, and this README.
-- **Generative models:** none in this repo yet. The raccoon's style target is an image generated with Google Gemini before these docs were written. It isn't in the repo yet, and it will be added with its details in the asset log.
+- **Generative models:** only one image so far: the raccoon's style target, generated with Google Gemini before any design doc was committed. It's in `design/reference/`, and [SOURCES.md](SOURCES.md) logs it.
