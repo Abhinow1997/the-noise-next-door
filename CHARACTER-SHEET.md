@@ -1,8 +1,8 @@
-# Character sheet: the raccoon and the camper
+# Character sheet: the raccoon, the camper and the dogs
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v2, 5 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3, 5 Oct 2026
 
-The story has two main characters: the raccoon, whom the player controls, and the camper, whose red beanie he steals and who in the end brings him home. This sheet is the contract every generated image of them must meet. It was first committed before any new generation, so the poses are a plan for now. The generated images go in `design/character/` once each reference image is accepted, and each one is judged against this sheet.
+The story has two main characters: the raccoon, whom the player controls, and the camper, whose red beanie he steals and who in the end brings him home. In town, the neighbourhood dogs are the ones who chase him. This sheet is the contract every generated image of them must meet. It was first committed before any new generation, so the poses are a plan for now. The generated images go in `design/character/` once each reference image is accepted, and each one is judged against this sheet.
 
 ![The style target](design/reference/Gemini_Generated_Image_kfpcx2kfpcx2kfpc.jpg)
 
@@ -202,12 +202,86 @@ Every image of him must keep these exactly the same:
 
 **Reject an image if** his jacket colour drifts, his beard or hair changes, the beanie changes shape or colour, he looks realistic rather than like a clay toy, his proportions drift from the turnaround, or there's any text or logo.
 
+## The neighbourhood dogs (the town's chasers)
+
+### Who they are
+
+- Three dogs from the block. In town they're the raccoon's rivals, the way the camper is at the campsite: each guards its own patch and chases him in its own way.
+- They're excitable, not vicious. Their tails wag even mid-chase, and they bark and yap but never bite (pillar 2).
+- If one corners him, it just barks its head off until he slips away. The barking brings the neighbours out with their phones, which is how the group chat (panel 11) fills up.
+- The player beats them by outsmarting them (pillar 1): climbing out of reach, letting a leash run out, tossing them a snack, or steering them into a crash.
+- So far the storyboard shows only the sausage dog, leaping for the sausage string in panel 12.
+
+### The three dogs
+
+| Dog | Look | How it chases | Where it lives |
+|---|---|---|---|
+| The sausage dog | A long, low dachshund: a tan coat, darker floppy ears and a teal collar | Fast on the flat, nose to the ground, and it follows his smell anywhere. But it can't climb, and it stops dead for anything edible. | The block party (panel 12) |
+| The big shaggy dog | A huge, shaggy, off-white dog with slate-grey patches, a fringe over its eyes and a yellow collar | Usually asleep across the alley. It's slow to get going and too big for the gaps under fences, but its one huge bark wakes the whole street. | The diner alley |
+| The tiny yappy dog | A tiny apricot fluffball with a purple collar | The fastest and loudest of the three: you hear it before you see it. It bounces off things, and it can't reach him on top of a bin. | The backyards |
+
+### How they look
+
+- **Finish:** the same as the raccoon's and the camper's: a soft, matte, rounded 3D toy look, like smooth modelling clay. Simple chunky shapes, small dot eyes, no outlines. Shaggy or fluffy fur is shaped as soft clay clumps, not fine strands.
+- **Faces:** friendly. Their mouths open wide when they bark, but they never show fangs, snarls or bared teeth.
+- **Collars:** every dog wears one in its own colour, never red.
+- **Sizes, next to the raccoon:**
+  - the sausage dog is about as long as he is and two-thirds his height;
+  - the big shaggy dog is about twice his height;
+  - the tiny dog is about half his height.
+
+### Palette
+
+| Dog | Colours |
+|---|---|
+| The sausage dog | tan `#B0703E`, ears `#8A5530`, teal collar `#4FB3A9`, pink tongue `#F09AB0` |
+| The big shaggy dog | off-white `#EEE7DA`, slate patches `#7C8798`, yellow collar `#F2C14E` |
+| The tiny yappy dog | apricot `#F0C08A`, purple collar `#9B8FC9` |
+
+| Against | Sausage tan | Sausage ears | Big dog white | Big dog slate | Tiny dog apricot | Collars |
+|---|---|---|---|---|---|---|
+| Town asphalt `#474B54` | 2.2 | 1.4 | 7.1 | 2.4 | 5.2 | 3.0–5.2 |
+| The raccoon's fur `#9A8F8A` | 1.3 | 1.9 | 2.6 | 1.2 | 1.9 | — |
+
+- The big dog and the tiny dog read easily at night.
+- The sausage dog is the hardest to see. Its tan is only 2.2:1 against the asphalt and close to the raccoon's grey in brightness. Its long, low shape, its teal collar (3.5:1) and its warm colour against his cool grey do the work, so keep all three in every image.
+
+### Facing and collision
+
+- They run around in the gameplay view, so they get the raccoon's two facings: front-right and back-right, mirrored for the left.
+- Each dog collides as a capsule lying along its body, like the raccoon's. The sausage dog's is about 0.7 m long and 0.25 m wide, the big dog's about 1.1 m by 0.55 m, and the tiny dog's about 0.35 m by 0.2 m.
+- A dog corners the raccoon only when their capsules touch. So a flapping ear or a wagging tail never counts, which is fair to the player.
+
+### Poses
+
+The plan is 7 poses for each dog, the ones the game uses.
+
+| # | Pose | Game state |
+|---|---|---|
+| D1 | Turnaround: front, side, three-quarter and back, all the same height | Reference |
+| D2 | Lying down asleep, chin on its paws | Guarding, asleep |
+| D3 | Head up, ears perked, nose sniffing the air | Alert: it's noticed something |
+| D4 | Front paws planted, mouth wide open in a bark, tail wagging | Barking: it gives him away |
+| D5 | Running flat out, ears flying, tongue out, tail wagging | Chasing |
+| D6 | Skidding to a stop, legs splayed, a little dizzy | Lost him, or crashed |
+| D7 | Sitting happily, munching a sausage | Distracted by a snack |
+
+### Consistency rules
+
+Every image of a dog must keep these exactly the same:
+- its colours, collar and proportions, checked against its turnaround;
+- a friendly face, with no fangs, snarls or bared teeth, even when barking;
+- the same finish, background and no-shadow rules as the raccoon;
+- no red anywhere.
+
+**Reject an image if** it shows teeth or a snarl, the dog looks realistic, its collar changes colour or disappears, the sausage dog loses its long, low shape, or there's any text.
+
 ## Generating with Gemini
 
-1. **Reference turnarounds (prompts R1 and C-R1).** Attach the style target image. Generate a few of each and pick the one that best matches this sheet. Save them as `design/character/ref-raccoon-turnaround.png` and `design/character/ref-camper-turnaround.png`. Then add the height bar yourself, as two lines across the tops and bottoms of the views; asking Gemini for one tends to add numbers. If you later turn either character into a 3D model with an image-to-3D tool, these turnarounds are the input those tools want.
-2. **Game-view references (prompts R2 and C-R2).** Attach the accepted turnaround.
-3. **Scale check (prompt S).** Attach both game-view references, to lock how big they are next to each other.
-4. **Poses (prompts P and C-P).** For each pose, start a new image from the accepted game-view reference. Make one pose per image.
+1. **Reference turnarounds (prompts R1, C-R1 and D-R1).** Attach the style target image. Generate a few of each and pick the one that best matches this sheet. Save them as `design/character/ref-<name>-turnaround.png`, for example `ref-raccoon-turnaround.png`. Then add the height bar yourself, as two lines across the tops and bottoms of the views; asking Gemini for one tends to add numbers. If you later turn a character into a 3D model with an image-to-3D tool, these turnarounds are the input those tools want.
+2. **Game-view references (prompts R2, C-R2 and D-R2).** Attach the accepted turnaround.
+3. **Scale checks (prompts S and D-S).** Attach two game-view references, to lock how big the characters are next to each other.
+4. **Poses (prompts P, C-P and D-P).** For each pose, start a new image from the accepted game-view reference. Make one pose per image.
 5. **Check before accepting.** Look at each image at game size, against the consistency rules and the reject list. You can ask Gemini to fix one thing in an image ("give the tail five evenly spaced rings"); record that in the Edits column.
 6. **Remove the background colour afterwards.** Don't ask for "transparent": that gives a drawn checkerboard.
 7. **Log as you go.** Add a row to SOURCES.md for every image you keep or seriously consider. Record the exact prompt, the attached image, the aspect ratio, the date, and the model name and version Gemini shows. Gemini doesn't show a seed, so say so. Keep rejects as small thumbnails.
@@ -286,12 +360,53 @@ Use the attached man as the exact reference: keep his proportions, clothes, colo
 | C8 | Bringing him home | kneeling to open the door of a pet carrier, with a gentle smile, no beanie |
 | C9 | Letting go | standing with his hands in his jacket pockets, smiling softly as he watches something go, no beanie |
 
-### Both together
+### Dog prompts
 
-**S: scale check.** Attach both accepted game-view references.
+**D-R1: reference turnaround.** Attach the style target for its finish and lighting, and replace `[DOG]` with the dog's line.
+
+```text
+Use the attached image only as the style reference for the finish and lighting. Make a character turnaround sheet of one cartoon dog: the same dog four times, side by side and exactly the same height, as a front view, a side view facing right, a three-quarter view facing front-right, and a back view. Soft, matte, rounded 3D toy look, like smooth modelling clay: simple chunky shapes, small dot eyes, no outlines, no fine fur strands. [DOG] A friendly face: no fangs, no bared teeth. Soft light from the upper left. No cast shadows. Plain, flat, solid bright green background (#22C55E), no floor line, no gradient. Wide 16:9 image. No text, no labels, no logos, no watermark.
+```
+
+| Dog | `[DOG]` |
+|---|---|
+| The sausage dog | A long, low dachshund with very short legs: a tan (#B0703E) coat, darker brown (#8A5530) floppy ears, a long tail and a teal (#4FB3A9) collar. |
+| The big shaggy dog | A huge, shaggy dog with long off-white (#EEE7DA) hair shaped in soft chunky clumps, slate-grey (#7C8798) patches, a fringe of hair over its eyes and a yellow (#F2C14E) collar. |
+| The tiny yappy dog | A tiny, round, fluffy dog with apricot (#F0C08A) fur shaped as soft puffs, small pointed ears, a curly tail and a purple (#9B8FC9) collar. |
+
+**D-R2: game-view reference.** Attach the accepted turnaround.
+
+```text
+Use the attached dog as the exact reference: keep its proportions, colours, collar and clay finish exactly the same. Show it once, standing, seen from a high three-quarter angle, as if the camera is above and in front of it looking down at about 50 degrees, with its body turned to face front-right. Full body in frame and centred, with space around it. No cast shadow. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. Square image. No text, no watermark.
+```
+
+**D-P: each pose.** Attach the dog's accepted game-view reference, and replace `[POSE]` with the pose's line below.
+
+```text
+Use the attached dog as the exact reference: keep its proportions, colours, collar, clay finish, camera angle and front-right facing exactly the same. Change only its pose: [POSE]. A friendly face, no fangs, no bared teeth. Full body in frame and centred. No cast shadow. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. Square image. No text, no watermark.
+```
+
+| # | Pose | `[POSE]` |
+|---|---|---|
+| D2 | Asleep | lying down asleep with its chin on its front paws, eyes closed |
+| D3 | Alert | standing with its head up, ears perked and nose lifted, sniffing the air |
+| D4 | Barking | front paws planted, mouth wide open in a big happy bark, tail wagging |
+| D5 | Chasing | running flat out, ears flying back, tongue out, tail wagging |
+| D6 | Skid | skidding to a stop with its legs splayed and a dizzy, cross-eyed look |
+| D7 | Distracted | sitting happily, munching a sausage, tail wagging |
+
+### Scale checks
+
+**S: the raccoon and the camper.** Attach both accepted game-view references.
 
 ```text
 Use the two attached characters as exact references and keep both exactly as they are. Show them standing side by side, seen from a high three-quarter angle, so their sizes can be compared: the top of the raccoon's back comes up to about the man's mid-thigh. No cast shadows. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. No text, no logos, no watermark.
+```
+
+**D-S: the raccoon and a dog.** Attach the raccoon's and the dog's accepted game-view references, and replace `[SIZE]` with "about as long as the raccoon and two-thirds his height" for the sausage dog, "about twice the raccoon's height" for the big dog, or "about half the raccoon's height" for the tiny dog.
+
+```text
+Use the two attached characters as exact references and keep both exactly as they are. Show them standing side by side, seen from a high three-quarter angle, so their sizes can be compared: the dog is [SIZE]. No cast shadows. Plain, flat, solid bright green background (#22C55E), no floor, no gradient. No text, no logos, no watermark.
 ```
 
 ## Other characters, for inspiration only
@@ -310,6 +425,9 @@ The slice doesn't need these. Use the same style and background rules, and end e
 - **Humans spot the raccoon by his collision capsule.** This is Claude's suggestion, and it's what makes the art beyond the capsule fair.
 - **The camper's look.** His short hair and beard are Claude's suggestion. They replace the ponytail of earlier storyboard drafts, and you can change anything.
 - **The camper's name.** He has none yet. The game never needs one, since there's no dialogue, but a name would make the docs easier to read.
+- **Three dogs.** The trio and their chase styles are Claude's suggestion. Start with the sausage dog, since it's already in panel 12, and add the other two later if time allows.
+- **Where the dogs appear.** So far only panel 12 shows one. Claude would add the big shaggy dog to the diner alley (panel 10), waking up and chasing him off the bins.
+- **What a dog costs him.** Here a dog that corners him only barks until he slips away, and the barking brings out the phones. A harsher version would make him drop whatever he's carrying.
 - **Which states go in the slice.** CHANGE-BRIEF.md decides that; the brief needs at least two.
 
 ## Provenance
@@ -318,12 +436,14 @@ The slice doesn't need these. Use the same style and background rules, and end e
   - the raccoon as the main character (CONCEPT.md), with the style target as his look;
   - the red beanie as the story's thread;
   - the tilted 3/4 game camera;
-  - on 5 Oct 2026: the beanie camper is a man and the story's other main character, the one who releases the raccoon at his home.
+  - on 5 Oct 2026: the beanie camper is a man and the story's other main character, the one who releases the raccoon at his home;
+  - on 5 Oct 2026: dogs in the town that chase the raccoon, as an important character.
 - **Claude's contributions:**
   - the wording of this sheet;
   - the raccoon's proportions and palette, measured from the style target;
   - the contrast checks;
   - the camper's look, palette and pose plan;
+  - the three dogs: their looks, chase styles, palettes, collision sizes and pose plan;
   - the facing plan, the pose lists, the consistency and reject rules, and the prompts.
   Claude doesn't make images; Gemini will.
 - **Generative models:** none were used for this sheet. The style target was made with Gemini before any design doc was committed; see SOURCES.md.

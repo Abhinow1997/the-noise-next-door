@@ -14,7 +14,7 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 |---|---|
 | [CONCEPT.md](CONCEPT.md) | The one-page concept: story, core loop, pillars, art and audio direction |
 | [STORYBOARD.md](STORYBOARD.md) | The whole story in 15 panels, with each panel's shot, sounds and assets |
-| [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The two main characters, the raccoon and the camper: looks, palettes, poses, and the Gemini prompts |
+| [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The cast: the raccoon and the camper (the two main characters) and the town's dogs, with looks, palettes, poses and the Gemini prompts |
 | [SOURCES.md](SOURCES.md) | The generative models used, and the asset log |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/reference/](design/reference/) | The raccoon's style target |

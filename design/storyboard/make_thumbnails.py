@@ -1757,7 +1757,7 @@ def balloon(x, y, color, tie):
 
 
 def dachshund(x, y, s=1.0, facing=1, rot=0.0):
-    """A neighbour's sausage dog at full stretch, ears flying. (x, y) is the ground under it."""
+    """The sausage dog, one of the town's three dogs (see CHARACTER-SHEET.md), at full stretch. (x, y) is the ground under it."""
     sw = 3 / s
     o = ol(sw)
     coat, dark = "#b0703e", "#8a5530"
@@ -1767,7 +1767,7 @@ def dachshund(x, y, s=1.0, facing=1, rot=0.0):
     tail = "M -62 -36 Q -88 -46 -96 -64"
     parts += [path(tail, stroke=P["outline"], stroke_width=9 + 2 * sw, stroke_linecap="round"),
               path(tail, stroke=coat, stroke_width=9, stroke_linecap="round"),
-              ellipse(0, -34, 66, 19, coat, **o),
+              ellipse(0, -34, 66, 19, coat, **o), ellipse(50, -42, 7, 16, "#4fb3a9", rot=20, **o),
               ellipse(72, -50, 26, 19, coat, **o), ellipse(98, -44, 17, 11, coat, **o), circle(112, -46, 5, P["outline"]),
               ellipse(58, -54, 11, 24, dark, rot=62, **o), circle(78, -57, 3.6, P["outline"]),
               path("M 96 -34 Q 101 -20 93 -16 Q 88 -22 92 -34 Z", "#f09ab0", **o)]
