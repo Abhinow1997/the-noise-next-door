@@ -1988,7 +1988,7 @@ def write_sheet(rendered):
     rows = math.ceil(len(rendered) / cols)
     sw_, sh_ = margin * 2 + cols * cw + (cols - 1) * gap, head + rows * (ch + cap) + (rows - 1) * gap + margin
     parts = [rect(0, 0, sw_, sh_, "#ece8de"),
-             text(margin, 62, "Raccoon storyboard", 40, "#262624", FONT_UI, "start", "700"),
+             text(margin, 62, "The Noise Next Door · storyboard", 40, "#262624", FONT_UI, "start", "700"),
              text(margin, 94, f"Whole story in {len(rendered)} panels · 16:9 · no dialogue: the story is told through actions and events",
                   20, "#5a5853", FONT_UI, "start"),
              f'<defs><clipPath id="frame"><rect width="{W}" height="{H}"/></clipPath></defs>']
@@ -2000,7 +2000,7 @@ def write_sheet(rendered):
                   text(x, y + ch + 26, f"{n}. {title}", 20, "#262624", FONT_UI, "start", "700"),
                   text(x, y + ch + 50, f"{shot} · {view}", 16, "#5a5853", FONT_UI, "start")]
     svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {sw_} {sh_}" width="{sw_}" height="{sh_}">'
-           f"<title>Raccoon storyboard</title>{''.join(parts)}</svg>")
+           f"<title>The Noise Next Door storyboard</title>{''.join(parts)}</svg>")
     (HERE / "storyboard-sheet.svg").write_text(svg, encoding="utf-8")
 
 

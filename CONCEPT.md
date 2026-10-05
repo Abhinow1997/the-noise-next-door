@@ -1,6 +1,6 @@
-# Concept: <working title>
+# Concept: The Noise Next Door
 
-`walker-<title>-<your-name>` · CSYE 7270 · Assignment 2 · Draft v3
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3
 
 ## The game in two sentences
 

@@ -1,6 +1,6 @@
-# Storyboard: <working title>
+# Storyboard: The Noise Next Door
 
-`walker-<title>-<your-name>` · CSYE 7270 · Assignment 2 · Draft v3, 5 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3, 5 Oct 2026
 
 The whole story in 15 panels: from the night a party wakes the raccoon to the night it all starts again. There's no dialogue. Every beat comes across through what the player does and what happens next, with big, slapstick, non-verbal reactions.
 
