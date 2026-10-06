@@ -232,6 +232,124 @@ static func box(size: Vector3, color: Color) -> ArrayMesh:
 	return loft([Vector3(0, -size.y * 0.5, 0), Vector3(0, size.y * 0.5, 0)], [r, r], 4, solid(color), PI / 4)
 
 
+## Commits `st` into a mesh that uses the shared vertex-colour material.
+static func commit(st: SurfaceTool) -> ArrayMesh:
+	var mesh := st.commit()
+	mesh.surface_set_material(0, material())
+	return mesh
+
+
+## Adds a box of `size`, placed by `xform`, to `st`.
+static func add_box(st: SurfaceTool, xform: Transform3D, size: Vector3, color: Color) -> void:
+	var h := size * 0.5
+	var corners: Array[Vector3] = []
+	for i in 8:
+		corners.append(xform * Vector3(h.x if i & 1 != 0 else -h.x, h.y if i & 2 != 0 else -h.y,
+			h.z if i & 4 != 0 else -h.z))
+	for f: Array in [[0, 1, 3, 2], [4, 6, 7, 5], [0, 4, 5, 1], [2, 3, 7, 6], [0, 2, 6, 4], [1, 5, 7, 3]]:
+		add_tri(st, corners[f[0]], corners[f[1]], corners[f[2]], xform.origin, color)
+		add_tri(st, corners[f[0]], corners[f[2]], corners[f[3]], xform.origin, color)
+
+
+## Adds one triangle with its own normal and colour at each corner, wound to face `facing`.
+static func add_tri_attrs(st: SurfaceTool, points: Array, normals: Array, colors: Array, facing: Vector3) -> void:
+	_add_smooth_tri(st, points, normals, colors, facing)
+
+
+## Flat-shaded tube through `centers`, one radius per ring, added to `st` and capped at
+## the far end (the near end usually sits in the ground). `flare` scales the first
+## ring side by side, for root flares. `color_fn(segment, side, normal)` as in loft().
+static func add_tube(st: SurfaceTool, centers: Array, radii: Array, sides: int, color_fn: Callable,
+		twist := 0.0, flare: Array = []) -> void:
+	var count := centers.size()
+	var rings: Array = []
+	for i in count:
+		var c: Vector3 = centers[i]
+		var t: Vector3 = (centers[mini(i + 1, count - 1)] - centers[maxi(i - 1, 0)]).normalized()
+		var ref := Vector3.UP if absf(t.dot(Vector3.UP)) < 0.9 else Vector3.FORWARD
+		var bx := ref.cross(t).normalized()
+		var by := t.cross(bx).normalized()
+		var ring: Array[Vector3] = []
+		for s in sides:
+			var angle := TAU * s / sides + twist
+			var r: float = radii[i]
+			if i == 0 and not flare.is_empty():
+				r *= flare[s % flare.size()]
+			ring.append(c + (bx * cos(angle) + by * sin(angle)) * r)
+		rings.append(ring)
+	for i in count - 1:
+		var axis_mid: Vector3 = (centers[i] + centers[i + 1]) * 0.5
+		for s in sides:
+			var a: Vector3 = rings[i][s]
+			var b: Vector3 = rings[i][(s + 1) % sides]
+			var c: Vector3 = rings[i + 1][(s + 1) % sides]
+			var d: Vector3 = rings[i + 1][s]
+			var n := (b - a).cross(d - a)
+			if n.length_squared() < 1e-12:
+				n = (c - d).cross(a - d)
+			n = n.normalized()
+			if n.dot((a + b + c + d) * 0.25 - axis_mid) < 0.0:
+				n = -n
+			var color: Color = color_fn.call(i, s, n)
+			add_tri(st, a, b, c, axis_mid, color)
+			add_tri(st, a, c, d, axis_mid, color)
+	_cap(st, rings[count - 1], centers[count - 1], centers[count - 2], count - 1, color_fn)
+
+
+## Faceted, slightly lumpy ball, added to `st`: an icosahedron split `subdiv` times,
+## each corner pushed in or out by up to `jitter` of the radius. Corners below
+## `flat_bottom` (a fraction of radius.y, e.g. -0.3) are pressed flat, for rocks.
+## `color_fn(normal) -> Color` paints each face.
+static func add_icosphere(st: SurfaceTool, center: Vector3, radius: Vector3, subdiv: int, jitter: float,
+		seed: int, color_fn: Callable, flat_bottom := -2.0) -> void:
+	var g := (1.0 + sqrt(5.0)) / 2.0
+	var verts: Array[Vector3] = []
+	for v: Vector3 in [Vector3(-1, g, 0), Vector3(1, g, 0), Vector3(-1, -g, 0), Vector3(1, -g, 0),
+			Vector3(0, -1, g), Vector3(0, 1, g), Vector3(0, -1, -g), Vector3(0, 1, -g),
+			Vector3(g, 0, -1), Vector3(g, 0, 1), Vector3(-g, 0, -1), Vector3(-g, 0, 1)]:
+		verts.append(v.normalized())
+	var faces: Array = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+		[1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+		[3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+		[4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]]
+	for _level in subdiv:
+		var midpoints := {}
+		var split: Array = []
+		for f: Array in faces:
+			var m: Array[int] = []
+			for k in 3:
+				var a: int = f[k]
+				var b: int = f[(k + 1) % 3]
+				var key := Vector2i(mini(a, b), maxi(a, b))
+				if not midpoints.has(key):
+					verts.append(((verts[a] + verts[b]) * 0.5).normalized())
+					midpoints[key] = verts.size() - 1
+				m.append(midpoints[key])
+			split.append([f[0], m[0], m[2]])
+			split.append([f[1], m[1], m[0]])
+			split.append([f[2], m[2], m[1]])
+			split.append([m[0], m[1], m[2]])
+		faces = split
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var points: Array[Vector3] = []
+	for v in verts:
+		var p := v * (1.0 + rng.randf_range(-jitter, jitter))
+		p.y = maxf(p.y, flat_bottom)
+		points.append(center + p * radius)
+	for f: Array in faces:
+		var a := points[f[0]]
+		var b := points[f[1]]
+		var c := points[f[2]]
+		var n := (b - a).cross(c - a)
+		if n.length_squared() < 1e-12:
+			continue
+		n = n.normalized()
+		if n.dot((a + b + c) / 3.0 - center) < 0.0:
+			n = -n
+		add_tri(st, a, b, c, (a + b + c) / 3.0 - n, color_fn.call(n))
+
+
 static func _cap(st: SurfaceTool, ring: Array, center: Vector3, neighbour: Vector3,
 		segment: int, color_fn: Callable) -> void:
 	var n := (center - neighbour).normalized()

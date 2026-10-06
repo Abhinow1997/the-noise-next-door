@@ -2,6 +2,10 @@
 .godot/
 /android/
 
+# Blender backup / temp saves
+*.blend1
+*.blend@
+
 # Python
 __pycache__/
 *.pyc

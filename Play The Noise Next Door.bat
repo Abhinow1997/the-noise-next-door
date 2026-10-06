@@ -1,8 +1,10 @@
 @echo off
 rem Double-click this file to play the game.
-rem Looks for Godot 4.7.2 in the GODOT variable, then %LOCALAPPDATA%\Programs\Godot,
+rem Looks for Godot 4.7.2 in the GODOT variable, then the Godot folder next to
+rem this repo (Gamedev\Godot), then %LOCALAPPDATA%\Programs\Godot,
 rem then the original Downloads folder. Extra arguments are passed to the game.
 set "GODOT_EXE=%GODOT%"
+if not defined GODOT_EXE if exist "%~dp0..\Godot\Godot_v4.7.2-stable_win64.exe" set "GODOT_EXE=%~dp0..\Godot\Godot_v4.7.2-stable_win64.exe"
 if not defined GODOT_EXE if exist "%LOCALAPPDATA%\Programs\Godot\Godot_v4.7.2-stable_win64.exe" set "GODOT_EXE=%LOCALAPPDATA%\Programs\Godot\Godot_v4.7.2-stable_win64.exe"
 if not defined GODOT_EXE if exist "%USERPROFILE%\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe" set "GODOT_EXE=%USERPROFILE%\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe"
 if not defined GODOT_EXE (
