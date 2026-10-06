@@ -1,6 +1,6 @@
 # Storyboard: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v5, 5 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v6, 6 Oct 2026 · first committed as draft v3 on 5 Oct 2026 (see [Provenance](#provenance))
 
 The whole story in 15 panels: from the night a party wakes the raccoon to the night it all starts again. There's no dialogue. Every beat comes across through what the player does and what happens next, with big, slapstick, non-verbal reactions.
 
@@ -61,7 +61,9 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 
 ## Legend
 
-- **Gameplay view:** what the game camera shows. That's a tilted 3/4 view, about 50° down, following the raccoon. *Wide* is the start-of-level view and *medium* is the normal follow distance.
+- **Gameplay view:** what the game camera shows.
+  - *As planned in drafts v3–v5:* a tilted 3/4 view, about 50° down, following the raccoon. *Wide* is the start-of-level view and *medium* is the normal follow distance. The gameplay thumbnails (panels 3, 5, 6 and 10–12) are drawn for this camera.
+  - *Revised in v6 (6 Oct 2026):* you picked the camera in the running game with the Tab camera panel (commit dcae18a). It looks down 27° instead of about 50°, turned 14°, through a narrow 15° lens from 19.2 m, so the scene reads like a tabletop diorama. It still follows the raccoon. The mouse wheel zooms it, so *wide* now means zoomed out and *medium* the default zoom, but the player can't turn it. Compared with the thumbnails, the ground looks flatter and people and props are seen more from the side. The thumbnails are kept as drawn, as the record of the plan, and TEST-REPORT.md will put them next to in-game screenshots.
 - **Design view:** something outside normal play (the intro, cutscenes, the ending), or a shot that sets how a moment should feel.
 - **Frame:** 16:9 throughout (1600 × 900).
 
@@ -303,6 +305,36 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 
 The slice won't need all of these. Which ones it builds is decided later, in CHANGE-BRIEF.md.
 
+### The raccoon's IDs and the character sheet's poses (added in v6)
+
+The panels name the raccoon's images by story moment, while CHARACTER-SHEET.md numbers his poses by game state. This table lines the two up, so each row in the asset log can use one ID that matches both.
+
+| Storyboard ID | Panels | Character-sheet pose |
+|---|---|---|
+| CHAR-SLEEP | 1 | 12, Asleep |
+| CHAR-PEEK | 2 | None: design view only |
+| CHAR-CLIMB | 3 | None in the sheet yet (the game has had tree climbing since 6 Oct) |
+| CHAR-FIDDLE | 5 | 8, Interact |
+| CHAR-DRAG | 6 | 9, Carrying, with the plug instead of the bag |
+| CHAR-STARTLED | 7 | 10, Busted |
+| CHAR-RUN-BEANIE | 8 | 7, Run, with the beanie in his mouth |
+| CHAR-SNIFF | 9 | None: design view only |
+| CHAR-BEANIE-FIDDLE | 10 | 8, Interact, plus the beanie (prompt B) |
+| CHAR-RUN | 11, 12 | 7, Run, plus the beanie |
+| CHAR-PERCH | 11 | None in the sheet yet |
+| CHAR-TRAPPED | 13 | None: design view only |
+| CHAR-TUMBLE | 14 | None: design view only |
+| CHAR-GRIN-BEANIE | 15 | 11, Job done, plus the beanie |
+
+Four of the sheet's states have no storyboard ID, because no panel is about them. They're what the player sees between actions in every gameplay panel (3, 5, 6 and 10–12). Their IDs:
+
+| ID | Character-sheet pose |
+|---|---|
+| CHAR-IDLE | 3, Idle |
+| CHAR-BORED | 4, Bored |
+| CHAR-WALK | 5, Walk |
+| CHAR-SNEAK | 6, Sneak |
+
 ## Provenance
 
 - **Your story and decisions.** The story comes from CONCEPT.md; see its provenance note. In chat on 4–5 Oct 2026 you decided:
@@ -318,9 +350,11 @@ The slice won't need all of these. Which ones it builds is decided later, in CHA
   - the beanie steal comes straight after Busted;
   - Shooed off is cut;
   - one more panel in the town.
-- **Your change for draft v3 (5 Oct 2026):** three more town panels before he's caught, because the town was too light.
-- **Your change for draft v4 (5 Oct 2026):** the beanie camper is a man and the story's other main character, the one who brings the raccoon home and lets him go.
-- **Your change for draft v5 (5 Oct 2026):** the group chat is cut, because it made no sense to you. Panel 11 is now the neighbourhood dogs chasing him.
+- **Your change for draft v3 (5 Oct 2026):** three more town panels before he's caught, because the town was too light. Draft v3 is the first committed version (5b4fb68, 13:13), and 2849ac2 renamed it to The Noise Next Door a minute later.
+- **Your change for draft v4 (5 Oct 2026, 3f2499f):** the beanie camper is a man and the story's other main character, the one who brings the raccoon home and lets him go.
+- **Your change for draft v5 (5 Oct 2026, 4f5313a):** the group chat is cut, because it made no sense to you. Panel 11 is now the neighbourhood dogs chasing him.
+- **Committed before generating.** Drafts v3–v5 were all committed on 5 Oct, by 17:03. The only file in `design/reference/` or `design/music/` dated earlier is the style target (REF-STYLE in SOURCES.md, 4 Oct). The next one, `design/reference/raccoon/picking-items.jpg`, is dated 5 Oct, 17:09.
+- **Your camera choice, recorded in draft v6 (6 Oct 2026):** the camera you picked in the running game (dcae18a) replaces the planned 50° view. See the legend. No panel or thumbnail changed. Earlier drafts stay in the git history: `git show 5b4fb68:STORYBOARD.md` prints the first committed version.
 - **Claude's contributions:**
   - the shot list and the wording of every panel;
   - the specific gags and choices listed under Open choices, including what happens in the marshmallow trap and the crinkle that links panels 6 and 7;
@@ -328,6 +362,7 @@ The slice won't need all of these. Which ones it builds is decided later, in CHA
   - the camper's look: the short hair and beard that replaced the ponytail of earlier drafts;
   - staging the three new town panels from CONCEPT.md's Act 2 (the edge of town, the group chat, the block party barbecue), and the town's to-do cards from its town jobs;
   - the dogs' chase that replaced the group chat in panel 11;
-  - the thumbnails, drawn in code by `design/storyboard/make_thumbnails.py`. Run `python design/storyboard/make_thumbnails.py` to redraw them after edits.
+  - the thumbnails, drawn in code by `design/storyboard/make_thumbnails.py`. Run `python design/storyboard/make_thumbnails.py` to redraw them after edits;
+  - in v6: the legend's camera note, the commit references in this section, and the table lining up the raccoon's IDs with the character sheet's poses, including the four new IDs CHAR-IDLE, CHAR-BORED, CHAR-WALK and CHAR-SNEAK.
 - **Generative models:** none. No panel was made with an image generator.
 - **Your edits:** ________
