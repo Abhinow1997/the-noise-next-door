@@ -36,6 +36,13 @@ const LEAN := 0.3
 ## ...starting this far away and fully leaning at half of it.
 const LEAN_RANGE := 9.0
 
+## The level's music: a 16-bar loop cut from the generated forest track in
+## design/music/ (see SOURCES.md). The WAV's own loop marker makes it repeat seamlessly.
+const MUSIC_PATH := "res://assets/audio/music/forest-loop.wav"
+## How loud the music sits under the sound effects, and its fade-in time in seconds.
+const MUSIC_DB := -9.0
+const MUSIC_FADE_IN := 2.0
+
 const INPUTS := {
 	"move_forward": [KEY_W, KEY_UP],
 	"move_back": [KEY_S, KEY_DOWN],
@@ -85,6 +92,7 @@ var _frames := 0
 var _zoom_now := 1.0
 ## Where the camera thinks the raccoon is; it trails him slightly for smoothness.
 var _anchor := Vector3.ZERO
+var _music: AudioStreamPlayer
 
 
 func _enter_tree() -> void:
@@ -131,6 +139,7 @@ func _ready() -> void:
 
 	_build_ui()
 	_refresh_todo()
+	_start_music()
 
 
 func _process(delta: float) -> void:
@@ -155,9 +164,26 @@ func _process(delta: float) -> void:
 			player._grab()
 		elif _grab_test and _frames == 20:
 			player.global_position = forest.bin_spot + Vector3(-1.5, 0.02, 2.4)
+		if _frames == 44 and _music:
+			# Stopped a frame early, so the audio thread lets go of it before the quit.
+			_music.stop()
 		if _frames == 45:
 			get_viewport().get_texture().get_image().save_png(_shot_path)
 			get_tree().quit()
+
+
+## Starts the forest loop with a soft fade-in. If the WAV hasn't been imported yet
+## (the editor or the Play launcher does that), the game runs without music.
+func _start_music() -> void:
+	if not ResourceLoader.exists(MUSIC_PATH):
+		push_warning("The music isn't imported yet: %s" % MUSIC_PATH)
+		return
+	_music = AudioStreamPlayer.new()
+	_music.stream = load(MUSIC_PATH)
+	_music.volume_db = -60.0
+	add_child(_music)
+	_music.play()
+	create_tween().tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
 
 
 ## The aim point and the distance both scale with the zoom, so zooming slides the
