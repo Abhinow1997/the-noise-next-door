@@ -90,6 +90,10 @@ const SPACING_CELL := 3.3
 
 ## Where the raccoon curls up in the hollow, in world space.
 var rest_spot: Transform3D
+## The trunks the raccoon can climb, one per tree he can reach: `base` and `top`
+## (where the branches start) in world space, the trunk's radius at each (`r0`, `r1`),
+## and `clear`, its collider's radius. The home pine's also has `rest_spot`.
+var climbable: Array[Dictionary] = []
 var bin_spot := Vector3(7.6, 0, -1.1)
 var can_spots: Array[Vector3] = [Vector3(6.9, 0, -0.3), Vector3(8.4, 0, -0.5), Vector3(7.8, 0, 0.3),
 	Vector3(2.8, 0, 2.4), Vector3(-4.2, 0, 6.0)]
@@ -336,6 +340,9 @@ func _build_home() -> void:
 	_remember(_v2(HOME))
 	# He lies across the hollow facing -X, so his side and curled tail face the camera.
 	rest_spot = Transform3D(Basis(Vector3.UP, PI / 2), HOME + rest)
+	# He can climb the trunk up to the skirt's lowest points; from there he goes in.
+	climbable.append({"base": HOME, "top": HOME + Vector3(0, h * 0.24 - h * 0.21 * 0.06, 0), "r0": 0.5,
+		"r1": 0.45, "clear": trunk.radius, "rest_spot": rest_spot})
 
 
 ## The home pine's bottom skirt, with a hexagonal hollow cut into the side that faces
@@ -441,7 +448,10 @@ func _add_pine_tier(st: SurfaceTool, hem: float, apex: float, radius: float, twi
 		_tier_face(st, ring[k], ring[(k + 1) % ring.size()], top, hem, radius, color)
 
 
-func _pine_mesh(h: float, tiers: int, seed: int) -> ArrayMesh:
+## `trunk` gets the climbable part of the trunk, as described for `climbable`.
+func _pine_mesh(h: float, tiers: int, seed: int, trunk := {}) -> ArrayMesh:
+	# Up to the points of the lowest skirt.
+	trunk.merge({"top": Vector3(0, h * 0.3 - h * 0.155 * 0.06, 0), "r0": h * 0.038, "r1": h * 0.031})
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var st := SurfaceTool.new()
@@ -459,7 +469,8 @@ func _pine_mesh(h: float, tiers: int, seed: int) -> ArrayMesh:
 
 
 ## A broadleaf tree: a trunk that forks into limbs, under a crown of faceted clumps.
-func _broadleaf_mesh(h: float, color: Color, seed: int) -> ArrayMesh:
+## `trunk` gets the climbable part of the trunk, up to the fork.
+func _broadleaf_mesh(h: float, color: Color, seed: int, trunk := {}) -> ArrayMesh:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var st := SurfaceTool.new()
@@ -467,6 +478,7 @@ func _broadleaf_mesh(h: float, color: Color, seed: int) -> ArrayMesh:
 	var lean := Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)) * h * 0.02
 	var fork := Vector3(0, h * rng.randf_range(0.36, 0.44), 0) + lean
 	var r := h * 0.03
+	trunk.merge({"top": fork, "r0": r * 1.15, "r1": r * 0.85})
 	LowPoly.add_tube(st, [Vector3.ZERO, Vector3(0, h * 0.04, 0), fork * 0.6, fork], [r * 1.5, r * 1.15, r, r * 0.85],
 		6, LowPoly.solid(BARK), rng.randf() * TAU, [1.8, 1.0, 1.6, 1.05, 1.7, 1.0])
 
@@ -496,7 +508,8 @@ func _broadleaf_mesh(h: float, color: Color, seed: int) -> ArrayMesh:
 
 
 ## A birch: a white trunk with black dashes, thin limbs and small pale clumps.
-func _birch_mesh(h: float, seed: int) -> ArrayMesh:
+## `trunk` gets the climbable part of the trunk, up to the lowest limb.
+func _birch_mesh(h: float, seed: int, trunk := {}) -> ArrayMesh:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed
 	var st := SurfaceTool.new()
@@ -504,6 +517,8 @@ func _birch_mesh(h: float, seed: int) -> ArrayMesh:
 	var lean := Vector3(rng.randf_range(-1, 1), 0, rng.randf_range(-1, 1)).normalized() * h * 0.03
 	var top := Vector3(0, h * 0.9, 0) + lean
 	var r0 := h * 0.019
+	var limb := h * 0.45 / top.y
+	trunk.merge({"top": Vector3(0, h * 0.45, 0) + lean * limb * limb, "r0": r0, "r1": lerpf(r0, r0 * 0.45, limb)})
 	var sides := 6
 	# Bark rings, with a thin band between some of them for the dashes.
 	var centers: Array = []
@@ -552,22 +567,26 @@ func _birch_mesh(h: float, seed: int) -> ArrayMesh:
 	return LowPoly.commit(st)
 
 
+## Trees are [mesh, trunk radius, climbable trunk]; everything else is [mesh, 0.0].
 func _make_variants() -> void:
 	var pines: Array = []
 	for i in 5:
 		var h: float = [5.0, 5.6, 6.2, 6.8, 4.6][i]
-		pines.append([_pine_mesh(h, [5, 5, 6, 6, 4][i], 100 + i), h * 0.046])
+		var trunk := {}
+		pines.append([_pine_mesh(h, [5, 5, 6, 6, 4][i], 100 + i, trunk), h * 0.046, trunk])
 	_variants["pine"] = pines
 	for kind: String in CANOPIES:
 		var list: Array = []
 		for i in 2:
 			var h := 4.4 + i * 0.7
-			list.append([_broadleaf_mesh(h, CANOPIES[kind], kind.hash() + i), h * 0.034])
+			var trunk := {}
+			list.append([_broadleaf_mesh(h, CANOPIES[kind], kind.hash() + i, trunk), h * 0.034, trunk])
 		_variants[kind] = list
 	var birches: Array = []
 	for i in 3:
 		var h := 5.0 + i * 0.6
-		birches.append([_birch_mesh(h, 300 + i), h * 0.022])
+		var trunk := {}
+		birches.append([_birch_mesh(h, 300 + i, trunk), h * 0.022, trunk])
 	_variants["birch"] = birches
 	_variants["bush"] = [[_bush_mesh(400), 0.0], [_bush_mesh(401), 0.0], [_bush_mesh(402), 0.0]]
 	var rocks: Array = []
@@ -623,6 +642,9 @@ func _add_tree(kind: String, p: Vector2, scale := 1.0) -> void:
 		shape.radius = trunk + 0.08
 		shape.height = 2.0
 		_collider(shape, Transform3D(Basis(), _v3(p, 1.0)))
+		var climb: Dictionary = list[pick][2]
+		climbable.append({"base": xform.origin, "top": xform * climb.top, "r0": climb.r0 * s,
+			"r1": climb.r1 * s, "clear": shape.radius})
 
 
 ## Spots where no tree may grow: the clearing, the paths, the stream, the cabin's yard,

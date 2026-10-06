@@ -5,6 +5,7 @@ extends Node3D
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
 const Forest := preload("res://scripts/forest.gd")
+const CameraTuner := preload("res://scripts/camera_tuner.gd")
 
 const METAL := Color("8f9ba4")
 const METAL_DARK := Color("6c7780")
@@ -15,11 +16,25 @@ const LID := Color("cfc8b8")
 ## The sky is never seen; this is the haze the far trees fade into.
 const HAZE := Color("8fa58c")
 
-const CAMERA_OFFSET := Vector3(0, 9.5, 14.0)
-## The camera aims a little ahead of the raccoon, so more of the forest shows.
-const LOOK_AHEAD := Vector3(0, 0.2, -3.5)
+## The camera view the author picked with the Tab panel (camera_tuner.gd): it looks
+## down 27 degrees from 19.2 m away through a very narrow lens (15 degrees tall),
+## turned 14 degrees and aimed just past the raccoon, so the scene reads like a
+## tabletop diorama. The player can zoom it but not turn it.
+const CAMERA_PITCH := 27.0
+const CAMERA_YAW := -14.0
+const CAMERA_FOV := 15.0
+const CAMERA_DISTANCE := 19.2
+## How far past the raccoon the camera aims, which moves him down the screen.
+const CAMERA_AHEAD := 0.5
+const ZOOM_MIN := 0.5
+const ZOOM_MAX := 1.6
 ## The point on the raccoon that the camera follows and zooms around.
-const PIVOT := Vector3(0, 0.3, 0)
+const PIVOT := Vector3(0, 0.27, 0)
+## When he's near a camper (a node in the "camper" group), the camera leans this
+## share of the way toward the camper, so you can keep watching his routine...
+const LEAN := 0.3
+## ...starting this far away and fully leaning at half of it.
+const LEAN_RANGE := 9.0
 
 const INPUTS := {
 	"move_forward": [KEY_W, KEY_UP],
@@ -40,6 +55,13 @@ var lid: RigidBody3D
 var gnome: RigidBody3D
 var cans: Array[RigidBody3D] = []
 var zoom := 1.0
+## The camera's settings, starting from the constants above. Tab in the game opens
+## a panel (camera_tuner.gd) that changes them live.
+var camera_pitch := CAMERA_PITCH
+var camera_yaw := CAMERA_YAW
+var camera_fov := CAMERA_FOV
+var camera_distance := CAMERA_DISTANCE
+var camera_ahead := CAMERA_AHEAD
 
 var tasks := [
 	{"id": "bin", "text": "Knock over the trash bin", "done": false},
@@ -51,6 +73,7 @@ var tasks := [
 
 var _todo: RichTextLabel
 var _banner: Label
+var _tuner: CameraTuner
 var _cans_in_den := 0
 var _nap_time := 0.0
 var _sleep_time := 0.0
@@ -94,11 +117,14 @@ func _ready() -> void:
 	_build_props()
 
 	camera = Camera3D.new()
-	camera.fov = 36.0
+	camera.fov = CAMERA_FOV
 	add_child(camera)
 	player = Player.new()
 	player.position = Forest.START
+	# Side-on to the camera and turned a little toward it, so his pose reads at once.
+	player.rotation.y = deg_to_rad(-122.0)
 	player.camera = camera
+	player.trees = forest.climbable
 	add_child(player)
 	_anchor = player.global_position + PIVOT
 	_place_camera()
@@ -113,7 +139,9 @@ func _process(delta: float) -> void:
 		camera.global_position = focus + Vector3(1.5, 0.45, -0.8)
 		camera.look_at(focus)
 	else:
-		_anchor = _anchor.lerp(player.global_position + PIVOT, 1.0 - exp(-6.0 * delta))
+		# Zoomed in, the camera follows more tightly, so he doesn't drift across the screen.
+		var aim := player.global_position + PIVOT + _camper_lean()
+		_anchor = _anchor.lerp(aim, 1.0 - exp(-6.0 / _zoom_now * delta))
 		_zoom_now = lerpf(_zoom_now, zoom, 1.0 - exp(-10.0 * delta))
 		_place_camera()
 	_update_see_through()
@@ -132,20 +160,44 @@ func _process(delta: float) -> void:
 			get_tree().quit()
 
 
-## The aim point and the offset both scale with the zoom round the raccoon, so
-## zooming slides the camera along its line to him and he stays put on screen.
+## The aim point and the distance both scale with the zoom, so zooming slides the
+## camera along its line to the raccoon and he stays put on screen.
 func _place_camera() -> void:
-	var focus := _anchor + LOOK_AHEAD * _zoom_now
-	camera.global_position = focus + CAMERA_OFFSET * _zoom_now
+	var pitch := deg_to_rad(camera_pitch)
+	# From the raccoon toward the camera, along the ground; yaw 0 looks north (-Z).
+	var back := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(camera_yaw))
+	var focus := _anchor - back * camera_ahead * _zoom_now
+	camera.fov = camera_fov
+	camera.global_position = focus + (back * cos(pitch) + Vector3.UP * sin(pitch)) * camera_distance * _zoom_now
 	camera.look_at(focus)
+
+
+## How far to shift the camera's aim toward the nearest camper.
+func _camper_lean() -> Vector3:
+	var lean := Vector3.ZERO
+	var nearest := LEAN_RANGE
+	for camper: Node3D in get_tree().get_nodes_in_group("camper"):
+		var to_camper := camper.global_position - player.global_position
+		to_camper.y = 0.0
+		if to_camper.length() < nearest:
+			nearest = to_camper.length()
+			lean = to_camper * LEAN * smoothstep(LEAN_RANGE, LEAN_RANGE * 0.5, nearest)
+	return lean
+
+
+func _input(event: InputEvent) -> void:
+	# Before the UI sees it, which would use Tab to move focus.
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_TAB:
+		_tuner.visible = not _tuner.visible
+		get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			zoom = clampf(zoom - 0.1, 0.5, 1.8)
+			zoom = clampf(zoom / 1.15, ZOOM_MIN, ZOOM_MAX)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			zoom = clampf(zoom + 0.1, 0.5, 1.8)
+			zoom = clampf(zoom * 1.15, ZOOM_MIN, ZOOM_MAX)
 
 
 # --- Tasks -----------------------------------------------------------------
@@ -164,7 +216,8 @@ func _check_tasks(delta: float) -> void:
 			_sleep_time += delta
 	else:
 		var still := Vector2(player.velocity.x, player.velocity.z).length() < 0.1
-		_nap_time = _nap_time + delta if player.sneaking and still and _in_den(player) else 0.0
+		var napping := player.sneaking and still and not player.climbing and _in_den(player)
+		_nap_time = _nap_time + delta if napping else 0.0
 		if _nap_time > 1.0:
 			_nap_time = 0.0
 			player.rest(forest.rest_spot)
@@ -199,7 +252,9 @@ func _update_see_through() -> void:
 	var mat := forest.see_through
 	mat.set_shader_parameter("focus_uv", camera.unproject_position(target) / get_viewport().get_visible_rect().size)
 	mat.set_shader_parameter("focus_depth", (target - camera.global_position).dot(-camera.global_basis.z))
-	mat.set_shader_parameter("radius", 0.0 if player.resting or _closeup else 0.12 / _zoom_now)
+	# Wide enough to show all of him: his size over the height of the view at his distance.
+	var view_height := 2.0 * camera.global_position.distance_to(target) * tan(deg_to_rad(camera.fov) * 0.5)
+	mat.set_shader_parameter("radius", 0.0 if player.resting or _closeup else 1.4 * player.size / view_height)
 
 
 func _refresh_todo() -> void:
@@ -389,7 +444,7 @@ func _build_ui() -> void:
 	panel.add_child(_todo)
 
 	var hint := Label.new()
-	hint.text = "WASD move   Shift run   Ctrl sneak   E / click grab   Space chitter   Wheel zoom"
+	hint.text = "WASD move   Shift run   Ctrl sneak   E / click grab   Space chitter   Walk into a tree to climb (E lets go)   Wheel zoom   Tab camera"
 	hint.add_theme_color_override("font_color", Color("f4eedc"))
 	hint.add_theme_color_override("font_outline_color", Color("3b3630"))
 	hint.add_theme_constant_override("outline_size", 6)
@@ -405,3 +460,9 @@ func _build_ui() -> void:
 	_banner.add_theme_constant_override("outline_size", 12)
 	layer.add_child(_banner)
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 40)
+
+	_tuner = CameraTuner.new()
+	_tuner.main = self
+	_tuner.visible = false
+	layer.add_child(_tuner)
+	_tuner.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 24)
