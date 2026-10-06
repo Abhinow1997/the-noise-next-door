@@ -13,4 +13,6 @@ if not defined GODOT_EXE (
 	pause
 	exit /b 1
 )
+rem Import the raccoon model on the first run, as the editor would.
+if not exist "%~dp0.godot\imported\raccoon.glb-*.scn" "%GODOT_EXE%" --headless --path "%~dp0." --import
 start "" "%GODOT_EXE%" --path "%~dp0." %*

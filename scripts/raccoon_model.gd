@@ -1,10 +1,13 @@
 @tool
 extends Node3D
-## Low-poly raccoon built from code, matched to the concept art.
+## The raccoon: the Blender model in assets/characters, or a low-poly one built
+## from code. Both match the concept art.
 ## Faces -Z (Godot's forward) with its feet at y = 0. Parts are separate nodes
 ## so they can be animated; set walk_amount / walk_phase / crouch / chitter_time.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
+## Exported from raccoon.blend by assets/characters/export_raccoon.py.
+const MODEL_PATH := "res://assets/characters/raccoon.glb"
 
 # Sampled from design/reference/the-raccon.jpg: blue-grey coat, cream mask,
 # slate eye patches, near-black paws and tail bands.
@@ -14,8 +17,26 @@ const CREAM := Color("dfd6b7")
 const BLACK := Color("3a4547")
 const INK := Color("1a1f20")
 const PAW := INK
+## The Blender model's materials, painted with this palette, which the game's
+## lighting is tuned for.
+const MODEL_COLORS := {
+	"R_Fur": GREY,
+	"R_Cream": CREAM,
+	"R_Mask": BLACK,
+	"R_EarInner": GREY_DARK,
+	"R_Black": INK,
+	"R_Nose": INK,
+}
 
-## Rounded, smooth-shaded mesh. Turn off for the original faceted low-poly look.
+## Use the Blender model. Turn off to build the raccoon from code instead.
+@export var use_blender_model := true:
+	set(value):
+		use_blender_model = value
+		if is_node_ready():
+			_rebuild()
+
+## For the raccoon built from code: a rounded, smooth-shaded mesh. Turn off for
+## the original faceted low-poly look.
 @export var smooth := true:
 	set(value):
 		smooth = value
@@ -39,11 +60,15 @@ var head: Node3D
 var tail: Node3D
 var legs: Array[Node3D] = []
 ## Where carried objects are held.
-var mouth: Marker3D
+var mouth: Node3D
 
 var _leg_height: Array[float] = []
 var _eyes: Array[Node3D] = []
 var _curled_tail: Node3D
+var _head_y := 0.47
+## How far the tail pitches as he crouches; positive lowers it.
+var _tail_crouch := 0.1
+var _model_materials := {}
 var _t := 0.0
 
 
@@ -79,7 +104,7 @@ func _process(delta: float) -> void:
 	body.position.y = absf(sin(walk_phase)) * 0.025 * walk_amount - crouch * 0.1
 	body.rotation.z = sin(walk_phase) * 0.03 * walk_amount + turn * 0.08
 	tail.rotation.y = sin(_t * 2.3) * 0.22 + sin(walk_phase) * 0.15 * walk_amount - turn * 0.5
-	tail.rotation.x = 0.1 * crouch - 0.05 * walk_amount
+	tail.rotation.x = _tail_crouch * crouch - 0.05 * walk_amount
 	head.rotation.y = sin(_t * 0.8) * 0.18 * (1.0 - walk_amount) + turn * 0.35
 	head.rotation.x = sin(walk_phase * 2.0) * 0.04 * walk_amount - crouch * 0.12
 	if chitter_time > 0.0:
@@ -89,7 +114,7 @@ func _process(delta: float) -> void:
 	# Asleep: lie flat, tuck the head round towards the tail, and breathe slowly.
 	body.position.y -= sleep * 0.17
 	body.scale.y = 1.0 + sin(_t * 1.7) * 0.025 * sleep
-	head.position.y = 0.47 - sleep * 0.07
+	head.position.y = _head_y - sleep * 0.07
 	if sleep > 0.0:
 		head.rotation.y = lerpf(head.rotation.y, 0.95, sleep)
 		head.rotation.x = lerpf(head.rotation.x, -0.5, sleep)
@@ -103,6 +128,10 @@ func _process(delta: float) -> void:
 
 
 func _build() -> void:
+	if use_blender_model and _build_from_model():
+		return
+	_head_y = 0.47
+	_tail_crouch = 0.1
 	body = _part("Body", self, Vector3.ZERO)
 	_mesh(body, _loft(
 		[Vector3(0, 0.36, 0.40), Vector3(0, 0.40, 0.28), Vector3(0, 0.43, 0.04),
@@ -111,7 +140,7 @@ func _build() -> void:
 			Vector2(0.16, 0.18), Vector2(0.115, 0.13)],
 		8, _body_color, PI / 8))
 
-	head = _part("Head", body, Vector3(0, 0.47, -0.31))
+	head = _part("Head", body, Vector3(0, _head_y, -0.31))
 	# The mask starts and ends exactly at head segments, so those edges stay sharp.
 	_mesh(head, _loft(
 		[Vector3(0, 0, 0.03), Vector3(0, 0, -0.07), Vector3(0, -0.02, -0.15), Vector3(0, -0.045, -0.235)],
@@ -164,6 +193,53 @@ func _build() -> void:
 	_leg("LegFR", Vector3(0.09, 0.36, -0.20), 0.065)
 	_leg("LegBL", Vector3(-0.105, 0.37, 0.22), 0.085)
 	_leg("LegBR", Vector3(0.105, 0.37, 0.22), 0.085)
+
+
+## Uses the Blender model. Its parts have the same names as the ones built in code
+## and their origins at the joints, so _process() animates them the same way.
+## Returns false if the model can't be loaded (e.g. the project was never imported).
+func _build_from_model() -> bool:
+	var scene := load(MODEL_PATH) as PackedScene
+	if scene == null:
+		push_warning("Couldn't load %s, so the raccoon is built from code." % MODEL_PATH)
+		return false
+	var model := scene.instantiate()
+	add_child(model)
+	var rig := model.get_node("Raccoon")
+	body = rig.get_node("Body") as Node3D
+	head = body.get_node("Head") as Node3D
+	tail = body.get_node("Tail") as Node3D
+	_curled_tail = body.get_node("TailCurled") as Node3D
+	_curled_tail.visible = false
+	for leg_name: String in ["LegFL", "LegFR", "LegBL", "LegBR"]:
+		var leg := rig.get_node(leg_name) as Node3D
+		legs.append(leg)
+		_leg_height.append(leg.position.y)
+	for eye_name: String in ["EyeL", "EyeR"]:
+		_eyes.append(head.get_node(eye_name) as Node3D)
+	mouth = head.get_node("Mouth") as Node3D
+	_head_y = head.position.y
+	# His tail droops to the ground, so it lifts as he crouches instead of dropping.
+	_tail_crouch = -0.22
+	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		for i in mi.mesh.get_surface_count():
+			mi.set_surface_override_material(i, _model_material(mi.mesh.surface_get_material(i)))
+	return true
+
+
+## A matte material in the palette colour for one of the Blender model's materials.
+func _model_material(source: Material) -> Material:
+	var key := source.resource_name if source else ""
+	if key == "R_Eye":
+		return _eye_material()
+	if not _model_materials.has(key):
+		var original := source as BaseMaterial3D
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = MODEL_COLORS.get(key, original.albedo_color if original else GREY)
+		mat.roughness = 1.0
+		mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+		_model_materials[key] = mat
+	return _model_materials[key]
 
 
 func _leg(leg_name: String, pos: Vector3, thigh: float) -> void:

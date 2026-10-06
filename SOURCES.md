@@ -20,3 +20,4 @@ One row for every generation that was kept or seriously considered. Rejected out
 
 - **The prototype** (`project.godot`, the scenes and `scripts/`): the author's own Raccoon Mischief prototype. Two changes were made with Claude Code on 4 Oct 2026; see the README.
 - **The storyboard thumbnails** in `design/storyboard/`: drawn by Claude Code in code, with `make_thumbnails.py`. They aren't generated assets.
+- **The raccoon model** in `assets/characters/`: built by Claude Code in Blender with Python (through the Blender MCP), matched to `design/reference/the-raccon.jpg`. No generative model made it, so it isn't a generated asset. The game uses `raccoon.glb`, made from `raccoon.blend` by `export_raccoon.py` (also Claude Code).

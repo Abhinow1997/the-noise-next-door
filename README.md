@@ -18,18 +18,19 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 | [SOURCES.md](SOURCES.md) | The generative models used, and the asset log |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/reference/](design/reference/) | The raccoon's style target |
+| [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend |
 | `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project |
 
 ## Run it
 
 You need Godot 4.7.2. The project uses the Forward+ renderer.
 
-- **Windows:** double-click `Play The Noise Next Door.bat`, or `Edit in Godot.bat` to open the editor. They look for Godot in the `GODOT` environment variable, then in `%LOCALAPPDATA%\Programs\Godot`, then in your Downloads folder.
-- **Anywhere:** run `godot --path .` from this folder.
+- **Windows:** double-click `Play The Noise Next Door.bat`, or `Edit in Godot.bat` to open the editor. They look for Godot in the `GODOT` environment variable, then in `%LOCALAPPDATA%\Programs\Godot`, then in your Downloads folder. The first run takes a few seconds longer while Godot imports the raccoon model.
+- **Anywhere:** run `godot --path .` from this folder. On a fresh clone, first run `godot --headless --path . --import` once (or open the project in the editor), so the raccoon model is imported.
 
 **Controls:** WASD or the arrow keys to move, Shift to run, Ctrl or C to sneak, E or a click to grab or drop, Space to chitter, and the mouse wheel to zoom.
 
-To redraw the storyboard after editing it, run `python design/storyboard/make_thumbnails.py`.
+To redraw the storyboard after editing it, run `python design/storyboard/make_thumbnails.py`. To update the game's raccoon after editing `raccoon.blend`, run `blender -b assets/characters/raccoon.blend --python assets/characters/export_raccoon.py`.
 
 ## Started from
 
@@ -44,5 +45,5 @@ Two changes were made with Claude Code on 4 Oct 2026, before this repo existed:
 ## Who made what
 
 - **The author:** the prototype, the story, and the design decisions. The provenance notes at the end of CONCEPT.md and STORYBOARD.md list them.
-- **Claude Code:** drafts and wording for the docs, the storyboard thumbnails (drawn in code), the two prototype changes above, and this README.
+- **Claude Code:** drafts and wording for the docs, the storyboard thumbnails (drawn in code), the two prototype changes above, the raccoon model in `assets/characters/` (built in Blender with Python) and the code that puts it in the game, and this README.
 - **Generative models:** only one image so far: the raccoon's style target, generated with Google Gemini before any design doc was committed. It's in `design/reference/`, and [SOURCES.md](SOURCES.md) logs it.
