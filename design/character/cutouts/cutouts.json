@@ -1,0 +1,92 @@
+{
+  "idle": {
+    "game_scale": 0.166,
+    "feet_row": 604,
+    "anchor_x": 532.0,
+    "on_screen_px": [
+      139,
+      99
+    ]
+  },
+  "running": {
+    "game_scale": 0.2033,
+    "feet_row": 428,
+    "anchor_x": 538.5,
+    "on_screen_px": [
+      154,
+      86
+    ]
+  },
+  "sneak": {
+    "game_scale": 0.1572,
+    "feet_row": 562,
+    "anchor_x": 568.0,
+    "on_screen_px": [
+      136,
+      88
+    ]
+  },
+  "bored": {
+    "game_scale": 0.1486,
+    "feet_row": 675,
+    "anchor_x": 405.0,
+    "on_screen_px": [
+      117,
+      99
+    ]
+  },
+  "asleep": {
+    "game_scale": 0.1326,
+    "feet_row": 614,
+    "anchor_x": 349.5,
+    "on_screen_px": [
+      106,
+      81
+    ]
+  },
+  "standing": {
+    "game_scale": 0.2298,
+    "feet_row": 553,
+    "anchor_x": 322.5,
+    "on_screen_px": [
+      112,
+      126
+    ]
+  },
+  "picking-items": {
+    "game_scale": 0.1831,
+    "feet_row": 508,
+    "anchor_x": 518.0,
+    "on_screen_px": [
+      150,
+      92
+    ]
+  },
+  "busted": {
+    "game_scale": 0.1811,
+    "feet_row": 649,
+    "anchor_x": 298.0,
+    "on_screen_px": [
+      148,
+      116
+    ]
+  },
+  "knockedback": {
+    "game_scale": 0.1693,
+    "feet_row": 727,
+    "anchor_x": 270.0,
+    "on_screen_px": [
+      124,
+      122
+    ]
+  },
+  "with-beanie": {
+    "game_scale": 0.2369,
+    "feet_row": 600,
+    "anchor_x": 320.5,
+    "on_screen_px": [
+      116,
+      141
+    ]
+  }
+}

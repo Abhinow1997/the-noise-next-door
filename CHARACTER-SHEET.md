@@ -1,10 +1,17 @@
 # Character sheet: the raccoon, the camper and the dogs
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v5, 6 Oct 2026 · first committed as v1 on 5 Oct 2026 (0998c52)
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v6, 6 Oct 2026 · first committed as v1 on 5 Oct 2026 (0998c52)
 
 The story has two main characters: the raccoon, whom the player controls, and the camper, whose red beanie he steals and who in the end brings him home. In town, the neighbourhood dogs are the ones who chase him. This sheet is the contract every generated image of them must meet. It was first committed before any new generation, so the poses are a plan for now. The generated images go in `design/character/` once each reference image is accepted, and each one is judged against this sheet.
 
 **Revised in v5 (6 Oct 2026): the low-poly look.** The raccoon now follows the low-poly look of his generated poses, not the clay look of the first style target. Each part of his section that changed keeps its v1–v4 text, marked as the earlier plan, so the record shows both. The camper and the dogs keep their v4 descriptions for now, because the slice doesn't use them.
+
+**Added in v6 (6 Oct 2026): the images.** The silhouette test, the labelled pose sheet and the collision overlay are in `design/character/`. They're made from the generated poses by `design/character/make_character_sheet.gd`, which:
+- cuts each pose out of its background with a colour key;
+- crops it;
+- scales every pose so the faces match.
+
+Nothing is redrawn. The cut-outs are in `design/character/cutouts/`, and `cutouts.json` records each one's scale on screen and its ground point.
 
 ![The first style target: the clay look](design/reference/raccon-version-1.jpg)
 
@@ -122,6 +129,19 @@ The player sees him through the game camera: a tilted three-quarter view, about 
 
 *Revised in v5 (6 Oct 2026):* with your camera, he's about 162 px long and 85 px tall in a 1280 × 720 window at the default zoom, measured from a screenshot. Fully zoomed out, he's about 100 px long. So test him at 96 px and 64 px long, against the v5 grounds above.
 
+**Done in v6 (6 Oct 2026).**
+
+![Silhouette test](design/character/silhouette.png)
+
+The five poses the slice uses, in solid black at their actual size in the game's window: 106–154 px wide at the default zoom, and 66–96 px fully zoomed out.
+
+*Claude's read of the image:*
+- Idle, run, sneak and bored keep their ears, hunched back and tail at both sizes.
+- Asleep reads as a curled ball. His ears and tail only just show at the smaller size.
+- The tail rings can't show in a silhouette; the contrast check above covers them.
+
+The muted playtest settles whether he reads in the game.
+
 ### Collision
 
 The prototype's player collides as a capsule lying along his body, 0.8 m long and 0.4 m wide and tall, with its bottom at his feet (`scripts/player.gd`). Draw it over every pose at the same scale.
@@ -129,6 +149,14 @@ The prototype's player collides as a capsule lying along his body, 0.8 m long an
 *Corrected in v5 (6 Oct 2026):* a size setting of 0.8, added on 5 Oct (11e0319), scales the capsule, so it's 0.64 m long and 0.32 m wide and tall (radius 0.16 m). The reasoning below is unchanged.
 
 The capsule covers his legs and lower body. His snout, upper back, head and most of his tail stick out past it. That's fair to the player because nothing in the game needs to hit those parts: there's no jumping or ducking. And if humans check the same capsule when they look for him, a tail poking out of a hiding place never gets him caught.
+
+**Drawn in v6 (6 Oct 2026).**
+
+![Collision overlay](design/character/collision.png)
+
+- The capsule is drawn over every pose at the same scale, centred between his front and hind paws, with its bottom on the ground line.
+- It's shown as it looks when he moves left or right on screen.
+- When he walks toward or away from the camera, the capsule turns with him and looks shorter, but the flat image stays the same. TEST-REPORT.md checks how that plays.
 
 ### Poses
 
@@ -168,6 +196,10 @@ From panel 9 on he wears the beanie. Make the beanie version of a pose by editin
 
 - **Not generated yet:** 1 (the turnaround), 5 (walk) and 11 (job done).
 - **Count:** with the silhouette (pose 2), that's 10 distinct poses. The beanie version is a variation of standing, so it doesn't count again.
+
+**The pose sheet (v6).** Every generated pose at one scale, cut out and labelled with its pose number and game state. The five the slice uses are marked with their asset IDs.
+
+![The generated poses](design/character/poses.png)
 
 ### Consistency rules
 
@@ -514,6 +546,9 @@ The slice doesn't need these. Use the same style and background rules, and end e
   - on 5 Oct 2026: the beanie camper is a man and the story's other main character, the one who releases the raccoon at his home;
   - on 5 Oct 2026: dogs in the town that chase the raccoon, as an important character;
   - on 6 Oct 2026: switch the raccoon to the low-poly look of his generated poses (v5), because "the switch was a decision based on the astetics of the game and how the prototype looked".
+- **Claude's v6 contributions:**
+  - `make_character_sheet.gd` and the images it makes: the cut-outs (colour key, crop, scale matched by face size), the silhouette test, the pose sheet and the collision overlay;
+  - the read of the silhouette test.
 - **Claude's v5 contributions:**
   - the revision's wording;
   - the palette, measured from the six green-screen poses;
