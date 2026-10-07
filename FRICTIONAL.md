@@ -28,6 +28,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 | 6 Oct | Character sheet v5: the low-poly look, measured | d89c0bb |
 | 6 Oct | Character sheet v6: the silhouette, pose sheet and collision overlay | 7296e08 |
 | 6 Oct | The four sounds: using what I generated | 0b23969 |
+| 6 Oct | The ground texture, rejected in the game | ef1a803 |
 
 ---
 
@@ -223,3 +224,15 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - no one has listened to the loops' seams yet, so I need to hear at least three repeats of each;
   - the laughs are MP3s and need converting to WAV;
   - the chitter and the task laugh are takes of the same laugh, so they may be hard to tell apart (failure 10 in CHANGE-BRIEF.md).
+
+## 2026-10-06 — The ground texture, rejected in the game
+
+- **Wanted:** a generated ground for the clearing, as the slice's environment asset, with the raccoon still readable against it.
+- **Tried:** while building the slice, Claude put my ENV-GROUND texture on the forest floor, repeated every 2.5 m. In the game camera it showed as dense light and dark patches with scattered leaves, repeating across the clearing.
+- **Judged** (22:20): "No the forest resort the previous verison i dont like the ground"
+- **Decided:**
+  - The forest goes back to the plain grass. The texture is switched off in the code, not deleted.
+  - The brief needs a generated environment asset in the slice, so at 22:24 I chose a generated tree stump instead. Claude offered four options: a stump, the camper's backpack, the texture only on the den's floor, or a softer version of the texture.
+  - CHANGE-BRIEF.md v3 records it, with the stump prompt, before the stump is generated.
+- **Human / Claude / model:** the texture is a Gemini output. Putting it in the game, and the four options, are Claude's. Rejecting it and choosing the stump are mine.
+- **Still unresolved:** the stump isn't generated yet.
