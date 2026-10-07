@@ -25,6 +25,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 | 6 Oct | The gameplay camera, tuned in the game | dcae18a |
 | 6 Oct | Storyboard v6: checked against the brief | c8d0f0c |
 | 6 Oct | Planning the slice: CHANGE-BRIEF.md | 4dc2f03 |
+| 6 Oct | Character sheet v5: the low-poly look, measured | d89c0bb |
 
 ---
 
@@ -157,6 +158,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - CHARACTER-SHEET.md switches to the low-poly look of my poses.
 
   The questions treated the slice as the forest clearing already in the game, with its five tasks, and I answered on that basis.
+- **Why the low-poly look** (my words, 20:58): "the switch was a decision based on the astetics of the game and how the prototype looked"
 - **Got:** Claude's draft of CHANGE-BRIEF.md:
   - the asset list with IDs and storyboard panels;
   - the event-to-sound map, with how each sound is kept to one play per event;
@@ -168,4 +170,18 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude / model:** the four decisions are mine. The options, the draft, the numbers and the prompts are Claude's. No generative model.
 - **Still unresolved:**
   - CHANGE-BRIEF.md was written after generating began, so it doesn't count as committed before the first generation. It does come before the ground texture and three of the four sounds are generated.
-  - Why I switched to the low-poly look isn't written down yet.
+
+## 2026-10-06 — Character sheet v5: the low-poly look, measured
+
+- **Wanted:** a character sheet that matches the poses I generated, so each one can be judged against it.
+- **Asked** (20:58), giving my reason for the switch: "the switch was a decision based on the astetics of the game and how the prototype looked"
+- **Got:** Claude's v5 of CHARACTER-SHEET.md. Each changed part keeps its old text, marked as the earlier plan.
+  - **The low-poly finish,** and a palette measured from my six green-screen poses: fur in three facet tones (`#748087`, `#67737B`, `#59656E`), charcoal `#26292E` and cream `#D1C4A7`.
+  - **A table matching my ten pose images to the sheet's poses.** With the silhouette, that makes ten distinct poses. The knocked-back image became a new hurt pose.
+  - **Corrections:** the 27° camera, his size on screen (162 × 85 px at the default zoom) and the real collision capsule (0.64 m).
+  - **A finding:** his fur is as bright as my generated ground texture (`ENV-GROUND.jpg`, saved at 20:42), 1.0:1 against its average, and 1.5:1 against the game's current ground. Only his charcoal markings and cream face show his shape. That's predicted failure 2 in CHANGE-BRIEF.md.
+- **Decided:** the switch is mine. How to fix the ground isn't decided yet. CHANGE-BRIEF.md says to change the ground, not the raccoon, and the silhouette test and my muted playtest will settle it.
+- **Human / Claude / model:** the switch and its reason are mine. The measurements and the wording are Claude's. The poses and the ground texture are Gemini outputs.
+- **Still unresolved:**
+  - the ground's brightness;
+  - the asset-log rows for the ten poses and the ground texture.
