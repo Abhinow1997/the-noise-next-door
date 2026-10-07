@@ -103,6 +103,8 @@ var can_spots: Array[Vector3] = [Vector3(6.9, 0, -0.3), Vector3(8.4, 0, -0.5), V
 ## Top of the stump the gnome stands on.
 var gnome_spot: Vector3
 var see_through: ShaderMaterial
+## The grass sheet under everything, so the level can give it a texture.
+var ground: MeshInstance3D
 
 var _rng := RandomNumberGenerator.new()
 var _body: StaticBody3D
@@ -173,7 +175,7 @@ func _build_ground() -> void:
 				colors.append(_grass_at(p))
 			LowPoly.add_tri_attrs(st, [corners[0], corners[1], corners[2]], up, [colors[0], colors[1], colors[2]], Vector3.UP)
 			LowPoly.add_tri_attrs(st, [corners[0], corners[2], corners[3]], up, [colors[0], colors[2], colors[3]], Vector3.UP)
-	_add_mesh(LowPoly.commit(st))
+	ground = _add_mesh(LowPoly.commit(st))
 	# The old plated ground drew from _rng. Carry on from where it left off, so every
 	# tree, rock and leaf placed after this stays where it was.
 	_rng.state = RNG_AFTER_GROUND

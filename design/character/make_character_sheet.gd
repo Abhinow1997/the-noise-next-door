@@ -65,7 +65,7 @@ func _run() -> void:
 
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT + "cutouts"))
 	for p in POSES:
-		var c := _cut_out(p[0])
+		var c := cut_out(SRC + p[0] + ".jpg")
 		cuts[p[0]] = c
 		c.image.save_png(OUT + "cutouts/" + p[0] + ".png")
 		print("%-14s %4d x %4d  %-12s  face %6d px  feet row %4d  anchor %6.1f" % [p[0], c.image.get_width(), c.image.get_height(), c.kind, c.cream, c.feet, c.anchor])
@@ -97,12 +97,13 @@ func _run() -> void:
 
 # --- Cutting out ---------------------------------------------------------------
 
-## Removes the background from one pose. The background is whatever fills the
+## Removes the background from one image. The background is whatever fills the
 ## image's border: the green screen, or the sage-green scene. Its "greenness"
 ## (green over the larger of red and blue) sets the key, since the raccoon is
-## blue-grey, charcoal and cream and never green.
-func _cut_out(file: String) -> Dictionary:
-	var img := Image.load_from_file(ProjectSettings.globalize_path(SRC + file + ".jpg"))
+## blue-grey, charcoal and cream and never green. Static, so other tools can use
+## it (design/environment/make_props.gd).
+static func cut_out(path: String) -> Dictionary:
+	var img := Image.load_from_file(ProjectSettings.globalize_path(path))
 	var s := 1024.0 / maxf(img.get_width(), img.get_height())
 	img.resize(roundi(img.get_width() * s), roundi(img.get_height() * s), Image.INTERPOLATE_LANCZOS)
 	img.convert(Image.FORMAT_RGBA8)
@@ -222,11 +223,11 @@ func _cut_out(file: String) -> Dictionary:
 	}
 
 
-func _green(d: PackedByteArray, i: int) -> float:
+static func _green(d: PackedByteArray, i: int) -> float:
 	return (d[i * 4 + 1] - maxi(d[i * 4], d[i * 4 + 2])) / 255.0
 
 
-func _border_indices(w: int, h: int) -> PackedInt32Array:
+static func _border_indices(w: int, h: int) -> PackedInt32Array:
 	var out := PackedInt32Array()
 	for x in w:
 		out.append(x)
@@ -238,7 +239,7 @@ func _border_indices(w: int, h: int) -> PackedInt32Array:
 
 
 ## The biggest 4-connected group of solid pixels.
-func _largest(solid: PackedByteArray, w: int, h: int) -> PackedByteArray:
+static func _largest(solid: PackedByteArray, w: int, h: int) -> PackedByteArray:
 	var n := w * h
 	var label := PackedInt32Array()
 	label.resize(n)
@@ -281,7 +282,7 @@ func _largest(solid: PackedByteArray, w: int, h: int) -> PackedByteArray:
 
 
 ## Every pixel outside the shape that can be reached from the image's border.
-func _flood_from_border(shape: PackedByteArray, w: int, h: int) -> PackedByteArray:
+static func _flood_from_border(shape: PackedByteArray, w: int, h: int) -> PackedByteArray:
 	var n := w * h
 	var seen := PackedByteArray()
 	seen.resize(n)
@@ -309,7 +310,7 @@ func _flood_from_border(shape: PackedByteArray, w: int, h: int) -> PackedByteArr
 	return seen
 
 
-func _dilate(mask: PackedByteArray, w: int, h: int, steps: int) -> PackedByteArray:
+static func _dilate(mask: PackedByteArray, w: int, h: int, steps: int) -> PackedByteArray:
 	var cur := mask
 	for s in steps:
 		var nxt := cur.duplicate()

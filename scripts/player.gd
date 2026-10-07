@@ -3,8 +3,22 @@ extends CharacterBody3D
 ## and climb trees.
 
 signal chittered
+## A sound effect started; `id` is its asset ID (SOURCES.md). Counted by the level.
+signal sound_started(id: String)
 
 const RaccoonModel := preload("res://scripts/raccoon_model.gd")
+
+## The author's generated sounds (CHANGE-BRIEF.md v2): two loops that play while he
+## runs or climbs, and take A of the laugh for the chitter.
+const RUN_LOOP := "res://assets/audio/sfx/run-loop.wav"
+const CLIMB_LOOP := "res://assets/audio/sfx/climb-loop.wav"
+const CHITTER_SOUND := "res://assets/audio/sfx/chitter.wav"
+const RUN_DB := 2.0
+const CLIMB_DB := 4.0
+const CHITTER_DB := -8.0
+## A loop keeps going this long after he stops, so a one-frame stumble doesn't
+## restart it.
+const LOOP_HOLD := 0.12
 
 @export var walk_speed := 2.0
 @export var run_speed := 4.0
@@ -26,12 +40,20 @@ var sneaking := false
 var resting := false
 ## True while on a tree trunk, including the hops on and off.
 var climbing := false
+## True while he runs on the ground: Shift held, not sneaking, faster than a walk.
+var running := false
+## True while he moves on a trunk.
+var climb_moving := false
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _push_speed := 0.0
 var _speed := 0.0
 var _turn := 0.0
 var _voice: AudioStreamPlayer
+var _run_sfx: AudioStreamPlayer
+var _climb_sfx: AudioStreamPlayer
+## How long each loop's condition has been false, for LOOP_HOLD.
+var _quiet := {}
 var _shape: CollisionShape3D
 var _hop_from: Transform3D
 var _hop_to: Transform3D
@@ -71,16 +93,28 @@ func _ready() -> void:
 	add_child(shape)
 	_shape = shape
 
-	var generator := AudioStreamGenerator.new()
-	generator.mix_rate = 22050.0
-	generator.buffer_length = 0.6
-	_voice = AudioStreamPlayer.new()
-	_voice.stream = generator
-	_voice.volume_db = -6.0
-	add_child(_voice)
+	_voice = _sound(CHITTER_SOUND, CHITTER_DB)
+	_run_sfx = _sound(RUN_LOOP, RUN_DB)
+	_climb_sfx = _sound(CLIMB_LOOP, CLIMB_DB)
+
+
+## A player for one sound effect on the effects bus. If the sound hasn't been
+## imported yet, the player stays silent.
+func _sound(path: String, db: float) -> AudioStreamPlayer:
+	var sfx := AudioStreamPlayer.new()
+	sfx.bus = "SFX"
+	sfx.volume_db = db
+	if ResourceLoader.exists(path):
+		sfx.stream = load(path)
+	else:
+		push_warning("This sound isn't imported yet: %s" % path)
+	add_child(sfx)
+	return sfx
 
 
 func _physics_process(delta: float) -> void:
+	running = false
+	climb_moving = false
 	if _hop_t >= 0.0:
 		_hop_process(delta)
 	elif resting:
@@ -89,6 +123,25 @@ func _physics_process(delta: float) -> void:
 		_climb_process(delta)
 	else:
 		_walk_process(delta)
+	_loop(_run_sfx, running, "SFX-RUN", delta)
+	_loop(_climb_sfx, climb_moving, "SFX-CLIMB", delta)
+
+
+## Starts a loop when its condition turns true and stops it once it has been false
+## for LOOP_HOLD. A held key keeps the one loop going; it never stacks.
+func _loop(sfx: AudioStreamPlayer, on: bool, id: String, delta: float) -> void:
+	_quiet[id] = 0.0 if on else _quiet.get(id, 0.0) + delta
+	if sfx.stream == null:
+		return
+	if on and not sfx.playing:
+		sfx.play()
+		sound_started.emit(id)
+	elif not on and sfx.playing and _quiet[id] >= LOOP_HOLD:
+		sfx.stop()
+
+
+func is_hopping() -> bool:
+	return _hop_t >= 0.0
 
 
 func _walk_process(delta: float) -> void:
@@ -117,6 +170,7 @@ func _walk_process(delta: float) -> void:
 		target_speed = speed * dir.length() * clampf(forward.dot(dir.normalized()), 0.25, 1.0)
 	var accel := 10.0 if target_speed > _speed else 14.0
 	_speed = move_toward(_speed, target_speed, accel * delta)
+	running = not sneaking and Input.is_action_pressed("run") and _speed > walk_speed + 0.1
 	velocity.x = forward.x * _speed
 	velocity.z = forward.z * _speed
 	if not is_on_floor():
@@ -270,6 +324,7 @@ func _climb_process(delta: float) -> void:
 	var moved := Vector2(_climb_along, _climb_angle * reach) - before
 	moved.y = wrapf(moved.y, -PI * reach, PI * reach)
 	var climbed := moved.length() / maxf(delta, 0.0001)
+	climb_moving = climbed > 0.05
 	model.walk_amount = clampf(climbed / walk_speed, 0.0, 1.0)
 	model.walk_phase += climbed * delta * 7.0 / size
 	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
@@ -397,23 +452,11 @@ func _drop() -> void:
 	get_tree().create_timer(0.4).timeout.connect(func(): remove_collision_exception_with(body))
 
 
+## Plays the laugh. Pressing again while it plays restarts it rather than
+## stacking a second copy.
 func chitter() -> void:
 	model.chitter_time = 0.45
 	chittered.emit()
-	_voice.play()
-	var playback := _voice.get_stream_playback() as AudioStreamGeneratorPlayback
-	if playback == null:
-		return
-	# A burst of quick falling chirps with a bit of breathy noise.
-	var rate := 22050.0
-	var pitch := randf_range(0.85, 1.2)
-	var frames := mini(int(rate * 0.45), playback.get_frames_available())
-	var phase := 0.0
-	for i in frames:
-		var t := i / rate
-		var chirp := fmod(t, 0.075) / 0.075
-		var envelope := sin(PI * chirp) * (1.0 - t / 0.45)
-		var freq := (1500.0 + 1600.0 * (1.0 - chirp)) * pitch
-		phase += TAU * freq / rate
-		var sample := (sin(phase) * 0.7 + randf_range(-0.3, 0.3)) * envelope * 0.4
-		playback.push_frame(Vector2(sample, sample))
+	if _voice.stream:
+		_voice.play()
+		sound_started.emit("SFX-CHITTER")

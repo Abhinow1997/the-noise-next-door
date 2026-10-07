@@ -1,11 +1,42 @@
 extends Node3D
 ## Builds the forest, the props, the raccoon and the to-do list.
-## Debug: `-- --screenshot=out.png [--closeup]` saves a frame and quits.
+## Debug: `-- --screenshot=out.png [--closeup] [--pose=<state> [--left]]` saves a
+## frame and quits; --pose shows the raccoon in one state (see raccoon_sprite.gd).
+## `-- --sound-test` runs the automated sound check (scripts/sound_test.gd).
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
 const Forest := preload("res://scripts/forest.gd")
 const CameraTuner := preload("res://scripts/camera_tuner.gd")
+const RaccoonSprite := preload("res://scripts/raccoon_sprite.gd")
+const SoundTest := preload("res://scripts/sound_test.gd")
+
+## The author's generated grass texture (ENV-GROUND in SOURCES.md), repeated every
+## GROUND_TILE metres, with GROUND_TINT to darken it. Off: on 6 Oct the author saw
+## it in the game and chose the plain grass instead ("i dont like the ground").
+const GROUND_TEXTURE := false
+const GROUND_PATH := "res://assets/environment/env-ground.jpg"
+const GROUND_TILE := 2.5
+const GROUND_TINT := Color(1, 1, 1)
+
+## The author's generated stump (ENV-STUMP), cut out by design/environment/make_props.gd.
+## STUMP_HEIGHT is its height from the bottom of its roots to its rim, in metres; it
+## stands STUMP_LEFT metres left of where he starts and STUMP_NEAR toward the camera.
+const STUMP_PATH := "res://assets/environment/stump.png"
+const STUMP_METRICS := "res://assets/environment/props.json"
+const STUMP_HEIGHT := 0.6
+const STUMP_LEFT := 2.2
+const STUMP_NEAR := 0.6
+
+## A to-do item ticked off: take B of the author's laugh (SFX-TASK-LAUGH).
+const TASK_LAUGH_PATH := "res://assets/audio/sfx/task-laugh.wav"
+const TASK_LAUGH_DB := -6.0
+## How far the music dips under the laugh, how long the fade at the end takes, and
+## how the music is muffled while paused (CHANGE-BRIEF.md, music behaviour).
+const DUCK_DB := 4.0
+const END_FADE := 3.0
+const PAUSE_DB := 8.0
+const PAUSE_CUTOFF_HZ := 900.0
 
 const METAL := Color("8f9ba4")
 const METAL_DARK := Color("6c7780")
@@ -87,15 +118,44 @@ var _sleep_time := 0.0
 var _rng := RandomNumberGenerator.new()
 var _closeup := false
 var _grab_test := false
+var _climb_test := false
 var _shot_path := ""
 var _frames := 0
 var _zoom_now := 1.0
 ## Where the camera thinks the raccoon is; it trails him slightly for smoothness.
 var _anchor := Vector3.ZERO
 var _music: AudioStreamPlayer
+var _music_tween: Tween
+var _task_laugh: AudioStreamPlayer
+var _finished := false
+var _hint: Label
+var _paused_label: Label
+## How many times each sound effect has started, by asset ID.
+var sound_counts := {}
+var sprite: RaccoonSprite
+
+
+## Turns the keys that work while paused (Esc, M, N) into calls on the level.
+class Keys extends Node:
+	var level: Node
+
+	func _ready() -> void:
+		process_mode = Node.PROCESS_MODE_ALWAYS
+
+	func _unhandled_input(event: InputEvent) -> void:
+		if not (event is InputEventKey and event.pressed and not event.echo):
+			return
+		match event.physical_keycode:
+			KEY_ESCAPE:
+				level.toggle_pause()
+			KEY_M:
+				level.toggle_mute("Music")
+			KEY_N:
+				level.toggle_mute("SFX")
 
 
 func _enter_tree() -> void:
+	_setup_buses()
 	for action: String in INPUTS:
 		if InputMap.has_action(action):
 			continue
@@ -110,6 +170,9 @@ func _enter_tree() -> void:
 
 
 func _ready() -> void:
+	var pose := ""
+	var pose_left := false
+	var sound_test := false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			_shot_path = arg.get_slice("=", 1)
@@ -117,11 +180,20 @@ func _ready() -> void:
 			_closeup = true
 		elif arg == "--grab-test":
 			_grab_test = true
+		elif arg == "--climb-test":
+			_climb_test = true
+		elif arg.begins_with("--pose="):
+			pose = arg.get_slice("=", 1)
+		elif arg == "--left":
+			pose_left = true
+		elif arg == "--sound-test":
+			sound_test = true
 	_rng.seed = 7
 
 	_build_environment()
 	forest = Forest.new()
 	add_child(forest)
+	_texture_ground()
 	_build_props()
 
 	camera = Camera3D.new()
@@ -134,12 +206,35 @@ func _ready() -> void:
 	player.camera = camera
 	player.trees = forest.climbable
 	add_child(player)
+	player.sound_started.connect(_count_sound)
+	# He's drawn with the author's generated images; the 3D model underneath only
+	# casts his shadow and carries things.
+	sprite = RaccoonSprite.new()
+	sprite.player = player
+	sprite.camera = camera
+	sprite.forced_state = pose
+	sprite.forced_left = pose_left
+	player.add_child(sprite)
 	_anchor = player.global_position + PIVOT
 	_place_camera()
+
+	_task_laugh = AudioStreamPlayer.new()
+	_task_laugh.bus = "SFX"
+	_task_laugh.volume_db = TASK_LAUGH_DB
+	if ResourceLoader.exists(TASK_LAUGH_PATH):
+		_task_laugh.stream = load(TASK_LAUGH_PATH)
+	add_child(_task_laugh)
+	var keys := Keys.new()
+	keys.level = self
+	add_child(keys)
 
 	_build_ui()
 	_refresh_todo()
 	_start_music()
+	if sound_test:
+		var test := SoundTest.new()
+		test.level = self
+		add_child(test)
 
 
 func _process(delta: float) -> void:
@@ -164,6 +259,17 @@ func _process(delta: float) -> void:
 			player._grab()
 		elif _grab_test and _frames == 20:
 			player.global_position = forest.bin_spot + Vector3(-1.5, 0.02, 2.4)
+		elif _climb_test and _frames == 1:
+			# Onto the nearest trunk, then up it for a moment.
+			var nearest: Dictionary = forest.climbable[0]
+			for tree: Dictionary in forest.climbable:
+				if tree.base.distance_to(player.global_position) < nearest.base.distance_to(player.global_position):
+					nearest = tree
+			player._start_climb(nearest)
+		elif _climb_test and _frames == 20:
+			Input.action_press("move_forward")
+		elif _climb_test and _frames == 38:
+			Input.action_release("move_forward")
 		if _frames == 30 and _music:
 			# Stopped well before the quit, so the audio thread has let go of it.
 			_music.stop()
@@ -181,9 +287,122 @@ func _start_music() -> void:
 	_music = AudioStreamPlayer.new()
 	_music.stream = load(MUSIC_PATH)
 	_music.volume_db = -60.0
+	_music.bus = "Music"
+	# It keeps playing, muffled, while the game is paused.
+	_music.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_music)
 	_music.play()
-	create_tween().tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
+	_music_tween = create_tween()
+	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
+
+
+# --- Sound -------------------------------------------------------------------
+
+## Music and effects get buses of their own, so each can be muted on its own.
+## The music bus has a low-pass filter, switched on only while paused.
+func _setup_buses() -> void:
+	for bus_name: String in ["Music", "SFX"]:
+		if AudioServer.get_bus_index(bus_name) != -1:
+			continue
+		AudioServer.add_bus()
+		var index := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(index, bus_name)
+		AudioServer.set_bus_send(index, "Master")
+		if bus_name == "Music":
+			var muffle := AudioEffectLowPassFilter.new()
+			muffle.cutoff_hz = PAUSE_CUTOFF_HZ
+			AudioServer.add_bus_effect(index, muffle)
+			AudioServer.set_bus_effect_enabled(index, 0, false)
+
+
+func _count_sound(id: String) -> void:
+	sound_counts[id] = sound_counts.get(id, 0) + 1
+
+
+## The laugh for a ticked-off task, with the music dipping under it.
+func _play_task_laugh() -> void:
+	if _task_laugh.stream == null:
+		return
+	_task_laugh.play()
+	_count_sound("SFX-TASK-LAUGH")
+	if _music == null or _finished:
+		return
+	_restart_music_tween()
+	_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
+	_music_tween.tween_interval(_task_laugh.stream.get_length())
+	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, 0.4)
+
+
+## Every task done: after the last laugh, the music fades out and the clearing goes
+## quiet (pillar 3, Home should be quiet).
+func _end_music() -> void:
+	if _music == null:
+		return
+	_restart_music_tween()
+	_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
+	if _task_laugh.stream:
+		_music_tween.tween_interval(_task_laugh.stream.get_length())
+	_music_tween.tween_property(_music, "volume_db", -60.0, END_FADE)
+	_music_tween.tween_callback(_music.stop)
+
+
+func _restart_music_tween() -> void:
+	if _music_tween:
+		_music_tween.kill()
+	_music_tween = create_tween()
+	# The fades carry on while paused, like the music itself.
+	_music_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+
+
+## Esc: pauses the game. The music keeps playing, muffled and quieter; the effects
+## pause with the game.
+func toggle_pause() -> void:
+	var tree := get_tree()
+	tree.paused = not tree.paused
+	var music := AudioServer.get_bus_index("Music")
+	AudioServer.set_bus_effect_enabled(music, 0, tree.paused)
+	AudioServer.set_bus_volume_db(music, -PAUSE_DB if tree.paused else 0.0)
+	_paused_label.visible = tree.paused
+
+
+## M or N: mutes or unmutes the music or the effects. Only the buses change, so
+## nothing in the game depends on it.
+func toggle_mute(bus_name: String) -> void:
+	var index := AudioServer.get_bus_index(bus_name)
+	AudioServer.set_bus_mute(index, not AudioServer.is_bus_mute(index))
+	_update_hint()
+
+
+func _update_hint() -> void:
+	var music_on := not AudioServer.is_bus_mute(AudioServer.get_bus_index("Music"))
+	var sfx_on := not AudioServer.is_bus_mute(AudioServer.get_bus_index("SFX"))
+	_hint.text = "WASD move   Shift run   Ctrl sneak   E / click grab   Space chitter   Walk into a tree to climb (E lets go)\nWheel zoom   Tab camera   Esc pause   M music: %s   N effects: %s" % [
+		"on" if music_on else "off", "on" if sfx_on else "off"]
+
+
+# --- Ground ------------------------------------------------------------------
+
+## Puts the generated grass texture on the forest floor, mapped in world space.
+func _texture_ground() -> void:
+	if not GROUND_TEXTURE:
+		return
+	if forest.ground == null or not ResourceLoader.exists(GROUND_PATH):
+		push_warning("The ground texture isn't imported yet: %s" % GROUND_PATH)
+		return
+	var img := (load(GROUND_PATH) as Texture2D).get_image()
+	if img.is_compressed():
+		img.decompress()
+	img.generate_mipmaps()
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = ImageTexture.create_from_image(img)
+	mat.albedo_color = GROUND_TINT
+	mat.uv1_triplanar = true
+	mat.uv1_world_triplanar = true
+	mat.uv1_scale = Vector3.ONE / GROUND_TILE
+	mat.roughness = 1.0
+	mat.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	forest.ground.material_override = mat
 
 
 ## The aim point and the distance both scale with the zoom, so zooming slides the
@@ -255,13 +474,22 @@ func _check_tasks(delta: float) -> void:
 		"gnome": _in_den(gnome),
 		"nap": _sleep_time > 2.0,
 	}
+	var ticked := 0
 	for task: Dictionary in tasks:
 		if not task.done and state[task.id]:
 			task.done = true
 			changed = true
+			ticked += 1
+	# The sound follows the change in state, never the other way round. One laugh
+	# a frame, however many tasks finish together.
+	if ticked > 0:
+		_play_task_laugh()
 	if changed:
 		_refresh_todo()
 		_banner.visible = tasks.all(func(t: Dictionary) -> bool: return t.done)
+		if _banner.visible and not _finished:
+			_finished = true
+			_end_music()
 
 
 ## The den is the ground round the roots of the home pine.
@@ -375,6 +603,51 @@ func _build_props() -> void:
 	gnome = _prop(forest.gnome_spot + Vector3(0, 0.01, 0), 0.6, _cylinder(0.1, 0.44), Vector3(0, 0.22, 0),
 		["grabbable", "gnome"], 0.1, Vector3(0, -0.36, -0.07), Vector3(0.15, 0, 0))
 	_build_gnome(gnome)
+	_build_stump()
+
+
+## The stump: a flat image that always faces the camera, a collider he walks round,
+## and an invisible cylinder about its size that casts its shadow.
+func _build_stump() -> void:
+	if not ResourceLoader.exists(STUMP_PATH):
+		push_warning("The stump isn't imported yet: %s" % STUMP_PATH)
+		return
+	var m: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(STUMP_METRICS)).stump
+	var right := Vector3.RIGHT.rotated(Vector3.UP, deg_to_rad(CAMERA_YAW))
+	var back := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(CAMERA_YAW))
+	var stump := StaticBody3D.new()
+	stump.position = Forest.START - right * STUMP_LEFT + back * STUMP_NEAR
+	add_child(stump)
+
+	var col := CollisionShape3D.new()
+	col.shape = _cylinder(0.3, 0.5)
+	col.position = Vector3(0, 0.25, 0)
+	stump.add_child(col)
+	var caster := MeshInstance3D.new()
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = 0.26
+	cylinder.bottom_radius = 0.34
+	cylinder.height = 0.5
+	caster.mesh = cylinder
+	caster.position = Vector3(0, 0.25, 0)
+	caster.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
+	stump.add_child(caster)
+
+	var img := (load(STUMP_PATH) as Texture2D).get_image()
+	if img.is_compressed():
+		img.decompress()
+	img.generate_mipmaps()
+	var picture := Sprite3D.new()
+	picture.texture = ImageTexture.create_from_image(img)
+	picture.pixel_size = STUMP_HEIGHT / float(m.height_px)
+	# Its anchor (the middle of its roots, on its lowest row) on the ground.
+	picture.centered = false
+	picture.offset = Vector2(-float(m.anchor_x), -(img.get_height() - 1.0 - float(m.feet_row)))
+	picture.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	picture.shaded = false
+	picture.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
+	picture.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	stump.add_child(picture)
 
 
 func _build_gnome(root: Node3D) -> void:
@@ -469,13 +742,23 @@ func _build_ui() -> void:
 	_todo.add_theme_font_size_override("bold_font_size", 18)
 	panel.add_child(_todo)
 
-	var hint := Label.new()
-	hint.text = "WASD move   Shift run   Ctrl sneak   E / click grab   Space chitter   Walk into a tree to climb (E lets go)   Wheel zoom   Tab camera"
-	hint.add_theme_color_override("font_color", Color("f4eedc"))
-	hint.add_theme_color_override("font_outline_color", Color("3b3630"))
-	hint.add_theme_constant_override("outline_size", 6)
-	layer.add_child(hint)
-	hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 20)
+	_hint = Label.new()
+	_hint.add_theme_color_override("font_color", Color("f4eedc"))
+	_hint.add_theme_color_override("font_outline_color", Color("3b3630"))
+	_hint.add_theme_constant_override("outline_size", 6)
+	layer.add_child(_hint)
+	_update_hint()
+	_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 20)
+
+	_paused_label = Label.new()
+	_paused_label.text = "Paused"
+	_paused_label.visible = false
+	_paused_label.add_theme_font_size_override("font_size", 48)
+	_paused_label.add_theme_color_override("font_color", Color("f4eedc"))
+	_paused_label.add_theme_color_override("font_outline_color", Color("3b3630"))
+	_paused_label.add_theme_constant_override("outline_size", 12)
+	layer.add_child(_paused_label)
+	_paused_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 
 	_banner = Label.new()
 	_banner.text = "Mischief managed!"
