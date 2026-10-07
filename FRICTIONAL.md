@@ -29,6 +29,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 | 6 Oct | Character sheet v6: the silhouette, pose sheet and collision overlay | 7296e08 |
 | 6 Oct | The four sounds: using what I generated | 0b23969 |
 | 6 Oct | The ground texture, rejected in the game | ef1a803 |
+| 6 Oct | The stump, and a second forest reference | b1caf41 |
 
 ---
 
@@ -236,3 +237,14 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - CHANGE-BRIEF.md v3 records it, with the stump prompt, before the stump is generated.
 - **Human / Claude / model:** the texture is a Gemini output. Putting it in the game, and the four options, are Claude's. Rejecting it and choosing the stump are mine.
 - **Still unresolved:** the stump isn't generated yet.
+
+## 2026-10-06 — The stump, and a second forest reference
+
+- **Wanted:** a stump that matches the raccoon's low-poly look and survives the colour key, so it can stand in the clearing as the slice's environment asset.
+- **Asked:** Gemini, with the ENV-STUMP prompt that Claude wrote into CHANGE-BRIEF.md v3, which was committed at 22:26, and `idle.jpg` as the style reference. *Note any changes you made to the prompt.*
+- **Got** (22:28): `design/reference/stump.jpg`. *Claude's check against the prompt:* a faceted stump with pale rings on top, brown bark and four roots, nothing green on it, on a flat green screen.
+- **Decided:** accepted. At 22:30 I added it to the repo together with a second forest reference, `forest-assest.jpg`, and asked: "i have added the stump and forest refernce image update the docs".
+- **Human / Claude / model:** the images are Gemini outputs and accepting them was my call. The prompt, and logging the images, are Claude's work.
+- **Still unresolved:**
+  - the stump isn't in the game yet;
+  - what the second forest reference is for (*fill in*).
