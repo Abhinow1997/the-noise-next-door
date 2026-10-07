@@ -24,6 +24,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 | 5 Oct | Storyboard v5: the dogs replace the group chat | 20fc810, 4f5313a |
 | 6 Oct | The gameplay camera, tuned in the game | dcae18a |
 | 6 Oct | Storyboard v6: checked against the brief | c8d0f0c |
+| 6 Oct | Planning the slice: CHANGE-BRIEF.md | 4dc2f03 |
 
 ---
 
@@ -143,3 +144,28 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - The storyboard's open choices: how level 1 ends, one town level or two, task cards with or without words, and which of Claude's gags stay.
   - CHARACTER-SHEET.md's facing section still describes the 50° camera.
   - CHANGE-BRIEF.md isn't written yet, and generating started on 5 Oct, so it can't count as committed before the first generation.
+
+## 2026-10-06 — Planning the slice: CHANGE-BRIEF.md
+
+- **Wanted:** a plan for the asset slice that meets the brief and that I can still build by 7 Oct.
+- **Asked** (20:18): "what else from the assignment is remaining ?" Claude's answer showed that no generated art or sound effects are in the game yet. The raccoon on screen is Claude's Blender model and the forest is Claude's code, and neither counts. Then, at 20:24: "yes lets create the change-brief.md"
+- **Got:** four questions from Claude, each with a recommendation.
+- **Decided** (20:28): I took all four recommendations:
+  - my generated poses go into the game as flat cut-outs, swapped per state;
+  - the four sounds are for a grab, a to-do item ticked off, the chitter (my laugh clip) and all tasks done;
+  - the environment asset is a generated ground texture;
+  - CHARACTER-SHEET.md switches to the low-poly look of my poses.
+
+  The questions treated the slice as the forest clearing already in the game, with its five tasks, and I answered on that basis.
+- **Got:** Claude's draft of CHANGE-BRIEF.md:
+  - the asset list with IDs and storyboard panels;
+  - the event-to-sound map, with how each sound is kept to one play per event;
+  - the music's behaviour on pause, success and the end, and on failure in the full game;
+  - eight predicted failures, each with its check;
+  - prompts for the ground texture and the sounds still to generate.
+
+  While checking the code, Claude also found that the collision capsule is now 0.64 m long, not the 0.8 m in the character sheet.
+- **Human / Claude / model:** the four decisions are mine. The options, the draft, the numbers and the prompts are Claude's. No generative model.
+- **Still unresolved:**
+  - CHANGE-BRIEF.md was written after generating began, so it doesn't count as committed before the first generation. It does come before the ground texture and three of the four sounds are generated.
+  - Why I switched to the low-poly look isn't written down yet.
