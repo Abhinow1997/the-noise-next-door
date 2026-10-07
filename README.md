@@ -17,8 +17,10 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 | [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The cast: the raccoon and the camper (the two main characters) and the town's dogs, with looks, palettes, poses and the Gemini prompts |
 | [CHANGE-BRIEF.md](CHANGE-BRIEF.md) | The plan for the asset slice: its assets, which sound plays on which event, the music's behaviour, and predicted failures |
 | [SOURCES.md](SOURCES.md) | The generative models used, and the asset log |
+| [TEST-REPORT.md](TEST-REPORT.md) | How the slice was tested and what happened: the fresh-copy run, the character sheet and storyboard against the game, the sounds, music and muted play, the author's playtest and the automated check |
 | [FRICTIONAL.md](FRICTIONAL.md) | The dated design log: what was asked for, what came back and what was decided, starting with the storyboard |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
+| [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
 | [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
 | [design/reference/](design/reference/) | The generated reference images: the raccoon's style target and poses, the camper, the dogs, the forest, the den, the rejected ground texture and the stump |
 | [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend |

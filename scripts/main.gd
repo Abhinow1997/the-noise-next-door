@@ -4,7 +4,8 @@ extends Node3D
 ## frame and quits; --pose shows the raccoon in one state (see raccoon_sprite.gd).
 ## `-- --sound-test` runs the automated sound check (scripts/sound_test.gd).
 ## Screenshot helpers: --grab-test, --climb-test, --rest-test (he naps in the hollow),
-## --tick-test (the bin is knocked over) and --shot-frame=N (default 45).
+## --tick-test (the bin is knocked over), --shot-frame=N (default 45), and
+## --see-collision (the raccoon half see-through, for use with --debug-collisions).
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -126,6 +127,7 @@ var _climb_test := false
 var _rest_test := false
 var _tick_test := false
 var _shot_frame := 45
+var _see_collision := false
 var _shot_path := ""
 var _frames := 0
 var _zoom_now := 1.0
@@ -193,6 +195,8 @@ func _ready() -> void:
 			_rest_test = true
 		elif arg == "--tick-test":
 			_tick_test = true
+		elif arg == "--see-collision":
+			_see_collision = true
 		elif arg.begins_with("--shot-frame="):
 			_shot_frame = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--pose="):
@@ -228,6 +232,10 @@ func _ready() -> void:
 	sprite.forced_state = pose
 	sprite.forced_left = pose_left
 	player.add_child(sprite)
+	if _see_collision:
+		# Half see-through, so `--debug-collisions` shows his capsule inside him.
+		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
+		sprite.modulate = Color(1, 1, 1, 0.45)
 	_anchor = player.global_position + PIVOT
 	_place_camera()
 
