@@ -1,6 +1,6 @@
 # Change brief: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v2, 6 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3, 6 Oct 2026
 
 The plan for the asset slice: what goes into it, which sound plays on which event, how the music behaves, and what I expect to go wrong.
 
@@ -16,6 +16,8 @@ Everything below was still decided before any generated art went into the game. 
 - my two laugh takes: one for the chitter, one for a ticked-off task.
 
 Each changed section keeps its v1 text, marked as the earlier plan.
+
+**Revised in v3 (6 Oct 2026): a stump instead of the ground.** I tried my ground texture on the forest floor in the game and didn't like it ("i dont like the ground", 22:20), so the slice keeps the plain grass. Its environment asset is now a generated tree stump (22:24), cut out like the raccoon and placed in the clearing with collision.
 
 ## The slice
 
@@ -47,6 +49,13 @@ This is smaller than the slice in CONCEPT.md, which has the campsite, a camper w
 | SFX-GRAB, SFX-FLOURISH, SFX-ALL-DONE | — | Dropped | — | Not generated |
 
 The v1 table below still holds for the raccoon's images and the music. For the sounds and the ground, the table above replaces it.
+
+### Revised in v3 (6 Oct 2026): the environment asset
+
+| ID | What | In the slice | Panels | Status |
+|---|---|---|---|---|
+| ENV-STUMP | A low-poly tree stump (Gemini, prompt below), cut out like the raccoon | It stands in the clearing near where he starts, and he walks round it, because it has collision | 3, 5, 6: the clearing | To generate |
+| ENV-GROUND | `design/reference/ENV-GROUND.jpg` | Rejected in the game; the texture is switched off with `GROUND_TEXTURE` in `scripts/main.gd` | — | Not used |
 
 ### Generated (these count for the brief)
 
@@ -141,6 +150,8 @@ The v1 table below still holds for the raccoon's images and the music. For the s
    - *Check:* the automated test starts and stops running, toggles Shift quickly and holds it, and climbs and clings still. It checks that each loop starts once per stretch and is silent whenever he isn't moving that way.
 10. *(Added in v2)* **The two laughs blur together.** The chitter and the task laugh are takes of the same laugh, so with sound on a player might not tell them apart.
     - *Check:* my playtest. Muted play isn't affected, because each has its own visual: the squash and hop, and the struck-through line.
+11. *(Added in v3)* **The stump looks pasted on.** A flat image standing in a 3D clearing may float without a shadow, sit at the wrong size next to him, or let him walk through it.
+    - *Check:* a screenshot from the game camera with him beside it, and walking into it from several sides.
 
 ## Prompts for what's still to generate
 
@@ -165,6 +176,9 @@ For each sound: trim the silence at the front so it starts at once, and save it 
 
 *Revised in v2:* the SFX-GRAB, SFX-FLOURISH and SFX-ALL-DONE prompts aren't needed, because the slice uses the sounds I generated.
 
+**ENV-STUMP** (Gemini, added in v3). Attach `design/reference/raccoon/idle.jpg` as the style reference:
+> Use the attached raccoon only as the style reference, and don't include him. Make a single low-poly tree stump for a cozy cartoon forest game, in exactly his style: chunky faceted shapes with flat-shaded facets and crisp edges, no outlines, no fine texture. A short, wide stump about knee height, with a flat cut top showing pale wood rings, warm brown bark in a few large facets, and two or three thick roots flaring out at the base. No moss, no leaves and nothing green on it. Seen from the same high three-quarter angle as the raccoon, as if the camera is above and in front, looking down. Soft light from the upper left. The whole stump in frame and centred, with space around it. No cast shadow. Plain, flat, solid bright green background (#22C55E), no floor, no grass, no gradient. Square image. No text, no watermark.
+
 ## Order of work
 
 1. Cut out the five poses, scale them, and put them in the game in place of the model, with the state swaps and mirroring.
@@ -175,6 +189,8 @@ For each sound: trim the silence at the front so it starts at once, and save it 
 6. Playtest it myself with sound on and then muted, and write TEST-REPORT.md.
 
 *Revised in v2:* step 3 is now: convert and trim the two laugh takes. The running and climbing loops are done.
+
+*Revised in v3:* step 2 is now: generate the stump, cut it out, and place it in the clearing with collision and a shadow.
 
 ---
 
@@ -193,6 +209,12 @@ For each sound: trim the silence at the front so it starts at once, and save it 
   - the prompts above;
   - noticing that the collision capsule is now 0.64 m, not the sheet's 0.8 m.
 - **My decision for v2** (6 Oct 2026, 22:02): use only the sounds I've generated, which are running, climbing and my two laugh takes. Take B plays on a ticked-off task, in place of the piano flourish. All the sounds are mine.
+- **My decision for v3** (6 Oct 2026): at 22:20, after seeing my ground texture on the forest floor: "No the forest resort the previous verison i dont like the ground". At 22:24 I chose a generated tree stump as the environment asset instead.
+- **Claude's v3 contributions:**
+  - the four replacement options;
+  - the stump prompt;
+  - how the stump goes into the game;
+  - failure 11.
 - **Claude's v2 contributions:**
   - the running and climbing loop cuts;
   - when each loop starts and stops;
