@@ -30,6 +30,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 | 6 Oct | The four sounds: using what I generated | 0b23969 |
 | 6 Oct | The ground texture, rejected in the game | ef1a803 |
 | 6 Oct | The stump, and a second forest reference | b1caf41 |
+| 6 Oct | Playtesting the slice | af67f9d |
 
 ---
 
@@ -248,3 +249,24 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Still unresolved:**
   - the stump isn't in the game yet;
   - what the second forest reference is for, which I didn't state.
+
+## 2026-10-06 — Playtesting the slice
+
+- **Wanted:** to see whether the slice works for a player: how it looks and moves, whether the sounds fire on the right events, and whether it still reads with the sound off.
+- **Played:** the slice, with sound on and then muted. My notes, at 22:57:
+  - "need to make the animations smother and the gameplay feels a bit blovcky need to work on the same"
+  - "gameplay wise i need to update the game system such that i feels rewarding for the tasks to complete for the user to pursue the tasks more"
+  - "need to think abt the AI of the other NPC charaters of how pusnishing it should be to interact with them for loss"
+- **Answered** (22:59), to Claude's questions:
+  - sound on: "Yes, all fine";
+  - muted: "Partly";
+  - the effects' level: "Effects too quiet";
+  - a smoothing pass now: "No, record it as a next step".
+- **Decided:**
+  - Raise the effects. Claude raised them 4 dB and lowered the music 3 dB (81d696f).
+  - The smoother animation, rewarding tasks, and how punishing the other characters should be are next steps for the full game, not part of this slice.
+- **Human / Claude / model:** the play, the notes and the judgements are mine. The volume change, the automated check, the fresh-copy run, the screenshots and TEST-REPORT.md are Claude's.
+- **Still unresolved:**
+  - which moments got lost when muted;
+  - the new levels haven't been checked by ear yet;
+  - the three next steps.
