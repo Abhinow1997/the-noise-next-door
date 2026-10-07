@@ -26,6 +26,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 | 6 Oct | Storyboard v6: checked against the brief | c8d0f0c |
 | 6 Oct | Planning the slice: CHANGE-BRIEF.md | 4dc2f03 |
 | 6 Oct | Character sheet v5: the low-poly look, measured | d89c0bb |
+| 6 Oct | Character sheet v6: the silhouette, pose sheet and collision overlay | 7296e08 |
 
 ---
 
@@ -185,3 +186,18 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Still unresolved:**
   - the ground's brightness;
   - the asset-log rows for the ten poses and the ground texture.
+
+## 2026-10-06 — Character sheet v6: the silhouette, pose sheet and collision overlay
+
+- **Wanted:** the character-sheet images the brief requires: a silhouette test at game size, at least ten labelled poses, and the collision shape over each pose. Claude's status check had found none of them.
+- **Asked** (21:18): "Update the charate sheet now"
+- **Got:** Claude wrote `design/character/make_character_sheet.gd`, which cuts my ten Gemini poses out of their backgrounds and builds three sheets from them.
+  - **First run:**
+    - The cut-outs were clean on both the green-screen and the scene backgrounds: the bench, bushes and shadows were gone.
+    - Two problems: green patches were left between the legs in sneak and bored, because the hole-filling step took those enclosed gaps for holes in his fur; and the capsule sat too far toward his head, because it was centred under his nearest paws.
+  - **Second run:** a gap is now filled only if it isn't the background colour, and the capsule is centred between his front and hind paws. Both problems are gone.
+  - **The silhouette test**, at actual size: idle, run, sneak and bored keep their ears, back and tail at both zooms. Asleep reads as a curled ball.
+- **Decided:** not yet. I still have to look at the sheets myself.
+- **Human / Claude / model:** the poses are Gemini outputs. The cut-outs, scaling, sheets and their wording are Claude's. Nothing was redrawn by hand.
+- **Edits to generated images,** to record in the asset log: background removed by a colour key, cropped, and scaled so the faces match.
+- **Still unresolved:** the asset-log rows for the ten poses.
