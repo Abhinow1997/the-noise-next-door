@@ -3,6 +3,8 @@ extends Node3D
 ## Debug: `-- --screenshot=out.png [--closeup] [--pose=<state> [--left]]` saves a
 ## frame and quits; --pose shows the raccoon in one state (see raccoon_sprite.gd).
 ## `-- --sound-test` runs the automated sound check (scripts/sound_test.gd).
+## Screenshot helpers: --grab-test, --climb-test, --rest-test (he naps in the hollow),
+## --tick-test (the bin is knocked over) and --shot-frame=N (default 45).
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -30,7 +32,7 @@ const STUMP_NEAR := 0.6
 
 ## A to-do item ticked off: take B of the author's laugh (SFX-TASK-LAUGH).
 const TASK_LAUGH_PATH := "res://assets/audio/sfx/task-laugh.wav"
-const TASK_LAUGH_DB := -6.0
+const TASK_LAUGH_DB := -2.0
 ## How far the music dips under the laugh, how long the fade at the end takes, and
 ## how the music is muffled while paused (CHANGE-BRIEF.md, music behaviour).
 const DUCK_DB := 4.0
@@ -71,7 +73,9 @@ const LEAN_RANGE := 9.0
 ## design/music/ (see SOURCES.md). The WAV's own loop marker makes it repeat seamlessly.
 const MUSIC_PATH := "res://assets/audio/music/forest-loop.wav"
 ## How loud the music sits under the sound effects, and its fade-in time in seconds.
-const MUSIC_DB := -9.0
+## Lowered 3 dB on 6 Oct, with the effects raised 4 dB, after the author's playtest
+## found the effects too quiet against it.
+const MUSIC_DB := -12.0
 const MUSIC_FADE_IN := 2.0
 
 const INPUTS := {
@@ -119,6 +123,9 @@ var _rng := RandomNumberGenerator.new()
 var _closeup := false
 var _grab_test := false
 var _climb_test := false
+var _rest_test := false
+var _tick_test := false
+var _shot_frame := 45
 var _shot_path := ""
 var _frames := 0
 var _zoom_now := 1.0
@@ -182,6 +189,12 @@ func _ready() -> void:
 			_grab_test = true
 		elif arg == "--climb-test":
 			_climb_test = true
+		elif arg == "--rest-test":
+			_rest_test = true
+		elif arg == "--tick-test":
+			_tick_test = true
+		elif arg.begins_with("--shot-frame="):
+			_shot_frame = int(arg.get_slice("=", 1))
 		elif arg.begins_with("--pose="):
 			pose = arg.get_slice("=", 1)
 		elif arg == "--left":
@@ -270,10 +283,14 @@ func _process(delta: float) -> void:
 			Input.action_press("move_forward")
 		elif _climb_test and _frames == 38:
 			Input.action_release("move_forward")
-		if _frames == 30 and _music:
+		elif _rest_test and _frames == 1:
+			player.rest(forest.rest_spot)
+		elif _tick_test and _frames == 1:
+			bin.rotation = Vector3(PI / 2, 0, 0)
+		if _frames == _shot_frame - 15 and _music:
 			# Stopped well before the quit, so the audio thread has let go of it.
 			_music.stop()
-		if _frames == 45:
+		if _frames == _shot_frame:
 			get_viewport().get_texture().get_image().save_png(_shot_path)
 			get_tree().quit()
 

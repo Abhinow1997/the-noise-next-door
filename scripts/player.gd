@@ -13,9 +13,10 @@ const RaccoonModel := preload("res://scripts/raccoon_model.gd")
 const RUN_LOOP := "res://assets/audio/sfx/run-loop.wav"
 const CLIMB_LOOP := "res://assets/audio/sfx/climb-loop.wav"
 const CHITTER_SOUND := "res://assets/audio/sfx/chitter.wav"
-const RUN_DB := 2.0
-const CLIMB_DB := 4.0
-const CHITTER_DB := -8.0
+## Raised 4 dB on 6 Oct, after the author's playtest found the effects too quiet.
+const RUN_DB := 6.0
+const CLIMB_DB := 8.0
+const CHITTER_DB := -4.0
 ## A loop keeps going this long after he stops, so a one-frame stumble doesn't
 ## restart it.
 const LOOP_HOLD := 0.12
