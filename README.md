@@ -20,7 +20,7 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 | [FRICTIONAL.md](FRICTIONAL.md) | The dated design log: what was asked for, what came back and what was decided, starting with the storyboard |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
-| [design/reference/](design/reference/) | The raccoon's style target |
+| [design/reference/](design/reference/) | The generated reference images: the raccoon's style target and poses, the camper, the dogs, the forest, the den, the rejected ground texture and the stump |
 | [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend |
 | `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project |
 

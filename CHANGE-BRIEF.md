@@ -57,6 +57,8 @@ The v1 table below still holds for the raccoon's images and the music. For the s
 | ENV-STUMP | A low-poly tree stump (Gemini, prompt below), cut out like the raccoon | It stands in the clearing near where he starts, and he walks round it, because it has collision | 3, 5, 6: the clearing | To generate |
 | ENV-GROUND | `design/reference/ENV-GROUND.jpg` | Rejected in the game; the texture is switched off with `GROUND_TEXTURE` in `scripts/main.gd` | — | Not used |
 
+*Update, 6 Oct, 22:28:* I generated ENV-STUMP (`design/reference/stump.jpg`), two minutes after v3 was committed.
+
 ### Generated (these count for the brief)
 
 | ID | What | In the slice | Panels | Status |
