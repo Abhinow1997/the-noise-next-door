@@ -524,7 +524,7 @@ The slice doesn't need these. Use the same style and background rules, and end e
 - **The animal-control officer** (panels 11–13). Patient, and smug when the trap works. Prompt: *A cartoon animal-control officer in a khaki (#B9A66F) uniform shirt with a round yellow badge, dark olive (#4B5233) trousers and an olive (#5E6B3A) peaked cap, holding a long-handled catch net upright.*
 - **Partiers and neighbours.** Rounded people in plain colours (lilac, coral, mint, sky blue and pink, but never red), with no logos or text on their clothes.
 
-## Open choices (yours to decide)
+## Open choices (not decided yet)
 
 - **Eyes.** The style target's eyes are tiny dots, while the storyboard's are big and expressive. At game size the raccoon's face is only a few pixels, so this sheet keeps the small eyes and lets his pose, ears and tail carry the emotion. Bigger eyes would read better in close-ups.
 - **Ears through the beanie.** This keeps his silhouette the same with and without it. The alternative is ears tucked under the brim.
@@ -565,4 +565,3 @@ The slice doesn't need these. Use the same style and background rules, and end e
   - the facing plan, the pose lists, the consistency and reject rules, and the prompts.
   Claude doesn't make images; Gemini will.
 - **Generative models:** none were used for this sheet. The style target was made with Gemini before any design doc was committed; see SOURCES.md.
-- **Your edits:** ________

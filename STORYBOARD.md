@@ -267,7 +267,7 @@ The whole story in 15 panels: from the night a party wakes the raccoon to the ni
 
 ---
 
-## Open choices (yours to decide)
+## Open choices (not decided yet)
 
 - **Opening vs. CONCEPT.md.** This storyboard uses your new opening, where the party is already in full swing when he wakes. CONCEPT.md still describes campers arriving with car doors slamming.
 - **How level 1 ends.** On the board, the bust in panel 7 leads straight into the getaway that ends the level. Still open: does any bust end level 1, or only one after he's done enough tasks? Claude's suggestion is 3 of the 5. If you choose that, earlier busts need a smaller consequence.

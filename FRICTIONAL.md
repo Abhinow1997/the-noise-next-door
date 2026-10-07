@@ -200,7 +200,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
     - Two problems: green patches were left between the legs in sneak and bored, because the hole-filling step took those enclosed gaps for holes in his fur; and the capsule sat too far toward his head, because it was centred under his nearest paws.
   - **Second run:** a gap is now filled only if it isn't the background colour, and the capsule is centred between his front and hind paws. Both problems are gone.
   - **The silhouette test**, at actual size: idle, run, sneak and bored keep their ears, back and tail at both zooms. Asleep reads as a curled ball.
-- **Decided:** not yet. I still have to look at the sheets myself.
+- **Decided:** I saw the three sheets in chat and didn't ask for any changes.
 - **Human / Claude / model:** the poses are Gemini outputs. The cut-outs, scaling, sheets and their wording are Claude's. Nothing was redrawn by hand.
 - **Edits to generated images,** to record in the asset log: background removed by a colour key, cropped, and scaled so the faces match.
 - **Still unresolved:** the asset-log rows for the ten poses.
@@ -241,10 +241,10 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 ## 2026-10-06 — The stump, and a second forest reference
 
 - **Wanted:** a stump that matches the raccoon's low-poly look and survives the colour key, so it can stand in the clearing as the slice's environment asset.
-- **Asked:** Gemini, with the ENV-STUMP prompt that Claude wrote into CHANGE-BRIEF.md v3, which was committed at 22:26, and `idle.jpg` as the style reference. *Note any changes you made to the prompt.*
+- **Asked:** Gemini, with the ENV-STUMP prompt that Claude wrote into CHANGE-BRIEF.md v3, which was committed at 22:26, and `idle.jpg` as the style reference. Whether I changed the prompt before running it wasn't recorded.
 - **Got** (22:28): `design/reference/stump.jpg`. *Claude's check against the prompt:* a faceted stump with pale rings on top, brown bark and four roots, nothing green on it, on a flat green screen.
 - **Decided:** accepted. At 22:30 I added it to the repo together with a second forest reference, `forest-assest.jpg`, and asked: "i have added the stump and forest refernce image update the docs".
 - **Human / Claude / model:** the images are Gemini outputs and accepting them was my call. The prompt, and logging the images, are Claude's work.
 - **Still unresolved:**
   - the stump isn't in the game yet;
-  - what the second forest reference is for (*fill in*).
+  - what the second forest reference is for, which I didn't state.
