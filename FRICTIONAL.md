@@ -27,6 +27,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 | 6 Oct | Planning the slice: CHANGE-BRIEF.md | 4dc2f03 |
 | 6 Oct | Character sheet v5: the low-poly look, measured | d89c0bb |
 | 6 Oct | Character sheet v6: the silhouette, pose sheet and collision overlay | 7296e08 |
+| 6 Oct | The four sounds: using what I generated | 0b23969 |
 
 ---
 
@@ -201,3 +202,24 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude / model:** the poses are Gemini outputs. The cut-outs, scaling, sheets and their wording are Claude's. Nothing was redrawn by hand.
 - **Edits to generated images,** to record in the asset log: background removed by a colour key, cropped, and scaled so the faces match.
 - **Still unresolved:** the asset-log rows for the ten poses.
+
+## 2026-10-06 — The four sounds: using what I generated
+
+- **Wanted:** four sounds that fire on real events in the slice.
+- **Asked:**
+  - 21:38: "i have added two more sounds update them in correct locations also what else remains now /". The two were a running sound and a climbing sound, saved at 21:35 and 21:37. CHANGE-BRIEF.md v1 had planned a grab, a task ticked off, the chitter and "all done".
+  - 21:59: "all the sounds are geneareted by me and added updae the log and deatils wherever relevent"
+- **Got:**
+  - Claude moved the two originals into `design/sfx/` and cut a seamless loop from each. `run-loop.wav` (4.1 s) is cut just before two steps, so the repeat keeps the usual gap between steps. `climb-loop.wav` (4.9 s) is cut in two quiet dips. Claude checked that Godot imports both as loops.
+  - Claude logged every sound in SOURCES.md, noting that I generated them all, and offered three possible sets of four sounds.
+- **Decided** (22:02): use only what I've made:
+  - the running and climbing sounds loop while he does those things;
+  - laugh take A plays on the chitter;
+  - laugh take B plays when a task is ticked off.
+
+  The laugh replaces CONCEPT.md's piano flourish as the payoff, and the grab and "ta-da" sounds are dropped. CHANGE-BRIEF.md v2 records this.
+- **Human / Claude / model:** the sounds are my generations, and the choice of four is mine. The loop cuts, the start and stop rules, and the wording are Claude's.
+- **Still unresolved:**
+  - no one has listened to the loops' seams yet, so I need to hear at least three repeats of each;
+  - the laughs are MP3s and need converting to WAV;
+  - the chitter and the task laugh are takes of the same laugh, so they may be hard to tell apart (failure 10 in CHANGE-BRIEF.md).
