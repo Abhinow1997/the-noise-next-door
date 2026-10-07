@@ -7,7 +7,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 **How these entries were written**
 - They're retrospective. On 6 Oct 2026, Claude Code put them together from my chat messages, the commits and the provenance notes in the design docs.
 - My messages are quoted exactly as I typed them, typos included. Times are US Eastern, taken from the chat transcripts.
-- Where I didn't give a reason at the time, the entry says so instead of supplying one.
+- Where I didn't give a reason at the time, the entry says so instead of supplying one. I added my reasons for v1 and v2 on 6 Oct, and they're marked as added later.
 
 **Who's who**
 - **Me:** the story, the requests and the decisions.
@@ -54,7 +54,8 @@ A dated log of the design as it happened: what I wanted the player to see or hea
   - added the gags, such as the acorn bonk, the cooler trip, the frying pan and the bin lid launched like a frisbee;
   - added an "unplug the speaker" task;
   - used "Shooed off", the raccoon sent back to his tree, as the retry beat.
-- **Decided:** I kept the story and the 12 panels, and changed the middle (next entry). Why I switched from the campsite alone to the whole story wasn't written down.
+- **Decided:** I kept the story and the 12 panels, and changed the middle (next entry).
+- **Why** (my words, added on 6 Oct looking back, since I didn't give a reason at the time): "it felt like a bit short and uneventful with just a basic forest level for the story along with city level adds a new varation and level along with ideas like dog chases new updates for game level added for the same"
 - **Human / Claude / model:** the opening, the open first level with optional tasks, the slapstick tone with no dialogue, and the whole-story scope are mine. The shot list, the panel wording, the gags and the drawings are Claude's. No generative model.
 - **Trace:** not committed, since it was a chat draft. Its decisions are listed in STORYBOARD.md's provenance.
 - **Still unresolved:** CONCEPT.md's opening still has campers arriving with car doors slamming, not a party already in full swing.
@@ -69,7 +70,8 @@ A dated log of the design as it happened: what I wanted the player to see or hea
   - Two knock-on changes by Claude:
     - The getaway became the recovery beat, because the brief needs one and Shooed off had been it.
     - In Busted, a record scratch no longer made sense with the music already off. Instead, in the sudden quiet, the crinkle of the marshmallow bag gives him away, so his own prank gets him caught.
-- **Decided:** I kept all of it, and it's still in the board. My reasons for the new order weren't written down.
+- **Decided:** I kept all of it, and it's still in the board.
+- **Why** (my words, added on 6 Oct looking back, since I didn't give a reason at the time): "the story follows like the raaccoon after creating trouble to the campsite grp gets eventully busted by the benie guy and while in the same he steals his beanie and runs away and from there we start to the city side of things"
 - **Human / Claude / model:** the new order, the cut and the slot for a town panel are mine. What happens in the trap, and the two knock-on changes, are Claude's.
 - **Still unresolved:** does any bust end level 1, or only one after he's done enough tasks? Claude suggested 3 of the 5.
 
