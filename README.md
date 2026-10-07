@@ -30,6 +30,16 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 | [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend |
 | `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project |
 
+## What the slice demonstrates
+
+The slice is the prototype's forest clearing, with its five-task to-do list, dressed with the generated assets:
+- **The raccoon, drawn with his generated poses:** idle, running, sneaking, bored (after 5 s of standing still), asleep in the hollow, and climbing. He's mirrored when he faces left.
+- **A generated tree stump** (ENV-STUMP), placed in the clearing, with collision.
+- **Four generated sound effects, each tied to an event:** running (a loop while Shift-running), climbing (a loop while moving on a trunk), his chitter (Space) and a laugh when a task is ticked off.
+- **A seamless generated music loop:** it's muffled and quieter while paused, dips under the task laugh, and fades out when every task is done. M and N mute the music and the effects.
+
+[TEST-REPORT.md](TEST-REPORT.md) shows each of these in the game, and [SOURCES.md](SOURCES.md) logs how each asset was made.
+
 ## Run it
 
 You need Godot 4.7.2. The project uses the Forward+ renderer.
@@ -42,6 +52,19 @@ You need Godot 4.7.2. The project uses the Forward+ renderer.
 **The automated sound check:** run `godot --headless --path . -- --sound-test`. It plays a scripted input sequence, counts how often each sound effect starts, and checks the music's pause, mute, loop and end behaviour. It prints a table, and its exit code is 0 only if every check passes (`scripts/sound_test.gd`).
 
 To redraw the storyboard after editing it, run `python design/storyboard/make_thumbnails.py`. To remake the character-sheet images and the raccoon's cut-outs, run `godot --path . --script res://design/character/make_character_sheet.gd`, then copy the five cut-outs the slice uses into `assets/characters/raccoon/`. For the stump, run `godot --headless --path . --script res://design/environment/make_props.gd`. For the sound loops, run `python design/sfx/make_sfx_loops.py`. To update the game's raccoon after editing `raccoon.blend`, run `blender -b assets/characters/raccoon.blend --python assets/characters/export_raccoon.py`.
+
+## Known limitations
+
+- **Static images:** each state is one picture, so his changes of state snap. The author found the animation "a bit blovcky".
+- **No back views:** walking away from the camera still shows his front.
+- **Climbing** reuses the sneak pose, turned upright.
+- **No humans, so no failure state:** the slice doesn't cover being caught, and only 4 of the storyboard's 15 panels are partly covered.
+- **The chitter and the task laugh** are two takes of the same laugh.
+- **Contrast:** his grey fur is close to the grass in brightness (1.3 to 2.0:1), so his charcoal markings carry his shape.
+- **Muted play** was only partly readable, and which moments were lost wasn't noted. The sound levels raised after the playtest haven't been re-checked by ear.
+- **Large files on GitHub:** four of the original music tracks in `design/music/` are over 25 MB, and two laugh originals there are MP3s. The course keeps these out of GitHub. The game doesn't load any of them, and the source ZIP leaves them out.
+
+[TEST-REPORT.md](TEST-REPORT.md) has the details and the next steps.
 
 ## Started from
 
