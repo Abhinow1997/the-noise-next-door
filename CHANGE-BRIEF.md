@@ -1,6 +1,6 @@
 # Change brief: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v1, 6 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v2, 6 Oct 2026
 
 The plan for the asset slice: what goes into it, which sound plays on which event, how the music behaves, and what I expect to go wrong.
 
@@ -10,6 +10,12 @@ The plan for the asset slice: what goes into it, which sound plays on which even
 - the forest music loop is already in the game.
 
 Everything below was still decided before any generated art went into the game. It also comes before the ground texture and three of the four sound effects are generated.
+
+**Revised in v2 (6 Oct 2026): the four sounds.** After v1, I generated running and climbing sounds instead of the three v1 planned (grab, flourish and "ta-da"). I chose to build the slice from the sounds I'd made:
+- running and climbing, as loops;
+- my two laugh takes: one for the chitter, one for a ticked-off task.
+
+Each changed section keeps its v1 text, marked as the earlier plan.
 
 ## The slice
 
@@ -25,7 +31,22 @@ This is smaller than the slice in CONCEPT.md, which has the campsite, a camper w
 | 6 Music off | The payoff: a to-do line struck through with the piano flourish |
 | 2, 4, 7–15 | No. They need the party, humans, the beanie or the town. Panel 4's to-do list exists in the game, but as a text card, not a close-up. |
 
+*Revised in v2:* in panel 6's payoff, my laugh (SFX-TASK-LAUGH) replaces the piano flourish.
+
 ## Asset list
+
+### Revised in v2 (6 Oct 2026): the sounds and the ground
+
+| ID | What | In the slice | Panels | Status |
+|---|---|---|---|---|
+| SFX-RUN | `assets/audio/sfx/run-loop.wav`, a loop cut from my running sound | While he runs (Shift) | 3, 5, 6, moving between jobs | Done: looped and imported |
+| SFX-CLIMB | `assets/audio/sfx/climb-loop.wav`, a loop cut from my climbing sound | While he moves on a trunk | 3 (stands in for SFX-SLIDE) | Done: looped and imported |
+| SFX-CHITTER | Laugh take A, `design/music/raccoon-cheeky-laugh.mp3` | The chitter (Space) | None: it's the raccoon's voice from the prototype | Have it; convert to WAV |
+| SFX-TASK-LAUGH | Laugh take B, `design/music/raccoon-cheeky-laugh-2.mp3` | A to-do item ticked off | 6 (replaces SFX-FLOURISH) | Have it; convert to WAV |
+| ENV-GROUND | `design/reference/ENV-GROUND.jpg` (Gemini), generated at 20:42 | The clearing's ground | 3, 5, 6 | Have it. It may need darkening, because his fur is as bright as it (CHARACTER-SHEET.md v5). |
+| SFX-GRAB, SFX-FLOURISH, SFX-ALL-DONE | — | Dropped | — | Not generated |
+
+The v1 table below still holds for the raccoon's images and the music. For the sounds and the ground, the table above replaces it.
 
 ### Generated (these count for the brief)
 
@@ -62,6 +83,17 @@ This is smaller than the slice in CONCEPT.md, which has the campsite, a camper w
 
 ## Event-to-sound map
 
+**Revised in v2 (6 Oct 2026):**
+
+| Sound | The exact event in the code | What shows it with sound muted | How it plays only once |
+|---|---|---|---|
+| SFX-RUN | `_walk_process()` in `player.gd`. It starts when he goes faster than walking speed with Shift held and isn't sneaking. It stops when he slows to a walk, stops, sneaks, starts climbing or hops into the hollow. | His image is CHAR-RUN | One looping player, started only on the change into running. A held Shift keeps one loop going, and quick on-off presses stop and restart it rather than stacking copies. |
+| SFX-CLIMB | `_climb_process()` in `player.gd`. It starts when he moves on the trunk, whether up, down or round. It stops when he clings still, hops off or climbs into the hollow. | His climbing image, moving on the trunk | As for SFX-RUN |
+| SFX-CHITTER | `chitter()` in `player.gd` (Space), through its `chittered` signal | The image gives a quick squash and hop | Key repeats are ignored. Pressing again while it plays restarts the one player, rather than stacking a second copy. |
+| SFX-TASK-LAUGH | `_check_tasks()` in `main.gd`, when a task's `done` flips from false to true, including the last task | The to-do line is struck through | `done` never flips back, so each task plays it once, and at most once per frame |
+
+*As planned in v1:*
+
 | Sound | The exact event in the code | What shows it with sound muted | How it plays only once |
 |---|---|---|---|
 | SFX-GRAB | `_grab()` in `player.gd`, at the moment it takes hold of an object. Pressing E with nothing in reach plays nothing. | The object appears in his mouth | Key repeats are ignored (`is_action_pressed` skips echoes), so holding E grabs once. Dropping is a different event and has no sound. |
@@ -82,6 +114,10 @@ This is smaller than the slice in CONCEPT.md, which has the campsite, a camper w
 | End: all five tasks done | SFX-ALL-DONE plays, and the loop fades out over 3 seconds, leaving the clearing quiet (pillar 3, Home should be quiet). |
 | Mute | M turns the music on and off, and N does the same for the effects. The on-screen controls line shows both. |
 
+*Revised in v2:*
+- When a task is ticked off, my laugh plays over the loop instead of the flourish, and the loop still dips about 4 dB under it.
+- At the end there's no "ta-da": the last task's laugh plays, and the loop fades out over 3 seconds.
+
 ## Predicted failures, and how I'll check each
 
 1. **The poses don't match.** The five images may differ in size, proportions or colour, so he visibly pops when his state changes.
@@ -101,6 +137,10 @@ This is smaller than the slice in CONCEPT.md, which has the campsite, a camper w
    - *Check:* walk in all eight directions and screenshot each.
 8. **It's unreadable muted.** Every sound has a visual partner, listed in the event map.
    - *Check:* my own muted playtest.
+9. *(Added in v2)* **A loop misbehaves.** The running or climbing loop restarts every frame, keeps playing after he stops, or stacks a second copy. This replaces failure 5's flourish and "ta-da" case.
+   - *Check:* the automated test starts and stops running, toggles Shift quickly and holds it, and climbs and clings still. It checks that each loop starts once per stretch and is silent whenever he isn't moving that way.
+10. *(Added in v2)* **The two laughs blur together.** The chitter and the task laugh are takes of the same laugh, so with sound on a player might not tell them apart.
+    - *Check:* my playtest. Muted play isn't affected, because each has its own visual: the squash and hop, and the struck-through line.
 
 ## Prompts for what's still to generate
 
@@ -123,6 +163,8 @@ Every prompt avoids brands, named artists, copyrighted characters and existing r
 
 For each sound: trim the silence at the front so it starts at once, and save it as WAV or OGG.
 
+*Revised in v2:* the SFX-GRAB, SFX-FLOURISH and SFX-ALL-DONE prompts aren't needed, because the slice uses the sounds I generated.
+
 ## Order of work
 
 1. Cut out the five poses, scale them, and put them in the game in place of the model, with the state swaps and mirroring.
@@ -131,6 +173,8 @@ For each sound: trim the silence at the front so it starts at once, and save it 
 4. Wire up the sounds, the two buses, mute, pause and the end of the slice.
 5. Add the automated sound-count test.
 6. Playtest it myself with sound on and then muted, and write TEST-REPORT.md.
+
+*Revised in v2:* step 3 is now: convert and trim the two laugh takes. The running and climbing loops are done.
 
 ---
 
@@ -148,4 +192,11 @@ For each sound: trim the silence at the front so it starts at once, and save it 
   - the failure predictions and their checks;
   - the prompts above;
   - noticing that the collision capsule is now 0.64 m, not the sheet's 0.8 m.
+- **My decision for v2** (6 Oct 2026, 22:02): use only the sounds I've generated, which are running, climbing and my two laugh takes. Take B plays on a ticked-off task, in place of the piano flourish. All the sounds are mine.
+- **Claude's v2 contributions:**
+  - the running and climbing loop cuts;
+  - when each loop starts and stops;
+  - the new IDs SFX-RUN, SFX-CLIMB and SFX-TASK-LAUGH;
+  - failures 9 and 10;
+  - the v2 wording.
 - **Generative models:** none were used to write this.
