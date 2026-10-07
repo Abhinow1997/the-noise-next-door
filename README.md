@@ -48,5 +48,9 @@ Two changes were made with Claude Code on 4 Oct 2026, before this repo existed:
 ## Who made what
 
 - **The author:** the prototype, the story, and the design decisions. The provenance notes at the end of CONCEPT.md and STORYBOARD.md list them.
-- **Claude Code:** drafts and wording for the docs, the storyboard thumbnails (drawn in code), the two prototype changes above, the raccoon model in `assets/characters/` (built in Blender with Python) and the code that puts it in the game, tree climbing, the camera code and its Tab panel (the camera view itself is the author's pick), and this README.
-- **Generative models:** only one image so far: the raccoon's style target, generated with Google Gemini before any design doc was committed. It's in `design/reference/`, and [SOURCES.md](SOURCES.md) logs it.
+- **Claude Code:** drafts and wording for the docs, the storyboard thumbnails (drawn in code), the two prototype changes above, the raccoon model in `assets/characters/` (built in Blender with Python) and the code that puts it in the game, tree climbing, the camera code and its Tab panel (the camera view itself is the author's pick), the character-sheet images and pose cut-outs (`design/character/make_character_sheet.gd`), the music and sound-effect loop cuts (`design/sfx/make_sfx_loops.py`), and this README.
+- **Generative models, run by the author:**
+  - Google Gemini for every image: the raccoon's style target (made before any design doc was committed), his pose images, the other character and scene references, and the ground texture;
+  - a music and sound model, still to be named in SOURCES.md, for the five music tracks and all the sound effects.
+
+  [SOURCES.md](SOURCES.md) logs every generation. Claude Code generated none of them: it cut out the poses and cut the loops.
