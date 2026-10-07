@@ -1,12 +1,18 @@
 # Character sheet: the raccoon, the camper and the dogs
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v4, 5 Oct 2026
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v5, 6 Oct 2026 · first committed as v1 on 5 Oct 2026 (0998c52)
 
 The story has two main characters: the raccoon, whom the player controls, and the camper, whose red beanie he steals and who in the end brings him home. In town, the neighbourhood dogs are the ones who chase him. This sheet is the contract every generated image of them must meet. It was first committed before any new generation, so the poses are a plan for now. The generated images go in `design/character/` once each reference image is accepted, and each one is judged against this sheet.
 
-![The style target](design/reference/Gemini_Generated_Image_kfpcx2kfpcx2kfpc.jpg)
+**Revised in v5 (6 Oct 2026): the low-poly look.** The raccoon now follows the low-poly look of his generated poses, not the clay look of the first style target. Each part of his section that changed keeps its v1–v4 text, marked as the earlier plan, so the record shows both. The camper and the dogs keep their v4 descriptions for now, because the slice doesn't use them.
 
-*The style target for both characters, generated with Gemini before any design doc was committed (logged in [SOURCES.md](SOURCES.md)).*
+![The first style target: the clay look](design/reference/raccon-version-1.jpg)
+
+*The first style target, generated with Gemini before any design doc was committed (REF-STYLE in [SOURCES.md](SOURCES.md)). Versions 1–4 of this sheet follow it.*
+
+![The low-poly raccoon](design/reference/the-raccon.jpg)
+
+*The low-poly raccoon, generated with Gemini on 5 Oct. From v5, his section follows this look, and so do all his generated poses. Its row in the asset log is still to be added.*
 
 ## The raccoon (the player character)
 
@@ -18,6 +24,14 @@ The story has two main characters: the raccoon, whom the player controls, and th
 - He swipes the camper's red beanie in panel 8 of the storyboard and wears it from then on.
 
 ### How he looks
+
+**Revised in v5 (6 Oct 2026).** He follows the low-poly raccoon above.
+- **Why** (your words, 6 Oct): "the switch was a decision based on the astetics of the game and how the prototype looked"
+- **Finish:** low-poly and faceted. Flat-shaded facets with crisp edges, not smooth clay. No outlines, fur strands, whiskers or claws. Soft light from the upper left.
+- **Fur:** cool blue-grey instead of warm grey. See the palette.
+- **Unchanged:** the proportions, face pattern, ears, socks, tail rings and beanie described below. Check them against the low-poly reference now, not the clay one.
+
+*As planned in v1–v4 (the clay look). The finish and the fur colour are replaced by the v5 lines above:*
 
 He follows the style target.
 
@@ -37,7 +51,34 @@ He follows the style target.
 
 ### Palette
 
-The four raccoon colours are measured from the style target's lit areas. The beanie's colours come from the storyboard.
+**Revised in v5 (6 Oct 2026).** Measured from the six green-screen poses (idle, sneak, bored, asleep, busted and knocked back), with the green removed, by sorting their pixels into six colour groups. The low-poly shading splits his fur into three facet tones.
+
+| Colour | Hex | Where | Share of his pixels |
+|---|---|---|---|
+| Fur, lit facets | `#748087` | fur facing the light | 28% |
+| Fur, mid facets | `#67737B` | most of his fur | 31% |
+| Fur, shaded facets | `#59656E` | fur turned away from the light | 15% |
+| Charcoal | `#26292E` | mask, inside the ears, socks, tail rings, nose and eyes | 16% |
+| Cream | `#D1C4A7` | brow band, cheeks and muzzle | 6% |
+| Beanie red | `#D7263D`, brim shadow `#A51C2E` | the beanie only (unchanged) | — |
+
+The other 5% is a dark grey, `#42484C`, in the deepest folds.
+
+**Checked against the grounds he'll stand on.** The numbers are contrast ratios; 3:1 or more reads clearly as a shape.
+
+| Ground | Fur (mid) | Charcoal | Cream |
+|---|---|---|---|
+| ENV-GROUND, the generated grass texture: its average, `#627753` | 1.0 | 3.0 | 2.8 |
+| ENV-GROUND's dark patches, `#475940` | 1.6 | 1.9 | 4.4 |
+| ENV-GROUND's light patches, `#7D9771` | 1.5 | 4.5 | 1.9 |
+| The game's current ground, `#7A9872`, from a screenshot | 1.5 | 4.5 | 1.9 |
+
+What this means:
+- His fur is about as bright as either ground (1.0 to 1.6), so only his charcoal markings and cream face show his shape. It's the same problem v1 found for the clay raccoon on the daytime garden.
+- This is predicted failure 2 in CHANGE-BRIEF.md, which plans to fix the ground, not the raccoon.
+- Darkening the ground texture to an average near `#3C4932` would give his fur about 2:1 and his face about 5.5:1, but his charcoal markings would sink (about 1.5:1). Settle this with the silhouette test and the muted playtest.
+
+*As planned in v1–v4 (the clay look):* the four raccoon colours are measured from the style target's lit areas. The beanie's colours come from the storyboard.
 
 | Colour | Hex | Where |
 |---|---|---|
@@ -67,6 +108,8 @@ What this means for the images:
 
 The player sees him through the game camera: a tilted three-quarter view, about 50° down, that follows him. See the legend in STORYBOARD.md.
 
+*Revised in v5 (6 Oct 2026):* the camera you picked in the game looks down 27° through a narrow 15° lens (STORYBOARD.md's legend, v6). The slice uses only front-right images, mirrored for the left. There are no back-right images yet (CHANGE-BRIEF.md).
+
 - **Generate two facings:** front-right (seen from above and in front, heading towards the camera and to the right) and back-right (seen from above and behind, heading away and to the right).
 - **Mirror both at runtime** for front-left and back-left. His markings are symmetrical, so mirroring is safe.
 - Moving straight up, down, left or right uses the nearest of the four.
@@ -77,9 +120,13 @@ The player sees him through the game camera: a tilted three-quarter view, about 
 
 *To do once the reference image is accepted.* Fill the image solid black and shrink it to his on-screen size. In the prototype's 1280 × 720 window he's about 130 px tall on screen at the default zoom, and the mouse wheel zooms in or out from there. So test him at 128 px and at 64 px. He passes if his ears, hunched back and ringed tail still read at 64 px.
 
+*Revised in v5 (6 Oct 2026):* with your camera, he's about 162 px long and 85 px tall in a 1280 × 720 window at the default zoom, measured from a screenshot. Fully zoomed out, he's about 100 px long. So test him at 96 px and 64 px long, against the v5 grounds above.
+
 ### Collision
 
 The prototype's player collides as a capsule lying along his body, 0.8 m long and 0.4 m wide and tall, with its bottom at his feet (`scripts/player.gd`). Draw it over every pose at the same scale.
+
+*Corrected in v5 (6 Oct 2026):* a size setting of 0.8, added on 5 Oct (11e0319), scales the capsule, so it's 0.64 m long and 0.32 m wide and tall (radius 0.16 m). The reasoning below is unchanged.
 
 The capsule covers his legs and lower body. His snout, upper back, head and most of his tail stick out past it. That's fair to the player because nothing in the game needs to hit those parts: there's no jumping or ducking. And if humans check the same capsule when they look for him, a tail poking out of a hiding place never gets him caught.
 
@@ -104,6 +151,24 @@ The plan is 12 poses, each a single image for one game state. Every pose except 
 
 From panel 9 on he wears the beanie. Make the beanie version of a pose by editing its accepted image with prompt B below, not by generating from scratch.
 
+**Generated so far (v5, 6 Oct 2026).** These are Gemini images in `design/reference/raccoon/`, all in the low-poly look. Each still needs its row in the asset log.
+
+| # | Pose | Image | Background | In the slice |
+|---|---|---|---|---|
+| 3 | Idle | `idle.jpg` | Green | Yes, as CHAR-IDLE |
+| 4 | Bored | `bored.jpg` | Green | Yes, as CHAR-BORED |
+| 6 | Sneak | `sneak.jpg` | Green | Yes, as CHAR-SNEAK |
+| 7 | Run | `running.jpg` | Scene | Yes, as CHAR-RUN |
+| 8 | Interact: up on his hind legs, front paws at chest height | `standing.jpg` | Scene | No |
+| 9 | Carrying, with a garden trowel in his mouth. This is also the low-poly reference, `the-raccon.jpg`. | `picking-items.jpg` | Scene | No |
+| 10 | Busted | `busted.jpg` | Green | No |
+| 12 | Asleep | `asleep.jpg` | Green | Yes, as CHAR-SLEEP |
+| 13 (new) | Hurt: knocked over backwards, dizzy, with stars and spirals | `knockedback.jpg` | Green | No |
+| 8 + B | Standing with the beanie | `with-beanie.jpg` | Scene | No |
+
+- **Not generated yet:** 1 (the turnaround), 5 (walk) and 11 (job done).
+- **Count:** with the silhouette (pose 2), that's 10 distinct poses. The beanie version is a variation of standing, so it doesn't count again.
+
 ### Consistency rules
 
 Every image must keep these exactly the same:
@@ -117,6 +182,8 @@ Every image must keep these exactly the same:
 - soft light from the upper left, and no cast shadow in the image (the game draws his shadow);
 - with the beanie on: the same beanie, at the same size and position, with his ears through it;
 - a flat, solid background colour, so it can be removed cleanly.
+
+*Revised in v5 (6 Oct 2026):* the finish rule is now "low-poly and faceted: flat-shaded facets with crisp edges, no outlines, fur strands or whiskers", and the colours are judged against the v5 palette. In the reject list, "a realistic look" now also covers smooth clay surfaces instead of facets.
 
 **Reject an image if:**
 - the tail has the wrong number of rings, or uneven ones;
@@ -291,6 +358,13 @@ The prompts follow the brief's rules: no brand, studio, artist or game names; a 
 
 ### Raccoon prompts
 
+*Revised in v5 (6 Oct 2026):* for every raccoon prompt below:
+- attach the low-poly reference (`design/reference/the-raccon.jpg`) or an accepted pose, instead of the first style target;
+- write "low-poly faceted finish" where it says "clay finish";
+- in R1, replace the clay description with "a low-poly, faceted, flat-shaded 3D look", and the warm grey `#9A8F8A` with blue-grey fur `#67737B`.
+
+CHANGE-BRIEF.md has the CHAR-CLIMB prompt already written this way.
+
 **R1: reference turnaround.** Attach the style target.
 
 ```text
@@ -429,7 +503,7 @@ The slice doesn't need these. Use the same style and background rules, and end e
 - **The camper's name.** He has none yet. The game never needs one, since there's no dialogue, but a name would make the docs easier to read.
 - **Three dogs.** The trio and their chase styles are Claude's suggestion. Start with the sausage dog, since it's already in panel 12, and add the other two later if time allows.
 - **What a dog costs him.** Here a dog that corners him only barks until he slips away, and the barking brings out the phones. A harsher version would make him drop whatever he's carrying.
-- **Which states go in the slice.** CHANGE-BRIEF.md decides that; the brief needs at least two.
+- **Which states go in the slice.** CHANGE-BRIEF.md decides that; the brief needs at least two. *Decided on 6 Oct:* idle, run, sneak, bored and asleep (CHANGE-BRIEF.md v1).
 
 ## Provenance
 
@@ -438,7 +512,15 @@ The slice doesn't need these. Use the same style and background rules, and end e
   - the red beanie as the story's thread;
   - the tilted 3/4 game camera;
   - on 5 Oct 2026: the beanie camper is a man and the story's other main character, the one who releases the raccoon at his home;
-  - on 5 Oct 2026: dogs in the town that chase the raccoon, as an important character.
+  - on 5 Oct 2026: dogs in the town that chase the raccoon, as an important character;
+  - on 6 Oct 2026: switch the raccoon to the low-poly look of his generated poses (v5), because "the switch was a decision based on the astetics of the game and how the prototype looked".
+- **Claude's v5 contributions:**
+  - the revision's wording;
+  - the palette, measured from the six green-screen poses;
+  - the contrast check against ENV-GROUND and the game's ground;
+  - his size on screen with the new camera;
+  - the corrected capsule size;
+  - the table matching generated images to poses, including the label for the new knocked-back pose.
 - **Claude's contributions:**
   - the wording of this sheet;
   - the raccoon's proportions and palette, measured from the style target;
