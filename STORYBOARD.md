@@ -365,4 +365,3 @@ Four of the sheet's states have no storyboard ID, because no panel is about them
   - the thumbnails, drawn in code by `design/storyboard/make_thumbnails.py`. Run `python design/storyboard/make_thumbnails.py` to redraw them after edits;
   - in v6: the legend's camera note, the commit references in this section, and the table lining up the raccoon's IDs with the character sheet's poses, including the four new IDs CHAR-IDLE, CHAR-BORED, CHAR-WALK and CHAR-SNEAK.
 - **Generative models:** none. No panel was made with an image generator.
-- **Your edits:** ________

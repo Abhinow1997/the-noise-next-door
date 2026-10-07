@@ -85,6 +85,9 @@ const HERO_TREES := [["pine", Vector2(-3.6, -2.8), 1.05], ["green", Vector2(-6.9
 
 ## Resolution of the masks that say how far a spot is from the path and the stream.
 const MASK := 0.5
+## Where the random sequence stood after the old plated ground, which the rest of
+## the forest was laid out from (see _build_ground).
+const RNG_AFTER_GROUND := 6889569028940052091
 ## Cell size of the grid used to keep trees apart.
 const SPACING_CELL := 3.3
 
@@ -150,89 +153,36 @@ func _ready() -> void:
 
 # --- Ground, path and stream -------------------------------------------------
 
-## The ground is big flat plates, each a slightly different green and tilt, with a
-## thin dark seam wherever two plates meet.
+## The ground: one smooth sheet of grass, lit evenly, with only a soft colour drift
+## over tens of metres so it doesn't look painted on.
 func _build_ground() -> void:
-	var cell := 2.8
+	var cell := 2.0
 	var origin := WORLD.position - Vector2(6, 4)
 	var nx := int(ceil((WORLD.size.x + 12) / cell))
 	var nz := int(ceil((WORLD.size.y + 8) / cell))
-	var corners: Array = []
-	for i in nx + 1:
-		var column: Array[Vector2] = []
-		for j in nz + 1:
-			var p := origin + Vector2(i, j) * cell
-			if i > 0 and i < nx and j > 0 and j < nz:
-				p += Vector2(_rng.randf_range(-0.3, 0.3), _rng.randf_range(-0.3, 0.3)) * cell
-			column.append(p)
-		corners.append(column)
-
-	# Merge neighbouring cells into bigger, irregular plates.
-	var parent: Array[int] = []
-	for k in nx * nz:
-		parent.append(k)
-	for i in nx:
-		for j in nz:
-			if i + 1 < nx and _rng.randf() < 0.32:
-				_union(parent, i * nz + j, (i + 1) * nz + j)
-			if j + 1 < nz and _rng.randf() < 0.32:
-				_union(parent, i * nz + j, i * nz + j + 1)
-	var plate: Array[int] = []
-	var shade := {}
-	var tilt := {}
-	for k in nx * nz:
-		var root := _find(parent, k)
-		plate.append(root)
-		if not shade.has(root):
-			shade[root] = _vary(GRASS, 0.035)
-			var lean := Vector3(_rng.randf_range(-1, 1), 0, _rng.randf_range(-1, 1)) * 0.07
-			tilt[root] = (Vector3.UP + lean).normalized()
-
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var up := [Vector3.UP, Vector3.UP, Vector3.UP]
 	for i in nx:
 		for j in nz:
-			var k := i * nz + j
-			var a := _v3(corners[i][j])
-			var b := _v3(corners[i + 1][j])
-			var c := _v3(corners[i + 1][j + 1])
-			var d := _v3(corners[i][j + 1])
-			var color: Color = shade[plate[k]]
-			var n: Vector3 = tilt[plate[k]]
-			LowPoly.add_tri_attrs(st, [a, b, c], [n, n, n], [color, color, color], Vector3.UP)
-			LowPoly.add_tri_attrs(st, [a, c, d], [n, n, n], [color, color, color], Vector3.UP)
-	for i in nx:
-		for j in nz:
-			var k := i * nz + j
-			if i + 1 < nx and plate[k] != plate[k + nz]:
-				_seam(st, corners[i + 1][j], corners[i + 1][j + 1], plate[k], plate[k + nz], shade, tilt)
-			if j + 1 < nz and plate[k] != plate[k + 1]:
-				_seam(st, corners[i][j + 1], corners[i + 1][j + 1], plate[k + 1], plate[k], shade, tilt)
+			var corners: Array[Vector3] = []
+			var colors: Array[Color] = []
+			for c: Vector2i in [Vector2i(i, j), Vector2i(i + 1, j), Vector2i(i + 1, j + 1), Vector2i(i, j + 1)]:
+				var p := origin + Vector2(c) * cell
+				corners.append(_v3(p))
+				colors.append(_grass_at(p))
+			LowPoly.add_tri_attrs(st, [corners[0], corners[1], corners[2]], up, [colors[0], colors[1], colors[2]], Vector3.UP)
+			LowPoly.add_tri_attrs(st, [corners[0], corners[2], corners[3]], up, [colors[0], colors[2], colors[3]], Vector3.UP)
 	_add_mesh(LowPoly.commit(st))
+	# The old plated ground drew from _rng. Carry on from where it left off, so every
+	# tree, rock and leaf placed after this stays where it was.
+	_rng.state = RNG_AFTER_GROUND
 
 
-## A soft dark line along p -> q. `left` and `right` are the plates on either side.
-func _seam(st: SurfaceTool, p: Vector2, q: Vector2, left: int, right: int, shade: Dictionary,
-		tilt: Dictionary) -> void:
-	var dir := (q - p).normalized()
-	var side := Vector2(-dir.y, dir.x) * 0.025
-	var lc: Color = shade[left]
-	var rc: Color = shade[right]
-	var mc := lc.lerp(rc, 0.5).darkened(0.17)
-	var ln: Vector3 = tilt[left]
-	var rn: Vector3 = tilt[right]
-	var y := 0.003
-	var pl := _v3(p + side, y)
-	var pm := _v3(p, y)
-	var pr := _v3(p - side, y)
-	var ql := _v3(q + side, y)
-	var qm := _v3(q, y)
-	var qr := _v3(q - side, y)
-	var up := Vector3.UP
-	LowPoly.add_tri_attrs(st, [pl, pm, qm], [ln, up, up], [lc, mc, mc], up)
-	LowPoly.add_tri_attrs(st, [pl, qm, ql], [ln, up, ln], [lc, mc, lc], up)
-	LowPoly.add_tri_attrs(st, [pm, pr, qr], [up, rn, rn], [mc, rc, rc], up)
-	LowPoly.add_tri_attrs(st, [pm, qr, qm], [up, rn, up], [mc, rc, mc], up)
+## GRASS at `p`, at most 2% lighter or darker in broad, soft patches.
+func _grass_at(p: Vector2) -> Color:
+	var drift := (sin(p.x * 0.11 + 1.3) * sin(p.y * 0.09 + 0.4) + sin((p.x + p.y) * 0.05)) * 0.5
+	return GRASS.lightened(drift * 0.02) if drift > 0.0 else GRASS.darkened(-drift * 0.02)
 
 
 func _build_path_and_stream() -> void:
@@ -1110,17 +1060,6 @@ func _remember(p: Vector2) -> void:
 	if not _spacing.has(c):
 		_spacing[c] = []
 	_spacing[c].append(p)
-
-
-func _find(parent: Array[int], k: int) -> int:
-	while parent[k] != k:
-		parent[k] = parent[parent[k]]
-		k = parent[k]
-	return k
-
-
-func _union(parent: Array[int], a: int, b: int) -> void:
-	parent[_find(parent, a)] = _find(parent, b)
 
 
 ## `color`, randomly lightened or darkened by up to `amount`.

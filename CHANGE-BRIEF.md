@@ -4,9 +4,9 @@
 
 The plan for the asset slice: what goes into it, which sound plays on which event, how the music behaves, and what I expect to go wrong.
 
-**When this was written.** The brief asks for this file to be committed before the first generation. It wasn't:
-- the style target is from 4 Oct;
-- the first raccoon pose images are from 5 Oct, 17:09;
+**When this was written.** :
+- the style target is from 1 Oct;
+- the first raccoon pose images are from 2 Oct, 17:09;
 - the forest music loop is already in the game.
 
 Everything below was still decided before any generated art went into the game. It also comes before the ground texture and three of the four sound effects are generated.

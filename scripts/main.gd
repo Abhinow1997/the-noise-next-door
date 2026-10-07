@@ -164,8 +164,8 @@ func _process(delta: float) -> void:
 			player._grab()
 		elif _grab_test and _frames == 20:
 			player.global_position = forest.bin_spot + Vector3(-1.5, 0.02, 2.4)
-		if _frames == 44 and _music:
-			# Stopped a frame early, so the audio thread lets go of it before the quit.
+		if _frames == 30 and _music:
+			# Stopped well before the quit, so the audio thread has let go of it.
 			_music.stop()
 		if _frames == 45:
 			get_viewport().get_texture().get_image().save_png(_shot_path)
