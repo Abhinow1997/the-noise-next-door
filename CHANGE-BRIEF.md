@@ -2,6 +2,8 @@
 
 `the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3, 6 Oct 2026
 
+**Assignment 3's brief is [its own section at the end](#assignment-3-three-3d-assets-from-blender).** Everything before it is the Assignment 2 brief, kept as it was.
+
 The plan for the asset slice: what goes into it, which sound plays on which event, how the music behaves, and what I expect to go wrong.
 
 **When this was written.** :
@@ -224,3 +226,48 @@ For each sound: trim the silence at the front so it starts at once, and save it 
   - failures 9 and 10;
   - the v2 wording.
 - **Generative models:** none were used to write this.
+
+---
+
+## Assignment 3: three 3D assets from Blender
+
+`the-noise-next-door` · CSYE 7270 · Assignment 3 · Draft v0, 13 Oct 2026 · branch `assignment-3`
+
+Three simple props for the campsite. Each is built in Blender through the Blender MCP, exported as a `.glb`, and shown with the others in a Godot 3D scene. This section is the plan, written before anything is built. Later changes go below it as dated revisions; the original text stays.
+
+**Status (13 Oct 2026).** The three assets are chosen, and nothing has been built yet. Next I'll write each asset's size, origin, colours and triangle budget, plus my predicted failures. They come after my first session looking round Blender's window (the assignment's "Learn the window" step) and are committed before the first build.
+
+### The three assets
+
+| Asset | What it is in the game | Where it appears | Who chose it |
+|---|---|---|---|
+| S'more | A snack the raccoon tries to steal | The campers' campfire site | Me, 13 Oct 18:18: "maybe smores ? like from the campfire site where the raaccoon will try and steal them ?" |
+| Pizza slice | Another snack to steal | Not decided yet | Me, in the same message: "we can try those and then pizzas slices" |
+| Cooler | A campsite cooler to raid | Not decided yet | Me, 13 Oct 18:21, from three options Claude offered (a campfire, a pizza box, a cooler). I didn't give a reason. |
+
+The level has no campfire site yet; in the story it belongs to level 1, the campers' party. For this assignment the three assets are shown in a small Godot scene of their own, beside the raccoon for scale. Putting them into the level comes later.
+
+### Limits for every asset (the course's, for this assignment)
+
+- Built mainly from Blender's basic shapes (cube, cylinder, cone, sphere, plane): at most 6 shapes and at most 500 triangles each.
+- Flat-colour materials. No sculpting, painted textures, rigging or animation.
+- Each asset in its own `.blend`, built around Blender's world origin with its base on the floor there.
+- 1 Blender unit is 1 metre, and so is 1 Godot unit, so nothing is converted.
+  - Blender is Z-up. The glTF exporter's +Y Up option, its default, turns that into Godot's Y-up.
+- Nothing downloaded or generated:
+  - the add-on's Poly Haven, Sketchfab, Poly Pizza, Hyper3D, Hunyuan3D and Tripo options stay off;
+  - `generate_3d`, `search_assets` and `import_asset` are never called.
+
+### Measured from the game, for sizing (Claude Code, 13 Oct)
+
+| What | Value | Where it comes from |
+|---|---|---|
+| The raccoon | About 0.61 m tall and 0.52 m wide. He's 1.35 m long, tail included. | `raccoon_v2.blend`'s mesh (0.767 × 0.649 × 1.688), times the game's `size` of 0.8 (`scripts/player.gd`) |
+| His collision capsule | 0.64 m long and 0.32 m across. It lies along his body. | `scripts/player.gd` |
+| How big things look | About 214 pixels per metre at 1080p, at the default zoom. That makes the raccoon about 130 px tall. | The camera is 19.2 m away with a 15° field of view (`scripts/main.gd`): 1080 ÷ (2 × 19.2 × tan 7.5°) |
+| Today's props, for comparison | Bin Ø 0.60 × 0.76 m; can Ø 0.12 × 0.16 m, about 1.3 times a real drink can; gnome about 0.46 m tall | `_build_props()` in `scripts/main.gd` |
+
+**Provenance (Assignment 3).**
+- **My decisions:** the s'more and the pizza slice (my idea) and the cooler (my pick from Claude's options).
+- **Claude's contributions:** the options for the third asset, this draft and its wording, and the measurements above.
+- **Generative models:** none.

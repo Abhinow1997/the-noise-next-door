@@ -6,6 +6,22 @@ He sneaks down to prank the partiers, gets chased into town wearing a camper's r
 
 Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for Your Game.
 
+## Assignment 3 (in progress)
+
+*Your First 3D Game Assets with Claude, the Blender MCP, and Blender*, on the branch `assignment-3`. The Assignment 2 submission is tagged `a2`.
+
+- **The three assets:** a s'more, a pizza slice and a cooler, for the raccoon to steal and raid at the campsite. Each is built in Blender through the Blender MCP, exported as a `.glb`, and shown in a small Godot 3D scene beside the raccoon.
+- **Versions:** Godot 4.7.2 stable, Blender 5.2.2 LTS, the mcp-for-blender server 2.1.9 with the MCP for Blender add-on 1.8, on Windows 11.
+- **The docs:** each of these has an Assignment 3 section at the end:
+  - the plan: [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
+  - the log: [FRICTIONAL.md](FRICTIONAL.md);
+  - the checks: [TEST-REPORT.md](TEST-REPORT.md);
+  - the tools: [SOURCES.md](SOURCES.md).
+
+  [BLENDER-NOTES.md](BLENDER-NOTES.md) is new, and the Blender build scripts go in [tools/blender/](tools/blender/).
+
+How to open the scene and run the check is added here once they exist.
+
 ![The storyboard](design/storyboard/storyboard-sheet.svg)
 
 ## The film

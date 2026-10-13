@@ -2,6 +2,8 @@
 
 `the-noise-next-door` · CSYE 7270 · Assignment 2 · 6 Oct 2026
 
+**Assignment 3's report is [its own section at the end](#assignment-3-the-three-blender-assets).** Everything before it is the Assignment 2 report, kept as it was.
+
 What the slice was tested for, how, and what actually happened.
 
 **What was tested**
@@ -207,3 +209,36 @@ From the author's notes:
 - **The author:** played the slice, wrote the notes in section 7, and answered the four questions.
 - **Claude Code:** the automated check, the fresh-copy run, the screenshots and comparison sheets, the volume change the playtest asked for, and this report's wording.
 - **Generative models:** none were used for this report.
+
+---
+
+## Assignment 3: the three Blender assets
+
+`the-noise-next-door` · CSYE 7270 · Assignment 3 · branch `assignment-3`
+
+**Status (13 Oct 2026).** No checks have run yet, because nothing has been built.
+
+**What will be tested**
+
+| | |
+|---|---|
+| Source revision | The commit tagged `a3`, once it exists |
+| Blender | 5.2.2 LTS (build date 15 Sep 2026). The course's chapter used 5.1.2. |
+| Godot | 4.7.2 stable, official build `ed1daf0bf`, as for Assignment 2 |
+| Blender MCP | The mcp-for-blender server 2.1.9, run by uvx 0.12.23, and the MCP for Blender add-on 1.8 (`blender_mcp.py`) |
+| Machine | Windows 11 Home (10.0.26300), NVIDIA GeForce RTX 4050 Laptop GPU, 16 GB RAM |
+
+### Checks
+
+| Check | Evidence to collect | Result |
+|---|---|---|
+| Interface notes | The six parts in my own words, and one screenshot of my own session, in [BLENDER-NOTES.md](BLENDER-NOTES.md) | Not done yet |
+| Size | For each asset: the dimensions in Blender's sidebar beside the brief, and Godot's bounding box beside both | Not run yet |
+| Upright and scale | Each asset stands the right way up in Godot, with node scale 1, 1, 1 after export | Not run yet |
+| Origin | Placed on the floor in Godot, each asset sits on it instead of floating or sinking | Not run yet |
+| Triangle count | Within each asset's budget, from Blender's Scene Statistics | Not run yet |
+| Imports and appears | All three import with no errors and appear in the 3D scene | Not run yet |
+| HUMAN CHECK: look | I walk the camera round each asset, from behind and below too, at game size beside the raccoon. Does each read as what it is? Any missing faces or wrong colours? | Not done yet |
+| What Claude got wrong | At least one thing, or "nothing, and here's how I checked" | Not known yet |
+
+The automated check can show that the assets arrived at the size, orientation and scale that were measured. It can't show that they look right in the game's light, read as what they are, or suit its style. Those are the human check.

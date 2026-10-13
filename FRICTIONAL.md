@@ -2,6 +2,8 @@
 
 `the-noise-next-door` · CSYE 7270 · Assignment 2
 
+**Assignment 3's log is [its own section at the end](#assignment-3-the-three-blender-assets).** Everything before it is the Assignment 2 log, kept as it was.
+
 A dated log of the design as it happened: what I wanted the player to see or hear, what I asked for, what came back, and what I decided. This first part covers the storyboard, from the first draft to the check against the brief. Entries for the generated assets (Gemini images, music, sound effects) are added as their rows in the [SOURCES.md](SOURCES.md) asset log are filled in.
 
 **How these entries were written**
@@ -270,3 +272,92 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - which moments got lost when muted;
   - the new levels haven't been checked by ear yet;
   - the three next steps.
+
+---
+
+## Assignment 3: the three Blender assets
+
+`the-noise-next-door` · CSYE 7270 · Assignment 3 · branch `assignment-3`
+
+**How these entries were written**
+- Claude Code wrote them on 13 Oct 2026 from my chat messages, the commits and file dates.
+- My messages are quoted exactly as I typed them, typos included. Times are US Eastern, taken from the chat transcripts.
+- The first entry is retrospective: it covers setup done on 3–5 Oct, before this assignment, pieced together from what was recorded then.
+
+**Who's who**
+- **Me:** the choices, the approvals, my hand edit in Blender, and what I see when I look at the assets.
+- **Claude Code** (Claude Opus 5.5): plans, options, the Python it runs in my Blender through the MCP, the Godot scene and check, and the wording of the docs.
+- **Generative models:** none. No mesh is downloaded or generated.
+
+| Date | Entry | Commits |
+|---|---|---|
+| 3–5 Oct | Setting up the Blender MCP, before this assignment (retrospective) | none |
+| 13 Oct | Starting Assignment 3: the same repo, a new branch | aeec1d6 |
+| 13 Oct | Choosing the three assets | none yet |
+| 13 Oct | Turning off the MCP's telemetry: the course's command failed | none (Claude Code's settings, not the repo) |
+
+## 2026-10-03 to 05 — Setting up the Blender MCP, before this assignment (retrospective)
+
+- **Wanted:** Claude driving my open Blender, for the Assignment 2 raccoon model.
+- **What the record shows:**
+  - uv and uvx 0.12.23 sit in `C:\Users\dotbix\.local\bin\`, dated 3 Oct, 10:19. How I installed them wasn't recorded. The course's line, `brew install uv`, is for macOS.
+  - The add-on file `blender_mcp.py` (MCP for Blender 1.8) is in Blender 5.2's add-ons folder, dated 5 Oct, 18:41. The command I used wasn't recorded.
+  - The server was registered with Claude Code at user scope as `uvx.EXE mcp-for-blender`, with no `DISABLE_TELEMETRY` setting. When, and the exact command, weren't recorded.
+- **Asked** (5 Oct, 18:43): "do u see the mcp for blender ?"
+- **Got:**
+  - At 18:43 Claude's first check failed: "Could not connect to Blender. Make sure the Blender addon is running."
+  - After "ok try again now" (18:44) it connected. It reported Blender 5.2.2 LTS, no version warning, and every library and generator off. The add-on's telemetry consent was false.
+  - What I changed in Blender between those two checks wasn't recorded.
+- **Then:** Claude built `raccoon.blend` (5 Oct) and `raccoon_v2.blend` (10 Oct) through it. Those are Assignment 2 work, not Assignment 3 assets.
+- **Differences from the course's steps:**
+  - Windows instead of macOS;
+  - uv not from Homebrew;
+  - registered at user scope, not the default local scope;
+  - no telemetry setting (fixed on 13 Oct, below).
+- **Still unresolved:** which server version ran on 5 Oct. uv's cache holds 2.1.8 and 2.1.9, and today uvx runs 2.1.9.
+
+## 2026-10-13 — Starting Assignment 3: the same repo, a new branch
+
+- **Asked** (18:25): "but But what about the repo? Uh, I don't understand if we should create a new repo or work on the same repo because we submitted this for assignment two. So I want to understand if we should create like a new repo or just continue to work in this particular one."
+- **Got:**
+  - Claude quoted the assignment: "Assignments 3–10 each add one layer to that same repository and are submitted as a git tag on it".
+  - It said my Assignment 2 submission stays fixed as commit `2da6991`, as long as history isn't rewritten.
+- **Decided** (18:30): "Okay. Um, so same repo then. Create a new branch. Call it uh, feature A3. Or assignment 3. Something like that. So that we can just have everything for assignment 3 committed in there. Uh, and we'll work from there. Um, let's initially create or um, add the new files that are required for assignment 3. And let's go from there. Add a tag as well for A3. Like you mentioned. And we can add uh, A2 tag for the previous ones."
+- **Done by Claude:**
+  - Before that, at my choice (18:18), Claude committed the rigged-raccoon work left from Assignment 2, so that Assignment 3 starts from a clean tree (aeec1d6, on `main`). It first checked the saved rig was still at the origin.
+  - It made the branch `assignment-3`, picking that name from my two suggestions.
+  - It added the tag `a2` on `2da6991`, the commit my Assignment 2 SUBMISSION.md names.
+  - It added this assignment's files.
+  - It didn't add `a3` yet. The tag has to mark the commit I finally submit, and the assignment says not to move it after submitting, so it goes on last.
+- **Human / Claude:** the decisions are mine; the git commands are Claude's.
+
+## 2026-10-13 — Choosing the three assets
+
+- **Wanted:** three simple assets the game actually needs.
+- **Got:** Claude suggested the props on the game's to-do list: the bin, a can and the gnome.
+- **Decided:**
+  - (18:18) "Lets think idk maybe smores ? like from the campfire site where the raaccoon will try and steal them ? we can try those and then pizzas slices"
+  - Claude checked that both fit the course's limits: about 4 shapes for the s'more and 5–6 for the slice. It offered three options for a third asset: a campfire, a pizza box or a cooler.
+  - (18:21) I picked the cooler. I didn't give a reason.
+- **Claude got wrong:** its first size numbers used the collision capsule's 0.64 m as the raccoon's height. The capsule actually lies along his body (`scripts/player.gd`). Measured from the model, he's about 0.61 m tall and 1.35 m long. CHANGE-BRIEF.md uses the measured numbers.
+- **Human / Claude:** the s'more and pizza ideas and the cooler pick are mine. The options, the shape counts and the measurements are Claude's.
+- **Still unresolved:**
+  - the sizes. At the game camera a life-size s'more (about 6.5 cm) is only about 14 px across, so I still have to choose between life-size and exaggerated.
+  - where the pizza slice and the cooler appear.
+
+## 2026-10-13 — Turning off the MCP's telemetry: the course's command failed
+
+- **Wanted:** the course's setup, which turns the server's anonymous usage record off with `DISABLE_TELEMETRY=true`. Mine was registered without it.
+- **Asked:** at 18:18 I chose to let Claude re-register the server.
+- **Claude ran** (about 18:20):
+  - `claude mcp remove blender -s user`, which worked;
+  - `claude mcp add -s user -e DISABLE_TELEMETRY=true blender -- C:\Users\dotbix\.local\bin\uvx.EXE mcp-for-blender`, in the course's order.
+- **Got:** the add failed: "Invalid environment variable format: blender, environment variables should be added as: -e KEY1=value1 -e KEY2=value2".
+  - On Claude Code 2.1.289, `-e` reads every word after it as another variable, so it took the server's name, `blender`, as one.
+  - Because the remove had already run, the server was unregistered for a moment.
+  - The course's own line, `claude mcp add -e DISABLE_TELEMETRY=true blender -- uvx mcp-for-blender`, has the same order. I expect it to fail the same way, but I didn't run it exactly as written.
+- **What worked:** putting the name first, `claude mcp add -s user blender -e DISABLE_TELEMETRY=true -- C:\Users\dotbix\.local\bin\uvx.EXE mcp-for-blender`.
+  - `claude mcp get blender` then showed it connected, with `DISABLE_TELEMETRY=true`.
+  - It takes effect in the next Claude Code session.
+- **Human / Claude:** the decision is mine. The commands, and finding the failure, are Claude's.
+- **Still unresolved:** whether the server honours the variable. The add-on already reported telemetry consent off on 5 Oct. I'll check again with `get_addon_status` when Blender is next open.

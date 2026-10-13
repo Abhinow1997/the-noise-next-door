@@ -2,9 +2,14 @@
 .godot/
 /android/
 
-# Blender backup / temp saves
-*.blend1
+# Blender backup / temp saves (.blend1, .blend2, ... from Save Versions)
+*.blend[0-9]*
 *.blend@
+
+# Films and large media go to the course's media storage, not GitHub
+*.mp4
+*.mov
+*.mkv
 
 # Python
 __pycache__/

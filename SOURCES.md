@@ -2,6 +2,8 @@
 
 `the-noise-next-door` · CSYE 7270 · Assignment 2
 
+**Assignment 3's tools and assets are [in their own section at the end](#assignment-3-tools-and-provenance).** Everything before it is the Assignment 2 log, kept as it was.
+
 ## Generative models
 
 | Model | Used for | Where it ran | Licence or terms |
@@ -72,3 +74,26 @@ None yet.
 - **The storyboard thumbnails** in `design/storyboard/`: drawn by Claude Code in code, with `make_thumbnails.py`. They aren't generated assets.
 - **The raccoon model** in `assets/characters/`: built by Claude Code in Blender with Python (through the Blender MCP), matched to `design/reference/the-raccon.jpg`. No generative model made it, so it isn't a generated asset. The game uses `raccoon.glb`, made from `raccoon.blend` by `export_raccoon.py` (also Claude Code).
 - **The rigged raccoon** `assets/characters/raccoon_v2.blend` (10 Oct 2026, after the slice): built and animated by Claude Code in Blender with Python, through the Blender MCP. It has one mesh, a rig and seven animations (idle, walk, run, sneak, bored, sleep, climb), matched to the author's generated poses in `design/reference/raccoon/` and revised through the author's feedback. Its head starts from the first model's head. The scripts that build it are in `design/character/raccoon_v2/`. No generative model made it, so it isn't a generated asset. It isn't in the game yet.
+
+---
+
+## Assignment 3: tools and provenance
+
+**Who makes the assets.** Claude Code builds the three 3D assets in my open Blender through the Blender MCP. I direct it and approve each step, and one hand edit in Blender's window is mine. Every piece of Python it runs is kept in [tools/blender/](tools/blender/). No model is downloaded and none is generated, so none of these is generated art.
+
+| Tool | Version | Used for | Notes |
+|---|---|---|---|
+| Blender | 5.2.2 LTS (build date 15 Sep 2026) | Building the assets, their `.blend` sources and the glTF export | Free. The course's chapter used 5.1.2. |
+| MCP for Blender add-on | 1.8 (`blender_mcp.py`, by Siddharth Ahuja; [ahujasid/blender-mcp](https://github.com/ahujasid/blender-mcp)) | Lets Claude Code run Python in my open Blender and see the viewport | Its socket has no authentication or encryption, so I turn the add-on off when I'm not using it |
+| mcp-for-blender server | 2.1.9, run by uvx | The MCP server Claude Code talks to | Registered at user scope. Set to `DISABLE_TELEMETRY=true` since 13 Oct 2026 (see FRICTIONAL.md). |
+| uv and uvx | 0.12.23 | Run the server | In `C:\Users\dotbix\.local\bin\` since 3 Oct 2026 |
+| Claude Code | 2.1.289, with Claude Opus 5.5 | Drives Blender through the MCP, and writes the build scripts, the Godot scene, the check and the docs | Northeastern access |
+| Godot | 4.7.2 stable | The 3D scene and the headless check | As for Assignment 2 |
+
+**Remote services: all off.** The add-on can fetch models from Poly Haven, Sketchfab and Poly Pizza, and call the Hyper3D Rodin, Hunyuan3D and Tripo generators. None of them is used. On 5 Oct 2026 the add-on reported every one of them off. They'll be checked again with `get_addon_status` at the start of the first build.
+
+**Credentials.** None are needed, and none are in the repo.
+
+### The assets
+
+None built yet. Each will get a row here with its `.blend`, its build script and its `.glb`.
