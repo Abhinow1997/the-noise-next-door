@@ -299,6 +299,9 @@ if FUSE:
     bpy.data.meshes.remove(lo)
     bmesh.ops.bisect_plane(lbm, geom=lbm.verts[:] + lbm.edges[:] + lbm.faces[:], plane_co=(0, 0, 0),
                            plane_no=(1, 0, 0), clear_inner=True)
+    # The cut leaves a few loose edges on the centre line; drop them.
+    bmesh.ops.delete(lbm, geom=[e for e in lbm.edges if not e.link_faces], context="EDGES")
+    bmesh.ops.delete(lbm, geom=[v for v in lbm.verts if not v.link_faces], context="VERTS")
     for v in lbm.verts:
         if abs(v.co.x) < 1e-4:
             v.co.x = 0.0

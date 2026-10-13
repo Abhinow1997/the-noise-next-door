@@ -1,7 +1,9 @@
 extends Node3D
 ## Builds the forest, the props, the raccoon and the to-do list.
 ## Debug: `-- --screenshot=out.png [--closeup] [--pose=<state> [--left]]` saves a
-## frame and quits; --pose shows the raccoon in one state (see raccoon_sprite.gd).
+## frame and quits; --pose shows the raccoon in one state: an animation of the rigged
+## model (idle, walk, run, sneak, bored, sleep, climb), or with USE_SPRITES a
+## cut-out (see raccoon_sprite.gd). `-- --sprites` uses the cut-outs for one run.
 ## `-- --sound-test` runs the automated sound check (scripts/sound_test.gd).
 ## Screenshot helpers: --grab-test, --climb-test, --rest-test (he naps in the hollow),
 ## --tick-test (the bin is knocked over), --shot-frame=N (default 45), and
@@ -12,6 +14,11 @@ const Player := preload("res://scripts/player.gd")
 const Forest := preload("res://scripts/forest.gd")
 const CameraTuner := preload("res://scripts/camera_tuner.gd")
 const RaccoonSprite := preload("res://scripts/raccoon_sprite.gd")
+## Draw the raccoon with the author's generated cut-outs (the asset slice, 6 Oct)
+## instead of the rigged 3D model.
+const USE_SPRITES := false
+## --pose names from the cut-outs, as the rigged model's animations.
+const POSE_ANIMATIONS := {"asleep": "sleep"}
 const SoundTest := preload("res://scripts/sound_test.gd")
 
 ## The author's generated grass texture (ENV-GROUND in SOURCES.md), repeated every
@@ -182,6 +189,7 @@ func _ready() -> void:
 	var pose := ""
 	var pose_left := false
 	var sound_test := false
+	var use_sprites := USE_SPRITES
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			_shot_path = arg.get_slice("=", 1)
@@ -205,6 +213,8 @@ func _ready() -> void:
 			pose_left = true
 		elif arg == "--sound-test":
 			sound_test = true
+		elif arg == "--sprites":
+			use_sprites = true
 	_rng.seed = 7
 
 	_build_environment()
@@ -224,15 +234,18 @@ func _ready() -> void:
 	player.trees = forest.climbable
 	add_child(player)
 	player.sound_started.connect(_count_sound)
-	# He's drawn with the author's generated images; the 3D model underneath only
-	# casts his shadow and carries things.
-	sprite = RaccoonSprite.new()
-	sprite.player = player
-	sprite.camera = camera
-	sprite.forced_state = pose
-	sprite.forced_left = pose_left
-	player.add_child(sprite)
-	if _see_collision:
+	if use_sprites:
+		# Drawn with the author's generated images; the 3D model underneath only
+		# casts his shadow and carries things.
+		sprite = RaccoonSprite.new()
+		sprite.player = player
+		sprite.camera = camera
+		sprite.forced_state = pose
+		sprite.forced_left = pose_left
+		player.add_child(sprite)
+	else:
+		player.model.forced_animation = POSE_ANIMATIONS.get(pose, pose)
+	if sprite and _see_collision:
 		# Half see-through, so `--debug-collisions` shows his capsule inside him.
 		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
 		sprite.modulate = Color(1, 1, 1, 0.45)

@@ -1,13 +1,37 @@
 @tool
 extends Node3D
-## The raccoon: the Blender model in assets/characters, or a low-poly one built
-## from code. Both match the concept art.
-## Faces -Z (Godot's forward) with its feet at y = 0. Parts are separate nodes
-## so they can be animated; set walk_amount / walk_phase / crouch / chitter_time.
+## The raccoon: the rigged, animated Blender model (raccoon_v2), the first Blender
+## model, or a low-poly one built from code. All match the concept art.
+## Faces -Z (Godot's forward) with its feet at y = 0. The player sets walk_amount /
+## walk_phase / crouch / turn / chitter_time / sleep, and for the rigged model also
+## speed / climbing / hopping; the rigged model picks its animation from those, the
+## other two swing their separate parts in code.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 ## Exported from raccoon.blend by assets/characters/export_raccoon.py.
 const MODEL_PATH := "res://assets/characters/raccoon.glb"
+## Exported from raccoon_v2.blend by assets/characters/export_raccoon_v2.py: one
+## skinned mesh and seven looping animations.
+const RIGGED_PATH := "res://assets/characters/raccoon_v2.glb"
+## Where carried things sit, just under the snout, in the model's own space.
+const RIGGED_MOUTH := Vector3(0, 0.37, -0.57)
+## How long one animation takes to blend into the next, in seconds.
+const RIGGED_BLEND := 0.2
+## Seconds standing still before he gets bored (as with the sprites).
+const BORED_AFTER := 5.0
+## Above this speed (m/s) he runs rather than walks; the player's walk is 2.0.
+const RUN_FROM := 2.15
+## Each gait's stride (metres a paw travels while it's down, at model scale 1), the
+## share of the cycle the paw is down, the cycle's length in seconds (all from
+## design/character/raccoon_v2/anim.py), and the fastest playback allowed. Played
+## back at the speed that keeps the planted paws still, up to that cap, so the legs
+## don't blur.
+const GAITS := {
+	"walk": [0.26, 0.60, 1.0, 3.0],
+	"run": [0.46, 0.40, 0.6667, 3.0],
+	"sneak": [0.16, 0.78, 2.0, 3.0],
+	"climb": [0.22, 0.55, 1.0, 2.5],
+}
 
 # Sampled from design/reference/the-raccon.jpg: blue-grey coat, cream mask,
 # slate eye patches, near-black paws and tail bands.
@@ -28,7 +52,15 @@ const MODEL_COLORS := {
 	"R_Nose": INK,
 }
 
-## Use the Blender model. Turn off to build the raccoon from code instead.
+## Use the rigged, animated model. Turn off for the first Blender model (or the
+## code-built one, with use_blender_model off too).
+@export var use_rigged_model := true:
+	set(value):
+		use_rigged_model = value
+		if is_node_ready():
+			_rebuild()
+
+## Use the first Blender model. Turn off to build the raccoon from code instead.
 @export var use_blender_model := true:
 	set(value):
 		use_blender_model = value
@@ -54,6 +86,14 @@ var turn := 0.0
 var chitter_time := 0.0
 ## 0 = awake, 1 = curled up asleep: legs tucked, tail wrapped round, eyes shut.
 var sleep := 0.0
+## Rigged model only: how fast he's moving over the ground or up the trunk (m/s),
+## and whether he's on a trunk or in a hop.
+var speed := 0.0
+var climbing := false
+var hopping := false
+## Rigged model only: play this animation whatever he's doing ("" = his real state).
+## For screenshots.
+var forced_animation := ""
 
 var body: Node3D
 var head: Node3D
@@ -70,6 +110,13 @@ var _head_y := 0.47
 var _tail_crouch := 0.1
 var _model_materials := {}
 var _t := 0.0
+## The rigged model: its animation player, the turned-round scene root, how long
+## he's been standing still, and the chitter hop.
+var _anim: AnimationPlayer
+var _rig: Node3D
+var _still := 0.0
+var _chitter_prev := 0.0
+var _bounce := 0.0
 
 
 func _ready() -> void:
@@ -83,6 +130,8 @@ func _rebuild() -> void:
 	legs.clear()
 	_leg_height.clear()
 	_eyes.clear()
+	_anim = null
+	_rig = null
 	_build()
 
 
@@ -90,6 +139,10 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	_t += delta
+	if _anim:
+		_process_rigged(delta)
+		chitter_time = maxf(chitter_time - delta, 0.0)
+		return
 	chitter_time = maxf(chitter_time - delta, 0.0)
 
 	# Diagonal leg pairs swing together, like a real trot.
@@ -128,6 +181,8 @@ func _process(delta: float) -> void:
 
 
 func _build() -> void:
+	if use_rigged_model and _build_rigged():
+		return
 	if use_blender_model and _build_from_model():
 		return
 	_head_y = 0.47
@@ -225,6 +280,92 @@ func _build_from_model() -> bool:
 		for i in mi.mesh.get_surface_count():
 			mi.set_surface_override_material(i, _model_material(mi.mesh.surface_get_material(i)))
 	return true
+
+
+## Uses the rigged model. Returns false if it can't be loaded (e.g. never imported).
+func _build_rigged() -> bool:
+	var scene := load(RIGGED_PATH) as PackedScene
+	if scene == null:
+		push_warning("Couldn't load %s, so the older raccoon is used." % RIGGED_PATH)
+		return false
+	_rig = scene.instantiate() as Node3D
+	# He faces +Z in the file; turn him round to face -Z.
+	_rig.rotation.y = PI
+	add_child(_rig)
+	_anim = _rig.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	for anim_name: StringName in _anim.get_animation_list():
+		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
+	for mi: MeshInstance3D in _rig.find_children("*", "MeshInstance3D", true, false):
+		for i in mi.mesh.get_surface_count():
+			mi.set_surface_override_material(i, _model_material(mi.mesh.surface_get_material(i)))
+	# Carried things ride on the head bone, just under the snout.
+	var skeleton := _rig.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var attach := BoneAttachment3D.new()
+	attach.bone_name = "head"
+	skeleton.add_child(attach)
+	mouth = Marker3D.new()
+	mouth.name = "Mouth"
+	attach.add_child(mouth)
+	var head_rest := skeleton.get_bone_global_rest(skeleton.find_bone("head"))
+	var model_to_skeleton := skeleton.global_transform.affine_inverse() * global_transform
+	mouth.transform = head_rest.affine_inverse() * model_to_skeleton * Transform3D(Basis(), RIGGED_MOUTH)
+	_anim.play("idle")
+	return true
+
+
+## Picks the animation for what he's doing and plays it at a speed to match.
+func _process_rigged(delta: float) -> void:
+	var anim_name := forced_animation
+	if anim_name == "":
+		anim_name = _rigged_state(delta)
+	if _anim.current_animation != anim_name:
+		_anim.play(anim_name, RIGGED_BLEND)
+	_anim.speed_scale = _rigged_rate(anim_name)
+	# A lean into turns, and a quick squash and hop when he chitters (there's no
+	# chitter animation yet).
+	if chitter_time > _chitter_prev:
+		_bounce = 1.0
+	_chitter_prev = chitter_time
+	_bounce = maxf(_bounce - delta / 0.35, 0.0)
+	var squash := sin(_bounce * PI)
+	var lean := 0.0 if climbing else -turn * 0.08
+	_rig.rotation.z = lerpf(_rig.rotation.z, lean, 1.0 - exp(-10.0 * delta))
+	_rig.scale = Vector3(1.0 + 0.07 * squash, 1.0 - 0.12 * squash, 1.0 + 0.07 * squash)
+	_rig.position.y = 0.05 * squash
+
+
+func _rigged_state(delta: float) -> String:
+	var still := false
+	var state := "idle"
+	if sleep > 0.5:
+		state = "sleep"
+	elif hopping:
+		state = "run"
+	elif climbing:
+		state = "climb"
+	elif crouch > 0.5:
+		state = "sneak"
+	elif speed > RUN_FROM:
+		state = "run"
+	elif speed > 0.15:
+		state = "walk"
+	else:
+		still = chitter_time <= 0.0
+	_still = _still + delta if still else 0.0
+	if still and _still > BORED_AFTER:
+		state = "bored"
+	return state
+
+
+## Playback speed for an animation: for the gaits, the speed that keeps the planted
+## paws still at his current speed (capped); 1 for the rest. Sneaking or climbing
+## on the spot holds the pose.
+func _rigged_rate(anim_name: String) -> float:
+	if not GAITS.has(anim_name) or hopping or forced_animation != "":
+		return 1.0
+	var g: Array = GAITS[anim_name]
+	var natural: float = g[0] * scale.x / (g[1] * g[2])
+	return clampf(speed / natural, 0.0, g[3])
 
 
 ## A matte material in the palette colour for one of the Blender model's materials.

@@ -116,6 +116,8 @@ func _sound(path: String, db: float) -> AudioStreamPlayer:
 func _physics_process(delta: float) -> void:
 	running = false
 	climb_moving = false
+	model.hopping = _hop_t >= 0.0
+	model.climbing = climbing
 	if _hop_t >= 0.0:
 		_hop_process(delta)
 	elif resting:
@@ -187,6 +189,7 @@ func _walk_process(delta: float) -> void:
 	_carry()
 
 	var ground_speed := Vector2(velocity.x, velocity.z).length()
+	model.speed = ground_speed
 	model.walk_amount = clampf(ground_speed / walk_speed, 0.0, 1.0)
 	model.walk_phase += ground_speed * delta * 7.0 / size
 	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
@@ -233,6 +236,7 @@ func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done :
 
 
 func _hop_process(delta: float) -> void:
+	model.speed = 0.0
 	model.walk_amount = 0.0
 	model.turn = 0.0
 	model.crouch = move_toward(model.crouch, 0.0, delta * 5.0)
@@ -247,6 +251,7 @@ func _hop_process(delta: float) -> void:
 
 
 func _rest_process(delta: float) -> void:
+	model.speed = 0.0
 	model.walk_amount = 0.0
 	model.turn = 0.0
 	if not _waking:
@@ -326,6 +331,7 @@ func _climb_process(delta: float) -> void:
 	moved.y = wrapf(moved.y, -PI * reach, PI * reach)
 	var climbed := moved.length() / maxf(delta, 0.0001)
 	climb_moving = climbed > 0.05
+	model.speed = climbed
 	model.walk_amount = clampf(climbed / walk_speed, 0.0, 1.0)
 	model.walk_phase += climbed * delta * 7.0 / size
 	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
