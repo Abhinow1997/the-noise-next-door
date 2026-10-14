@@ -297,6 +297,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 13 Oct | Turning off the MCP's telemetry: the course's command failed | none (Claude Code's settings, not the repo) |
 | 13 Oct | Learn the window: my first session in Blender | ac65dae |
 | 13 Oct | The practice file moved, and five interface descriptions written by Claude | not committed yet |
+| 14 Oct | Building the s'more through the MCP | not committed yet |
 
 ## 2026-10-03 to 05 — Setting up the Blender MCP, before this assignment (retrospective)
 
@@ -363,6 +364,10 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - It takes effect in the next Claude Code session.
 - **Human / Claude:** the decision is mine. The commands, and finding the failure, are Claude's.
 - **Still unresolved:** whether the server honours the variable. The add-on already reported telemetry consent off on 5 Oct. I'll check again with `get_addon_status` when Blender is next open.
+- **Follow-up (13–14 Oct):**
+  - At 22:16 `get_addon_status` reported telemetry consent off, and every library and generator off.
+  - This session's server was started before the re-registration, so before building, Claude called the MCP's `disable_telemetry` tool (14 Oct, about 00:20). It answered: "Data collection is now OFF. Prompts, code, screenshots and scene data are no longer collected. Minimal anonymous usage counts (tool name, success, duration) still apply".
+  - Whether `DISABLE_TELEMETRY=true` also stops those counts in a new session wasn't checked.
 
 ## 2026-10-13 — Learn the window: my first session in Blender
 
@@ -398,3 +403,32 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Got:** Claude wrote the toolbar, Outliner, Properties editor, sidebar and mode selector descriptions. Each is marked in BLENDER-NOTES.md as written by Claude Code at my request, not in my own words.
 - **Human / Claude:** the 3D viewport notes, the session and the screenshot are mine. The five other descriptions, the file move and the counts are Claude's.
 - **Still unresolved:** those five aren't in my own words, which is what the assignment asks for. Writing my own versions is still open.
+
+## 2026-10-14 — Building the s'more through the MCP
+
+- **Asked** (14:36): "ok lets work and create assetplan.md ssaving the plan for each elemet u will do and then start also stop in the between wehere u need or screenshots can u take them and save it in repo or do u want me to do it ?"
+- **Got:**
+  - Claude wrote [ASSET-PLAN.md](ASSET-PLAN.md): every part of all three assets, from my brief v1 (`289aa76`), with the stops where I check and take screenshots.
+  - Then it built the s'more in my Blender through the MCP, 14:39 to 14:41:
+    - it saved my practice file;
+    - it opened an empty file with metric units, saved as `assets/props/smore.blend`;
+    - it added the four parts, one code call each, reporting `get_scene_info` and exact numbers after each;
+    - it applied rotation and scale, and saved.
+  - Every code body is in [tools/blender/build_smore.py](tools/blender/build_smore.py). Claude's viewport pictures are in `design/a3/build/smore/`, labelled as Claude's.
+- **Measured:**
+  - 0.065 × 0.065 × 0.04 m, the bottom at Z 0, centred on the origin;
+  - rotation 0 and scale 1, 1, 1 on every part;
+  - **80 triangles**, against my budget of 100.
+  - These all match the brief.
+- **What went wrong, all on Claude's side:**
+  - Its first save failed: "Cannot open file …smore.blend@ for writing: No such file or directory". The `assets/props/` folder didn't exist yet, so Claude made it and saved again.
+  - Step 1 printed the cube's dimensions as 1 × 1 × 1, because Blender hadn't updated them yet. Claude switched to reading them after an update.
+  - `get_scene_info` rounds to two decimals, so 0.065 shows as 0.06. Claude added its own check to 4 decimals.
+  - **To test that the build script rebuilds the s'more, Claude ran it headless. Its path swap (with `sed`) didn't match, so the run saved over `assets/props/smore.blend`.** Nothing was lost: the rebuild was identical, and Blender kept the MCP-built version as `smore.blend1`.
+    - Claude re-saved the s'more from my open Blender, so `smore.blend` is the MCP-built one again.
+    - It re-ran the test with a driver that checks the path swap first. The rebuild matched, and the repo file stayed untouched.
+- **Claude noticed, for my own look:**
+  - The marshmallow is as wide as the chocolate, so the chocolate barely shows from the front. That's the "dark edge of chocolate" my brief counts on to make it recognisable.
+  - From straight above, it's just a tan square, and the game's camera looks down on it.
+- **Human / Claude:** the plan's approval is mine; the plan, the build and the checks are Claude's.
+- **Still unresolved:** my own look at it in Blender, my screenshot, and whether to change the chocolate. That could be my hand edit.

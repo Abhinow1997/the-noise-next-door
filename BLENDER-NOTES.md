@@ -124,9 +124,22 @@ What I wrote down while doing it is under the 3D viewport, above.
 
 *14 Oct, 00:04, Object Mode, icing selected, after I rotated the donut.* The view is still from below the floor. At about 00:06, Claude Code measured the viewport's eye at 0.74 m under it, looking up. So the iced side now faces this view and the floor. The cup still has its open end at the bottom.
 
+![The new mug and the donut the right way up, seen from above](design/a3/practice/screenshots/2026-10-14_1420_mug-and-donut-from-above.png)
+
+*14 Oct, 14:20, Object Mode, with the new Cup selected.* This time the view is from **above** the floor: the gizmo's Z points up.
+- The donut is the right way up again, icing and sprinkles on top.
+- The mug stands on the floor, open at the top, with its handle and coffee.
+- In the Outliner my original cup, `Cylinder`, is greyed out because it's hidden.
+- The title bar's `*` means the file had unsaved changes when I took this.
+
 ### Changed afterwards by Claude Code
 
 - **22:17:** it moved the practice file to `design/a3/practice/`, with a Save As in my Blender.
 - **23:37–23:38:** after I asked about the black lines on the cup, it switched my Blender to Object Mode, which hides them, and shaded the cup smooth. I saved that at 23:39.
 - **23:41–23:42:** after I asked, "update the donout to be more donot like" (23:40), it made the donut flatter and lumpier and coloured it golden brown, and it added pink icing with drips and 90 sprinkles. As of 23:43 that wasn't saved yet.
+- **14 Oct, about 14:00:** after I asked it to "update the cup as well", it built a new **Cup** in the same spot.
+  - The new cup is open at the top and has a flat base on the floor, with its origin at the centre of the base.
+  - It has a handle, white ceramic, and coffee inside.
+  - My original cup (`Cylinder`) is still in the file, hidden. Claude found it was upside down, 12 cm below the floor, 2.4 cm off-centre from its own origin, and slightly tilted on top.
+- **14 Oct, after that:** when I said "flip the donut back for me", it set the donut's X and Y rotation back to 0, so the icing faces up again and the dough's underside is 2 mm above the floor. The spin round Z and the position are still the ones I set by hand.
 

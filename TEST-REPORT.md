@@ -242,3 +242,11 @@ From the author's notes:
 | What Claude got wrong | At least one thing, or "nothing, and here's how I checked" | Not known yet |
 
 The automated check can show that the assets arrived at the size, orientation and scale that were measured. It can't show that they look right in the game's light, read as what they are, or suit its style. Those are the human check.
+
+### Blender-side evidence, before export
+
+| Asset | Brief | Blender sidebar (my screenshot) | Claude's measurement of the whole asset | Triangles | Godot |
+|---|---|---|---|---|---|
+| S'more | 0.065 × 0.065 × 0.04 m, bottom at Z 0, budget 100 | Bottom cracker: Dimensions 0.065 × 0.065 × 0.008 m, Scale 1.000, Rotation 0° ([05_finished-in-my-blender_by-me.png](design/a3/build/smore/05_finished-in-my-blender_by-me.png), 14 Oct 14:45) | 0.065 × 0.065 × 0.04 m, bottom Z 0, centred on (0, 0). Rotation 0 and scale 1 on all 4 parts (14:41). | 80 by Claude's count. Not yet checked in Scene Statistics. | Not exported yet |
+| Pizza slice | 0.15 × 0.20 × 0.02 m, budget 200 | Not built yet | | | |
+| Cooler | 0.58 × 0.36 × 0.36 m, budget 150 | Not built yet | | | |
