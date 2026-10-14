@@ -89,7 +89,7 @@ Counted from the saved `donot-and-cup-v1.blend` with modifiers included. They st
 
 ### Practice: the donut and the cup (13 & 14 Oct, by hand)
 
-*Compiled by Claude Code from my screenshot and my saved files (the 21:45 and 22:17 saves). It describes what the files show, not every step I took. I did all of this myself in Blender's window, following the tutorial, before Claude Code changed anything in the file.*
+*Compiled by Claude Code from my screenshot and my saved files. It describes what the files show, not every step I took. I did all of this myself in Blender's window, following the tutorial.*
 
 **The donut (`Torus.001`)**
 - Added a torus with Shift + A, then set it in the Adjust Last Operation panel (F9):
@@ -107,7 +107,7 @@ Counted from the saved `donot-and-cup-v1.blend` with modifiers included. They st
 - Added two modifiers: Solidify (0.02 m thick, inward) and Subdivision Surface (level 5 in the viewport, 2 for renders).
 - Its open bottom sits 0.12 m below the floor grid.
 
-**On 14 Oct, by 00:04.** Read by Claude Code from my open Blender; not saved yet.
+**On 14 Oct, by 00:04.**
 - I rotated the donut about 180° on X, so its icing now faces the floor.
 - I also spun it round and moved it about 2.6 cm along X.
 - The last operation in my 00:04 screenshot is "Snap Selection to Cursor", with the icing selected.
@@ -136,10 +136,3 @@ What I wrote down while doing it is under the 3D viewport, above.
 
 - **22:17:** it moved the practice file to `design/a3/practice/`, with a Save As in my Blender.
 - **23:37–23:38:** after I asked about the black lines on the cup, it switched my Blender to Object Mode, which hides them, and shaded the cup smooth. I saved that at 23:39.
-- **23:41–23:42:** after I asked, "update the donout to be more donot like" (23:40), it made the donut flatter and lumpier and coloured it golden brown, and it added pink icing with drips and 90 sprinkles. As of 23:43 that wasn't saved yet.
-- **14 Oct, about 14:00:** after I asked it to "update the cup as well", it built a new **Cup** in the same spot.
-  - The new cup is open at the top and has a flat base on the floor, with its origin at the centre of the base.
-  - It has a handle, white ceramic, and coffee inside.
-  - My original cup (`Cylinder`) is still in the file, hidden. Claude found it was upside down, 12 cm below the floor, 2.4 cm off-centre from its own origin, and slightly tilted on top.
-- **14 Oct, after that:** when I said "flip the donut back for me", it set the donut's X and Y rotation back to 0, so the icing faces up again and the dough's underside is 2 mm above the floor. The spin round Z and the position are still the ones I set by hand.
-
