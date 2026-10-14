@@ -295,6 +295,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 13 Oct | Starting Assignment 3: the same repo, a new branch | aeec1d6 |
 | 13 Oct | Choosing the three assets | none yet |
 | 13 Oct | Turning off the MCP's telemetry: the course's command failed | none (Claude Code's settings, not the repo) |
+| 13 Oct | Learn the window: my first session in Blender | ac65dae |
 
 ## 2026-10-03 to 05 — Setting up the Blender MCP, before this assignment (retrospective)
 
@@ -361,3 +362,23 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - It takes effect in the next Claude Code session.
 - **Human / Claude:** the decision is mine. The commands, and finding the failure, are Claude's.
 - **Still unresolved:** whether the server honours the variable. The add-on already reported telemetry consent off on 5 Oct. I'll check again with `get_addon_status` when Blender is next open.
+
+## 2026-10-13 — Learn the window: my first session in Blender
+
+- **Wanted:** to get used to Blender's window before choosing sizes. It's the assignment's first step.
+- **Did:**
+  - I followed a beginner's tutorial (https://www.youtube.com/watch?v=z-Xl9tGqH14) and made a donut (a torus) and a cup (a cylinder).
+  - My screenshot is from 21:38. The practice file `assets/characters/donot-and-cup-v1.blend` was saved at 21:45.
+- **My notes** are in BLENDER-NOTES.md. For example: "After starting work and generally draging around and the shape in different views. I felt lost and to just back to the exact shape in the correct postition : Numpads - Del(.)"
+- **Asked** (21:58): "I have givene u lot update the blender.md for me"
+- **Got:**
+  - Claude put my notes under the 3D viewport heading, word for word, and moved the screenshot to `design/a3/`.
+  - It added two things marked as its own:
+    - corrections: F9 is Adjust Last Operation, not a torus command, and Numpad `.` is View Selected;
+    - triangle counts from my practice file: 491,520 for the cup, with Solidify and Subdivision Surface, and 1,728 for the donut. One asset's limit is 500.
+  - It didn't write the other five parts, because the assignment wants them in my own words.
+- **Human / Claude:** the session, the notes and the screenshot are mine. The arrangement, the corrections and the counts are Claude's.
+- **Still unresolved:**
+  - my descriptions of the toolbar, Outliner, Properties editor, sidebar and mode selector;
+  - checking the counts with Blender's Scene Statistics;
+  - moving the practice file out of `assets/characters/`. It was still open in Blender with unsaved changes, so Claude left it alone.
