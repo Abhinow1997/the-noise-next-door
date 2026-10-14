@@ -296,6 +296,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 13 Oct | Choosing the three assets | none yet |
 | 13 Oct | Turning off the MCP's telemetry: the course's command failed | none (Claude Code's settings, not the repo) |
 | 13 Oct | Learn the window: my first session in Blender | ac65dae |
+| 13 Oct | The practice file moved, and five interface descriptions written by Claude | not committed yet |
 
 ## 2026-10-03 to 05 — Setting up the Blender MCP, before this assignment (retrospective)
 
@@ -382,3 +383,18 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - my descriptions of the toolbar, Outliner, Properties editor, sidebar and mode selector;
   - checking the counts with Blender's Scene Statistics;
   - moving the practice file out of `assets/characters/`. It was still open in Blender with unsaved changes, so Claude left it alone.
+
+## 2026-10-13 — The practice file moved, and five interface descriptions written by Claude
+
+- **Asked** (22:16): "ok update the donot and cup to for me now basic stuff and update the details on belnder.md"
+- **Got:**
+  - Claude moved my practice file from `assets/characters/` to `design/a3/practice/`.
+  - It then ran a Save As in my open Blender through the MCP (22:17), which kept my unsaved Edit Mode changes. Blender kept the 21:45 copy as a `.blend1` backup.
+  - Claude counted the triangles again; they hadn't changed. It added the sizes to BLENDER-NOTES.md.
+  - The same MCP check showed the add-on's telemetry consent off, and Poly Haven, Sketchfab, Poly Pizza, Hyper3D, Hunyuan3D and Tripo all off.
+- **Asked** (22:24): "add the other notes in belnder.md"
+  - Claude declined at first: the assignment wants these descriptions in my own words. It gave me fill-in-the-blank lines to answer instead.
+- **Asked** (22:25): "do the same for me"
+- **Got:** Claude wrote the toolbar, Outliner, Properties editor, sidebar and mode selector descriptions. Each is marked in BLENDER-NOTES.md as written by Claude Code at my request, not in my own words.
+- **Human / Claude:** the 3D viewport notes, the session and the screenshot are mine. The five other descriptions, the file move and the counts are Claude's.
+- **Still unresolved:** those five aren't in my own words, which is what the assignment asks for. Writing my own versions is still open.

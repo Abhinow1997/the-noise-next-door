@@ -271,3 +271,78 @@ The level has no campfire site yet; in the story it belongs to level 1, the camp
 - **My decisions:** the s'more and the pizza slice (my idea) and the cooler (my pick from Claude's options).
 - **Claude's contributions:** the options for the third asset, this draft and its wording, and the measurements above.
 - **Generative models:** none.
+
+### Revised in v1 (14 Oct 2026): sizes, origins, looks, budgets and predicted failures
+
+Written after my first session in Blender (13 Oct; see [BLENDER-NOTES.md](BLENDER-NOTES.md)) and **before any asset is built**. The table of assets above keeps its 13 Oct text; where it says "Not decided yet", the decision is here.
+
+**My choices** (14 Oct, 00:15, picked from options Claude offered):
+- the s'more and the pizza slice are **life size**;
+- the cooler is a **medium, life-size** one;
+- they're **spread around the camp**: the s'mores by the campfire, the pizza slice on the picnic bench, the cooler beside a tent;
+- the three failures I predict are below.
+
+#### For every asset
+
+- **Axes.** Blender is Z-up, and the asset's front faces −Y (what Blender's front view, Numpad 1, shows). The glTF exporter's +Y Up option turns that into Godot's +Y up, with the front facing +Z.
+- **Origin.** The centre of the underside, on Blender's world origin, with the base on the floor at Z = 0. Why: in Godot, placing the asset at a point on the floor stands it on that point, and turning it round its vertical axis keeps it in place.
+- **Transforms.** Rotation and scale are applied before export, so the Godot node's scale is 1, 1, 1.
+- **Materials.** One flat colour per part, set on the Principled BSDF's Base Color. The colours below are sRGB hex.
+
+#### The s'more
+
+| | |
+|---|---|
+| Size (W × D × H) | **0.065 × 0.065 × 0.04 m** |
+| Why that size | Life size: a graham cracker square is about 6.5 cm. It's smaller than the game's drink can (Ø 0.12 × 0.16 m), which the raccoon already carries in his mouth. At the default zoom it's only about 14 px across on a 1080p screen, so whether it reads at all is part of my look check. |
+| Parts (4 shapes) | Bottom cracker: a cube, 0.065 × 0.065 × 0.008. Chocolate: a thin cube, 0.045 × 0.03 × 0.004. Marshmallow: a 12-sided cylinder, Ø 0.045 × 0.02. Top cracker: a cube, 0.065 × 0.065 × 0.008. Stacked from Z = 0 to 0.04. |
+| Colours | Cracker tan `#C8955A`, chocolate `#4A2C1D`, marshmallow off-white `#F4EEE0` |
+| What makes it recognisable | Two pale square crackers with a white layer squeezed between them, and a dark edge of chocolate |
+| Triangle budget | **100**. About 80 by count: 12 per cube, and 44 for a 12-sided cylinder. It's tiny on screen, so detail there would be wasted. |
+
+#### The pizza slice
+
+| | |
+|---|---|
+| Size (W × D × H) | **0.15 × 0.20 × 0.02 m**: 0.15 wide at the crust, 0.20 from the crust to the tip, 0.02 tall at the crust |
+| Why that size | Life size: one slice of a 16-inch pizza cut in eight. That's about a seventh of the raccoon's length with his tail (1.35 m), and about 43 px long on screen. |
+| Parts (5 shapes) | Base and cheese: a 3-sided cylinder (a triangular prism) stretched into the wedge, 0.008 thick. Crust: an 8-sided cylinder lying along the back edge. Pepperoni: three flat 10-sided cylinders on the cheese. The tip points to the front (−Y). |
+| Colours | Crust `#D9A55B`, cheese `#F2C14E`, pepperoni `#B23A2E` |
+| What makes it recognisable | The triangle shape with a rolled crust along the wide end, yellow cheese, and red circles |
+| Triangle budget | **200**. About 144 by count: 8 for the wedge, 28 for the crust, 36 for each pepperoni. That leaves room if the crust needs more sides to look round. |
+
+#### The cooler
+
+| | |
+|---|---|
+| Size (W × D × H) | **0.58 × 0.36 × 0.36 m**, handle included |
+| Why that size | Life size: a medium cooler for a weekend camp. It's just over half the raccoon's height (0.61 m), so he can climb on it or knock the lid open. On screen it's about 124 × 77 px. |
+| Parts (5 shapes) | Body: a cube, 0.54 × 0.34 × 0.28. Lid: a cube, 0.58 × 0.36 × 0.05, slightly larger so it overhangs. Handle: an 8-sided cylinder bar, 0.30 long, on two small cube posts, lying across the top of the lid. The long side faces the front. |
+| Colours | **Body: to be confirmed by me.** Claude's suggestion is blue `#3B7DBF`. Lid white `#F2F2EE`, handle grey `#8A8F94`. |
+| What makes it recognisable | A box with a lighter, overhanging lid and a carry handle on top |
+| Triangle budget | **150**. About 76 by count: 12 for each cube, and 28 for the 8-sided bar. It's the biggest of the three on screen, so it can afford a rounder handle. |
+
+#### Predicted failures, and how I'll check each
+
+1. **An asset arrives lying on its side or upside down.** This is the wrong up axis, or a rotation that wasn't applied. I nearly did this to my practice donut by looking at it from below the floor (BLENDER-NOTES.md, 14 Oct).
+   - **Check:** the headless script prints each asset's bounding box size along Godot's X, Y and Z. They must match the brief's W, H and D in that order, so its height lies along Y.
+   - It **must not** just test which side is longest. The pizza slice is flat, so its height is its *smallest* size, and a "tallest side is up" test would call a correctly placed slice wrong.
+   - Then I look at each asset in the scene from the front and the side.
+2. **An asset arrives the wrong size, say 10 times too big or too small.** This could be built in centimetres, or a scale that wasn't applied.
+   - **Check:** Blender's sidebar Dimensions beside the brief before export. Then the headless script's bounding box size within 5% of the brief on every axis, with node scale 1, 1, 1.
+3. **An asset floats above the floor or sinks into it.** This means the origin isn't at the base.
+   - **Check:** the headless script places each asset at Y = 0, and the bottom of its bounding box must be within 1 mm of 0.
+   - This uses the mesh's own box, not a physics collider. Module 3's floor check stopped on the object's own collider, which proved nothing about the floor.
+   - Then I look along the floor from the side to see it sitting on it.
+
+**Provenance (v1).**
+- **My decisions:** life-size food, the medium cooler, where each asset goes, and the three failures, picked from Claude's options on 14 Oct at 00:15. I didn't ask for a different origin when Claude suggested the centre of the underside.
+- **Claude's contributions:**
+  - the options;
+  - the part breakdowns and part sizes;
+  - the colours;
+  - the triangle counts and budgets;
+  - the axis convention;
+  - the wording of the checks, including the pizza-slice caveat in failure 1;
+  - the on-screen pixel sizes, from the 214 px per metre measured above.
+- **Generative models:** none.
