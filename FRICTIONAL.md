@@ -758,5 +758,5 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - The Windows launcher now imports every time. It used to import only when four of the models were missing, so a changed camper or beanie would have shown its old model.
 - **Tested** on a fresh copy of the folder with no `.godot` cache: both launchers imported and opened the room with every label, and the check passed. The details are in TEST-REPORT.md.
 - **Not tested:** the shell script on a real Mac or Linux machine, and a real clone (the work isn't committed yet).
-- **Human / Claude:** the request is mine. The docs, the launchers and the test are Claude's.
+- **Human / Claude:** the request is mine. The docs, the launchers and the test are Claude's. looking at the Human model I still dont exact love how it has came out even afetr editing and working with claude on the same will need to reserach a bit more on the same if the asset works fine and if it would be useable and turn out how i have it envisioned in my head of how it should be in the game.
 
