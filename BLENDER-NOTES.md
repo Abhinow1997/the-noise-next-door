@@ -42,13 +42,9 @@ In Edit Mode: it adds the mesh-editing tools, such as Extrude, Inset, Bevel, Loo
 A small triangle on an icon means it holds related tools. Press and hold it to see them.
 
 ### Outliner
+The outliner panel has the details on every asset as they are added in the project helping to track and understand what element of the object we are working on.
+
 Along the left edge of the 3D viewport there is a column of tool icons the (T) key is used to show or hide them.
-
-In both modes: the tools for selecting, moving, rotating and scaling
-Added the Cube, since this version also includes the cone, cylinder and sphere ones; in my screenshot the tooltip is open.
-When in Edit Mode, the mesh-editing tools such as Extrude, Inset, Bevel, Loop Cut and Knife are available.
-If there is a small triangle on an icon then the icon contains some related tools and you can see them by pressing and holding it.
-
 
 ### Properties editor
 Below the Outliner there is a tall panel which contains the settings for the selected object and the scene, with the different options arranged in tabs down its left side. The tabs that are used in this assignment are:
@@ -62,6 +58,18 @@ For the material (red sphere): the colours of an object; the flat colours associ
 It has tabs add-ons add their own, like MCP for Blender, where the MCP server is started.
 
 ### Mode selector: Object Mode and Edit Mode
+
+The mode selector is the drop-down at the top left of the 3D viewport. It sets what your clicks and keys work on: whole objects, or the inside of one object's mesh. Tab switches between the two modes used here.
+- **Object Mode** works on whole objects:
+  - you select them, move them (G), rotate them (R), scale them (S), and add new ones with Shift + A;
+  - an object's materials and modifiers, and its Location, Rotation and Scale in the N sidebar, all belong to the whole object;
+  - the pizza's pepperoni were moved, and their heights typed in, in this mode.
+- **Edit Mode** works on the selected object's own vertices, edges and faces:
+  - keys 1, 2 and 3 choose which of the three you select;
+  - the toolbar adds the mesh tools, such as Extrude, Inset, Bevel and Loop Cut;
+  - the cup's inset top and the ring of edges round its side were made in this mode, and it's the mode in the screenshot below;
+  - it also draws the mesh's edges as dark lines, which is why the cup showed black lines until it went back to Object Mode.
+- **Other modes:** the drop-down has more, such as Sculpt Mode. This assignment doesn't use them, because its assets are basic shapes with no sculpting.
 
 ## My screenshot
 
@@ -86,6 +94,12 @@ Counted from the saved `donot-and-cup-v1.blend` with modifiers included. They st
 | Donut | none | 1,728 | about 3.5 times over |
 
 ## My hand edit
+
+#### What it taught me
+- The making of the donut and the cup was done via watching and following the reference youtube demo. All the elements and understanding of blender has been collected from the same.
+- For the pizza slice the colour didn’t seem to change at first. The view was in Solid mode, which shows each material’s Viewport Display colour, not its Base Color. Additional made the colur a bit darker shade of yellow
+- Replaced the cheese material instead of adding a second slot. The crust material was shared by two objects, so changing it changed both.
+- Moving the pepperoni with G in a tilted view also moved them up and down: one sank 1.7 mm and one floated 3.1 mm. Fixed them by typing Location Z 0.009 in the N sidebar. Shift+Z keeps the height while moving.
 
 ### Practice: the donut and the cup (13 & 14 Oct, by hand)
 
@@ -133,7 +147,7 @@ What I wrote down while doing it is under the 3D viewport, above.
 
 ### My hand edit for the assignment: the pizza slice (14 Oct)
 
-- Pizza's colur and the topings arrangement seemed a bit incorrect updated the same 
+- Pizza's colour and the topings arrangement seemed a bit incorrect updated the same also only a slice of pizza was initally added as the plan to implement but it felt wrong like that so I updated the model and asked the pizza to be updated with individual slices.  
 
 ![Before my hand edit: the slice as Claude built it, seen from above](design/a3/build/pizza_slice/06_before-hand-edit-from-above_by-me.png)
 

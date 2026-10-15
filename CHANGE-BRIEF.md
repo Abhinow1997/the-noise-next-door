@@ -300,7 +300,7 @@ Written after my first session in Blender (13 Oct; see [BLENDER-NOTES.md](BLENDE
 | What makes it recognisable | Two pale square crackers with a white layer squeezed between them, and a dark edge of chocolate |
 | Triangle budget | **100**. About 80 by count: 12 per cube, and 44 for a 12-sided cylinder. It's tiny on screen, so detail there would be wasted. |
 
-#### The pizza slice
+#### The pizza slices
 
 | | |
 |---|---|

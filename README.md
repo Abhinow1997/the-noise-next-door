@@ -22,6 +22,43 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 
   [BLENDER-NOTES.md](BLENDER-NOTES.md) is new, and the Blender build scripts go in [tools/blender/](tools/blender/).
 
+### What this assignment added
+
+**Three props for the campsite,** in [assets/props/](assets/props/). Each has its `.blend` source, the `.glb` Godot loads, and their `.import` files:
+
+| Asset | In the game | Size, W × D × H | Parts | Triangles (budget) |
+|---|---|---|---|---|
+| S'more | A snack the raccoon tries to steal, by the campfire | 0.130 × 0.082 × 0.033 m | 6 | 402 (420) |
+| Pizza slice | Another snack to steal, on the picnic bench | 0.150 × 0.200 × 0.020 m | 5 | 144 (200) |
+| Cooler | A campsite cooler to raid, beside a tent | 0.580 × 0.360 × 0.360 m | 5 | 76 (150) |
+
+**How they were made:**
+- **Claude Code's part:** it built each one through the Blender MCP (mcp-for-blender 2.1.9), sending Python to my Blender with `execute_blender_code`. Each asset is basic shapes with flat colours.
+  - The MCP's model libraries and 3D generators stayed off.
+  - Every piece of code it ran is kept, in order, in [tools/blender/](tools/blender/) (`build_<asset>.py`). A headless rebuild from each script matched the asset as Claude built it. My hand edit on the pizza isn't code, so it isn't in its script.
+- **My part:** I chose the assets, their sizes and the cooler's colour.
+  - After my look, the s'more was rebuilt twice: v2, because v1 didn't read as a s'more, and v3, with the crackers' groove and dots.
+  - My hand edit in Blender is on the pizza slice: golden cheese and two pepperoni moved ([BLENDER-NOTES.md](BLENDER-NOTES.md)).
+
+**A Godot scene to show them:** [asset_room/asset_room.tscn](asset_room/asset_room.tscn).
+- It has a floor, the forest level's light and haze, and an orbit camera.
+- The three props stand at game size beside the raccoon, each labelled with its size as Godot measures it. Key **G** shows them from the game's own camera.
+- It opens with `Look at the A3 assets.bat` on Windows or `look_at_a3_assets.sh` on macOS and Linux. Assignments 4 and 5 reuse it.
+
+**A headless check:** [tests/a3_asset_check.gd](tests/a3_asset_check.gd).
+- It compares each prop with the brief: its size, height axis, floor contact, scale, triangles, resting parts and facing.
+- `-- --mutate` breaks the props in memory to prove the check can fail: 7 of 7 breaks are caught.
+
+**Extras I asked for,** in the same room. They're outside the three props' limits:
+- a round pizza, made of 5 copies of the slice;
+- my practice donut at life size;
+- the camper, [assets/characters/camper.glb](assets/characters/camper.glb): 22 parts, 4,472 triangles, matched to my reference image;
+- his dropped beanie, [assets/props/beanie_dropped.glb](assets/props/beanie_dropped.glb): 368 triangles.
+
+**The plan and the pictures:**
+- [ASSET-PLAN.md](ASSET-PLAN.md) has the plan for each asset, with the points where Claude stopped for my look.
+- [design/a3/build/](design/a3/build/) has the build pictures, the comparisons and the asset room's screenshots.
+
 ### For the grader: the assets in Godot, with their sizes
 
 The asset room, `asset_room/asset_room.tscn`, shows every asset at game size on a floor under the forest level's light, beside the raccoon for scale. Each has a label with its size as Godot measures it: W × D × H in metres, where H is the height (Godot's Y is up).
@@ -90,9 +127,39 @@ timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --f
 
 **Rebuilding an asset in Blender:** `tools/blender/build_<asset>.py` holds every piece of code Claude ran, in order. **Don't run one directly:** each saves over its own `assets/props/<asset>.blend`. To test that one rebuilds the asset, run a copy that saves somewhere else.
 
+### Known limitations (Assignment 3)
+
+- **Not in the game yet.** The props are only in the asset room. The forest level has no campfire, picnic bench or tent for them yet, and the raccoon can't pick them up.
+- **The s'more is tiny from the game's camera:** about 15 px from 19.2 m ([picture 02](design/a3/build/godot/02_game_by-claude.png)). I judged it fine size-wise, but whether it reads in play isn't tested.
+- **What the check can't see:**
+  - a part sunk into another part (a pepperoni sunk 1.7 mm into the cheese passes);
+  - whether an asset looks right, reads as what it is, or suits the game.
+
+  It also only covers the three props, not the extras.
+- **Flat colours only,** as the brief asks. The crackers' texture is modelled as a groove and dots, and the round pizza's rim is a polygon of straight crusts.
+- **Evidence still incomplete** (14 Oct):
+  - the interface notes in BLENDER-NOTES.md are partly Claude's text;
+  - my human check doesn't yet say what I saw from behind and below;
+  - Blender's Scene Statistics is in my screenshots for the cooler only.
+- **The camper:**
+  - It's an extra, far over the props' 500-triangle limit, at 4,472.
+  - It's static, with no rig or animation.
+  - It's symmetric apart from the turned head, while the reference stands with its weight on one leg.
+  - It has three tiny non-manifold spots, inside the head, the beanie's cuff and the pompom. They don't show.
+  - In my words, I "still dont exact love how it has came out".
+- **The donut** keeps its smoothing, so it has 35,144 triangles.
+- **The macOS and Linux launcher** hasn't been tried on a Mac or on Linux.
+- **Large files:** Assignment 2's four music WAVs over 25 MB and its two laugh MP3s are still in `design/music/` on GitHub, although the course keeps such files out of GitHub (see [Known limitations (Assignment 2)](#known-limitations-assignment-2)).
+
+### The Assignment 3 film
+
+Not made yet. It has to use the course's Brutalist Godot workflow, which isn't installed on this machine. Once it's made:
+- its link, filename and SHA-256 go here;
+- its beat sheet, script and evidence records go in the repo.
+
 ![The storyboard](design/storyboard/storyboard-sheet.svg)
 
-## The film
+## The Assignment 2 film
 
 [Watch the explainer film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDAxd9bCxK_S6b1LqkoG0c7AeyrrSNWzPpb9ba5uei4V4Q?e=itjuN3&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D) (on Northeastern's SharePoint).
 
@@ -140,7 +207,7 @@ You need Godot 4.7.2. The project uses the Forward+ renderer.
 
 To redraw the storyboard after editing it, run `python design/storyboard/make_thumbnails.py`. To remake the character-sheet images and the raccoon's cut-outs, run `godot --path . --script res://design/character/make_character_sheet.gd`, then copy the five cut-outs the slice uses into `assets/characters/raccoon/`. For the stump, run `godot --headless --path . --script res://design/environment/make_props.gd`. For the sound loops, run `python design/sfx/make_sfx_loops.py`. To update the game's raccoon after editing `raccoon.blend`, run `blender -b assets/characters/raccoon.blend --python assets/characters/export_raccoon.py`.
 
-## Known limitations
+## Known limitations (Assignment 2)
 
 - **Static images:** each state is one picture, so his changes of state snap. The author found the animation "a bit blovcky".
 - **No back views:** walking away from the camera still shows his front.

@@ -760,3 +760,17 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not tested:** the shell script on a real Mac or Linux machine, and a real clone (the work isn't committed yet).
 - **Human / Claude:** the request is mine. The docs, the launchers and the test are Claude's. looking at the Human model I still dont exact love how it has came out even afetr editing and working with claude on the same will need to reserach a bit more on the same if the asset works fine and if it would be useable and turn out how i have it envisioned in my head of how it should be in the game.
 
+## 2026-10-14 — The README's Assignment 3 sections, drafted by Claude
+
+- **Asked:** "yes draft the readme sections", after Claude listed what the brief still needs. The README must have what this assignment added, its known limitations and the film link.
+- **What Claude did:**
+  - It drafted three sections in the README's Assignment 3 part from the facts already logged here and in TEST-REPORT.md: "What this assignment added", "Known limitations (Assignment 3)" and a placeholder for the film.
+  - It renamed Assignment 2's film and limitations headings to say they're Assignment 2's.
+- **Checked:** every number in the draft against the check's output, SOURCES.md and the entries above.
+- **Still to do (mine):**
+  - review the draft;
+  - take the "Evidence still incomplete" bullet out once BLENDER-NOTES.md and my human check are done;
+  - add the film's link, filename and SHA-256 once it's made;
+  - drop "(in progress)" from the heading at submission.
+- **Human / Claude:** the request is mine. The draft is Claude's, and the one quote in it is mine.
+

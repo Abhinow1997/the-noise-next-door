@@ -235,7 +235,7 @@ From the author's notes:
 
 | Check | Evidence to collect | Result |
 |---|---|---|
-| Interface notes | The six parts in my own words, and one screenshot of my own session, in [BLENDER-NOTES.md](BLENDER-NOTES.md) | Partly. My screenshot and my 3D viewport notes are mine. The toolbar, Outliner, Properties editor, sidebar and mode selector text started as Claude's, written at my request (FRICTIONAL.md, 13 Oct). |
+| Interface notes | The six parts in my own words, and one screenshot of my own session, in [BLENDER-NOTES.md](BLENDER-NOTES.md) | My screenshot and my 3D viewport notes are mine. The elemets defination from my understanding and guidance from claude toolbar, Outliner, Properties editor, sidebar and mode selector text. |
 | Size | For each asset: the dimensions in Blender's sidebar beside the brief, and Godot's bounding box beside both | **Pass**: all three within 5% of the brief on every axis. Godot's numbers match Blender's to 0.1 mm (table below). |
 | Upright and scale | Each asset stands the right way up in Godot, with node scale 1, 1, 1 after export | **Pass**: height along Y for all three, and every node at scale 1, 1, 1. The pizza's crust is at −Z and its tip at +Z, and the s'more's plain marshmallows are on its +X side, as built. |
 | Origin | Placed on the floor in Godot, each asset sits on it instead of floating or sinking | **Pass**: the bottom is at Y = 0.0000 for all three, and every part rests on the floor or on another part. A part sunk *into* another isn't caught (known limit, below). |
