@@ -298,6 +298,13 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 13 Oct | Learn the window: my first session in Blender | ac65dae |
 | 13 Oct | The practice file moved, and five interface descriptions written by Claude | not committed yet |
 | 14 Oct | Building the s'more through the MCP | not committed yet |
+| 14 Oct | My look at the s'more, and v2 | not committed yet |
+| 14 Oct | The crackers' groove and dots (v3) | not committed yet |
+| 14 Oct | Building the pizza slice through the MCP | not committed yet |
+| 14 Oct | My first try at a hand edit: the pizza's colours | not committed yet |
+| 14 Oct | My hand edit on the pizza slice | not committed yet |
+| 14 Oct | Building the cooler through the MCP | not committed yet |
+| 14 Oct | Export, Godot, the check and the asset room | not committed yet |
 
 ## 2026-10-03 to 05 — Setting up the Blender MCP, before this assignment (retrospective)
 
@@ -432,3 +439,324 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - From straight above, it's just a tan square, and the game's camera looks down on it.
 - **Human / Claude:** the plan's approval is mine; the plan, the build and the checks are Claude's.
 - **Still unresolved:** my own look at it in Blender, my screenshot, and whether to change the chocolate. That could be my hand edit.
+
+## 2026-10-14 — My look at the s'more, and v2
+
+- **Looked:** at the finished v1 s'more in my Blender. My screenshot is from 14:45.
+- **Said** (14:56): "the smores doesn't feel like more does it"
+- **Got:** Claude agreed. Its reasons:
+  - the marshmallow was a neat white puck that didn't bulge;
+  - the chocolate was hidden;
+  - the crackers lined up too perfectly;
+  - from above it was a plain tan square.
+  It offered three fixes, including one where I'd make part of the change by hand as my hand edit.
+- **Decided** (14:59): "You do it for me along with smores u can have just marshmallows also but make them well designed and they should look the the real deal"
+- **Then Claude:**
+  - wrote CHANGE-BRIEF.md "Revised in v2" first, with the new design and the budget raised from 100 to 250;
+  - kept v1 as `design/a3/build/smore/smore_v1.blend`;
+  - rebuilt the s'more through the MCP from 15:01 to 15:05.
+- **v2 has:**
+  - a thinner bottom cracker;
+  - a bigger, turned chocolate;
+  - a squashed low-poly sphere for the marshmallow, which bulges past the crackers;
+  - a top cracker twisted 12° and tilted;
+  - two plain marshmallows beside it, one standing and one on its side.
+- **Measured:** 0.130 × 0.082 × 0.034 m against the brief's "about 0.13 × 0.085 × 0.035"; the bottom at Z 0, centred; 6 shapes; **244 triangles** against 250.
+  - `build_smore.py` now records v1 and then v2, and a headless rebuild matched both.
+- **Claude's own look at v2:** from the side and at the game camera's angle, the bulge and the chocolate show. From straight above, the marshmallow only peeks out a little at the cracker's edge.
+- **Human / Claude:** the look, the judgement and the decision are mine. The diagnosis, the design and the rebuild are Claude's.
+- **Still unresolved:**
+  - my own look at v2, and my screenshot of it;
+  - Scene Statistics;
+  - my hand edit. I asked Claude to make this change, so it isn't my hand edit; that still has to come from me.
+
+## 2026-10-14 — The crackers' groove and dots (v3)
+
+- **Asked** (15:49): "add some indentations and textures to the biscuits"
+- **Got:**
+  - Claude said textures would break the assignment's rule (no painted textures, flat-colour materials). Indentations are allowed, as geometry.
+  - Before building, it wrote CHANGE-BRIEF.md "Revised in v3", predicting about 402 triangles and raising the budget from 250 to 420.
+  - It kept v2 as `smore_v2.blend`.
+  - Through the MCP it gave the top cracker a snap groove and 8 dots, in a second flat colour, darker tan. The bottom cracker got a groove on its underside.
+- **Measured:** 402 triangles, as predicted. The size, base and centre are unchanged. `build_smore.py` now rebuilds v1, v2 and v3, and a headless rebuild matched.
+- **Claude's own look:** the dots read as square pits rather than small round pricks. From below, the bottom cracker is in shadow, so its groove barely shows. At the game camera none of this shows: the s'more is about 14 px across.
+- **Human / Claude:** the request is mine; the rules check, the design and the build are Claude's.
+- **Still unresolved:**
+  - my own look and screenshot;
+  - Scene Statistics;
+  - my hand edit, which still has to be mine.
+- **Follow-up:**
+  - At 15:54 I asked for the dots "on both sides of the biscuits". Claude worked out that all four faces would be about 860 triangles, over the course's 500. The two outer faces would be about 552, unless the marshmallows were simplified.
+  - Its question about that was cut off when my laptop crashed.
+  - At 16:03 I asked: "can u open the smores blend my laptop crash from the last time".
+    - Claude checked the saved file first: v3, 6 parts, 402 triangles, saved at 15:52. Blender's last autosave (15:02) was older, so there was nothing to recover.
+    - It checked that the new Blender held only its unsaved start-up scene before opening the s'more.
+  - At 16:07 I chose "Keep it as it is".
+  - My 15:39 screenshot of v2 is filed as `v2_07_v2-in-my-blender-material-tab_by-me.png`.
+
+## 2026-10-14 — Building the pizza slice through the MCP
+
+- **Asked** (16:09): "ok lets do it", approving ASSET-PLAN.md section 2.
+- **Got:** Claude built the slice in my Blender through the MCP, 16:09 to 16:12:
+  - it checked that the s'more file had nothing unsaved;
+  - it opened an empty file with metric units, saved as `assets/props/pizza_slice.blend`;
+  - it added the five parts, one code call each, reporting `get_scene_info` and exact numbers after each;
+  - it applied rotation and scale, and saved.
+  - The wedge is a 3-sided cylinder. Claude turned its mesh so one corner points to −Y, then stretched it.
+  - The code is in [tools/blender/build_pizza_slice.py](tools/blender/build_pizza_slice.py). The pictures are in `design/a3/build/pizza_slice/`, labelled as Claude's.
+- **Measured:**
+  - 0.15 × 0.20 × 0.02 m, the bottom at Z 0, centred, the tip at Y −0.10;
+  - rotation 0 and scale 1 on every part;
+  - **144 triangles** against the budget of 200, the count the plan predicted;
+  - all three pepperoni fully on the cheese and clear of the crust.
+  - These all match the brief.
+- **What went wrong (Claude's side):** for the rebuild test Claude again tried `sed` to change the save path, and again it didn't match. This time the driver's own check refused to run ("SWAP FAILED: not running"), so nothing was overwritten. Claude rewrote the driver; the rebuild matched and the repo file stayed untouched.
+- **Claude's own look:** the cheese reads as a pale yellow-tan close to the crust. From below, the underside is cheese-coloured where a real slice is bread-coloured.
+- **Human / Claude:** the approval is mine; the build and the checks are Claude's.
+- **Still unresolved:** my look, my screenshot, Scene Statistics, and my hand edit. The cheese colour or the underside colour could be that edit.
+
+## 2026-10-14 — My first try at a hand edit: the pizza's colours
+
+- **Tried:** changing the pizza slice's colours myself in Blender's window, for my hand edit.
+- **Said** (16:25), with a screenshot of my Blender: "I am tryin to add the update the colour but its not chainging"
+- **What Claude found** in my Blender (read-only):
+  - The view was in **Solid** mode, which shows each material's *Viewport Display* colour, not its Base Color. My changes were real but didn't show on screen.
+  - I had **replaced** the base's cheese material with `Pizza_Crust`, instead of adding a second slot. That left `Pizza_Cheese` used by nothing, which Blender drops on save.
+  - `Pizza_Crust` is shared by two objects (the "2" by its name), so changing its colour would change both.
+  - Its Base Color was green `#19D900`, and the cheese's was red `#F20C16`.
+- **Then** (16:29): "I seem to have changed too many things for the colour can u update the correct one ?"
+  - By then I'd already put the cheese back on the base and fixed its colour.
+  - Claude compared every part and material with the as-built copy from its rebuild test. The only remaining difference was the crust's Base Color, an orange. Claude set it back to `#D9A55B`.
+  - Everything then matched the as-built slice exactly, and so did the file saved at 16:15. Claude switched my view to Material Preview.
+- **Human / Claude:** the attempt and the screenshot are mine. The diagnosis and the one colour reset are Claude's.
+- **Still unresolved:** my hand edit isn't done yet, and what this taught me is for me to write in BLENDER-NOTES.md.
+
+## 2026-10-14 — My hand edit on the pizza slice
+
+- **Did:** by hand in Blender's window, saved at 16:33:
+  - I changed the cheese's Base Color to a stronger golden yellow, `#F2CF0A` (it was `#F2C14E`);
+  - I moved two pepperoni with G.
+  My "before" screenshots are from 16:17.
+- **Said:** "updated the same"
+- **Claude measured:**
+  - the cheese colour changed;
+  - **Pepperoni1 sunk 1.7 mm into the cheese** and **Pepperoni3 floating 3.1 mm above it**, because moving with G in a tilted view also moves up and down;
+  - everything else as built, and both pepperoni still within the slice and clear of the crust.
+- **Claude's advice:** Shift+Z while moving keeps the height. To fix it by hand, set Location Z to 0.009 in the N sidebar. Claude didn't fix it itself.
+- **Human / Claude:** the edit and the screenshots are mine; the measurement is Claude's.
+- **Still unresolved:**
+  - fixing the two heights;
+  - my "after" screenshot;
+  - what this taught me, in my own words.
+- **Follow-up (16:34):**
+  - I changed the cheese colour again, to `#F2B908`, and saved: "made some late updates again just the colour".
+  - My screenshots at 16:34:30 and 16:34:55 show it in Material Preview. They're filed as `07_` and `08_`.
+  - The two pepperoni heights weren't changed. Seen from above, in my "after" screenshot, the floating and sunk pepperoni don't show.
+- **Follow-up (17:2x): the heights.**
+  - I set Pepperoni1 to Location Z 0.009 and saved (17:25).
+  - When I said they were both fixed, Claude checked and found Pepperoni3 still at 0.0121, floating 3.1 mm.
+  - I fixed that too and saved (17:27): "updated the pizza".
+  - Claude's check: all three pepperoni sit exactly on the cheese, within the wedge; the slice is 0.15 × 0.20 × 0.02 m with 144 triangles.
+  - This is my inspect-and-revise: a failure I'd predicted (float or sink), caused by my own edit, found by measuring and fixed by hand.
+
+## 2026-10-14 — Building the cooler through the MCP
+
+- **Decided** (about 17:25): the body colour, blue `#3B7DBF`, from Claude's four options. That's CHANGE-BRIEF.md "Revised in v4".
+- **Asked:** "fixed the pepperoni heights, now lets do the cooler". The cooler waited until the pizza fix was saved (17:27).
+- **Got:** Claude built the cooler in my Blender through the MCP, 17:29 to 17:33:
+  - it checked that the pizza file had nothing unsaved;
+  - it opened an empty file with metric units, saved as `assets/props/cooler.blend`;
+  - it added the five parts (body, lid, two posts, handle), one code call each, reporting `get_scene_info` and exact numbers after each;
+  - it applied rotation and scale, and saved.
+  - The code is in [tools/blender/build_cooler.py](tools/blender/build_cooler.py), and the pictures in `design/a3/build/cooler/`.
+- **Measured:**
+  - 0.58 × 0.36 × 0.36 m, the bottom at Z 0, centred;
+  - rotation 0 and scale 1 on every part;
+  - **76 triangles** against the budget of 150, the count the plan predicted.
+  - These all match the brief. A headless rebuild matched, and the repo file stayed untouched.
+- **What went wrong:** nothing this time. This build went exactly to plan on the first try. Claude checked it the same way as the other two: exact numbers after each part, six views, and a headless rebuild.
+- **Claude's own look:** it reads as a classic cooler, but it's very boxy, with sharp corners and no side handles or drain plug. There's room for one more shape and 74 more triangles.
+- **Human / Claude:** the colour choice and the approval are mine; the build and the checks are Claude's.
+- **Still unresolved:** my look, my screenshot, and Scene Statistics.
+
+## 2026-10-14 — Export, Godot, the check and the asset room
+
+- **Asked:** "go export".
+- **Got,** all Claude's work, from about 17:45 to 18:05:
+  - **The export:** through the MCP, Blender's glTF exporter exported each asset as `.glb` (+Y Up, modifiers applied, no cameras or lights). Before opening each file, Claude checked that the open one had nothing unsaved.
+  - **The import:** Godot imported all three headless with no errors or warnings. Claude turned off automatic LODs for the props, so small parts can't be simplified away at the game camera's distance.
+  - **The check:** `tests/a3_asset_check.gd`. All three pass: size within 5% on each axis, height along Y, bottom at Y = 0, scale 1, triangles in budget, every part resting, and facing.
+    - Its mutation proof catches 7 of 7 deliberate breaks.
+    - It prints its own known limit: a part sunk into another still passes.
+  - **The asset room:** `asset_room/asset_room.tscn` and `Look at the A3 assets.bat`.
+    - Godot's labels measure the raccoon at 1.350 × 0.519 × 0.613 m.
+    - Claude took 7 pictures of it, rendered by Godot.
+- **What went wrong (Claude's):**
+  - **The check's first run failed 9 checks on good assets.** In `_initialize` the nodes aren't in the scene tree, so `global_transform` was the identity. Claude now works the transform out from each part's parents.
+  - **The labels were huge in close-ups at first.** They're now a fixed size on screen and hidden in the game-camera view.
+  - **The launcher had a real carriage return in one path,** because the shell turned `\\r` into a CR. Claude found it by checking the file's bytes and fixed it. It then launched the room the way a double-click does, and it opened.
+- **Claude's own look, at the game camera:** the cooler reads, the pizza is a small yellow triangle with red dots, and **the s'more is a speck of about 15 px**, as my brief predicted for a life-size s'more.
+- **Human / Claude:** the go-ahead is mine; the rest is Claude's.
+- **Still unresolved:**
+  - my own look in Godot (the HUMAN CHECK), my screenshots and my words;
+  - whether the s'more is too small to read in play.
+- **Follow-up: the practice donut in the room.**
+  - I asked: "also add the donut in this".
+  - Claude exported only the donut, its icing and its sprinkles from my practice file through the MCP, without saving the practice file. That's `assets/practice/donut.glb`, 35,144 triangles with its smoothing modifiers applied. The code is in `design/a3/practice/export_donut.py`.
+  - It's in the room on key 5, labelled "Practice donut (not an A3 asset)", because it isn't one of the three assets and is far over the 500-triangle rule.
+  - **Claude got this wrong at first:** the label said 0.404 × 0.405 m, where Blender measured 0.327 × 0.329 m. My donut is turned about 17° round its vertical axis, and a turned box's box is bigger than the donut. The labels now measure the vertices, and it reads 0.327 × 0.328 × 0.109 m.
+  - The three assets weren't affected, because their rotation is applied.
+- **Follow-up (18:06): the donut, life size.**
+  - I said: "the donot is a bit big dont mention its not an asset i might use it later in the game as".
+  - Claude made a life-size, game-ready copy, `assets/practice/donut.blend`, through the MCP.
+    - It's 0.100 × 0.100 × 0.033 m, like a real donut and like my life-size s'more and pizza.
+    - Rotation and scale are applied, it's centred with its base on the floor, and the icing's thickness is scaled to match.
+    - The parts are renamed `Donut_Dough`, `Donut_Icing` and `Donut_Sprinkles`.
+  - It re-exported `donut.glb`. My tutorial file wasn't changed.
+  - In the room it's now labelled just "Donut".
+- **Follow-up (18:11): a round pizza in the room.**
+  - I asked: "add in the model as well more pizza slices like it should round right make the pizza to be of like 5 pieces".
+  - Claude pointed out two things:
+    - the slice is 1/8 of a pizza (43°), so five can't close a circle;
+    - a whole pizza built into the asset would break the 6-shape and 500-triangle limits.
+  - I chose "5 of 8 slices left": five copies of the one slice asset in the asset room, turned 45° apart, as if the raccoon has had the rest. It's on key 6.
+  - The asset is unchanged, and the check still passes. Each crust is straight, so the rim is a polygon, not a smooth circle.
+
+## 2026-10-14 — My look in the asset room (the human check)
+
+- **Looked:** in the running asset room, from my own orbit. My screenshot is `design/a3/build/godot/10_my-look-in-the-asset-room_by-me.png`.
+- **Said** (18:16): "this looks good to me the smores are fine size wise it'll work"
+- **Decided:** the life-size s'more is fine for the game. My brief had left that open, because at the game camera it's only about 15 px across.
+- **Human / Claude:** the look and the judgement are mine. Claude recorded them in TEST-REPORT.md, word for word.
+- **Still unresolved:** I didn't say whether I looked from behind and below, or whether I saw any missing faces or wrong colours.
+
+## 2026-10-14 — The camper and his dropped beanie
+
+- **Asked** (18:28): "we also have the reference of the man from the previous assignment make his model for me no animations but jus the man with benie model and add it in along with the crumppled down on the ground benie model"
+- **How Claude matched him:**
+  - It didn't guess the colours: it clustered them from the reference's own pixels (`red-beanie-man.jpg`, run in Blender, because this Python has no PIL).
+  - It measured his proportions from the silhouette row by row: brim, chin, shoulders, hem, hands, cuffs, boots.
+  - It took his height from CHARACTER-SHEET.md: 1.75 m to his head, the raccoon's back at about his thigh.
+  - Where the reference and the sheet differ, it followed the reference I'd accepted, and said so: a brown jacket (the sheet says mustard), and no eyes or beard (the sheet says dot eyes and a short beard).
+- **What Claude got wrong and fixed while building,** each found by comparing with the reference or looking from another side:
+  - an 8-sided torso left the pockets hanging over its corners, so it's a box now;
+  - the arms were too short, while in the reference his hands hang below the jacket hem;
+  - the hood ring covered his chin;
+  - the hair read as a dark box on the side of his head;
+  - the back of the hood stuck up like a slab.
+- **The dropped beanie took three tries:**
+  - first the pompom was squashed flat and the hat read as a blob;
+  - then the cuff stood up like a separate disc;
+  - the final one has the same squash for the cuff and body, a darker open end, and a round pompom.
+  - Claude then measured a 2–28 mm gap between the cuff and the body, and slid the cuff over.
+  - In the room it first hid behind the cooler, and its close-up camera ended up inside the cooler. It's now in front of the raccoon, side-on.
+- **Measured:**
+  - the camper is 42 parts, 1,140 triangles, 0.665 × 0.349 × 1.871 m (to the pompom), on the floor, with rotation and scale applied;
+  - the beanie is 136 triangles, 0.28 × 0.27 × 0.10 m.
+  - Both build scripts rebuild them headless with identical sizes and `.glb` byte counts.
+- **Human / Claude:** the request and the reference image are mine; the model, the measurements and the scripts are Claude's.
+- **Still unresolved:**
+  - my look at them;
+  - whether CHARACTER-SHEET.md should be revised to the reference's look (brown jacket, no beard).
+
+## 2026-10-14 — The camper, rebuilt in the raccoon's style (v2)
+
+- **Asked** (18:46), after looking at v1: "I dont like the human model at all doesnt look anything like the refernece img it looks bocky and like a minecraft tree take the efernece of the raaccoon and recreate it to simialr style"
+- **What Claude did:**
+  - It kept v1 as `design/a3/build/camper/camper_v1.blend`, with its record `build_camper_v1.py`.
+  - It rebuilt him the way raccoon_v2 is built: each part is lofted from rings, fused with a voxel remesh, relaxed, and decimated to big flat facets with X symmetry. Each part has one flat colour, clustered from the reference.
+  - The jacket's details (collar, pockets, flaps, buttons) are laid onto its faceted front, so they sit on it.
+- **How Claude matched him to the reference:**
+  - It solved the reference's camera from 23 landmarks on the model and in `red-beanie-man.jpg`: the pompom, nose, chin, beanie cuff, pockets, buttons, hem, sleeves, hands and jeans cuffs.
+  - It used raccoon_v2's solver (scaled orthographic). A perspective solve came out at 85 mm from 7 m, no closer than orthographic, so that was kept.
+  - It then overlaid the model on the reference and changed what was off, five times. The error went from 25.4 px rms to 16.1, 14.5, 12.8 and finally 13.4 px (about 1.8 cm) once the face and sleeves were reshaped from lit close-ups.
+  - What those rounds changed:
+    - a longer face;
+    - a shorter beanie cuff, tipped back;
+    - a narrower jacket opening;
+    - taller lower pockets;
+    - four buttons where the reference has them;
+    - longer sleeves, then thinner and straighter ones;
+    - slimmer jeans with crisp rolled cuffs;
+    - a fuller hood with only a small V of T-shirt;
+    - a face wide under the cuff that tapers to its chin;
+    - a crisp wedge for the nose.
+- **What it doesn't copy: his pose.**
+  - In the reference he turns his head to his right, stands with his weight to one side, and turns one foot out. This model stands straight and symmetric, with both feet turned out 12°.
+  - That's most of the 13.4 px left: the nose, chin, hands and jeans cuffs are the landmarks furthest off.
+  - This is Claude's choice, not mine. It's still open whether to model the head turn.
+- **What Claude got wrong and fixed while building:**
+  - it turned the boots' toes in instead of out (a sign);
+  - tipping the beanie back on its front edge dropped it 2 cm, so it now pivots on its centre;
+  - then the forehead poked through the tipped crown;
+  - the nose, fused into the head, smeared into a ridge up to the brow, so it's a separate wedge now;
+  - one call stopped on a colour missing from the palette.
+- **The export:** it warned that three meshes (the head, the beanie cuff and the pompom) weren't valid. Blender dropped a few collapsed triangles left by the decimate. That leaves 3 tiny non-manifold spots, inside the head, cuff and pompom, which Claude couldn't fill. They don't show.
+- **Measured:**
+  - 21 parts, 4,409 triangles (v1: 42 parts, 1,140), 0.631 × 0.342 × 1.865 m to the top of the pompom;
+  - on the floor, every part's transform the identity, flat-shaded.
+  - `tools/blender/build_camper.py` rebuilds him headless (on a copy, in 78 s) to a byte-identical `camper.glb` (335,296 bytes).
+  - Godot reimported him with LODs off. Pictures 01 and 11 are re-rendered.
+- **Human / Claude:** the request, the judgement on v1 and the reference image are mine. The model, the fits and the scripts are Claude's.
+- **Still unresolved:**
+  - my look at v2;
+  - whether his head should turn as in the reference;
+  - whether the dropped beanie (still built the v1 way) should be restyled to match;
+  - whether CHARACTER-SHEET.md should be revised to the reference's look.
+
+## 2026-10-14 — The camper's head turned, and his dropped beanie in the same style
+
+- **Asked** (19:25): "yes turn the head like the reference / yes the beanie as well should het he same style"
+- **The head turn:**
+  - Claude fitted the camera to his body's landmarks alone (12.0 px rms), then solved how his head is turned about the neck from the head's own landmarks. The answer is 9° to his right, nodded 1.5° down and tilted 2.7°; the head's landmarks then sit within 6.9 px.
+  - First try, Claude got the chin wrong. It matched the reference's lowest jaw point to the model's chin tip, which isn't the same feature in a three-quarter view. That pulled the solve to 5°. Without the chin, it's 9°.
+  - Before solving, it brought the nose 1 cm further forward and set the pompom lower on a lower crown: it sat 3–4 cm above the reference's. He's now 1.824 m to the top of the pompom.
+  - The head, nose, hair and beanie are built facing forward as before, then turned together. The hood and body don't turn.
+- **The dropped beanie, v2:**
+  - It's the camper's own new beanie (the same cuff, crown and pompom), crumpled the way v1 was: tipped onto its side, squashed to 0.42, its crown curled and wrinkled (a fixed noise seed).
+  - It's crumpled first, then fused, relaxed and decimated to flat facets, like the camper. Its dark inside is a thin disc just proud of the opening.
+  - 4 parts, 368 triangles (v1 had 136), 0.278 × 0.255 × 0.108 m. v1 is kept in `design/a3/build/beanie/`.
+- **What went wrong:**
+  - The connection to Blender dropped during the first head-turn call. Blender came back with `camper_v1.blend` open, unchanged. Nothing from that call had been applied and there was no crash log, so Claude reopened `camper.blend` and redid it in two smaller calls.
+  - The lost call isn't in the build record, and the record's header says so.
+- **Measured:**
+  - Both exports are clean.
+  - Godot reimported both with LODs off. Pictures 01, 11 and 12 are re-rendered.
+  - Both build records rebuild their models headless, on copies, to byte-identical `.glb` files: 335,736 bytes for the camper, 30,280 bytes for the beanie.
+- **Human / Claude:** the requests are mine. The solve, the models and the scripts are Claude's.
+- **Still unresolved:** my look at both in the asset room.
+
+## 2026-10-14 — The camper's chin and neck
+
+- **My look** (19:37), at the turned head: "no look at the heads still it looks diffrent from the reference image it the model lacks chin no neck like in the reference"
+- **What was wrong:**
+  - In the reference his face ends in a clear jaw edge that slopes up from a chin to below the ear, and a neck shows between it and the hood.
+  - In the model, the head narrowed smoothly into a neck that was part of the same shell. The fusing and relaxing smoothed it away, and the hood and the top of the jacket covered the rest.
+- **What Claude changed** (calls 33–39 in `tools/blender/build_camper.py`):
+  - **The jaw:** the head's underside is cut flat along that jaw line, with a small chin at its point. Beside the reference it first came out too narrow and the face too long, so the jaw was then raised 1.4 cm and made fuller.
+  - **The neck:** it's its own part now, moved forward and widened until it showed under the chin.
+  - **The jacket:** its top closed like a lid at 1.415 m, in front of the neck. It now closes at 1.365 m round the neck. Its collar was moved down with it: two of the collar's points had fallen to the origin when their rays missed the lowered jacket, and a miss now stops the build.
+  - **The hood:** opening it wider split it into two lumps beside the neck. It's one collar again, sitting on the jacket, open in a 60° V at the front.
+  - **The T-shirt:** its V is a little lower.
+- **One call didn't run:** a first try stopped on its own file check (the beanie's file was still open in Blender) before changing anything.
+- **Measured:**
+  - 22 parts, 4,472 triangles, 0.631 × 0.342 × 1.824 m; a clean export.
+  - The record rebuilds him headless to a byte-identical `camper.glb` (339,896 bytes).
+  - Godot reimported him. Pictures 01 and 11 and the comparisons `v2_01`–`v2_03` are re-rendered.
+- **Still unresolved:** my look at the new head.
+
+## 2026-10-14 — How to create a evnironment to check and opens the asset room
+
+- **Asked:** "update the repo to have the details abt the godot launching to showcase the sizes of the assests somewhere like how am can we easily launch to showcase the same ?"
+- **What Claude did:**
+  - The README's Assignment 3 section now has "For the viewer: the assets in Godot, with their sizes". It covers:
+    - what Godot to install (4.7.2 stable, the standard build; no Blender needed);
+    - four ways to open the room: the Windows launcher, a new `look_at_a3_assets.sh` for macOS and Linux, two commands by hand, or the editor;
+    - the controls;
+    - a table of what each size label should read, against the brief;
+    - the headless check, with notes for Windows.
+  - The Windows launcher now imports every time. It used to import only when four of the models were missing, so a changed camper or beanie would have shown its old model.
+- **Tested** on a fresh copy of the folder with no `.godot` cache: both launchers imported and opened the room with every label, and the check passed. The details are in TEST-REPORT.md.
+- **Not tested:** the shell script on a real Mac or Linux machine, and a real clone (the work isn't committed yet).
+- **Human / Claude:** the request is mine. The docs, the launchers and the test are Claude's.
+

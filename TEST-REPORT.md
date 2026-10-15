@@ -216,7 +216,10 @@ From the author's notes:
 
 `the-noise-next-door` · CSYE 7270 · Assignment 3 · branch `assignment-3`
 
-**Status (13 Oct 2026).** No checks have run yet, because nothing has been built.
+**Status (14 Oct 2026, about 18:05).**
+- All three assets are built, exported to `.glb`, imported into Godot and placed in the asset room.
+- The automated checks have run (below).
+- My own look in Godot, the HUMAN CHECK, was done at 18:16 (below).
 
 **What will be tested**
 
@@ -232,14 +235,14 @@ From the author's notes:
 
 | Check | Evidence to collect | Result |
 |---|---|---|
-| Interface notes | The six parts in my own words, and one screenshot of my own session, in [BLENDER-NOTES.md](BLENDER-NOTES.md) | Not done yet |
-| Size | For each asset: the dimensions in Blender's sidebar beside the brief, and Godot's bounding box beside both | Not run yet |
-| Upright and scale | Each asset stands the right way up in Godot, with node scale 1, 1, 1 after export | Not run yet |
-| Origin | Placed on the floor in Godot, each asset sits on it instead of floating or sinking | Not run yet |
-| Triangle count | Within each asset's budget, from Blender's Scene Statistics | Not run yet |
-| Imports and appears | All three import with no errors and appear in the 3D scene | Not run yet |
-| HUMAN CHECK: look | I walk the camera round each asset, from behind and below too, at game size beside the raccoon. Does each read as what it is? Any missing faces or wrong colours? | Not done yet |
-| What Claude got wrong | At least one thing, or "nothing, and here's how I checked" | Not known yet |
+| Interface notes | The six parts in my own words, and one screenshot of my own session, in [BLENDER-NOTES.md](BLENDER-NOTES.md) | Partly. My screenshot and my 3D viewport notes are mine. The toolbar, Outliner, Properties editor, sidebar and mode selector text started as Claude's, written at my request (FRICTIONAL.md, 13 Oct). |
+| Size | For each asset: the dimensions in Blender's sidebar beside the brief, and Godot's bounding box beside both | **Pass**: all three within 5% of the brief on every axis. Godot's numbers match Blender's to 0.1 mm (table below). |
+| Upright and scale | Each asset stands the right way up in Godot, with node scale 1, 1, 1 after export | **Pass**: height along Y for all three, and every node at scale 1, 1, 1. The pizza's crust is at −Z and its tip at +Z, and the s'more's plain marshmallows are on its +X side, as built. |
+| Origin | Placed on the floor in Godot, each asset sits on it instead of floating or sinking | **Pass**: the bottom is at Y = 0.0000 for all three, and every part rests on the floor or on another part. A part sunk *into* another isn't caught (known limit, below). |
+| Triangle count | Within each asset's budget, from Blender's Scene Statistics | **Pass**: s'more 402 of 420, pizza slice 144 of 200, cooler 76 of 150, counted the same in Blender and in Godot. Scene Statistics in my own screenshot confirms the cooler; the s'more and the pizza haven't been screenshotted. |
+| Imports and appears | All three import with no errors and appear in the 3D scene | **Pass**: `godot --headless --path . --import` printed no errors or warnings, and all three appear in `asset_room/asset_room.tscn` (Claude's pictures below). |
+| HUMAN CHECK: look | I walk the camera round each asset, from behind and below too, at game size beside the raccoon. Does each read as what it is? Any missing faces or wrong colours? | **Done (14 Oct, 18:16):** "this looks good to me the smores are fine size wise it'll work". My screenshot is 10_my-look-in-the-asset-room_by-me.png. Behind, below, missing faces and colours aren't covered in my words (see below). |
+| What Claude got wrong | At least one thing, or "nothing, and here's how I checked" | Several, all logged in FRICTIONAL.md and listed below. |
 
 The automated check can show that the assets arrived at the size, orientation and scale that were measured. It can't show that they look right in the game's light, read as what they are, or suit its style. Those are the human check.
 
@@ -247,6 +250,108 @@ The automated check can show that the assets arrived at the size, orientation an
 
 | Asset | Brief | Blender sidebar (my screenshot) | Claude's measurement of the whole asset | Triangles | Godot |
 |---|---|---|---|---|---|
-| S'more | 0.065 × 0.065 × 0.04 m, bottom at Z 0, budget 100 | Bottom cracker: Dimensions 0.065 × 0.065 × 0.008 m, Scale 1.000, Rotation 0° ([05_finished-in-my-blender_by-me.png](design/a3/build/smore/05_finished-in-my-blender_by-me.png), 14 Oct 14:45) | 0.065 × 0.065 × 0.04 m, bottom Z 0, centred on (0, 0). Rotation 0 and scale 1 on all 4 parts (14:41). | 80 by Claude's count. Not yet checked in Scene Statistics. | Not exported yet |
-| Pizza slice | 0.15 × 0.20 × 0.02 m, budget 200 | Not built yet | | | |
-| Cooler | 0.58 × 0.36 × 0.36 m, budget 150 | Not built yet | | | |
+| S'more | v1: 0.065 × 0.065 × 0.04 m, budget 100. **v2** (after my look): about 0.13 × 0.085 × 0.035 m, budget 250. **v3** (the crackers' groove and dots): budget 420 | v1 bottom cracker: Dimensions 0.065 × 0.065 × 0.008 m, Scale 1.000, Rotation 0° ([05_finished-in-my-blender_by-me.png](design/a3/build/smore/05_finished-in-my-blender_by-me.png), 14 Oct 14:45). v2: no screenshot of mine yet. | v1: 0.065 × 0.065 × 0.04 m (14:41). **v2: 0.130 × 0.082 × 0.034 m**, bottom Z 0, centred on (0, 0); rotation 0 and scale 1 on all 6 parts (15:05). v3: size unchanged (15:55) | v1: 80. v2: 244. **v3: 402** by Claude's count. Not yet checked in Scene Statistics. | See below |
+| Pizza slice | 0.15 × 0.20 × 0.02 m, budget 200 | My screenshots: before 16:17, after 16:34 (golden cheese). My hand edit then fixed the pepperoni heights (17:25 and 17:27). | 0.15 × 0.20 × 0.02 m, bottom Z 0, centred on (0, 0), tip at Y −0.10. Rotation 0 and scale 1 on all 5 parts (14 Oct, 16:12). | 144 by Claude's count. Not yet checked in Scene Statistics. | See below |
+| Cooler | 0.58 × 0.36 × 0.36 m, budget 150; body blue `#3B7DBF` (v4) | My screenshot (17:42): Scene Statistics in the viewport and the status bar ([05_…_by-me.png](design/a3/build/cooler/05_finished-in-my-blender-scene-stats-76_by-me.png)) | 0.58 × 0.36 × 0.36 m, bottom Z 0, centred on (0, 0). Rotation 0 and scale 1 on all 5 parts (14 Oct, 17:33). | **76**: Claude's count, confirmed by Blender's Scene Statistics in my screenshot | See below |
+
+### Godot: import, the headless check, and the asset room (14 Oct 2026, about 17:45–18:05)
+
+**Export (Claude, through the MCP):**
+- Each `.blend` was exported with Blender's own glTF exporter as binary `.glb`, with +Y Up and modifiers applied, and no cameras, lights or animations.
+- The code is at the end of each `tools/blender/build_<asset>.py`.
+- Sizes: cooler 9 KB, pizza slice 13 KB, s'more 26 KB.
+
+**Import:** `godot --headless --path . --import` printed no errors or warnings.
+- The props' imports set `meshes/generate_lods=false`, as the raccoon's import already does.
+- Godot's automatic LODs would swap in simplified meshes at the game camera's 19.2 m, and could drop small parts like the pepperoni or the cracker dots.
+
+**The check** is [tests/a3_asset_check.gd](tests/a3_asset_check.gd), written by Claude Code. The course used `timeout`; Git Bash on this machine has it.
+
+```
+timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --fixed-fps 60
+```
+
+| Asset | Godot X × Y × Z (m) | = W × H × D, against the brief | Bottom Y | Scale | Triangles | Parts resting | Facing | Result |
+|---|---|---|---|---|---|---|---|---|
+| S'more | 0.1297 × 0.0335 × 0.0823 | 0.130 × 0.035 × 0.085 (v2) | +0.0000 | 1,1,1 on 7 nodes | 402 / 420 | 6 of 6 | plain marshmallows on +X | ok |
+| Pizza slice | 0.1500 × 0.0200 × 0.2000 | 0.150 × 0.020 × 0.200 | +0.0000 | 1,1,1 on 6 nodes | 144 / 200 | 5 of 5 | crust −Z, tip +Z | ok |
+| Cooler | 0.5800 × 0.3600 × 0.3600 | 0.580 × 0.360 × 0.360 | +0.0000 | 1,1,1 on 6 nodes | 76 / 150 | 5 of 5 | (symmetrical) | ok |
+
+Final line: `PASS: 0 check(s) failed`, exit code 0. Blender's height (Z) arrived as Godot's Y, as the brief predicted for the +Y Up export.
+
+**Proof that it can fail** (`... -- --mutate`): each asset is broken in memory, and the check meant to catch it must fail. **7 of 7 caught**, exit code 0:
+
+| Break | Check that failed |
+|---|---|
+| Cooler 10 times too big | size |
+| Cooler scale 1.02 on Z (not applied) | scale 1,1,1. Only 2% bigger, so the size check alone passes it. |
+| Pizza slice lying on its side | height along Y |
+| A pepperoni floating 3 mm | every part resting |
+| Pizza slice turned round | facing |
+| S'more floating 5 cm | bottom on the floor |
+| S'more sunk 5 mm | bottom on the floor |
+
+**What the check doesn't show:**
+- **A part sunk into another part still passes.** The mutation run prints this as a known limit: "a pepperoni sunk 1.7 mm into the cheese -> every check still passes". It happened to my pizza on 14 Oct and was found by measuring each part, not by this check.
+- **It measures boxes, not shapes.** A missing face, a wrong colour, or a part in the wrong place inside the box all pass.
+- **It can't tell whether an asset looks right, reads as what it is at game size, or suits the game.** That's my look, below.
+- **It checks the brief's numbers, not the game's needs.** A life-size s'more passes, even if it's too small to read in play.
+
+**The check's own first bug (Claude's):**
+- On its first run the check failed 9 times on assets that were fine. Its parts were measured with `global_transform`, but in `_initialize` the nodes aren't inside the scene tree yet, so that comes back as the identity. Every part was measured at its own origin; the cooler's bottom read −0.14 m.
+- Claude now works out each part's transform from its parents. The run passed, and the mutation proof shows it still fails when it should.
+- This is the course's warning in action: a check can prove less than, or something other than, what it claims.
+
+**The asset room:** [asset_room/asset_room.tscn](asset_room/asset_room.tscn), opened by `Look at the A3 assets.bat`.
+- A floor, the forest level's sun and haze, and an orbit camera.
+- The three assets side by side at game size, beside the raccoon (`raccoon_v2.glb` at the game's size 0.8, playing its idle).
+- Labels show each asset's size as Godot measures it. The raccoon measures 1.350 × 0.519 × 0.613 m.
+- **G** shows the view from the game's own camera.
+
+**Launching it as a grader would** (14 Oct, about 20:00), on a fresh copy of this folder with no `.godot` cache:
+- **On Windows:** `Look at the A3 assets.bat` imported all 8 models in 8 s with no errors, skipping the `.blend` sources. The room opened with every label, and its screenshot matched picture 01.
+- **`look_at_a3_assets.sh`** did the same, run from Git Bash. It isn't tested on a Mac or on Linux. With no Godot to find, it says so and exits 1.
+- **The check** passed on the copy, and its mutation proof caught 7 of 7.
+- **The launcher was changed:** it used to import only when the cooler, s'more, pizza or raccoon were missing. A changed camper or beanie would have shown its old model, so it now imports every time, which takes about 4 s when nothing has changed.
+- **Not a clone:** this was a copy of the uncommitted folder. The fresh-clone check after the commit is still to do.
+
+Claude's pictures of it, rendered by Godot in a window (`-- --shot=... --view=...`), in [design/a3/build/godot/](design/a3/build/godot/):
+
+| Picture | View |
+|---|---|
+| [01_all_by-claude.png](design/a3/build/godot/01_all_by-claude.png) | Everything, with labels: the raccoon, the three assets, and (from 18:02) the donut |
+| [02_game_by-claude.png](design/a3/build/godot/02_game_by-claude.png) | The game's camera: 27° down, 19.2 m away, 15° lens, no labels. The cooler reads clearly and the pizza is a small yellow triangle with red dots. **The s'more is a speck of about 15 px**, as my brief predicted for a life-size s'more. |
+| [03_below_by-claude.png](design/a3/build/godot/03_below_by-claude.png) | From below the floor (the floor is one-sided, so the undersides show) |
+| [04_raccoon_by-claude.png](design/a3/build/godot/04_raccoon_by-claude.png) … [07_pizza_by-claude.png](design/a3/build/godot/07_pizza_by-claude.png) | Close-ups of the raccoon, the cooler, the s'more and the pizza slice |
+| [08_donut_by-claude.png](design/a3/build/godot/08_donut_by-claude.png) | The donut from my Blender practice, which I asked to have in the room, now life-size: 0.100 × 0.100 × 0.033 m, 35,144 triangles with its smoothing applied. I may use it in the game later. |
+| [09_whole_pizza_by-claude.png](design/a3/build/godot/09_whole_pizza_by-claude.png) | The round pizza I asked for, on key 6: **5 copies of the one pizza-slice asset**, turned 45° apart with their tips at the centre, so 5 of 8 slices are left (0.275 × 0.400 m). The asset itself is unchanged and still one slice, within the limits. Each crust is straight, so the rim is a polygon, not a smooth circle. |
+| [11_camper_by-claude.png](design/a3/build/godot/11_camper_by-claude.png) | The camper I asked for (key 7), v2 in the raccoon's faceted style, his head turned 9° to his right as in the reference, with its jaw, chin and neck: 0.631 × 0.342 × 1.824 m, 4,472 triangles. Beside him, the raccoon's back comes up to about his thigh, as CHARACTER-SHEET.md says. Claude's comparisons with `red-beanie-man.jpg`, through the reference's solved camera, are [v2_01](design/a3/build/camper/v2_01_reference-and-v2-lit_by-claude.png) (side by side), [v2_02](design/a3/build/camper/v2_02_reference-model-overlay_by-claude.png) (overlaid) and [v2_03](design/a3/build/camper/v2_03_head-turned-close-up_by-claude.png) (the head, close up). |
+| [12_beanie_by-claude.png](design/a3/build/godot/12_beanie_by-claude.png) | His beanie, dropped and crumpled (key 8), v2 in the camper's faceted style, lying side-on in front of the raccoon: the folded cuff, the slumped crown and the pompom on the floor. 368 triangles; 0.278 × 0.291 × 0.108 m as the room measures it, turned. Its open end, with the dark inside, faces away from this camera; Claude's six views are [v2_01](design/a3/build/beanie/v2_01_six-views_by-claude.png). |
+
+**The labels measure vertices, not boxes.** The first version took each mesh's own box and turned it with the mesh. My practice donut is turned about 17°, so it measured 0.404 × 0.405 m instead of 0.327 × 0.328 m. The labels now measure the vertices themselves. The check script still uses boxes, which is exact for the three assets, because their rotation is applied and every part's rotation is 0.
+
+**What Claude got wrong**, all in FRICTIONAL.md:
+1. It first took the raccoon's lying collision capsule (0.64 m) as his height. He's 0.61 m tall and 1.35 m long, as the asset room's label confirms.
+2. Its first rebuild test overwrote `smore.blend`, because its `sed` path swap didn't match. The file was restored from the MCP session.
+3. Its first Godot check measured every part at the origin (above).
+4. Its first asset-room launcher had a real carriage return in a path, because the shell ate a backslash. Claude found it by checking the file byte by byte, and fixed it before anyone used it.
+5. Its first s'more (v1) didn't read as a s'more. That was my judgement; Claude agreed and rebuilt it.
+6. Its first camper (v1) didn't look like the reference: "it looks bocky and like a minecraft tree", in my words. Claude rebuilt him in the raccoon's style and fitted him to the reference (v2).
+
+### HUMAN CHECK: my look in Godot
+
+**Done 14 Oct 2026, 18:16,** in the running asset room (`Look at the A3 assets.bat`).
+
+**What I said:** "this looks good to me the smores are fine size wise it'll work"
+
+**My screenshot:** [10_my-look-in-the-asset-room_by-me.png](design/a3/build/godot/10_my-look-in-the-asset-room_by-me.png). It's my own window, from my own orbit: the raccoon, the cooler, the s'more, the single pizza slice, the round pizza (5 of 8 slices) and the donut, with their Godot-measured sizes.
+
+**What this settles:**
+- **The s'more's size.** My brief left open whether a life-size s'more, about 14–15 px at the game camera, would read at all. My judgement: it's fine size-wise and it'll work.
+- **The overall look:** "looks good to me".
+
+**Not stated in my words:**
+- whether I looked from behind and below;
+- whether there were any missing faces or wrong colours.
+
+Claude's pictures from below (03) and close up (04–09) show none, but that's Claude's look, not mine.

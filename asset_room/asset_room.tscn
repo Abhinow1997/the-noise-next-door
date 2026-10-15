@@ -1,0 +1,106 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://asset_room/asset_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://assets/characters/raccoon_v2.glb" id="2_raccoon"]
+[ext_resource type="PackedScene" path="res://assets/props/cooler.glb" id="3_cooler"]
+[ext_resource type="PackedScene" path="res://assets/props/smore.glb" id="4_smore"]
+[ext_resource type="PackedScene" path="res://assets/props/pizza_slice.glb" id="5_pizza"]
+[ext_resource type="PackedScene" path="res://assets/practice/donut.glb" id="6_donut"]
+[ext_resource type="PackedScene" path="res://assets/characters/camper.glb" id="7_camper"]
+[ext_resource type="PackedScene" path="res://assets/props/beanie_dropped.glb" id="8_beanie"]
+
+[sub_resource type="Environment" id="Environment_room"]
+background_mode = 1
+background_color = Color(0.56078434, 0.64705884, 0.54901963, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.9098039, 0.93333334, 0.9411765, 1)
+ambient_light_energy = 0.8
+ssao_enabled = true
+ssao_radius = 1.2
+ssao_intensity = 1.6
+ssao_power = 1.2
+fog_enabled = true
+fog_mode = 1
+fog_light_color = Color(0.56078434, 0.64705884, 0.54901963, 1)
+fog_density = 0.35
+fog_sun_scatter = 0.0
+fog_aerial_perspective = 0.0
+fog_depth_begin = 18.0
+fog_depth_end = 60.0
+
+[sub_resource type="StandardMaterial3D" id="Material_floor"]
+albedo_color = Color(0.43137255, 0.5411765, 0.4117647, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+material = SubResource("Material_floor")
+size = Vector2(5, 3)
+
+[node name="AssetRoom" type="Node3D"]
+script = ExtResource("1_room")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_room")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.907571, 0.610865, 0)
+light_color = Color(1, 0.98039216, 0.9411765, 1)
+light_energy = 0.8
+shadow_enabled = true
+shadow_blur = 2.0
+shadow_opacity = 0.6
+directional_shadow_max_distance = 40.0
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+position = Vector3(0.05, 0, 0)
+mesh = SubResource("PlaneMesh_floor")
+
+[node name="Raccoon" parent="." instance=ExtResource("2_raccoon")]
+position = Vector3(-0.95, 0, 0)
+rotation = Vector3(0, 1.5707964, 0)
+scale = Vector3(0.8, 0.8, 0.8)
+
+[node name="Cooler" parent="." instance=ExtResource("3_cooler")]
+position = Vector3(0.25, 0, 0)
+
+[node name="Smore" parent="." instance=ExtResource("4_smore")]
+position = Vector3(0.75, 0, 0)
+
+[node name="PizzaSlice" parent="." instance=ExtResource("5_pizza")]
+position = Vector3(1.2, 0, 0)
+
+[node name="Donut" parent="." instance=ExtResource("6_donut")]
+position = Vector3(1.55, 0, 0)
+
+[node name="WholePizza" type="Node3D" parent="."]
+position = Vector3(1.15, 0, -0.55)
+
+[node name="Slice1" parent="WholePizza" instance=ExtResource("5_pizza")]
+position = Vector3(-0.0000000, 0, -0.1000000)
+rotation = Vector3(0, 0.0000000, 0)
+
+[node name="Slice2" parent="WholePizza" instance=ExtResource("5_pizza")]
+position = Vector3(-0.0707107, 0, -0.0707107)
+rotation = Vector3(0, 0.7853982, 0)
+
+[node name="Slice3" parent="WholePizza" instance=ExtResource("5_pizza")]
+position = Vector3(-0.1000000, 0, -0.0000000)
+rotation = Vector3(0, 1.5707963, 0)
+
+[node name="Slice4" parent="WholePizza" instance=ExtResource("5_pizza")]
+position = Vector3(-0.0707107, 0, 0.0707107)
+rotation = Vector3(0, 2.3561945, 0)
+
+[node name="Slice5" parent="WholePizza" instance=ExtResource("5_pizza")]
+position = Vector3(-0.0000000, 0, 0.1000000)
+rotation = Vector3(0, 3.1415927, 0)
+[node name="Camper" parent="." instance=ExtResource("7_camper")]
+position = Vector3(-0.45, 0, -0.95)
+
+[node name="BeanieDropped" parent="." instance=ExtResource("8_beanie")]
+position = Vector3(-0.1, 0, 0.4)
+rotation = Vector3(0, -1.3089969, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+current = true
+fov = 30.0

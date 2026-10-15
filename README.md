@@ -10,6 +10,8 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 
 *Your First 3D Game Assets with Claude, the Blender MCP, and Blender*, on the branch `assignment-3`. The Assignment 2 submission is tagged `a2`.
 
+**To see the assets and their sizes in Godot,** go to [For the grader](#for-the-grader-the-assets-in-godot-with-their-sizes) below.
+
 - **The three assets:** a s'more, a pizza slice and a cooler, for the raccoon to steal and raid at the campsite. Each is built in Blender through the Blender MCP, exported as a `.glb`, and shown in a small Godot 3D scene beside the raccoon.
 - **Versions:** Godot 4.7.2 stable, Blender 5.2.2 LTS, the mcp-for-blender server 2.1.9 with the MCP for Blender add-on 1.8, on Windows 11.
 - **The docs:** each of these has an Assignment 3 section at the end:
@@ -20,7 +22,73 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 
   [BLENDER-NOTES.md](BLENDER-NOTES.md) is new, and the Blender build scripts go in [tools/blender/](tools/blender/).
 
-How to open the scene and run the check is added here once they exist.
+### For the grader: the assets in Godot, with their sizes
+
+The asset room, `asset_room/asset_room.tscn`, shows every asset at game size on a floor under the forest level's light, beside the raccoon for scale. Each has a label with its size as Godot measures it: W × D × H in metres, where H is the height (Godot's Y is up).
+
+**You need Godot 4.7.2 stable**, the standard build (not .NET), from the [Godot download archive](https://godotengine.org/download/archive/). You don't need Blender: Godot loads the exported `.glb` files, and the `.blend` sources are marked for Godot to skip.
+
+**Open it:**
+- **Windows:** double-click `Look at the A3 assets.bat`. It looks for Godot in this order:
+  - the `GODOT` variable;
+  - a `Godot` folder beside this repo (`..\Godot\`);
+  - `%LOCALAPPDATA%\Programs\Godot\`;
+  - the Downloads folder (the unzipped `Godot_v4.7.2-stable_win64.exe` folder).
+
+  If yours is somewhere else, set `GODOT` to the path of its `.exe`.
+- **macOS or Linux:** run `sh look_at_a3_assets.sh`. It looks for Godot in the `GODOT` variable, then `godot` or `godot4` on the PATH, then `/Applications/Godot.app`.
+- **By hand, on any system,** from this folder:
+
+  ```
+  godot --headless --path . --import
+  godot --path . res://asset_room/asset_room.tscn
+  ```
+
+  `godot --path .` on its own starts the game, not the asset room.
+- **In the editor:** open `project.godot` in Godot 4.7.2, then open `asset_room/asset_room.tscn` and press F6 (Run Current Scene).
+
+**Importing:** both launchers import the models first, because a scene started from the command line doesn't import anything itself. On a fresh copy of this folder, with no `.godot` cache, the import took 8 s here; after that it takes about 4 s.
+
+**Controls:**
+- Drag to orbit and use the wheel to zoom.
+- **1** raccoon, **2** cooler, **3** s'more, **4** pizza slice, **5** donut, **6** round pizza, **7** camper, **8** his dropped beanie, **0** all of them.
+- **G** shows the game's own camera, **B** looks from below, **L** turns the labels on and off, and **Esc** quits.
+
+**What the labels should read:**
+
+| Key | Asset | Label: W × D × H (m) | Against |
+|---|---|---|---|
+| 3 | S'more | 0.130 × 0.082 × 0.033 | the brief: 0.13 × 0.085 × 0.035, 420 triangles. It has 402. |
+| 4 | Pizza slice | 0.150 × 0.200 × 0.020 | the brief: 0.15 × 0.20 × 0.02, 200 triangles. It has 144. |
+| 2 | Cooler | 0.580 × 0.360 × 0.360 | the brief: 0.58 × 0.36 × 0.36, 150 triangles. It has 76. |
+| 1 | Raccoon (game size 0.8) | 1.350 × 0.519 × 0.613 | Scale only: the game's own raccoon at the game's own size |
+| 6 | Pizza: 5 of 8 slices left | 0.275 × 0.400 × 0.020 | 5 copies of the one pizza-slice asset, 45° apart |
+| 5 | Donut | 0.100 × 0.100 × 0.033 | My practice from the Blender tutorial, life-size |
+| 7 | Camper | 0.631 × 0.342 × 1.824 | To the top of his pompom |
+| 8 | Beanie (dropped) | 0.278 × 0.291 × 0.108 | It's turned in the room, so W and D are its turned footprint. |
+
+- The labels measure each model's vertices where it stands in the room, to the millimetre.
+- The s'more, the pizza slice and the cooler are the three assets this assignment asks for. The rest are extras.
+- If Godot won't run, Claude's pictures of the room are in [design/a3/build/godot/](design/a3/build/godot/). [01_all_by-claude.png](design/a3/build/godot/01_all_by-claude.png) shows every label.
+
+**Check the sizes without looking:** run these headless, from this folder.
+
+```
+godot --headless --path . --import
+timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --fixed-fps 60
+timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --fixed-fps 60 -- --mutate
+```
+
+- **On Windows:**
+  - `godot` here means the console build, `Godot_v4.7.2-stable_win64_console.exe`, so the results print in the terminal.
+  - `timeout` comes with Git Bash. In PowerShell or cmd, leave out `timeout 120`.
+- **What each command does:**
+  - The first imports.
+  - The second checks the three assets against the brief: the size, the height axis, the floor, the scale, the triangles, the resting parts and the facing. It should end `PASS: 0 check(s) failed`.
+  - The third breaks each asset in memory to prove the check can fail. It should end `PASS: 7 of 7 breaks caught`.
+- What the check doesn't show is in [TEST-REPORT.md](TEST-REPORT.md).
+
+**Rebuilding an asset in Blender:** `tools/blender/build_<asset>.py` holds every piece of code Claude ran, in order. **Don't run one directly:** each saves over its own `assets/props/<asset>.blend`. To test that one rebuilds the asset, run a copy that saves somewhere else.
 
 ![The storyboard](design/storyboard/storyboard-sheet.svg)
 
@@ -43,7 +111,10 @@ How to open the scene and run the check is added here once they exist.
 | [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
 | [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
 | [design/reference/](design/reference/) | The generated reference images: the raccoon's style target and poses, the camper, the dogs, the forest, the den, the rejected ground texture and the stump |
-| [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend |
+| [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend. For Assignment 3, also the camper (`camper.blend` and `camper.glb`) |
+| [assets/props/](assets/props/) | Assignment 3's props: the s'more, the pizza slice and the cooler, and the camper's dropped beanie. Each has its `.blend` source and the `.glb` Godot loads. |
+| [asset_room/](asset_room/), `Look at the A3 assets.bat`, `look_at_a3_assets.sh` | Assignment 3's asset room, with every asset at game size and its measured size, and the launchers for Windows and for macOS or Linux. See [For the grader](#for-the-grader-the-assets-in-godot-with-their-sizes). |
+| [tests/a3_asset_check.gd](tests/a3_asset_check.gd) | Assignment 3's headless check of the three assets against the brief |
 | `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project |
 
 ## What the slice demonstrates

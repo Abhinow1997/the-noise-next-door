@@ -2,7 +2,7 @@
 
 For Assignment 3, every piece of Python that Claude Code runs in Blender through the MCP is copied here, so Git shows how each asset was built.
 
-- **One file per asset:** `build_smore.py`, `build_pizza_slice.py` and `build_cooler.py`.
+- **One file per asset:** `build_smore.py`, `build_pizza_slice.py` and `build_cooler.py`; and, beyond the three, `build_camper.py` and `build_beanie_dropped.py`.
 - **Inside each file:** the `execute_blender_code` calls, in the order they ran.
   - Each call is headed by a comment giving its number and what it did.
   - Calls that failed or were undone stay in the file, commented out and marked.

@@ -130,7 +130,18 @@ What I wrote down while doing it is under the 3D viewport, above.
 - The donut is the right way up again, icing and sprinkles on top.
 - The mug stands on the floor, open at the top, with its handle and coffee.
 - In the Outliner my original cup, `Cylinder`, is greyed out because it's hidden.
-- The title bar's `*` means the file had unsaved changes when I took this.
+
+### My hand edit for the assignment: the pizza slice (14 Oct)
+
+- Pizza's colur and the topings arrangement seemed a bit incorrect updated the same 
+
+![Before my hand edit: the slice as Claude built it, seen from above](design/a3/build/pizza_slice/06_before-hand-edit-from-above_by-me.png)
+
+*Before, 16:17: the slice as Claude built it, in Solid view.*
+
+![After my hand edit: the golden cheese and the moved pepperoni, saved](design/a3/build/pizza_slice/08_after-hand-edit-cheese-saved_by-me.png)
+
+*After, 16:34:55: my golden cheese (`#F2B908`) in Material Preview, with two pepperoni moved, just after saving.* (Captions by Claude Code.) Claude measured what changed: the cheese's Base Color went from `#F2C14E` to `#F2B908`. Moving the two pepperoni with G also changed their heights: one sank 1.7 mm into the cheese and one floated 3.1 mm above it, which doesn't show from above. I set both back to Location Z 0.009 (saved 17:25 and 17:27). The details and my first, mixed-up try are in ASSET-PLAN.md and FRICTIONAL.md.
 
 ### Changed afterwards by Claude Code
 

@@ -346,3 +346,58 @@ Written after my first session in Blender (13 Oct; see [BLENDER-NOTES.md](BLENDE
   - the wording of the checks, including the pizza-slice caveat in failure 1;
   - the on-screen pixel sizes, from the 214 px per metre measured above.
 - **Generative models:** none.
+
+### Revised in v2 (14 Oct 2026): the s'more, after my first look
+
+The v1 s'more above was built exactly to plan (0.065 × 0.065 × 0.04 m, 80 triangles; see ASSET-PLAN.md). Its v1 text stays as it was.
+
+**What I saw** (14:56): "the smores doesn't feel like more does it". Claude agreed and gave four reasons:
+- the marshmallow was a neat white puck that didn't bulge;
+- the chocolate was hidden under it;
+- the two crackers lined up too perfectly;
+- from above it was a plain tan square.
+
+**What I decided** (14:59): "You do it for me along with smores u can have just marshmallows also but make them well designed and they should look the the real deal".
+
+**The v2 s'more** (Claude's design, from that decision). Still basic shapes and flat colours, now 6 shapes, the course's limit:
+
+| Part | Shape | Size (m) | What it's for |
+|---|---|---|---|
+| Bottom cracker | Cube | 0.065 × 0.065 × 0.006 | Thinner than v1's 0.008, closer to a real graham cracker |
+| Chocolate | Cube, turned 8° | 0.055 × 0.05 × 0.005 | Bigger than v1, so its edge peeks out under the marshmallow |
+| Toasted marshmallow | UV sphere, 12 segments × 6 rings, squashed | about 0.072 × 0.068 × 0.018 | **Bulges out past the crackers' edges**, the main cue that it's been squished in a s'more. Lightly toasted cream `#F3E6CC`. |
+| Top cracker | Cube, twisted 12° and tilted about 2°, pressed slightly into the marshmallow | 0.065 × 0.065 × 0.006 | Looks made by hand. From above, the marshmallow and chocolate show at its edges. |
+| Two plain marshmallows | Cylinders, 12 sides, one standing and one on its side | Ø 0.033 × 0.03 each (real size) | My "just marshmallows also", beside the s'more. White `#F7F3EA`. |
+
+- **Size of the whole asset:** about **0.13 × 0.085 × 0.035 m**, the s'more plus its two marshmallows. It's measured after the build and centred on the origin, with its base on the floor.
+- **Triangle budget:** revised from 100 to **250**. By count: 12 for each cube, 120 for the sphere and 44 for each cylinder, which is **244**. The puffy marshmallow is what makes it read as a s'more, and it needs the sphere's triangles.
+- **Colours** otherwise as in v1: cracker tan `#C8955A`, chocolate `#4A2C1D`.
+- **Origin, axes and the predicted failures** are unchanged from v1.
+- **Before and after:** the v1 file is kept as `design/a3/build/smore/smore_v1.blend`.
+
+**Provenance (v2):** my look, my words and my decision to have Claude make the change. The diagnosis, the design, the sizes and the new budget are Claude's.
+
+### Revised in v3 (14 Oct 2026): the crackers' groove and dots
+
+**What I asked for** (15:49): "add some indentations and textures to the biscuits".
+
+**What's possible under the course's rules.**
+- **Textures aren't.** The assignment allows no painted textures and asks for flat-colour materials.
+- **Indentations are,** as geometry. So the crackers get the shape of a real graham cracker instead.
+
+Claude's design:
+
+| Part | Change | Triangles |
+|---|---|---|
+| Top cracker | Its top face is cut into a 6 × 6 grid. The middle line is pressed 0.8 mm down into a V-groove, the snap line. Eight dots (2 columns × 4 rows) are inset 3.5 mm and pressed 0.7 mm in, in a second flat colour, darker tan `#9C6A36`. | 12 → about 166 |
+| Bottom cracker | A groove pressed 0.8 mm up into its underside, so it shows when it's seen from below | 12 → about 16 |
+
+- **Triangle budget:** revised from 250 to **420**, under the course's limit of 500. The predicted total is about **402**.
+- **Still unchanged:** 6 shapes, the sizes, the origin, and every other part. The dots are a flat colour, not a texture.
+- **What it can't do:** at the game camera the s'more is about 14 px across, so the groove and dots won't show in play. They're for close-ups, my look in Blender, and the film.
+
+**Provenance (v3):** my request. The rules check, the design and the numbers are Claude's.
+
+### Revised in v4 (14 Oct 2026): the cooler's body colour
+
+v1 left the cooler's body colour for me to confirm, with Claude's suggestion of blue `#3B7DBF`. On 14 Oct (about 17:25), picking from Claude's four options (blue, red, green, orange), **I chose blue `#3B7DBF`**. Claude's reason for it: it stands out best against the green forest ground. Everything else about the cooler is as in v1.
