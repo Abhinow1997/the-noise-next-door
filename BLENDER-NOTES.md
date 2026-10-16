@@ -132,7 +132,7 @@ What I wrote down while doing it is under the 3D viewport, above.
 
 ![The donut with its icing, seen from below the floor](design/a3/practice/screenshots/2026-10-13_2344_donut-with-icing-from-below.png)
 
-*13 Oct, 23:44, Object Mode, donut selected, just after Claude Code added the icing and sprinkles.* The view is from **below the floor**: the axis gizmo's Z points down. So the dough's underside is what's on top in the picture, the icing only shows at its edge, and the cup's open bottom looks like an open top.
+*13 Oct, 23:44, Object Mode, donut selected, just after added the icing and sprinkles.* The view is from **below the floor**: the axis gizmo's Z points down. So the dough's underside is what's on top in the picture, the icing only shows at its edge, and the cup's open bottom looks like an open top.
 
 ![The donut rotated so its icing faces the floor, still seen from below](design/a3/practice/screenshots/2026-10-14_0004_donut-flipped-from-below.png)
 

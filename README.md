@@ -152,16 +152,14 @@ timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --f
 - **Large files:** Assignment 2's four music WAVs over 25 MB and its two laugh MP3s are still in `design/music/` on GitHub, although the course keeps such files out of GitHub (see [Known limitations (Assignment 2)](#known-limitations-assignment-2)).
 
 ### The Assignment 3 film
+[Watch Assignment 3 explainer](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQC3xt_YqEIIRKm1kHmIXIVgAUVl3dB4lVUKLrHAG-6cByo?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=uhHctc)
 
-Not made yet. It has to use the course's Brutalist Godot workflow, which isn't installed on this machine. Once it's made:
-- its link, filename and SHA-256 go here;
-- its beat sheet, script and evidence records go in the repo.
 
 ![The storyboard](design/storyboard/storyboard-sheet.svg)
 
 ## The Assignment 2 film
 
-[Watch the explainer film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDAxd9bCxK_S6b1LqkoG0c7AeyrrSNWzPpb9ba5uei4V4Q?e=itjuN3&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D) (on Northeastern's SharePoint).
+[Watch the explainer film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDAxd9bCxK_S6b1LqkoG0c7AeyrrSNWzPpb9ba5uei4V4Q?e=itjuN3&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D).
 
 ## What's here
 
