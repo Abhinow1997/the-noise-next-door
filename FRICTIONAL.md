@@ -773,4 +773,3 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - add the film's link, filename and SHA-256 once it's made;
   - drop "(in progress)" from the heading at submission.
 - **Human / Claude:** the request is mine. The draft is Claude's, and the one quote in it is mine.
-

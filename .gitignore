@@ -10,6 +10,10 @@
 *.mp4
 *.mov
 *.mkv
+# Assignment 2's music and laugh originals: over 25 MB, or MP3s. They're kept on disk and in the course
+# media storage, linked from the README; the game only loads the cut loops in assets/audio/.
+*.mp3
+design/music/*.wav
 
 # Python
 __pycache__/

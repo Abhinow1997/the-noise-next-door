@@ -149,7 +149,9 @@ timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --f
   - In my words, I "still dont exact love how it has came out".
 - **The donut** keeps its smoothing, so it has 35,144 triangles.
 - **The macOS and Linux launcher** hasn't been tried on a Mac or on Linux.
-- **Large files:** Assignment 2's four music WAVs over 25 MB and its two laugh MP3s are still in `design/music/` on GitHub, although the course keeps such files out of GitHub (see [Known limitations (Assignment 2)](#known-limitations-assignment-2)).
+- **Large files, taken out of the repo** Assignment 2's four music WAVs over 25 MB and its two laugh MP3s.
+  - See [Known limitations (Assignment 2)](#known-limitations-assignment-2).
+  [Game Music has been saved here](https://northeastern-my.sharepoint.com/:f:/g/personal/gangurde_a_northeastern_edu/IgAs1hom_6aoRJwhvn-RBtXfAehRAI8b3WRlDmVkZf0z6dw?e=Cqbvz0)
 
 ### The Assignment 3 film
 [Watch Assignment 3 explainer](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQC3xt_YqEIIRKm1kHmIXIVgAUVl3dB4lVUKLrHAG-6cByo?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=uhHctc)
@@ -214,7 +216,10 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 - **The chitter and the task laugh** are two takes of the same laugh.
 - **Contrast:** his grey fur is close to the grass in brightness (1.3 to 2.0:1), so his charcoal markings carry his shape.
 - **Muted play** was only partly readable, and which moments were lost wasn't noted. The sound levels raised after the playtest haven't been re-checked by ear.
-- **Large files on GitHub:** four of the original music tracks in `design/music/` are over 25 MB, and two laugh originals there are MP3s. The course keeps these out of GitHub. The game doesn't load any of them, and the source ZIP leaves them out.
+- **Large files, kept out of GitHub:** four of the original music tracks in `design/music/` are over 25 MB, and two laugh originals there are MP3s.
+  - They were in the repo until 15 Oct 2026. They're no longer tracked, and `.gitignore` keeps them out, but Git's older commits still hold them.
+  - They're in the course media storage: **link to add**.
+  - The game doesn't load any of them: it plays the cut loops in `assets/audio/`. The source ZIP leaves them out.
 
 [TEST-REPORT.md](TEST-REPORT.md) has the details and the next steps.
 
