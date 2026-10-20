@@ -362,26 +362,66 @@ def sneak(u, pose):
     eyes(pose, 0.7)
 
 
-# --- Bored: sitting up, scratching behind an ear, droopy eyes ------------------------------
+# --- Bored: slumped on his rump, legs out, paws hanging, droopy eyes -----------------------
+# The author's mock-up (20 Oct 2026): sitting up on his bottom with his back rounded and
+# his head sunk low and forward, both front legs hanging straight down in front of his
+# belly, the hind legs splayed out in front, the tail lying flat on the ground straight
+# behind him, eyes half shut. (In the mock-up the front paws reach the ground between his
+# feet; his front legs are too short to from a sit this upright, so they hang limp.) Once a loop he sighs: he draws himself
+# up a little as he breathes in, then sags as he lets it out, as the sigh over his head
+# puffs out (thought icons, scripts/scribbles.gd: both last 4 seconds and start together).
+# P_BORED overrides the numbers, for trying poses.
+
+P_BORED = globals().get("P_BORED", {})
+
 
 def bored(u, pose):
-    sit = 1.05
-    pose.turn("pelvis", X, -sit)                     # rear down, chest up
-    pose.pelvis = Vector((0, -0.05, -0.145))
-    pose.turn("neck", X, 0.55)
-    pose.turn("head", X, 0.15)
-    pose.turn("head", Y, 0.25)                       # a lazy tilt
-    pose.turn("head", Z, -0.25)
-    eyes(pose, 0.5)
-    # Hind feet out in front, soles forward.
-    pose.paw["foot_ik.L"] = Vector((0.03, -0.30, -0.01))
-    pose.paw["foot_ik.R"] = Vector((-0.03, -0.30, -0.01))
-    # Left paw up behind the ear, scratching; right paw resting on the belly.
-    scratch = math.sin(TAU * 6 * u) * (0.5 + 0.5 * math.cos(TAU * u))
-    pose.rel["hand_ik.L"] = ("ear.L", (0.03, 0.05 + 0.015 * scratch, -0.03 + 0.02 * scratch))
-    pose.rel["hand_ik.R"] = ("spine", (0.07, -0.17, 0.0))
-    pose.turn("ear.L", X, -0.2 - 0.1 * scratch)
-    tail_curve(pose, 1.0, -0.6, wave=0.05, u=u)        # lying on the ground to one side
+    g = P_BORED.get
+    # The sigh: breathing in over the last fifth of the loop, out over the first.
+    sigh = ease((u - 0.8) / 0.2) if u >= 0.8 else 1.0 - ease(u / 0.25)
+    sit = g("sit", 1.4)
+    pose.turn("pelvis", X, -sit)                     # rear down, front up, onto his rump
+    pose.pelvis = Vector(g("seat", (0.0, 0.055, -0.335)))
+    # Slumped: the back rounds forward over his belly, less as he breathes in.
+    pose.turn("spine", X, g("slump", 0.25) - 0.05 * sigh)
+    pose.turn("chest", X, g("slump2", 0.5) - 0.04 * sigh)
+    # The head hangs low and forward, chin down, with a lazy tilt.
+    pose.turn("neck", X, g("neck", 0.45) - 0.03 * sigh)
+    pose.turn("head", X, g("chin", 0.2) - 0.04 * sigh)
+    pose.turn("head", Y, g("tilt", 0.08))
+    pose.turn("head", Z, g("turn", -0.1))
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, g("ears", -0.25))             # ears drooping back
+    # A slow blink halfway round, under half-shut lids.
+    blink = max(0.0, 1 - abs(u - 0.55) / 0.04)
+    eyes(pose, g("lids", 0.45) * (1 - blink))
+    # Front legs hanging limp, straight down from the shoulders in front of his belly
+    # (they're too short to reach the ground from a sit as upright as the mock-up's).
+    hang = g("hang", (-0.05, -0.08, -0.33))
+    pose.rel["hand_ik.L"] = ("upperarm.L", hang)
+    pose.rel["hand_ik.R"] = ("upperarm.R", (-hang[0], hang[1], hang[2]))
+    # Hind legs splayed out in front, soles forward.
+    foot = Vector(g("foot", (0.09, -0.26, -0.005)))
+    pose.paw["foot_ik.L"] = foot
+    pose.paw["foot_ik.R"] = Vector((-foot.x, foot.y, foot.z))
+    for k in ("foot_ik.L", "foot_ik.R"):
+        pose.paw_pitch[k] = g("toes", -1.0)
+    # The tail flat on the ground behind him: the first segment drops from his rump to the
+    # ground (`droop`, radians below level), the rest lie level, and the tip flicks once.
+    # Each turn is worked out from the segments' rest slopes, after the body's tip back.
+    droop = g("droop", -0.05)
+    flick = max(0.0, math.sin(math.pi * (u - 0.3) / 0.15)) if 0.3 <= u <= 0.45 else 0.0
+    want = [-droop, 0.0, 0.0, 0.05 + 0.3 * flick]
+    turned = -sit                                    # the body's tip back, down the chain
+    for i, b in enumerate(["tail1", "tail2", "tail3", "tail4"]):
+        turn = want[i] - (TAIL_REST[i] + turned)
+        pose.turn(b, X, turn)
+        turned += turn
+
+
+# The tail's segments' slopes at rest, in radians (positive = up, going back).
+TAIL_REST = [math.atan2(0.54 - 0.54, 0.15), math.atan2(0.52 - 0.54, 0.15), math.atan2(0.47 - 0.52, 0.15),
+             math.atan2(0.40 - 0.47, 0.18)]
 
 
 # --- Sleep: curled in a ball, head on the paws, tail wrapped round the front ---------------

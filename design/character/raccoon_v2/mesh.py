@@ -104,7 +104,8 @@ else:
     # Proportions from the reference design, not traced outlines: a boulder-like body,
     # deepest and widest at the hips, the back arching over the hind legs and sloping in
     # one line down to a low-carried head; the belly hangs low so only the lower legs
-    # show; length about 1.3x depth, depth about 1.7x head height.
+    # show; length about 1.3x depth, depth about 1.7x head height. (build_all.py passes
+    # a leaner rear in PARAMS["body3"].)
     # (y, top z, bottom z, half width)
     BODY3 = P.get("body3", [
         (0.56, 0.585, 0.43, 0.09),
@@ -208,7 +209,7 @@ if BODY_V3:
     # nine bands from grey at the root to a black tip.
     TAIL = []
     root, tip = Vector((0.0, 0.46, 0.54)), Vector((0.0, 1.06, 0.40))
-    radii = [0.085, 0.11, 0.122, 0.126, 0.125, 0.12, 0.112, 0.10, 0.085, 0.06]
+    radii = P.get("tail_radii", [0.085, 0.11, 0.122, 0.126, 0.125, 0.12, 0.112, 0.10, 0.085, 0.06])
     for k, r in enumerate(radii):
         u = k / (len(radii) - 1)
         p = root.lerp(tip, u) + Vector((0, 0, 0.05 * math.sin(math.pi * u)))
@@ -249,8 +250,10 @@ if BODY_V3:
             (FX, -0.12, 0.13, 0.046, 0.05), (FX, -0.135, 0.055, 0.04, 0.045)], FY),
         at([(FX, -0.10, 0.045, 0.03), (FX + 0.002, -0.165, 0.05, 0.028), (FX + 0.004, -0.22, 0.04, 0.019)], FY))
     # Hind legs: a big thigh flaring out of the haunch, the shin angled back to the heel,
-    # a long black foot.
-    leg(at([(BX, 0.29, 0.40, 0.11, 0.13), (BX + 0.015, 0.30, 0.26, 0.095, 0.11),
+    # a long black foot. THIGH: (x offset from BX, half width) of the top two rings,
+    # which make the haunch.
+    (T0X, T0R), (T1X, T1R) = P.get("thigh", ((0.0, 0.11), (0.015, 0.095)))
+    leg(at([(BX + T0X, 0.29, 0.40, T0R, 0.13), (BX + T1X, 0.30, 0.26, T1R, 0.11),
             (BX + 0.005, 0.33, 0.14, 0.05, 0.055), (BX, 0.37, 0.055, 0.042, 0.046)], BY),
         at([(BX, 0.385, 0.046, 0.03), (BX + 0.002, 0.30, 0.052, 0.028), (BX + 0.004, 0.215, 0.042, 0.019)], BY))
 if not BODY_V3:

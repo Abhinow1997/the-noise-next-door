@@ -8,6 +8,9 @@ extends Node3D
 ## Screenshot helpers: --grab-test, --climb-test, --rest-test (he naps in the hollow),
 ## --tick-test (the bin is knocked over), --shot-frame=N (default 45), and
 ## --see-collision (the raccoon half see-through, for use with --debug-collisions).
+## `-- --bubble-demo` adds a yard of stand-ins for trying the thought bubbles
+## (scripts/bubble_demo.gd); `-- --bubble-test` runs their automated check in it
+## (scripts/bubble_test.gd), with `--bubble-shots=<folder>` for a picture of each.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -20,6 +23,10 @@ const USE_SPRITES := false
 ## --pose names from the cut-outs, as the rigged model's animations.
 const POSE_ANIMATIONS := {"asleep": "sleep"}
 const SoundTest := preload("res://scripts/sound_test.gd")
+## Pictures over his head that show what he notices, wants or feels.
+const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
+const BubbleDemo := preload("res://scripts/bubble_demo.gd")
+const BubbleTest := preload("res://scripts/bubble_test.gd")
 
 ## The author's generated grass texture (ENV-GROUND in SOURCES.md), repeated every
 ## GROUND_TILE metres, with GROUND_TINT to darken it. Off: on 6 Oct the author saw
@@ -175,6 +182,7 @@ var _paused_label: Label
 ## How many times each sound effect has started, by asset ID.
 var sound_counts := {}
 var sprite: RaccoonSprite
+var bubbles: ThoughtBubbles
 
 
 ## Turns the keys that work while paused (Esc, M, N) into calls on the level.
@@ -216,6 +224,9 @@ func _ready() -> void:
 	var pose_left := false
 	var sound_test := false
 	var use_sprites := USE_SPRITES
+	var bubble_demo := false
+	var bubble_test := false
+	var bubble_shots := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			_shot_path = arg.get_slice("=", 1)
@@ -241,6 +252,13 @@ func _ready() -> void:
 			sound_test = true
 		elif arg == "--sprites":
 			use_sprites = true
+		elif arg == "--bubble-demo":
+			bubble_demo = true
+		elif arg == "--bubble-test":
+			bubble_demo = true
+			bubble_test = true
+		elif arg.begins_with("--bubble-shots="):
+			bubble_shots = arg.get_slice("=", 1)
 	_rng.seed = 7
 
 	_build_environment()
@@ -278,6 +296,10 @@ func _ready() -> void:
 		# Half see-through, so `--debug-collisions` shows his capsule inside him.
 		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
 		sprite.modulate = Color(1, 1, 1, 0.45)
+	bubbles = ThoughtBubbles.new()
+	bubbles.player = player
+	bubbles.camera = camera
+	add_child(bubbles)
 	_anchor = _drawn() + PIVOT
 	_place_camera()
 
@@ -298,6 +320,16 @@ func _ready() -> void:
 		var test := SoundTest.new()
 		test.level = self
 		add_child(test)
+	if bubble_demo:
+		var demo := BubbleDemo.new()
+		demo.level = self
+		add_child(demo)
+		if bubble_test:
+			var check := BubbleTest.new()
+			check.level = self
+			check.demo = demo
+			check.shots = bubble_shots
+			add_child(check)
 
 
 func _process(delta: float) -> void:
@@ -712,7 +744,8 @@ func _build_environment() -> void:
 
 func _build_props() -> void:
 	var spot := forest.bin_spot
-	bin = _prop(spot, 3.0, _cylinder(0.28, 0.76), Vector3(0, 0.38, 0), ["bin"])
+	# Facing it up close, he thinks of food (thought_bubbles.gd).
+	bin = _prop(spot, 3.0, _cylinder(0.28, 0.76), Vector3(0, 0.38, 0), ["bin", "food"])
 	_mesh(LowPoly.loft(
 		[Vector3(0, 0, 0), Vector3(0, 0.03, 0), Vector3(0, 0.34, 0), Vector3(0, 0.37, 0),
 			Vector3(0, 0.69, 0), Vector3(0, 0.72, 0), Vector3(0, 0.76, 0)],
@@ -735,7 +768,8 @@ func _build_props() -> void:
 	for i in can_spots.size():
 		var lying := i % 2 == 0
 		var pos: Vector3 = can_spots[i] + Vector3(0, 0.061 if lying else 0.081, 0)
-		var can := _prop(pos, 0.2, _cylinder(0.06, 0.16), Vector3.ZERO, ["grabbable", "can"],
+		# Shiny loot to a raccoon: they glint as he comes near one he hasn't picked up yet.
+		var can := _prop(pos, 0.2, _cylinder(0.06, 0.16), Vector3.ZERO, ["grabbable", "can", "shiny"],
 			0.06, Vector3(0, -0.02, -0.04), Vector3(0, 0, PI / 2))
 		if lying:
 			can.rotation = Vector3(PI / 2, _rng.randf() * TAU, 0)

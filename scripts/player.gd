@@ -40,12 +40,26 @@ const LEAP_AIR := [[0.0, 0.95], [0.15, 1.15], [0.35, 1.38], [0.8, 1.43], [1.0, 1
 ## Where his front and hind paws are, ahead of and behind his middle (model scale 1).
 ## Tipping nose up he pivots on the hind paws, nose down on the front ones.
 const PAW_REACH := 0.3
+## His turning has weight: the turn rate builds up at TURN_ACCEL (rad/s²) and eases off
+## at TURN_BRAKE as he comes round, so he neither snaps nor overshoots. Flat out he
+## turns at RUN_TURN of turn_speed, so runs carve wider arcs.
+const TURN_ACCEL := 40.0
+const TURN_BRAKE := 70.0
+const RUN_TURN := 0.7
+## His velocity carries his weight too: its speed changes at ACCEL / DECEL (m/s²), and
+## its direction swings round no faster than GRIP allows (sideways m/s²). His feet push
+## him up to SLIP (radians) toward where he wants to go before he faces it.
+const ACCEL := 10.0
+const DECEL := 14.0
+const GRIP := 30.0
+const SLIP := 0.44
 
 @export var walk_speed := 2.0
 @export var run_speed := 4.0
 @export var sneak_speed := 1.0
 @export var climb_speed := 1.2
-@export var turn_speed := 9.0
+## Fastest he turns standing or walking (rad/s).
+@export var turn_speed := 10.0
 ## Overall scale of the raccoon and its collider.
 @export var size := 0.8
 @export var grab_range := 0.55
@@ -70,6 +84,8 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _push_speed := 0.0
 var _speed := 0.0
 var _turn := 0.0
+## How fast he's turning on the ground (rad/s, positive = left).
+var _yaw_rate := 0.0
 var _voice: AudioStreamPlayer
 var _run_sfx: AudioStreamPlayer
 var _climb_sfx: AudioStreamPlayer
@@ -141,6 +157,10 @@ func _physics_process(delta: float) -> void:
 	climb_moving = false
 	model.hopping = _hop_t >= 0.0
 	model.climbing = climbing
+	# Only walking sets these.
+	model.yaw_rate = 0.0
+	model.look = 0.0
+	model.accel = 0.0
 	if _hop_t >= 0.0:
 		_hop_process(delta)
 	elif resting:
@@ -189,28 +209,53 @@ func _walk_process(delta: float) -> void:
 		speed = run_speed
 	_push_speed = speed * dir.length()
 
-	# Turn smoothly toward the input, then travel the way we face, so changes of
-	# direction become arcs instead of the whole body pivoting on the spot.
-	var old_yaw := rotation.y
+	# Turn toward the input with weight: the turn rate builds up toward what it takes
+	# to face it, and brakes in time to finish facing it.
+	var has_input := dir.length_squared() > 0.01
+	var want := 0.0
+	var target_rate := 0.0
+	if has_input:
+		want = wrapf(atan2(-dir.x, -dir.z) - rotation.y, -PI, PI)
+		# Asked to go nearly straight back, he keeps turning the way he already is.
+		if absf(want) > 2.6 and _yaw_rate * want < 0.0:
+			want -= signf(want) * TAU
+		var top := turn_speed * lerpf(1.0, RUN_TURN, clampf(_speed / run_speed, 0.0, 1.0))
+		var braking := minf(sqrt(1.6 * TURN_BRAKE * absf(want)), 12.0 * absf(want))
+		target_rate = signf(want) * minf(top, braking)
+	var building := absf(target_rate) > absf(_yaw_rate) and target_rate * _yaw_rate >= 0.0
+	_yaw_rate = move_toward(_yaw_rate, target_rate, (TURN_ACCEL if building else TURN_BRAKE) * delta)
+	rotation.y = wrapf(rotation.y + _yaw_rate * delta, -PI, PI)
 	var forward := -global_basis.z
+
+	# Then travel with momentum, mostly the way he faces: slower while facing away
+	# from where he wants to go, so U-turns become arcs, and his heading swings
+	# round after his body rather than snapping to it.
+	var planar := Vector3(velocity.x, 0.0, velocity.z)
+	var moving := planar.length()
+	var heading := planar / moving if moving > 0.05 else forward
 	var target_speed := 0.0
-	if dir.length_squared() > 0.01:
-		rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), 1.0 - exp(-turn_speed * delta))
-		forward = -global_basis.z
-		# Slow down while facing away from where we want to go (tight U-turns).
-		target_speed = speed * dir.length() * clampf(forward.dot(dir.normalized()), 0.25, 1.0)
-	var accel := 10.0 if target_speed > _speed else 14.0
-	_speed = move_toward(_speed, target_speed, accel * delta)
+	if has_input:
+		var travel := forward.rotated(Vector3.UP, clampf(want, -SLIP, SLIP))
+		target_speed = speed * dir.length() * lerpf(0.35, 1.0, (1.0 + forward.dot(dir.normalized())) * 0.5)
+		if moving <= 0.05:
+			heading = travel
+		else:
+			var most := GRIP / maxf(moving, 0.5) * delta
+			heading = heading.rotated(Vector3.UP, clampf(heading.signed_angle_to(travel, Vector3.UP), -most, most))
+	var before := moving
+	moving = move_toward(moving, target_speed, (ACCEL if target_speed > moving else DECEL) * delta)
+	_speed = moving
 	running = not sneaking and Input.is_action_pressed("run") and _speed > walk_speed + 0.1
-	velocity.x = forward.x * _speed
-	velocity.z = forward.z * _speed
+	velocity.x = heading.x * moving
+	velocity.z = heading.z * moving
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 
-	# How hard we're turning, smoothed, so the body can bend into it.
-	var yaw_rate := wrapf(rotation.y - old_yaw, -PI, PI) / maxf(delta, 0.0001)
-	_turn = lerpf(_turn, clampf(yaw_rate / 6.0, -1.0, 1.0), 1.0 - exp(-8.0 * delta))
-	model.turn = _turn
+	# For the body: how hard he's turning, where he's looking to go, how he's speeding up.
+	model.turn = clampf(_yaw_rate / 6.0, -1.0, 1.0)
+	model.yaw_rate = _yaw_rate
+	model.look = want
+	model.accel = (moving - before) / maxf(delta, 0.0001)
 
 	move_and_slide()
 	_push_bodies(delta)
@@ -271,6 +316,7 @@ func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done :
 	_shape.disabled = true
 	velocity = Vector3.ZERO
 	_speed = 0.0
+	_yaw_rate = 0.0
 
 
 func _hop_process(delta: float) -> void:

@@ -8,6 +8,7 @@ extends Node3D
 ## other two swing their separate parts in code.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
+const RaccoonFlex := preload("res://scripts/raccoon_flex.gd")
 ## Exported from raccoon.blend by assets/characters/export_raccoon.py.
 const MODEL_PATH := "res://assets/characters/raccoon.glb"
 ## Exported from raccoon_v2.blend by assets/characters/export_raccoon_v2.py: one
@@ -18,11 +19,30 @@ const RIGGED_MOUTH := Vector3(0, 0.37, -0.57)
 ## The middle of his underside when he's curled up asleep, in model space, measured
 ## from each model's sleep pose. He curls up round his hips rather than over his
 ## feet, so while he sleeps the model slides by this to put the ball on his origin.
-const RIGGED_SLEEP_BED := Vector3(-0.262, 0.066, 0.327)
+## (Moved by -0.034, 0, +0.006 when his rear was slimmed on 19 Oct: the curled ball's
+## middle moved that much.)
+const RIGGED_SLEEP_BED := Vector3(-0.296, 0.066, 0.333)
 const MODEL_SLEEP_BED := Vector3(-0.111, 0.001, 0.104)
 const CODE_SLEEP_BED := Vector3(-0.113, -0.038, -0.021)
 ## How long one animation takes to blend into the next, in seconds.
 const RIGGED_BLEND := 0.2
+## Between the ones he moves about in it's a little longer, so starting, stopping and
+## changing gait ease in; and one gait changing to another carries on from the same
+## point in its stride.
+const LOCOMOTION := ["idle", "walk", "run", "sneak"]
+const GAIT_BLEND := 0.3
+## Turning on the spot faster than this (rad/s), he steps round rather than gliding.
+const TURN_STEP := 2.5
+## His weight, on the rigged model. He banks into a turn by LEAN_GAIN of the angle the
+## sideways force on him would tip a cyclist, up to LEAN_MAX, and tips nose up by
+## TILT_PER_ACCEL per m/s² of speeding up (nose down braking), up to TILT_MAX: both
+## on springs, so a hard stop dips and settles. He tips on his paws, PAW_PIVOT ahead
+## of and behind his middle (model scale 1). All in radians.
+const LEAN_GAIN := 0.15
+const LEAN_MAX := 0.2
+const TILT_PER_ACCEL := 0.007
+const TILT_MAX := 0.1
+const PAW_PIVOT := 0.3
 ## Seconds standing still before he gets bored (as with the sprites).
 const BORED_AFTER := 5.0
 ## Above this speed (m/s) he runs rather than walks; the player's walk is 2.0.
@@ -88,6 +108,12 @@ var walk_phase := 0.0
 var crouch := 0.0
 ## -1..1, how hard we're turning (positive = left). Head leads, tail trails.
 var turn := 0.0
+## Rigged model only: how fast he's turning (rad/s, positive = left), how far round
+## the way he wants to go is from the way he faces (radians), and how fast he's
+## speeding up (m/s², negative braking). He bends, looks and leans with these.
+var yaw_rate := 0.0
+var look := 0.0
+var accel := 0.0
 ## Seconds of chittering left.
 var chitter_time := 0.0
 ## 0 = awake, 1 = curled up asleep: legs tucked, tail wrapped round, eyes shut.
@@ -131,6 +157,14 @@ var _rig: Node3D
 var _still := 0.0
 var _chitter_prev := 0.0
 var _bounce := 0.0
+## The rigged model: its give in turns (raccoon_flex.gd), the playback rate as eased,
+## and his bank and tip (radians) with how fast each is changing.
+var _flex: RaccoonFlex
+var _rate := 1.0
+var _lean := 0.0
+var _lean_v := 0.0
+var _tilt := 0.0
+var _tilt_v := 0.0
 
 
 func _ready() -> void:
@@ -150,6 +184,7 @@ func _rebuild() -> void:
 	_eyes.clear()
 	_anim = null
 	_rig = null
+	_flex = null
 	_build()
 
 
@@ -334,6 +369,11 @@ func _build_rigged() -> bool:
 	var head_rest := skeleton.get_bone_global_rest(skeleton.find_bone("head"))
 	var model_to_skeleton := skeleton.global_transform.affine_inverse() * global_transform
 	mouth.transform = head_rest.affine_inverse() * model_to_skeleton * Transform3D(Basis(), RIGGED_MOUTH)
+	# His back, head and tail give in turns, laid over the animation.
+	_flex = RaccoonFlex.new()
+	skeleton.add_child(_flex)
+	var rig_to_skeleton := (_rig.global_basis.inverse() * skeleton.global_basis).orthonormalized()
+	_flex.setup(rig_to_skeleton.inverse() * Vector3.UP)
 	_anim.play("idle")
 	return true
 
@@ -344,8 +384,10 @@ func _process_rigged(delta: float) -> void:
 	if anim_name == "":
 		anim_name = _rigged_state(delta)
 	if _anim.current_animation != anim_name:
-		_anim.play(anim_name, RIGGED_BLEND)
-	_anim.speed_scale = _rigged_rate(anim_name)
+		_change_animation(anim_name)
+	# Eased, so speeding up or slowing down doesn't jerk the stride.
+	_rate = lerpf(_rate, _rigged_rate(anim_name), 1.0 - exp(-10.0 * delta))
+	_anim.speed_scale = _rate
 	if leap >= 0.0 and forced_animation == "":
 		# Seek every frame rather than pausing: a paused player never finishes its blend.
 		_anim.seek(fposmod(leap, 1.0) * _anim.current_animation_length, true)
@@ -353,18 +395,51 @@ func _process_rigged(delta: float) -> void:
 	# lies where he was laid, and back again as it blends out.
 	_curl = move_toward(_curl, 1.0 if anim_name == "sleep" else 0.0, delta / RIGGED_BLEND)
 	position = -_sleep_bed * scale * _curl
-	# A lean into turns, and a quick squash and hop when he chitters (there's no
-	# chitter animation yet).
+	# A quick squash and hop when he chitters (there's no chitter animation yet).
 	if chitter_time > _chitter_prev:
 		_bounce = 1.0
 	_chitter_prev = chitter_time
 	_bounce = maxf(_bounce - delta / 0.35, 0.0)
 	var hop := sin(_bounce * PI)
-	var lean := 0.0 if climbing else -turn * 0.08
-	_rig.rotation.z = lerpf(_rig.rotation.z, lean, 1.0 - exp(-10.0 * delta))
+
+	# On the ground his body gives in turns (raccoon_flex.gd) and carries weight: he
+	# banks into turns by the sideways force on him, and tips as he speeds up or brakes.
+	var grounded := not climbing and not hopping and leap < 0.0 and _curl <= 0.0 and forced_animation == ""
+	_flex.amount = move_toward(_flex.amount, 1.0 if grounded else 0.0, delta * 4.0)
+	_flex.yaw_rate = yaw_rate
+	_flex.look = look
+	var lean_to := 0.0
+	var tilt_to := 0.0
+	if grounded:
+		lean_to = clampf(atan(speed * yaw_rate / 9.8) * LEAN_GAIN, -LEAN_MAX, LEAN_MAX)
+		tilt_to = clampf(accel * TILT_PER_ACCEL, -TILT_MAX, TILT_MAX)
+	var lean := RaccoonFlex.spring_for(_lean, _lean_v, lean_to, 9.0, 0.75, delta)
+	_lean = lean.x
+	_lean_v = lean.y
+	var tilt := RaccoonFlex.spring_for(_tilt, _tilt_v, tilt_to, 8.0, 0.45, delta)
+	_tilt = tilt.x
+	_tilt_v = tilt.y
+	# Turned round to face -Z and squashed about his feet; banked about his feet; then
+	# tipped nose up on his hind paws or nose down on his front ones.
 	var wide := 1.0 + 0.07 * hop + 0.12 * squash
-	_rig.scale = Vector3(wide, 1.0 - 0.12 * hop - 0.2 * squash, wide)
-	_rig.position.y = 0.05 * hop
+	var xf := Transform3D(Basis(Vector3.UP, PI) * Basis.from_scale(Vector3(wide, 1.0 - 0.12 * hop - 0.2 * squash, wide)),
+		Vector3(0, 0.05 * hop, 0))
+	xf = Transform3D(Basis(Vector3.BACK, _lean), Vector3.ZERO) * xf
+	var pivot := Vector3(0, 0, PAW_PIVOT if _tilt > 0.0 else -PAW_PIVOT)
+	var tip := Basis(Vector3.RIGHT, _tilt)
+	_rig.transform = Transform3D(tip, pivot - tip * pivot) * xf
+
+
+## Starts `anim_name`. Between the animations he moves about in the blend is longer,
+## and a gait changing to another carries on from the same point in its stride.
+func _change_animation(anim_name: String) -> void:
+	var from := _anim.current_animation
+	var phase := -1.0
+	if from in GAITS and anim_name in GAITS and "climb" not in [from, anim_name] and leap < 0.0:
+		phase = _anim.current_animation_position / maxf(_anim.current_animation_length, 0.001)
+	_anim.play(anim_name, GAIT_BLEND if from in LOCOMOTION and anim_name in LOCOMOTION else RIGGED_BLEND)
+	if phase >= 0.0:
+		_anim.seek(phase * _anim.current_animation_length, true)
 
 
 func _rigged_state(delta: float) -> String:
@@ -384,7 +459,7 @@ func _rigged_state(delta: float) -> String:
 		state = "sneak"
 	elif speed > RUN_FROM:
 		state = "run"
-	elif speed > 0.15:
+	elif speed > 0.15 or absf(yaw_rate) > TURN_STEP:
 		state = "walk"
 	else:
 		still = chitter_time <= 0.0
@@ -402,7 +477,9 @@ func _rigged_rate(anim_name: String) -> float:
 		return 1.0
 	var g: Array = GAITS[anim_name]
 	var natural: float = g[0] * scale.x / (g[1] * g[2])
-	return clampf(speed / natural, 0.0, g[3])
+	# Turning on the spot, his paws travel round his middle.
+	var pace := maxf(speed, absf(yaw_rate) * PAW_PIVOT * scale.x)
+	return clampf(pace / natural, 0.0, g[3])
 
 
 ## A matte material in the palette colour for one of the Blender model's materials.

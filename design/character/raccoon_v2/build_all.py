@@ -35,6 +35,19 @@ FACE = dict(
 # The body (mesh.py): the head at 1.287x on the neck (solved against idle.jpg), the body
 # from the design's proportions, body and legs fused into about 340 big facets.
 PARAMS = dict(face_head=(1.287, (0, -0.201, 0.537)), body_v3=True, fuse=True, facets=340)
+# A leaner rear (19 Oct 2026: the author said his bum looked big and made him look a bit
+# fat). Behind the belly the body now narrows to the tail instead of swelling at the hips
+# (top-view width at the hips 0.65 -> 0.56 m, at the rump 0.59 -> 0.43 m), the rump is
+# tucked up behind the thighs instead of hanging low, the thigh tops sit in from the
+# flanks, and the tail is slimmer where it leaves the body. Head, neck, chest, legs'
+# length, back line and tail length are as before. (y, top z, bottom z, half width)
+PARAMS.update(
+    body3=[(0.54, 0.58, 0.47, 0.06), (0.495, 0.66, 0.37, 0.14), (0.43, 0.72, 0.27, 0.20),
+           (0.31, 0.770, 0.19, 0.245), (0.17, 0.765, 0.17, 0.275), (0.03, 0.74, 0.18, 0.272),
+           (-0.08, 0.72, 0.19, 0.26), (-0.17, 0.70, 0.21, 0.245), (-0.225, 0.70, 0.27, 0.25),
+           (-0.285, 0.675, 0.345, 0.225)],
+    thigh=((-0.02, 0.085), (0.0, 0.08)),
+    tail_radii=[0.07, 0.082, 0.098, 0.112, 0.12, 0.118, 0.112, 0.10, 0.085, 0.06])
 
 
 def run(script, **params):
