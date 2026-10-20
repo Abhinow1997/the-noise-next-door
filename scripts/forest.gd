@@ -93,9 +93,12 @@ const SPACING_CELL := 3.3
 
 ## Where the raccoon curls up in the hollow, in world space.
 var rest_spot: Transform3D
+## Where he lands when he leaps out of the hollow: on the ground clear of the skirt,
+## facing away from the tree.
+var rest_exit: Transform3D
 ## The trunks the raccoon can climb, one per tree he can reach: `base` and `top`
 ## (where the branches start) in world space, the trunk's radius at each (`r0`, `r1`),
-## and `clear`, its collider's radius. The home pine's also has `rest_spot`.
+## and `clear`, its collider's radius. The home pine's also has `rest_spot` and `rest_exit`.
 var climbable: Array[Dictionary] = []
 var bin_spot := Vector3(7.6, 0, -1.1)
 var can_spots: Array[Vector3] = [Vector3(6.9, 0, -0.3), Vector3(8.4, 0, -0.5), Vector3(7.8, 0, 0.3),
@@ -292,14 +295,16 @@ func _build_home() -> void:
 	_remember(_v2(HOME))
 	# He lies across the hollow facing -X, so his side and curled tail face the camera.
 	rest_spot = Transform3D(Basis(Vector3.UP, PI / 2), HOME + rest)
+	# Far enough out that his leap clears the lip of the hollow and the skirt below it.
+	rest_exit = Transform3D(Basis(Vector3.UP, PI), HOME + Vector3(0, 0, 2.8))
 	# He can climb the trunk up to the skirt's lowest points; from there he goes in.
 	climbable.append({"base": HOME, "top": HOME + Vector3(0, h * 0.24 - h * 0.21 * 0.06, 0), "r0": 0.5,
-		"r1": 0.45, "clear": trunk.radius, "rest_spot": rest_spot})
+		"r1": 0.45, "clear": trunk.radius, "rest_spot": rest_spot, "rest_exit": rest_exit})
 
 
 ## The home pine's bottom skirt, with a hexagonal hollow cut into the side that faces
-## the camera (+Z) and a nest of leaves inside. Returns where the raccoon lies,
-## relative to the tree.
+## the camera (+Z) and a nest of leaves inside. Returns where the middle of the
+## curled-up raccoon lies, sunk a little into the leaves, relative to the tree.
 func _add_hollow_tier(st: SurfaceTool, hem: float, apex: float, radius: float) -> Vector3:
 	var ring := _hem_ring(hem, radius, 5, 0.0)
 	var top := Vector3(0, apex, 0)
@@ -368,7 +373,7 @@ func _add_hollow_tier(st: SurfaceTool, hem: float, apex: float, radius: float) -
 	var nest := center - out * HOLLOW_DEPTH * 0.55 + Vector3(0, -HOLLOW_SIZE.y * 0.3, 0)
 	LowPoly.add_icosphere(st, nest, Vector3(0.5, 0.13, 0.36), 1, 0.35, 21,
 		func(_n: Vector3) -> Color: return NEST[nest_rng.randi() % NEST.size()])
-	return nest + Vector3(0, 0.07, 0)
+	return nest + Vector3(0, 0.1, 0)
 
 
 # --- Trees -------------------------------------------------------------------

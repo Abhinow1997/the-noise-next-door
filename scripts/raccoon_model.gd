@@ -15,6 +15,12 @@ const MODEL_PATH := "res://assets/characters/raccoon.glb"
 const RIGGED_PATH := "res://assets/characters/raccoon_v2.glb"
 ## Where carried things sit, just under the snout, in the model's own space.
 const RIGGED_MOUTH := Vector3(0, 0.37, -0.57)
+## The middle of his underside when he's curled up asleep, in model space, measured
+## from each model's sleep pose. He curls up round his hips rather than over his
+## feet, so while he sleeps the model slides by this to put the ball on his origin.
+const RIGGED_SLEEP_BED := Vector3(-0.262, 0.066, 0.327)
+const MODEL_SLEEP_BED := Vector3(-0.111, 0.001, 0.104)
+const CODE_SLEEP_BED := Vector3(-0.113, -0.038, -0.021)
 ## How long one animation takes to blend into the next, in seconds.
 const RIGGED_BLEND := 0.2
 ## Seconds standing still before he gets bored (as with the sprites).
@@ -94,6 +100,11 @@ var hopping := false
 ## Rigged model only: play this animation whatever he's doing ("" = his real state).
 ## For screenshots.
 var forced_animation := ""
+## Rigged model only: hold the run animation at this point in its cycle (wrapping
+## round 1), for a leap; negative when he isn't leaping.
+var leap := -1.0
+## 0..1: squashes him down, crouching to spring or soaking up a landing.
+var squash := 0.0
 
 var body: Node3D
 var head: Node3D
@@ -109,6 +120,9 @@ var _head_y := 0.47
 ## How far the tail pitches as he crouches; positive lowers it.
 var _tail_crouch := 0.1
 var _model_materials := {}
+var _sleep_bed := Vector3.ZERO
+## Rigged model: how far the sleep animation has blended in, 0..1.
+var _curl := 0.0
 var _t := 0.0
 ## The rigged model: its animation player, the turned-round scene root, how long
 ## he's been standing still, and the chitter hop.
@@ -120,6 +134,10 @@ var _bounce := 0.0
 
 
 func _ready() -> void:
+	# His pose (the slide as he curls up, the rig's lean, squash and hop) is set
+	# every frame in _process, so the model isn't interpolated itself; it still
+	# rides on the player, who is, so he's drawn between physics ticks.
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	_build()
 
 
@@ -144,6 +162,8 @@ func _process(delta: float) -> void:
 		chitter_time = maxf(chitter_time - delta, 0.0)
 		return
 	chitter_time = maxf(chitter_time - delta, 0.0)
+	# As he curls up, slide the model so the middle of the ball lies where he was laid.
+	position = -_sleep_bed * scale * sleep
 
 	# Diagonal leg pairs swing together, like a real trot.
 	var stride := sin(walk_phase) * 0.65 * walk_amount
@@ -164,9 +184,11 @@ func _process(delta: float) -> void:
 		head.rotation.x += sin(_t * 45.0) * 0.07
 		head.rotation.y += sin(_t * 31.0) * 0.05
 
-	# Asleep: lie flat, tuck the head round towards the tail, and breathe slowly.
+	# Asleep: lie flat and tuck the head round towards the tail. No breathing: he
+	# doesn't swell and shrink, asleep or awake.
 	body.position.y -= sleep * 0.17
-	body.scale.y = 1.0 + sin(_t * 1.7) * 0.025 * sleep
+	var wide := 1.0 + 0.12 * squash
+	body.scale = Vector3(wide, 1.0 - 0.2 * squash, wide)
 	head.position.y = _head_y - sleep * 0.07
 	if sleep > 0.0:
 		head.rotation.y = lerpf(head.rotation.y, 0.95, sleep)
@@ -182,9 +204,12 @@ func _process(delta: float) -> void:
 
 func _build() -> void:
 	if use_rigged_model and _build_rigged():
+		_sleep_bed = RIGGED_SLEEP_BED
 		return
 	if use_blender_model and _build_from_model():
+		_sleep_bed = MODEL_SLEEP_BED
 		return
+	_sleep_bed = CODE_SLEEP_BED
 	_head_y = 0.47
 	_tail_crouch = 0.1
 	body = _part("Body", self, Vector3.ZERO)
@@ -321,23 +346,35 @@ func _process_rigged(delta: float) -> void:
 	if _anim.current_animation != anim_name:
 		_anim.play(anim_name, RIGGED_BLEND)
 	_anim.speed_scale = _rigged_rate(anim_name)
+	if leap >= 0.0 and forced_animation == "":
+		# Seek every frame rather than pausing: a paused player never finishes its blend.
+		_anim.seek(fposmod(leap, 1.0) * _anim.current_animation_length, true)
+	# As the sleep animation blends in, slide the model so the middle of the ball
+	# lies where he was laid, and back again as it blends out.
+	_curl = move_toward(_curl, 1.0 if anim_name == "sleep" else 0.0, delta / RIGGED_BLEND)
+	position = -_sleep_bed * scale * _curl
 	# A lean into turns, and a quick squash and hop when he chitters (there's no
 	# chitter animation yet).
 	if chitter_time > _chitter_prev:
 		_bounce = 1.0
 	_chitter_prev = chitter_time
 	_bounce = maxf(_bounce - delta / 0.35, 0.0)
-	var squash := sin(_bounce * PI)
+	var hop := sin(_bounce * PI)
 	var lean := 0.0 if climbing else -turn * 0.08
 	_rig.rotation.z = lerpf(_rig.rotation.z, lean, 1.0 - exp(-10.0 * delta))
-	_rig.scale = Vector3(1.0 + 0.07 * squash, 1.0 - 0.12 * squash, 1.0 + 0.07 * squash)
-	_rig.position.y = 0.05 * squash
+	var wide := 1.0 + 0.07 * hop + 0.12 * squash
+	_rig.scale = Vector3(wide, 1.0 - 0.12 * hop - 0.2 * squash, wide)
+	_rig.position.y = 0.05 * hop
 
 
 func _rigged_state(delta: float) -> String:
 	var still := false
 	var state := "idle"
-	if sleep > 0.5:
+	# A leap holds poses from the run; asleep, he's curled up from the moment he
+	# starts dozing until he gets up.
+	if leap >= 0.0:
+		state = "run"
+	elif sleep > 0.0:
 		state = "sleep"
 	elif hopping:
 		state = "run"
@@ -361,7 +398,7 @@ func _rigged_state(delta: float) -> String:
 ## paws still at his current speed (capped); 1 for the rest. Sneaking or climbing
 ## on the spot holds the pose.
 func _rigged_rate(anim_name: String) -> float:
-	if not GAITS.has(anim_name) or hopping or forced_animation != "":
+	if not GAITS.has(anim_name) or hopping or leap >= 0.0 or forced_animation != "":
 		return 1.0
 	var g: Array = GAITS[anim_name]
 	var natural: float = g[0] * scale.x / (g[1] * g[2])

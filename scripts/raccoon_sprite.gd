@@ -56,6 +56,10 @@ func _ready() -> void:
 	alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
 	texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Placed in the world every frame in _process, where the player is drawn, so it
+	# takes none of his transform and isn't interpolated itself.
+	top_level = true
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	player.chittered.connect(func() -> void: _bounce = 1.0)
 	# The 3D raccoon now only casts his shadow.
 	for mesh: GeometryInstance3D in player.model.find_children("*", "GeometryInstance3D", true, false):
@@ -93,7 +97,7 @@ func _process(delta: float) -> void:
 	_bounce = maxf(_bounce - delta / 0.35, 0.0)
 	var squash := sin(_bounce * PI)
 	global_basis = facing * Basis.from_scale(Vector3(1.0 + 0.07 * squash, 1.0 - 0.12 * squash, 1.0))
-	global_position = player.global_position + camera.global_basis.y * 0.05 * squash
+	global_position = player.get_global_transform_interpolated().origin + camera.global_basis.y * 0.05 * squash
 	if state == "climb":
 		# Drawn a little toward the camera, so the bark doesn't cut through him.
 		global_position += camera.global_basis.z * 0.35

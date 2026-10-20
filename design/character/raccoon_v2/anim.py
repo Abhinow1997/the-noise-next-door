@@ -78,7 +78,7 @@ def apply(pose, frame):
         pb = PB[b]
         pb.rotation_quaternion = wrot(b, *pose.rot.get(b, []))
         pb.keyframe_insert("rotation_quaternion", frame=frame)
-        if b.startswith("eye") or b == "spine" or b == "chest":
+        if b.startswith("eye"):
             pb.scale = pose.scale.get(b, (1, 1, 1))
             pb.keyframe_insert("scale", frame=frame)
     PB["pelvis"].location = wloc("pelvis", pose.pelvis)
@@ -96,7 +96,41 @@ def apply(pose, frame):
         PB[k].keyframe_insert("rotation_quaternion", frame=frame)
 
 
-def make(name, frames, fn):
+# How far steady_head may lift the body above where the gait put it, in metres.
+RISE_MAX = 0.02
+
+
+def steady_head(frames, fn, keep):
+    """Re-keys the body's place so the head rides steadily while the legs take the
+    bounce, as running animals hold theirs: on each frame the pelvis, and everything on
+    it, shifts by just enough to take out all but `keep` of the head's rise and fall and
+    of its surge back and forth. (The neck is too short to do it alone.) The planted paws
+    stay put, so the legs bend and straighten to suit. The whole run sinks by as much as
+    it takes for the body never to rise more than RISE_MAX above where it was, so the
+    hind legs, at full stretch as they push off, still reach the ground. Returns the
+    largest shift, in metres."""
+    def posed(f, shift):
+        pose = Pose()
+        fn(f / frames, pose)
+        pose.pelvis = pose.pelvis + shift
+        apply(pose, f)
+
+    heads = []
+    for f in range(frames):
+        posed(f, Vector())
+        bpy.context.view_layer.update()
+        heads.append(PB["head"].head.copy())
+    mean = sum(heads, Vector()) / frames
+    shifts = [(keep - 1.0) * Vector((0, h.y - mean.y, h.z - mean.z)) for h in heads]
+    sink = Vector((0, 0, max(0.0, max(s.z for s in shifts) - RISE_MAX)))
+    for f in range(frames + 1):
+        posed(f, shifts[f % frames] - sink)
+    return max((s - sink).length for s in shifts)
+
+
+def make(name, frames, fn, steady=None):
+    """Keys action `name`, `frames` long, from fn(u, pose). With `steady`, the head is
+    steadied afterwards (see steady_head), keeping that share of its bob."""
     if ONLY and name not in ONLY:
         return
     act = bpy.data.actions.get(name)
@@ -114,6 +148,8 @@ def make(name, frames, fn):
         pose = Pose()
         fn(f / frames, pose)
         apply(pose, f)
+    if steady is not None:
+        print("  head steadied, the body shifting up to %.1f cm" % (100 * steady_head(frames, fn, steady)))
     act.use_frame_range = True
     act.frame_start, act.frame_end = 0, frames
     act.use_cyclic = True
@@ -132,21 +168,16 @@ def tail_curve(pose, lift, side, curl=0.0, wave=0.0, u=0.0, speed=1.0):
         pose.turn(b, Z, -(side * k + ripple * 0.35))
 
 
-def breathe(pose, u, cycles, amount=0.02):
-    s = 1 + amount * math.sin(TAU * cycles * u)
-    pose.scale["chest"] = (s, 1, s)
-    pose.scale["spine"] = (s, 1, s)
-
-
 def eyes(pose, open_amount):
     for e in ("eye.L", "eye.R"):
         pose.scale[e] = (1, max(open_amount, 0.08), 1)
 
 
-# --- Idle: standing, breathing, glancing about, tail curled up behind ---------------------
+# --- Idle: standing, glancing about, tail curled up behind --------------------------------
+# No breathing in any action: scaling the chest made him swell and shrink, and the head
+# with it, which at the gaits' playback speeds read as the head shaking.
 
 def idle(u, pose):
-    breathe(pose, u, 2)
     look = math.sin(TAU * u) * 0.32 + math.sin(TAU * 2 * u + 1.0) * 0.08
     pose.turn("neck", Z, look * 0.4)
     pose.turn("head", Z, look * 0.6)
@@ -208,7 +239,6 @@ def walk(u, pose):
     pose.turn("head", X, 0.02 * math.cos(2 * TAU * (u - 0.15)))   # a small nod, just behind
     sway = math.cos(TAU * (u - 0.40))                 # tail follows the hips a beat late
     tail_curve(pose, 0.38 + 0.05 * rise, 0.16 * sway, wave=0.10, u=u)
-    breathe(pose, u, 2, 0.01)
 
 
 # --- Run: a lope ------------------------------------------------------------------------
@@ -217,6 +247,9 @@ def walk(u, pose):
 # flat), push off by u ~ 0.95. The body rises in the two moments with no foot down
 # (u ~ 0.47 and ~ 0.97) and dips while a pair is planted; it rocks nose-up as the front
 # feet push off and nose-down as they land. Head and tail counter the rocking.
+# The game plays the run at nearly 3x, so the rock and the bounce put the head through
+# 14 cm about 4 times a second, which reads as shaking. So make() steadies the head
+# afterwards, keeping a quarter of its bob: the hips bound under a head that glides.
 RUN = dict(stride=0.46, duty=0.40, lift_h=0.09, lift_f=0.13,
            phase={"foot_ik.L": 0.0, "foot_ik.R": 0.06, "hand_ik.L": 0.50, "hand_ik.R": 0.56})
 
@@ -261,7 +294,6 @@ def run(u, pose):
         pose.turn(e, X, -0.4)                          # ears back
     lag = math.cos(TAU * (u - 0.06))                   # the tail follows a beat behind
     tail_curve(pose, 0.12 + 0.16 * lag, 0.0, curl=-0.05 * lag, wave=0.0, u=u)
-    breathe(pose, u, 2, 0.02)
 
 
 # --- Sneak: a stalk, one paw at a time ----------------------------------------------------
@@ -328,7 +360,6 @@ def sneak(u, pose):
         pose.turn(b, X, [-0.18, 0.04, 0.03, 0.02][i])
         pose.turn(b, Z, [0.0, 0.0, 0.08, 0.16][i] * twitch)
     eyes(pose, 0.7)
-    breathe(pose, u, 2, 0.008)
 
 
 # --- Bored: sitting up, scratching behind an ear, droopy eyes ------------------------------
@@ -341,7 +372,6 @@ def bored(u, pose):
     pose.turn("head", X, 0.15)
     pose.turn("head", Y, 0.25)                       # a lazy tilt
     pose.turn("head", Z, -0.25)
-    breathe(pose, u, 1.5, 0.025)
     eyes(pose, 0.5)
     # Hind feet out in front, soles forward.
     pose.paw["foot_ik.L"] = Vector((0.03, -0.30, -0.01))
@@ -377,7 +407,6 @@ def sleep(u, pose):
     for i, b in enumerate(["tail1", "tail2", "tail3", "tail4"]):
         pose.turn(b, X, P_SLEEP.get("tail_down", -0.36) if i == 0 else 0.03)
         pose.turn(b, Z, -P_SLEEP.get("tail", [0.75, 0.55, 0.5, 0.5])[i])   # round the front, under his chin
-    breathe(pose, u, 1, 0.035)
     eyes(pose, 0.0)
 
 
@@ -398,7 +427,7 @@ def climb(u, pose):
 
 make("idle", 96, idle)
 make("walk", 24, walk)
-make("run", 16, run)
+make("run", 16, run, steady=0.25)
 make("sneak", 48, sneak)
 make("bored", 96, bored)
 make("sleep", 96, sleep)

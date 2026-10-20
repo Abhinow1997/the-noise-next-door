@@ -40,7 +40,7 @@ func _ready() -> void:
 	_at(170, func() -> void:
 		Input.action_release("run")
 		Input.action_release("move_right"))
-	_at(200, func() -> void: player.global_position = level.Forest.START)
+	_at(200, func() -> void: player.place(level.Forest.START))
 	_at(210, func() -> void:
 		Input.action_press("move_right")
 		Input.action_press("run"))
@@ -50,7 +50,7 @@ func _ready() -> void:
 
 	# Climbing: onto the nearest trunk, up, cling still, then down a little.
 	_at(300, func() -> void:
-		player.global_position = level.Forest.START
+		player.place(level.Forest.START)
 		var nearest: Dictionary = level.forest.climbable[0]
 		for tree: Dictionary in level.forest.climbable:
 			if tree.base.distance_to(player.global_position) < nearest.base.distance_to(player.global_position):
@@ -61,21 +61,36 @@ func _ready() -> void:
 	_at(380, Input.action_press.bind("move_back"))
 	_at(395, Input.action_release.bind("move_back"))
 
-	# Tasks: five ticked off over four frames, two of them in the same frame.
+	# A nap: from the trunk into the hollow, asleep long enough to tick off the nap
+	# (its laugh comes mid-nap), then woken, leaping out and landing.
+	_at(400, func() -> void: player.rest(level.forest.rest_spot, level.forest.rest_exit))
+	_at(700, _check_nap)
+	_at(700, Input.action_press.bind("move_back"))
+	_at(705, Input.action_release.bind("move_back"))
+	_at(860, _check_awake)
+
+	# Tasks: five ticked off over four frames, two of them in the same frame (the
+	# nap's was ticked off in the hollow). Things are put straight in place with the
+	# interpolation reset, so they aren't drawn sliding there.
 	var den: Vector3 = level.Forest.HOME
-	_at(420, func() -> void: level.bin.rotation = Vector3(PI / 2, 0, 0))
-	_at(440, func() -> void:
+	_at(920, func() -> void:
+		level.bin.rotation = Vector3(PI / 2, 0, 0)
+		level.bin.reset_physics_interpolation())
+	_at(940, func() -> void:
 		level.lid.global_position = den + Vector3(1.4, 0.3, 0.6)
-		level.gnome.global_position = den + Vector3(-1.4, 0.3, 0.6))
-	_at(460, func() -> void:
+		level.gnome.global_position = den + Vector3(-1.4, 0.3, 0.6)
+		level.lid.reset_physics_interpolation()
+		level.gnome.reset_physics_interpolation())
+	_at(960, func() -> void:
 		for k in 3:
-			level.cans[k].global_position = den + Vector3(-0.6 + 0.6 * k, 0.3, 1.3))
-	_at(480, func() -> void: level._sleep_time = 3.0)
+			level.cans[k].global_position = den + Vector3(-0.6 + 0.6 * k, 0.3, 1.3)
+			level.cans[k].reset_physics_interpolation())
+	_at(980, func() -> void: level._sleep_time = 3.0)
 
 	# Pause and mute: switched on and off again; the game mustn't care.
-	_at(500, _check_pause_and_mute)
+	_at(1000, _check_pause_and_mute)
 	# The end: after the last laugh and the fade, the music has stopped.
-	_at(780, _finish)
+	_at(1280, _finish)
 
 
 func _physics_process(_delta: float) -> void:
@@ -103,6 +118,24 @@ func _check(name: String, expected, actual) -> void:
 	var ok: bool = expected == actual
 	_failed = _failed or not ok
 	_results.append([name, str(expected), str(actual), "pass" if ok else "FAIL"])
+
+
+## Asleep, after the nap's laugh: the lullaby has taken over, and the camera is in close.
+func _check_nap() -> void:
+	_check("Nap: the nap is ticked off in the hollow", true, level.tasks[4].done)
+	_check("Nap: the lullaby is playing", true, level._sleep_music.playing)
+	_check("Nap: the lullaby is at full level", true,
+		absf(level._sleep_music.volume_db - level.SLEEP_MUSIC_DB) < 0.5)
+	_check("Nap: the forest loop is faded right down", true, level._music.volume_db <= -59.0)
+	_check("Nap: the camera has eased in close", 1.0, level._sleep_view)
+
+
+## Woken and out of the hollow: the forest loop is back, the lullaby has stopped.
+func _check_awake() -> void:
+	_check("Awake: he's out and on the ground", true, not level.player.resting and level.player.is_on_floor())
+	_check("Awake: the lullaby has stopped", false, level._sleep_music.playing)
+	_check("Awake: the forest loop is back to full", true, absf(level._music.volume_db - level.MUSIC_DB) < 0.5)
+	_check("Awake: the camera is back out", 0.0, level._sleep_view)
 
 
 func _check_pause_and_mute() -> void:
@@ -137,6 +170,12 @@ func _finish() -> void:
 		var frames := roundi(s.get_length() * s.mix_rate)
 		_check("Loop marker over the whole file: " + path.get_file(), true,
 			s.loop_mode == AudioStreamWAV.LOOP_FORWARD and s.loop_begin == 0 and absi(s.loop_end - frames) <= 1)
+	# The lullaby plays its opening once, then loops from where its main section repeats.
+	var lullaby := load(level.SLEEP_MUSIC_PATH) as AudioStreamWAV
+	var lullaby_frames := roundi(lullaby.get_length() * lullaby.mix_rate)
+	_check("Loop marker from the repeat to the end: lullaby-loop.wav", true,
+		lullaby.loop_mode == AudioStreamWAV.LOOP_FORWARD and lullaby.loop_begin == 1807920
+		and absi(lullaby.loop_end - lullaby_frames) <= 1)
 
 	print("")
 	print("Sound check, %s" % Time.get_datetime_string_from_system())

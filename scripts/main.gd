@@ -76,6 +76,18 @@ const PIVOT := Vector3(0, 0.27, 0)
 const LEAN := 0.3
 ## ...starting this far away and fully leaning at half of it.
 const LEAN_RANGE := 9.0
+## The close-up the author picked with the Tab panel for watching him sleep in the
+## hollow: low, nearly straight on, 9 m away. The camera eases into it as he curls
+## up and back out as he wakes. Its distance and aim already include the wheel's
+## zoom, so zooming doesn't change it.
+const SLEEP_CAMERA_PITCH := 10.0
+const SLEEP_CAMERA_YAW := -1.0
+const SLEEP_CAMERA_FOV := 14.0
+const SLEEP_CAMERA_DISTANCE := 9.0
+const SLEEP_CAMERA_AHEAD := 0.5
+## Seconds to ease into the close-up, and back out once he wakes.
+const SLEEP_CAMERA_IN := 3.0
+const SLEEP_CAMERA_OUT := 1.5
 
 ## The level's music: a 16-bar loop cut from the generated forest track in
 ## design/music/ (see SOURCES.md). The WAV's own loop marker makes it repeat seamlessly.
@@ -85,6 +97,14 @@ const MUSIC_PATH := "res://assets/audio/music/forest-loop.wav"
 ## found the effects too quiet against it.
 const MUSIC_DB := -12.0
 const MUSIC_FADE_IN := 2.0
+## The nap music: the generated lullaby in design/music/ (MUS-THEME-SLOW), from its
+## start, then round a 34 s section cut to loop seamlessly (see SOURCES.md). It fades
+## in over the forest loop as he curls up in the hollow, and out as he wakes. It's
+## as loud as the forest loop (both measure about -15 LUFS), so it plays at the same level.
+const SLEEP_MUSIC_PATH := "res://assets/audio/music/lullaby-loop.wav"
+const SLEEP_MUSIC_DB := MUSIC_DB
+const SLEEP_FADE := 3.0
+const WAKE_FADE := 1.5
 
 const INPUTS := {
 	"move_forward": [KEY_W, KEY_UP],
@@ -142,6 +162,12 @@ var _zoom_now := 1.0
 var _anchor := Vector3.ZERO
 var _music: AudioStreamPlayer
 var _music_tween: Tween
+var _sleep_music: AudioStreamPlayer
+var _sleep_tween: Tween
+## Whether he's napping in the hollow, and how far (0..1) the camera has eased
+## toward the sleeping close-up.
+var _napping := false
+var _sleep_view := 0.0
 var _task_laugh: AudioStreamPlayer
 var _finished := false
 var _hint: Label
@@ -225,6 +251,9 @@ func _ready() -> void:
 
 	camera = Camera3D.new()
 	camera.fov = CAMERA_FOV
+	# Placed every frame in _process, so it isn't interpolated; it follows where
+	# the raccoon is drawn instead (see _drawn).
+	camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	add_child(camera)
 	player = Player.new()
 	player.position = Forest.START
@@ -249,7 +278,7 @@ func _ready() -> void:
 		# Half see-through, so `--debug-collisions` shows his capsule inside him.
 		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
 		sprite.modulate = Color(1, 1, 1, 0.45)
-	_anchor = player.global_position + PIVOT
+	_anchor = _drawn() + PIVOT
 	_place_camera()
 
 	_task_laugh = AudioStreamPlayer.new()
@@ -272,13 +301,20 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# Curling up in the hollow, the camera eases in close and the lullaby takes over.
+	var napping := player.is_napping()
+	if napping != _napping:
+		_napping = napping
+		_nap_music(napping)
+	_sleep_view = move_toward(_sleep_view, 1.0 if napping else 0.0,
+		delta / (SLEEP_CAMERA_IN if napping else SLEEP_CAMERA_OUT))
 	if _closeup:
-		var focus := player.global_position + Vector3(0, 0.35, 0)
+		var focus := _drawn() + Vector3(0, 0.35, 0)
 		camera.global_position = focus + Vector3(1.5, 0.45, -0.8)
 		camera.look_at(focus)
 	else:
 		# Zoomed in, the camera follows more tightly, so he doesn't drift across the screen.
-		var aim := player.global_position + PIVOT + _camper_lean()
+		var aim := _drawn() + PIVOT + _camper_lean()
 		_anchor = _anchor.lerp(aim, 1.0 - exp(-6.0 / _zoom_now * delta))
 		_zoom_now = lerpf(_zoom_now, zoom, 1.0 - exp(-10.0 * delta))
 		_place_camera()
@@ -288,11 +324,11 @@ func _process(delta: float) -> void:
 	if _shot_path != "":
 		_frames += 1
 		if _grab_test and _frames == 1:
-			player.global_position = forest.bin_spot + Vector3(0, 0.02, 0.75)
+			player.place(forest.bin_spot + Vector3(0, 0.02, 0.75))
 		elif _grab_test and _frames == 10:
 			player._grab()
 		elif _grab_test and _frames == 20:
-			player.global_position = forest.bin_spot + Vector3(-1.5, 0.02, 2.4)
+			player.place(forest.bin_spot + Vector3(-1.5, 0.02, 2.4))
 		elif _climb_test and _frames == 1:
 			# Onto the nearest trunk, then up it for a moment.
 			var nearest: Dictionary = forest.climbable[0]
@@ -305,12 +341,15 @@ func _process(delta: float) -> void:
 		elif _climb_test and _frames == 38:
 			Input.action_release("move_forward")
 		elif _rest_test and _frames == 1:
-			player.rest(forest.rest_spot)
+			player.rest(forest.rest_spot, forest.rest_exit)
 		elif _tick_test and _frames == 1:
 			bin.rotation = Vector3(PI / 2, 0, 0)
-		if _frames == _shot_frame - 15 and _music:
-			# Stopped well before the quit, so the audio thread has let go of it.
-			_music.stop()
+			bin.reset_physics_interpolation()
+		if _frames == _shot_frame - 15:
+			# Stopped well before the quit, so the audio thread has let go of them.
+			for music: AudioStreamPlayer in [_music, _sleep_music]:
+				if music:
+					music.stop()
 		if _frames == _shot_frame:
 			get_viewport().get_texture().get_image().save_png(_shot_path)
 			get_tree().quit()
@@ -332,6 +371,52 @@ func _start_music() -> void:
 	_music.play()
 	_music_tween = create_tween()
 	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
+	if not ResourceLoader.exists(SLEEP_MUSIC_PATH):
+		push_warning("The nap music isn't imported yet: %s" % SLEEP_MUSIC_PATH)
+		return
+	_sleep_music = AudioStreamPlayer.new()
+	_sleep_music.stream = load(SLEEP_MUSIC_PATH)
+	_sleep_music.volume_db = -60.0
+	_sleep_music.bus = "Music"
+	_sleep_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_sleep_music)
+
+
+## As he curls up, the lullaby starts from its beginning and fades in while the
+## forest loop fades right down (it keeps playing, so it comes back where it was);
+## as he wakes, it's the other way round. Once every task is done the forest loop
+## has ended, and waking leaves the clearing quiet.
+func _nap_music(napping: bool) -> void:
+	var time := SLEEP_FADE if napping else WAKE_FADE
+	if _music and not _finished:
+		_restart_music_tween()
+		_crossfade(_music_tween, _music, -60.0 if napping else MUSIC_DB, time)
+	if _sleep_music == null:
+		return
+	_restart_sleep_tween()
+	if napping:
+		_sleep_music.volume_db = -60.0
+		_sleep_music.play()
+		_crossfade(_sleep_tween, _sleep_music, SLEEP_MUSIC_DB, time)
+	else:
+		_crossfade(_sleep_tween, _sleep_music, -60.0, time)
+		_sleep_tween.tween_callback(_sleep_music.stop)
+
+
+## Fades `music` to `to_db` evenly in power rather than in decibels, so while one
+## track fades out and the other in they stay as loud together, with no dip between.
+func _crossfade(tween: Tween, music: AudioStreamPlayer, to_db: float, time: float) -> void:
+	var from := pow(db_to_linear(music.volume_db), 2.0)
+	var to := pow(db_to_linear(to_db), 2.0)
+	tween.tween_method(func(t: float) -> void:
+		music.volume_db = maxf(linear_to_db(sqrt(lerpf(from, to, t))), -60.0), 0.0, 1.0, time)
+
+
+func _restart_sleep_tween() -> void:
+	if _sleep_tween:
+		_sleep_tween.kill()
+	_sleep_tween = create_tween()
+	_sleep_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 
 
 # --- Sound -------------------------------------------------------------------
@@ -357,12 +442,20 @@ func _count_sound(id: String) -> void:
 	sound_counts[id] = sound_counts.get(id, 0) + 1
 
 
-## The laugh for a ticked-off task, with the music dipping under it.
+## The laugh for a ticked-off task, with the music dipping under it: the lullaby
+## while he naps, the forest loop otherwise.
 func _play_task_laugh() -> void:
 	if _task_laugh.stream == null:
 		return
 	_task_laugh.play()
 	_count_sound("SFX-TASK-LAUGH")
+	if _napping:
+		if _sleep_music:
+			_restart_sleep_tween()
+			_sleep_tween.tween_property(_sleep_music, "volume_db", SLEEP_MUSIC_DB - DUCK_DB, 0.1)
+			_sleep_tween.tween_interval(_task_laugh.stream.get_length())
+			_sleep_tween.tween_property(_sleep_music, "volume_db", SLEEP_MUSIC_DB, 0.4)
+		return
 	if _music == null or _finished:
 		return
 	_restart_music_tween()
@@ -372,14 +465,16 @@ func _play_task_laugh() -> void:
 
 
 ## Every task done: after the last laugh, the music fades out and the clearing goes
-## quiet (pillar 3, Home should be quiet).
+## quiet (pillar 3, Home should be quiet). If he's napping, the forest loop is
+## already faded down under the lullaby, so it just finishes fading.
 func _end_music() -> void:
 	if _music == null:
 		return
 	_restart_music_tween()
-	_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
-	if _task_laugh.stream:
-		_music_tween.tween_interval(_task_laugh.stream.get_length())
+	if not _napping:
+		_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
+		if _task_laugh.stream:
+			_music_tween.tween_interval(_task_laugh.stream.get_length())
 	_music_tween.tween_property(_music, "volume_db", -60.0, END_FADE)
 	_music_tween.tween_callback(_music.stop)
 
@@ -444,15 +539,27 @@ func _texture_ground() -> void:
 
 
 ## The aim point and the distance both scale with the zoom, so zooming slides the
-## camera along its line to the raccoon and he stays put on screen.
+## camera along its line to the raccoon and he stays put on screen. While he naps
+## it blends, eased, into the sleeping close-up, swinging round him rather than
+## cutting across.
 func _place_camera() -> void:
-	var pitch := deg_to_rad(camera_pitch)
+	var w := smoothstep(0.0, 1.0, _sleep_view)
+	var pitch := deg_to_rad(lerpf(camera_pitch, SLEEP_CAMERA_PITCH, w))
+	var distance := lerpf(camera_distance * _zoom_now, SLEEP_CAMERA_DISTANCE, w)
+	var ahead := lerpf(camera_ahead * _zoom_now, SLEEP_CAMERA_AHEAD, w)
 	# From the raccoon toward the camera, along the ground; yaw 0 looks north (-Z).
-	var back := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(camera_yaw))
-	var focus := _anchor - back * camera_ahead * _zoom_now
-	camera.fov = camera_fov
-	camera.global_position = focus + (back * cos(pitch) + Vector3.UP * sin(pitch)) * camera_distance * _zoom_now
+	var back := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(lerpf(camera_yaw, SLEEP_CAMERA_YAW, w)))
+	var focus := _anchor - back * ahead
+	camera.fov = lerpf(camera_fov, SLEEP_CAMERA_FOV, w)
+	camera.global_position = focus + (back * cos(pitch) + Vector3.UP * sin(pitch)) * distance
 	camera.look_at(focus)
+
+
+## Where the raccoon is drawn this frame. He moves in physics ticks (60 a second)
+## and is drawn between them (physics interpolation), so anything placed every frame
+## follows this rather than his position, or he shakes on a faster screen.
+func _drawn() -> Vector3:
+	return player.get_global_transform_interpolated().origin
 
 
 ## How far to shift the camera's aim toward the nearest camper.
@@ -460,7 +567,7 @@ func _camper_lean() -> Vector3:
 	var lean := Vector3.ZERO
 	var nearest := LEAN_RANGE
 	for camper: Node3D in get_tree().get_nodes_in_group("camper"):
-		var to_camper := camper.global_position - player.global_position
+		var to_camper := camper.global_position - _drawn()
 		to_camper.y = 0.0
 		if to_camper.length() < nearest:
 			nearest = to_camper.length()
@@ -503,7 +610,7 @@ func _check_tasks(delta: float) -> void:
 		_nap_time = _nap_time + delta if napping else 0.0
 		if _nap_time > 1.0:
 			_nap_time = 0.0
-			player.rest(forest.rest_spot)
+			player.rest(forest.rest_spot, forest.rest_exit)
 
 	var state := {
 		"bin": bin.global_basis.y.y < 0.5,
@@ -540,7 +647,7 @@ func _in_den(node: Node3D) -> bool:
 
 ## Points the trees' see-through window at the raccoon.
 func _update_see_through() -> void:
-	var target := player.global_position + Vector3(0, 0.25, 0)
+	var target := _drawn() + Vector3(0, 0.25, 0)
 	var mat := forest.see_through
 	mat.set_shader_parameter("focus_uv", camera.unproject_position(target) / get_viewport().get_visible_rect().size)
 	mat.set_shader_parameter("focus_depth", (target - camera.global_position).dot(-camera.global_basis.z))

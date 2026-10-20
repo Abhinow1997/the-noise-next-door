@@ -20,6 +20,26 @@ const CHITTER_DB := -4.0
 ## A loop keeps going this long after he stops, so a one-frame stumble doesn't
 ## restart it.
 const LOOP_HOLD := 0.12
+## How fast he drops off in the hollow (sleep per second). He starts just before he
+## lands there, so the sleep animation has blended in by the time he touches down.
+const DOZE_RATE := 1.5
+## Getting out of the hollow (see _leave_process), in seconds: waking, uncurling and
+## turning to the opening; crouching to spring; in the air; soaking up the landing.
+const LEAVE_WAKE := 0.35
+const LEAVE_CROUCH := 0.15
+const LEAVE_FLIGHT := 0.8
+const LEAVE_LAND := 0.22
+## How far he steps toward the opening before he leaps, and how high the leap rises
+## above where he takes off.
+const LEAVE_STEP := 0.3
+const LEAVE_RISE := 0.35
+## Points in the run animation's cycle he passes through in the air, against the
+## share of the flight gone: paws gathered, the hind legs' push, the full stretch
+## (held), then the front paws reaching down for the ground.
+const LEAP_AIR := [[0.0, 0.95], [0.15, 1.15], [0.35, 1.38], [0.8, 1.43], [1.0, 1.5]]
+## Where his front and hind paws are, ahead of and behind his middle (model scale 1).
+## Tipping nose up he pivots on the hind paws, nose down on the front ones.
+const PAW_REACH := 0.3
 
 @export var walk_speed := 2.0
 @export var run_speed := 4.0
@@ -37,7 +57,7 @@ var trees: Array[Dictionary] = []
 var model: RaccoonModel
 var held: RigidBody3D
 var sneaking := false
-## True while curled up in the hollow, including the hops in and out.
+## True while curled up in the hollow, including the hop in and the leap out.
 var resting := false
 ## True while on a tree trunk, including the hops on and off.
 var climbing := false
@@ -65,8 +85,11 @@ var _hop_height := 0.9
 ## Called when the hop lands.
 var _hop_done := Callable()
 var _waking := false
-## Where he hopped up from, to land there again.
-var _rest_return: Transform3D
+## Where he lies in the hollow and where he lands when he leaps out.
+var _rest_spot: Transform3D
+var _rest_exit: Transform3D
+## Seconds since he woke and started getting out of the hollow; -1 when he isn't.
+var _leave_t := -1.0
 ## The trunk he's climbing, how far up it he is (metres along it) and where round
 ## it (radians, 0 on its +Z side).
 var _tree: Dictionary
@@ -144,7 +167,12 @@ func _loop(sfx: AudioStreamPlayer, on: bool, id: String, delta: float) -> void:
 
 
 func is_hopping() -> bool:
-	return _hop_t >= 0.0
+	return _hop_t >= 0.0 or _leave_t >= 0.0
+
+
+## True from when he starts curling up in the hollow until he wakes.
+func is_napping() -> bool:
+	return resting and not _waking and model.sleep > 0.0
 
 
 func _walk_process(delta: float) -> void:
@@ -205,16 +233,26 @@ func _move_input() -> Vector2:
 	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
 
+## Puts him straight at `pos` with whatever he's carrying, for the tests. He's drawn
+## between physics ticks, so this resets that, or he'd be drawn sliding there.
+func place(pos: Vector3) -> void:
+	global_position = pos
+	_carry()
+	reset_physics_interpolation()
+	if held:
+		held.reset_physics_interpolation()
+
+
 ## Hops up to `spot` (the hollow in the home pine) and curls up there to sleep.
-## A move key wakes him and he hops back down.
-func rest(spot: Transform3D) -> void:
+## A move key wakes him and he leaps out, landing on `exit`.
+func rest(spot: Transform3D, exit: Transform3D) -> void:
 	if resting:
 		return
 	if held:
 		_drop()
-	# Climbing in from the trunk, he wakes on the ground in front of the hollow.
 	var from_trunk := climbing
-	_rest_return = _ground_spot(0.0) if from_trunk else global_transform
+	_rest_spot = spot
+	_rest_exit = exit
 	climbing = false
 	resting = true
 	_waking = false
@@ -241,6 +279,8 @@ func _hop_process(delta: float) -> void:
 	model.turn = 0.0
 	model.crouch = move_toward(model.crouch, 0.0, delta * 5.0)
 	_hop_t = minf(_hop_t + delta / _hop_time, 1.0)
+	if resting and not _waking and (1.0 - _hop_t) * _hop_time <= RaccoonModel.RIGGED_BLEND:
+		model.sleep = move_toward(model.sleep, 1.0, delta * DOZE_RATE)
 	var pos := _hop_from.origin.lerp(_hop_to.origin, _hop_t) + Vector3.UP * sin(PI * _hop_t) * _hop_height
 	global_transform = Transform3D(_hop_from.basis.slerp(_hop_to.basis, minf(_hop_t * 1.5, 1.0)), pos)
 	_carry()
@@ -255,16 +295,98 @@ func _rest_process(delta: float) -> void:
 	model.walk_amount = 0.0
 	model.turn = 0.0
 	if not _waking:
-		model.sleep = move_toward(model.sleep, 1.0, delta * 1.5)
+		model.sleep = move_toward(model.sleep, 1.0, delta * DOZE_RATE)
 		_waking = model.sleep >= 1.0 and _move_input().length_squared() > 0.1
+		if _waking:
+			_leave_t = 0.0
 		return
-	model.sleep = move_toward(model.sleep, 0.0, delta * 3.0)
-	if model.sleep <= 0.0:
-		_hop(global_transform, _rest_return, 0.8, 0.9, _end_rest)
+	_leave_process(delta)
+
+
+## Getting out of the hollow, as one movement: he wakes, uncurls and turns to the
+## opening as he steps up to it, crouches, leaps out and falls in an arc to `exit`,
+## lands front paws first and soaks it up, then he's the player's again.
+func _leave_process(delta: float) -> void:
+	_leave_t += delta
+	var exit := _rest_exit
+	var out := exit.origin - _rest_spot.origin
+	out.y = 0.0
+	out = out.normalized()
+	var takeoff := _rest_spot.origin + out * LEAVE_STEP
+	var t := _leave_t
+	if t < LEAVE_WAKE:
+		var f := t / LEAVE_WAKE
+		var e := smoothstep(0.0, 1.0, f)
+		model.sleep = 1.0 - f
+		model.leap = lerpf(0.8, 0.88, f)
+		global_transform = Transform3D(_rest_spot.basis.slerp(exit.basis, e), _rest_spot.origin.lerp(takeoff, e))
+		return
+	model.sleep = 0.0
+	t -= LEAVE_WAKE
+	if t < LEAVE_CROUCH:
+		var f := t / LEAVE_CROUCH
+		model.leap = lerpf(0.88, 0.95, f)
+		model.squash = 0.6 * smoothstep(0.0, 1.0, f)
+		global_transform = Transform3D(exit.basis, takeoff)
+		return
+	t -= LEAVE_CROUCH
+	if t < LEAVE_FLIGHT:
+		var f := t / LEAVE_FLIGHT
+		model.leap = _keyed(LEAP_AIR, f)
+		model.squash = 0.6 * (1.0 - smoothstep(0.0, 0.12, f))
+		var arc := _leap_arc(takeoff, exit.origin, t)
+		global_transform = _pitched(Transform3D(exit.basis, arc[0]), arc[1])
+		return
+	t -= LEAVE_FLIGHT
+	# Landed: he slides to a stop as he levels out and his hind legs come in.
+	var ground_speed := Vector2(exit.origin.x - takeoff.x, exit.origin.z - takeoff.z).length() / LEAVE_FLIGHT
+	var f := minf(t / LEAVE_LAND, 1.0)
+	var pos := exit.origin + out * ground_speed * LEAVE_LAND * (f - f * f * 0.5)
+	var pitch: float = _leap_arc(takeoff, exit.origin, LEAVE_FLIGHT)[1]
+	model.leap = lerpf(1.5, 1.78, f)
+	model.squash = 0.8 * sin(PI * sqrt(f))
+	global_transform = _pitched(Transform3D(exit.basis, pos), pitch * (1.0 - smoothstep(0.0, 0.6, f)))
+	if f >= 1.0:
+		_leave_t = -1.0
+		model.leap = -1.0
+		model.squash = 0.0
+		_end_rest()
+
+
+## Where he is `t` seconds into the leap from `from` to `to`, and how far he's
+## tipped (radians, nose up), as [position, pitch]. He falls under a gravity that
+## takes him LEAVE_RISE above `from` and lands him on `to` after LEAVE_FLIGHT; he
+## tips into the way he's moving, easing in as he leaves.
+func _leap_arc(from: Vector3, to: Vector3, t: float) -> Array:
+	var drop := from.y - to.y
+	var g := pow((sqrt(2.0 * LEAVE_RISE) + sqrt(2.0 * (LEAVE_RISE + drop))) / LEAVE_FLIGHT, 2.0)
+	var rise_speed := sqrt(2.0 * g * LEAVE_RISE)
+	var pos := from.lerp(to, t / LEAVE_FLIGHT)
+	pos.y = from.y + rise_speed * t - 0.5 * g * t * t
+	var ground_speed := Vector2(to.x - from.x, to.z - from.z).length() / LEAVE_FLIGHT
+	var pitch := clampf(atan2(rise_speed - g * t, ground_speed) * 0.4, -0.5, 0.35)
+	return [pos, pitch * smoothstep(0.0, 0.15, t / LEAVE_FLIGHT)]
+
+
+## `xf` tipped nose up by `pitch` (radians) on his hind paws, or nose down on his
+## front ones, so the paws he's tipping on stay put.
+func _pitched(xf: Transform3D, pitch: float) -> Transform3D:
+	var pivot := Vector3(0, 0, PAW_REACH * size * (1.0 if pitch > 0.0 else -1.0))
+	var tip := Transform3D(Basis(Vector3.RIGHT, pitch), Vector3.ZERO)
+	return xf * Transform3D(Basis(), pivot) * tip * Transform3D(Basis(), -pivot)
+
+
+## The value at `f` along a list of [f, value] keys, straight between them.
+func _keyed(keys: Array, f: float) -> float:
+	for i in range(1, keys.size()):
+		if f <= keys[i][0]:
+			return lerpf(keys[i - 1][1], keys[i][1], inverse_lerp(keys[i - 1][0], keys[i][0], f))
+	return keys[-1][1]
 
 
 func _end_rest() -> void:
 	resting = false
+	_waking = false
 	_shape.disabled = false
 
 
@@ -315,7 +437,7 @@ func _climb_process(delta: float) -> void:
 
 	var top := _climb_top()
 	if _climb_along >= top and up_speed > 0.0 and _tree.has("rest_spot"):
-		rest(_tree.rest_spot)
+		rest(_tree.rest_spot, _tree.rest_exit)
 		return
 	if _climb_along <= _climb_bottom() and up_speed < 0.0:
 		_climb_off()
@@ -442,6 +564,9 @@ func _grab() -> void:
 	held.set_meta("layers", Vector2i(held.collision_layer, held.collision_mask))
 	held.collision_layer = 0
 	held.collision_mask = 0
+	# Straight into his mouth, rather than drawn flying there over a physics tick.
+	_carry()
+	held.reset_physics_interpolation()
 
 
 func _drop() -> void:

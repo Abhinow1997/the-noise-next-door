@@ -19,5 +19,6 @@ set "NEED_IMPORT="
 if not exist "%~dp0.godot\imported\raccoon.glb-*.scn" set "NEED_IMPORT=1"
 if not exist "%~dp0.godot\imported\raccoon_v2.glb-*.scn" set "NEED_IMPORT=1"
 if not exist "%~dp0.godot\imported\forest-loop.wav-*.sample" set "NEED_IMPORT=1"
+if not exist "%~dp0.godot\imported\lullaby-loop.wav-*.sample" set "NEED_IMPORT=1"
 if defined NEED_IMPORT "%GODOT_EXE%" --headless --path "%~dp0." --import
 start "" "%GODOT_EXE%" --path "%~dp0." %*
