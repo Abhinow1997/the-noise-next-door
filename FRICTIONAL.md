@@ -2,7 +2,7 @@
 
 `the-noise-next-door` · CSYE 7270 · Assignment 2
 
-**Assignment 3's log is [its own section at the end](#assignment-3-the-three-blender-assets).** Everything before it is the Assignment 2 log, kept as it was.
+**Assignment 3's log is [its own section](#assignment-3-the-three-blender-assets), and the work after it is [at the end](#after-assignment-3-the-title-screen-and-the-night).** Everything before them is the Assignment 2 log, kept as it was.
 
 A dated log of the design as it happened: what I wanted the player to see or hear, what I asked for, what came back, and what I decided. This first part covers the storyboard, from the first draft to the check against the brief. Entries for the generated assets (Gemini images, music, sound effects) are added as their rows in the [SOURCES.md](SOURCES.md) asset log are filled in.
 
@@ -773,3 +773,89 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - add the film's link, filename and SHA-256 once it's made;
   - drop "(in progress)" from the heading at submission.
 - **Human / Claude:** the request is mine. The draft is Claude's, and the one quote in it is mine.
+
+
+---
+
+## After Assignment 3: the title screen and the night
+
+`the-noise-next-door` · branch `feature-update-main-raccoon` · 21 Oct 2026
+
+**How these entries were written**
+- Claude Code wrote them on 21 Oct 2026, at my request ("also update the logs what ever we have been doin"), from my chat messages, the files and the commit.
+- My messages are quoted exactly as I typed them, typos included. Times are US Eastern, taken from the session's transcript.
+- The thought icons and the raccoon's movement (20–21 Oct) were made in other sessions and aren't logged here. They went into the same commit, 5c8ae39.
+
+**Who's who**
+- **Me:** the requests, the picture, and the choices.
+- **Claude Code** (Claude Opus 5.5): the description, the prompt, the measuring, the code and the wording of the docs.
+- **Generative models:** one, for the reference picture: REF-TITLE in [SOURCES.md](SOURCES.md), most likely Gemini (not confirmed). The title screen itself is code, not generated art.
+
+| Date | Entry | Commits |
+|---|---|---|
+| 21 Oct | A description of the title screen, then a prompt for it | 5c8ae39 |
+| 21 Oct | The picture, built as the title screen | 5c8ae39 |
+| 21 Oct | The game at night, and New Game straight into his nap | 5c8ae39 |
+| 21 Oct | One home pine for the title and the game | 5c8ae39 |
+| 21 Oct | One world: the title becomes the game's opening shot | 5c8ae39 |
+| 21 Oct | Committed and pushed | 5c8ae39 |
+
+## 2026-10-21 — A description of the title screen, then a prompt for it
+
+- **Asked** (12:57): "Lets start to create the game we have been planning now intially lets work on the title screen can u look at the game we are doin the sratting point of it and think of a creative descroption of the title screen we can start with initally just give me the description"
+- **Got:** Claude read the GDD and the storyboard and described "The Last Quiet Night":
+  - the raccoon asleep in his hollow at night, with z's rising and the lullaby playing (the GDD already gives the lullaby to the title screen);
+  - the title and menu in chalk, like his thought icons;
+  - New Game as three bass thumps that shake the title apart and lead into storyboard panel 1.
+- **Asked** (12:59): "no dont build just give me the prompt"
+- **Got:** a Gemini prompt for one 16:9 picture of that screen, with the advice to attach the-raccon.jpg, resting-place.jpg and the-forest.jpg, and to keep red out of it. The prompt is in SOURCES.md (REF-TITLE).
+
+## 2026-10-21 — The picture, built as the title screen
+
+- **Asked** (13:06): "ok this is the inspiration for the title page for the start of the game lets work on creation of the same", with the picture, now [design/reference/title-screen.webp](design/reference/title-screen.webp).
+- **Decided** (13:09): the lettering. No font on my PC matched the picture's, and from Claude's three options (download Patrick Hand, draw letters in code, use Comic Sans) I picked "Download Patrick Hand (Recommended)". It's an OFL font and ships with the game.
+- **Done by Claude:**
+  - It measured the picture: the camera (nearly level, a 40° lens), where each tree, rock and bush stands, and the colours, region by region.
+  - It built the picture as a night diorama of its own from the forest's pieces, with a slimmer home pine and a bigger hollow, and night colours tuned until most regions were within a few percent of the picture.
+  - It added the title and menu in chalk with a paw print, a Settings page (music and effects volume, full screen), the sleeping raccoon with his z's, fireflies, falling leaves and the lullaby.
+  - Continue is written faint and passed over, since there are no save states yet.
+- **Then:** Claude listed what was still different (the skirt taller and boxier, smaller birch crowns, the stump and rock a little small, three z's rather than four, more trunks in the far woods) and offered to close it.
+- **Decided** (13:59): "It looks good as it is, leave it."
+
+## 2026-10-21 — The game at night, and New Game straight into his nap
+
+- **Asked** (14:06): "even in the game it should be night also when user selects new game we need to transtion to the real game semlessly without a black screen and the pahse we have when the raccoon if goes in the tree tht animation close camera and let the user start the game"
+- **Done by Claude:**
+  - **Night:** the title's moonlight and night colours went into shared code, so the level is lit the same way. The generated stump picture was dimmed to match.
+  - **The start:** the level now starts with him asleep in the hollow and the nap camera in close. The to-do list and hints wait until he wakes, a chalk prompt says "Press W, A, S or D to wake up", and that first nap doesn't tick off the nap task.
+  - **The way in:** New Game pushed the title's camera in to the nap close-up, and the level took over under the title's last frame, which dissolved away. The lullaby was handed over still playing. Claude checked first that a playing sound keeps going when it's moved.
+- **Found:** the level's home pine was wider than the title's, with a smaller diamond-shaped hollow, so in the dissolve the hollow changed shape.
+
+## 2026-10-21 — One home pine for the title and the game
+
+- **Decided** (14:42): "Yes, give the level the title's home pine so the handover matches exactly."
+- **Done by Claude:**
+  - The level's home pine is now the title's. The 9 m pine built from resting-place.jpg is gone. Climbing it, napping in it and leaping out were checked again.
+  - For the handover to match, the title's raccoon went from 1.1 to the game's size, 0.8, and the title's z's were placed by the game's own rule.
+- **Then:** the tree, the hollow, the raccoon and his z's matched across the handover, but the woods behind him still changed in the dissolve.
+
+## 2026-10-21 — One world: the title becomes the game's opening shot
+
+- **Asked** (16:51): "when the game starts on the wsad the background and changes i understand the starting point of the actaul world is different but i want you u to align it such it feels the same no tractions in the real game play feels smooth"
+- **Got:** Claude explained that the title's world and the game's were laid out differently round the pine, so one had to become the other, and asked which.
+- **Decided** (16:53): "The game's world (Recommended)". The other option was to rebuild the level round the picture, which would have moved the bin, cans and bench out of the play area.
+- **Done by Claude:**
+  - The title is now shown over the level itself, from the picture's camera, so New Game only glides the camera in. There's no second scene and no dissolve.
+  - The trees round the home pine were re-placed to stand where the picture's do from that camera. Those that would have stood on the path, in the stream or by the bin were moved along the line of sight to a free spot and resized. The two big trees in the play area were left out.
+  - The fireflies and falling leaves are part of the level now. The title uses the picture's thicker haze, which eases into the game's own during the glide.
+  - The diorama, the separate title scene and the dissolve were deleted. They were never committed.
+- **Checked:** the title check (45 checks) and the sound, thought-icon and Assignment 3 asset checks all pass, and the way in was looked at frame by frame.
+- **Found on the way:** my own settings file (music 5, effects 9, full screen on). The title check now starts in a window at full volume and puts the file back as it was.
+- **Still different from the picture:** its stream, path and stump in front of the pine, and its two corner trees, aren't in the game, because that's where I play.
+
+## 2026-10-21 — Committed and pushed
+
+- **Asked** (17:18): "ok commit and push all the work done it looks perfrect", then "good job".
+- **Done by Claude:** commit 5c8ae39 on `feature-update-main-raccoon`, pushed to GitHub. It also carries the thought-icon work from 20–21 Oct, which hadn't been committed.
+- **Not built yet:** the three bass thumps (they need a bass-thump sound), a way back to the title from play, and save states, so Continue stays faint. The GDD still lists the title screen as planned; it wasn't edited, since it has its own change log.
+- **Human / Claude:** the requests, the picture and the choices are mine; the code, the measuring and this write-up are Claude's.
