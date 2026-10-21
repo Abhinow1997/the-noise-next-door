@@ -1,9 +1,11 @@
 extends Node3D
 ## The forest from design/reference/the-forest.jpg and the-rest.jpg, built in code:
 ## faceted ground plates, pines, broadleaf trees and birches, the raccoon's home pine
-## with its hollow, a bench, a dirt path, a stream with a footbridge, and the log cabin
-## across it. Trees, bushes and the cabin use `see_through`, which main.gd drives so
-## the raccoon can still be seen when he walks behind them.
+## with its hollow (now the title picture's, see HOME_TRUNK_HEIGHTS), a bench, a dirt
+## path, a stream with a footbridge, and the log cabin across it. Trees, bushes and the
+## cabin use `see_through`, which main.gd drives so the raccoon can still be seen when
+## he walks behind them. With `night` on it's all drawn in its night colours (NIGHT),
+## for the moonlit game.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 
@@ -49,9 +51,29 @@ const HOLLOW_WALL := Color("553c2a")
 const HOLLOW_DARK := Color("3a291c")
 const NEST := [Color("8a8a3e"), Color("9c9845"), Color("7b7f3a"), Color("6f7a3a"), Color("b0703a")]
 
+## The night colours (with `night` on), measured against the author's title picture,
+## design/reference/title-screen.webp. Under the moon alone (night.gd) the day colours
+## above come out too grey: the picture keeps its yellow trees warm, turns the
+## pines blue-green and the grass dark. So at night each day colour is
+## multiplied by its gain here, in linear light, as measured against the picture region
+## by region. A vertex colour takes the gain of the day colour it's nearest to (or of
+## that colour's darkened underside), if it's within NIGHT_MATCH; others stay as they are.
+const NIGHT := [
+	[GRASS, Color(0.48, 0.48, 0.48)], [TUFT, Color(0.62, 0.58, 0.44)],
+	[PINE, Color(1.15, 1.0, 1.35)], [PINE_TRUNK, Color(0.77, 0.68, 0.67)], [BARK, Color(0.77, 0.68, 0.67)],
+	[Color("6f8c4b"), Color(0.61, 0.56, 0.37)], [Color("6c773f"), Color(3.0, 2.0, 0.68)],
+	[Color("9c9a46"), Color(2.5, 1.6, 0.52)], [Color("ab9f45"), Color(2.5, 1.55, 0.5)],
+	[BIRCH_BARK, Color(1.38, 1.25, 1.22)], [BIRCH_MARK, Color(1, 1, 1)], [BIRCH_LEAF, Color(1.2, 1.15, 1.15)],
+	[ROCK, Color(1.03, 1.03, 1.27)], [PATH, Color(1.4, 1.45, 1.45)], [PATH_EDGE, Color(1.4, 1.45, 1.45)],
+	[WATER, Color(0.97, 0.79, 0.71)], [WATER_DEEP, Color(0.97, 0.79, 0.71)],
+	[HOLLOW_WALL, Color(1.3, 0.9, 0.8)], [HOLLOW_FLOOR, Color(1.3, 0.9, 0.8)], [HOLLOW_DARK, Color(1.3, 0.9, 0.8)],
+	[NEST[0], Color(1.2, 1.15, 1.5)], [NEST[1], Color(1.2, 1.15, 1.5)], [NEST[2], Color(1.2, 1.15, 1.5)],
+	[NEST[3], Color(1.2, 1.15, 1.5)], [NEST[4], Color(1.0, 1.0, 1.3)],
+]
+const NIGHT_MATCH := 0.1
+
 ## The raccoon's home pine. The ground round its roots is his den.
 const HOME := Vector3(0, 0, -0.5)
-const HOME_HEIGHT := 9.0
 const DEN_RADIUS := 2.0
 const START := Vector3(0, 0.02, 3.4)
 const CABIN := Vector3(-5.5, 0, -20.0)
@@ -61,10 +83,36 @@ const BOUNDS := Rect2(-15, -23, 30, 33)
 ## Where scenery is generated.
 const WORLD := Rect2(-44, -50, 88, 74)
 
-## The hollow in the home pine: height of its centre, size (width, height), depth.
-const HOLLOW_Y := 3.25
-const HOLLOW_SIZE := Vector2(1.2, 1.15)
-const HOLLOW_DEPTH := 0.95
+## The home pine, from the author's title picture (design/reference/title-screen.webp):
+## since 21 Oct 2026 the level has the title's pine too, so the title hands over to the
+## level's nap close-up without the tree changing. (The level's first home pine, from
+## the-rest.jpg, was 9 m tall and wider, with a smaller hollow.) The trunk (heights and
+## radii), then the skirt the hollow is cut into: its hem, its shoulder (where the tier
+## above covers it), apex and radius, and how much narrower it is at the shoulder. Then
+## the two tiers above it: hem, apex, radius.
+const HOME_TRUNK_HEIGHTS := [0.0, 0.45, 2.4, 4.6]
+const HOME_TRUNK_RADII := [0.62, 0.44, 0.36, 0.2]
+const SKIRT_HEM := 2.1
+const SKIRT_SHOULDER := 4.0
+const SKIRT_APEX := 4.9
+const SKIRT_RADIUS := 1.16
+const SKIRT_TAPER := 0.82
+const HOME_TIERS := [[4.12, 6.3, 1.0], [5.07, 7.3, 0.8]]
+## Round the skirt (degrees from the front), its points and the notches between them in
+## turn. The point at the front is a fold, and the two faces either side of it, out to
+## the notches at SKIRT_FRONT degrees, hold the hollow, which straddles the fold as in
+## the picture.
+const SKIRT_ANGLES := [0.0, 54.0, 108.0, 144.0, 180.0, 216.0, 252.0, 306.0]
+const SKIRT_FRONT := 54.0
+## The hollow's opening, as measured in the picture (x across, height up): a pointed top
+## on the fold, upper and lower corners, and the bottom on the fold. Then how deep it goes.
+const OPENING := [Vector2(0, 3.95), Vector2(0.58, 3.69), Vector2(0.64, 2.77), Vector2(0, 2.53),
+	Vector2(-0.64, 2.77), Vector2(-0.58, 3.69)]
+const OPENING_DEPTH := 0.95
+## The nest: leafy lumps (centre across and up from the middle of the hollow's floor,
+## radius) that spill out over the lip.
+const NEST_LUMPS := [[Vector2(0.0, 0.0), 0.26], [Vector2(-0.3, -0.02), 0.22], [Vector2(0.3, -0.02), 0.22],
+	[Vector2(-0.12, 0.05), 0.2], [Vector2(0.16, 0.04), 0.2], [Vector2(-0.45, -0.06), 0.15], [Vector2(0.46, -0.06), 0.15]]
 
 # Control points (x, z) for the path, its fork to the east, and the stream.
 const PATH_POINTS := [Vector2(-50, -2.6), Vector2(-30, -3.4), Vector2(-17, -3.0), Vector2(-10, -4.2),
@@ -76,12 +124,23 @@ const STREAM_POINTS := [Vector2(-50, -11.4), Vector2(-34, -12.8), Vector2(-20, -
 	Vector2(-2, -12.6), Vector2(4.5, -13.6), Vector2(12, -14.6), Vector2(22, -13.4), Vector2(34, -14.4),
 	Vector2(50, -13.6)]
 
-## Trees placed by hand to echo the reference's composition round the home pine:
-## kind, position (x, z), scale.
-const HERO_TREES := [["pine", Vector2(-3.6, -2.8), 1.05], ["green", Vector2(-6.9, -2.3), 1.12],
-	["olive", Vector2(-10.3, -1.2), 1.0], ["yellow", Vector2(3.4, -3.4), 1.1], ["gold", Vector2(5.4, -5.4), 1.05],
-	["birch", Vector2(8.9, -1.0), 1.0], ["birch", Vector2(10.0, -3.1), 1.08], ["olive", Vector2(12.3, -2.2), 1.05],
-	["pine", Vector2(1.6, -6.6), 1.1], ["pine", Vector2(-1.4, -4.6), 0.95]]
+## Trees placed by hand round the home pine, so that from the title screen's camera
+## (title_screen.gd) they stand as the trees do in the author's title picture
+## (design/reference/title-screen.webp): kind, position (x, z), and height in metres,
+## worked out from where each stands and how tall it is in the picture. Those that would
+## have stood on the path, in the stream or by the bin were moved along the camera's
+## line of sight to the nearest free spot and resized to cover the same part of the
+## picture; the two in the clearing in front of the pine, where he plays, were left out.
+const HERO_TREES := [
+	["olive", Vector2(-9.06, -8.29), 5.44], ["pine", Vector2(-6.52, -7.70), 7.13],
+	["pine", Vector2(-18.28, -22.33), 8.45], ["pine", Vector2(-20.46, -31.00), 10.29],
+	["green", Vector2(-3.07, -4.97), 5.46], ["green", Vector2(-5.73, -10.19), 3.97],
+	["pine", Vector2(-0.06, -25.69), 9.58], ["pine", Vector2(2.44, -26.64), 8.47],
+	["green", Vector2(4.61, -8.11), 6.85], ["gold", Vector2(5.44, -5.62), 5.77],
+	["yellow", Vector2(9.66, -10.41), 6.98], ["birch", Vector2(8.35, -7.25), 4.46],
+	["birch", Vector2(7.74, -3.55), 4.80], ["olive", Vector2(11.01, -6.88), 5.75],
+	["pine", Vector2(15.95, -11.88), 7.66],
+]
 
 ## Resolution of the masks that say how far a spot is from the path and the stream.
 const MASK := 0.5
@@ -106,6 +165,9 @@ var can_spots: Array[Vector3] = [Vector3(6.9, 0, -0.3), Vector3(8.4, 0, -0.5), V
 ## Top of the stump the gnome stands on.
 var gnome_spot: Vector3
 var see_through: ShaderMaterial
+## Set before it's added: draws everything in its night colours (NIGHT), for the
+## moonlit game (night.gd).
+var night := false
 ## The grass sheet under everything, so the level can give it a texture.
 var ground: MeshInstance3D
 
@@ -125,6 +187,9 @@ var _trees: Array = []
 var _variants := {}
 ## Instances waiting to become MultiMeshes: key -> {mesh, xforms, see, shadow}.
 var _batches := {}
+## Each mesh's night version, by its batch name, and each colour's.
+var _night_meshes := {}
+var _night_colors := {}
 
 
 func _ready() -> void:
@@ -275,86 +340,116 @@ func _build_walls() -> void:
 
 # --- The home pine -----------------------------------------------------------
 
-func _build_home() -> void:
-	var h := HOME_HEIGHT
+## The home pine at `at` (HOME in the level), with its collider, the trunk he climbs,
+## and where he curls up in the hollow and lands when he leaps out.
+func _build_home(at := HOME) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	LowPoly.add_tube(st, [Vector3.ZERO, Vector3(0, 0.45, 0), Vector3(0, 2.4, 0), Vector3(0, h * 0.6, 0)],
-		[0.6, 0.5, 0.44, 0.28], 7, LowPoly.solid(PINE_TRUNK), 0.2, [1.7, 1.15, 1.6, 1.1, 1.65, 1.2, 1.5])
-	var rest := _add_hollow_tier(st, h * 0.24, h * 0.8, h * 0.21)
-	var tiers := [[0.45, 0.15], [0.6, 0.115], [0.74, 0.08]]
-	for i in tiers.size():
-		var hem: float = h * tiers[i][0]
-		var apex := h if i == tiers.size() - 1 else hem + h * 0.26
-		_add_pine_tier(st, hem, apex, h * tiers[i][1], 0.4 + i * 1.3, PINE)
-	_add_mesh(LowPoly.commit(st), Transform3D(Basis(), HOME), true)
+	LowPoly.add_tube(st, HOME_TRUNK_HEIGHTS.map(func(y: float) -> Vector3: return Vector3(0, y, 0)), HOME_TRUNK_RADII, 7,
+		LowPoly.solid(PINE_TRUNK), 0.2, [1.7, 1.15, 1.6, 1.1, 1.65, 1.2, 1.5])
+	var rest := _add_skirt(st)
+	for i in HOME_TIERS.size():
+		_add_pine_tier(st, HOME_TIERS[i][0], HOME_TIERS[i][1], HOME_TIERS[i][2], 0.4 + i * 1.3, PINE)
+	_add_mesh(LowPoly.commit(st), Transform3D(Basis(), at), true)
 	var trunk := CylinderShape3D.new()
 	trunk.radius = 0.85
 	trunk.height = 3.0
-	_collider(trunk, Transform3D(Basis(), HOME + Vector3(0, 1.5, 0)))
-	_remember(_v2(HOME))
+	_collider(trunk, Transform3D(Basis(), at + Vector3(0, 1.5, 0)))
+	_remember(_v2(at))
 	# He lies across the hollow facing -X, so his side and curled tail face the camera.
-	rest_spot = Transform3D(Basis(Vector3.UP, PI / 2), HOME + rest)
+	rest_spot = Transform3D(Basis(Vector3.UP, PI / 2), at + rest)
 	# Far enough out that his leap clears the lip of the hollow and the skirt below it.
-	rest_exit = Transform3D(Basis(Vector3.UP, PI), HOME + Vector3(0, 0, 2.8))
+	rest_exit = Transform3D(Basis(Vector3.UP, PI), at + Vector3(0, 0, 2.8))
 	# He can climb the trunk up to the skirt's lowest points; from there he goes in.
-	climbable.append({"base": HOME, "top": HOME + Vector3(0, h * 0.24 - h * 0.21 * 0.06, 0), "r0": 0.5,
-		"r1": 0.45, "clear": trunk.radius, "rest_spot": rest_spot, "rest_exit": rest_exit})
+	climbable.append({"base": at, "top": at + Vector3(0, SKIRT_HEM - SKIRT_RADIUS * 0.06, 0), "r0": 0.5,
+		"r1": 0.4, "clear": trunk.radius, "rest_spot": rest_spot, "rest_exit": rest_exit})
 
 
-## The home pine's bottom skirt, with a hexagonal hollow cut into the side that faces
-## the camera (+Z) and a nest of leaves inside. Returns where the middle of the
-## curled-up raccoon lies, sunk a little into the leaves, relative to the tree.
-func _add_hollow_tier(st: SurfaceTool, hem: float, apex: float, radius: float) -> Vector3:
-	var ring := _hem_ring(hem, radius, 5, 0.0)
-	var top := Vector3(0, apex, 0)
-	var n := ring.size()
-	for k in range(1, n - 1):
-		_tier_face(st, ring[k], ring[k + 1], top, hem, radius, PINE)
+## A point of the skirt's hem (`shoulder` false) or of its shoulder, `angle` degrees
+## round from the front. Points hang a little lower and stand further out than notches,
+## except that the notches either side of the front sit level with the front point, so
+## the two faces that hold the hollow are flat.
+func _skirt_point(angle: float, shoulder: bool) -> Vector3:
+	var r := SKIRT_RADIUS * (SKIRT_TAPER if shoulder else 1.0)
+	var y := SKIRT_SHOULDER if shoulder else SKIRT_HEM - SKIRT_RADIUS * 0.06
+	if SKIRT_ANGLES.find(angle) % 2 == 1:
+		r *= 0.84
+		if not is_equal_approx(absf(angle_difference(deg_to_rad(angle), 0.0)), deg_to_rad(SKIRT_FRONT)):
+			y += 0.05 if shoulder else SKIRT_RADIUS * 0.16
+	var a := deg_to_rad(angle)
+	return Vector3(sin(a) * r, y, cos(a) * r)
 
-	# The hole straddles the fold that runs from the hem point at +Z up to the apex.
-	var p: Vector3 = ring[0]
-	var right: Vector3 = ring[1]
-	var left: Vector3 = ring[n - 1]
-	var fold := top - p
-	var sc := (HOLLOW_Y - p.y) / fold.y
-	var hs := HOLLOW_SIZE.y * 0.5 / fold.length()
-	var t := p + fold * (sc + hs)
-	var b := p + fold * (sc - hs)
-	var corners: Array = []
-	for notch: Vector3 in [right, left]:
-		var span := notch - p
-		var w := minf(HOLLOW_SIZE.x * 0.5 / absf(span.x), 0.86 - sc - hs * 0.5)
-		corners.append([p + fold * (sc + hs * 0.5) + span * w, p + fold * (sc - hs * 0.5) + span * w])
-	var ur: Vector3 = corners[0][0]
-	var lr: Vector3 = corners[0][1]
-	var ul: Vector3 = corners[1][0]
-	var ll: Vector3 = corners[1][1]
-	# What's left of the two faces round the hole, fanned from their notches.
-	for tri: Array in [[right, top, t], [right, t, ur], [right, ur, lr], [right, lr, b], [right, b, p],
-			[left, p, b], [left, b, ll], [left, ll, ul], [left, ul, t], [left, t, top]]:
-		var a: Vector3 = tri[0]
-		var bb: Vector3 = tri[1]
-		var c: Vector3 = tri[2]
-		LowPoly.add_tri(st, a, bb, c, Vector3(0, (a.y + bb.y + c.y) / 3.0, 0), PINE)
-	for k: int in [0, n - 1]:
-		LowPoly.add_tri(st, ring[k], ring[(k + 1) % n], Vector3(0, hem + radius * 0.3, 0), top, PINE.darkened(0.4))
 
-	# The hollow itself: walls from the rim back into the tree, then a back wall.
-	var rim: Array[Vector3] = [t, ur, lr, b, ll, ul]
-	var center := (t + b) * 0.5
-	var out := Vector3(0, -fold.z, fold.y).normalized()
+## The skirt: a pleated band from the hem up to the shoulder and a cone above it. The
+## hollow straddles the fold at the front, as in the picture, cut through the two flat
+## faces either side of it; inside are its walls, a back wall and a nest of leaves.
+## Returns where the middle of the curled-up raccoon lies.
+func _add_skirt(st: SurfaceTool) -> Vector3:
+	var apex := Vector3(0, SKIRT_APEX, 0)
+	var below := Vector3(0, SKIRT_HEM + SKIRT_RADIUS * 0.3, 0)
+	var n := SKIRT_ANGLES.size()
+	for k in n:
+		var a: float = SKIRT_ANGLES[k]
+		var b: float = SKIRT_ANGLES[(k + 1) % n]
+		var h0 := _skirt_point(a, false)
+		var h1 := _skirt_point(b, false)
+		var s0 := _skirt_point(a, true)
+		var s1 := _skirt_point(b, true)
+		var axis := Vector3(0, (h0.y + s1.y) * 0.5, 0)
+		# The two faces at the front are cut round the opening below.
+		if k != 0 and k != n - 1:
+			LowPoly.add_tri(st, h0, h1, s1, axis, PINE)
+			LowPoly.add_tri(st, h0, s1, s0, axis, PINE)
+		LowPoly.add_tri(st, s0, s1, apex, Vector3(0, s0.y, 0), PINE)
+		LowPoly.add_tri(st, h0, h1, below, apex, PINE.darkened(0.4))
+
+	# Each front face, from the fold out to its notch, with half the opening cut out of
+	# it: laid out flat (across, up), split into triangles, and lifted back onto the face.
+	var fold_low := _skirt_point(0.0, false)
+	var fold_high := _skirt_point(0.0, true)
+	var rim: Array[Vector3] = []
+	rim.resize(OPENING.size())
+	var out := Vector3.ZERO
+	for side: float in [1.0, -1.0]:
+		var notch_low := _skirt_point(SKIRT_FRONT if side > 0.0 else 360.0 - SKIRT_FRONT, false)
+		var notch_high := _skirt_point(SKIRT_FRONT if side > 0.0 else 360.0 - SKIRT_FRONT, true)
+		var normal := (notch_low - fold_low).cross(fold_high - fold_low).normalized()
+		if normal.z < 0.0:
+			normal = -normal
+		out += normal
+		var lift := func(p: Vector2) -> Vector3:
+			return Vector3(p.x, p.y, fold_low.z - (normal.x * p.x + normal.y * (p.y - fold_low.y)) / normal.z)
+		# The face's outline, then round the half of the opening on this side of the fold.
+		var flat := PackedVector2Array([Vector2(0, fold_low.y), Vector2(notch_low.x, notch_low.y),
+			Vector2(notch_high.x, notch_high.y), Vector2(0, fold_high.y)])
+		for i: int in ([0, 1, 2, 3] if side > 0.0 else [0, 5, 4, 3]):
+			flat.append(OPENING[i])
+		var tris := Geometry2D.triangulate_polygon(flat)
+		for t in range(0, tris.size(), 3):
+			var a: Vector3 = lift.call(flat[tris[t]])
+			var b: Vector3 = lift.call(flat[tris[t + 1]])
+			var c: Vector3 = lift.call(flat[tris[t + 2]])
+			LowPoly.add_tri(st, a, b, c, Vector3(0, (a.y + b.y + c.y) / 3.0, 0), PINE)
+		for i in OPENING.size():
+			if signf(OPENING[i].x) == side or (OPENING[i].x == 0.0 and side > 0.0):
+				rim[i] = lift.call(OPENING[i])
+	out = out.normalized()
+
+	# The hollow: walls from the rim back into the tree, then a back wall.
+	var top := rim[0]
+	var bottom := rim[3]
+	var center := (top + bottom) * 0.5
 	var inner: Array[Vector3] = []
 	for v in rim:
-		inner.append(center + (v - center) * 0.72 - out * HOLLOW_DEPTH)
-	var axis := center - out * HOLLOW_DEPTH * 0.5
+		inner.append(center + (v - center) * 0.72 - out * OPENING_DEPTH)
+	var axis := center - out * OPENING_DEPTH * 0.5
 	for k in 6:
 		var a := rim[k]
-		var bb := rim[(k + 1) % 6]
+		var b := rim[(k + 1) % 6]
 		var c := inner[(k + 1) % 6]
 		var d := inner[k]
-		var mid := (a + bb + c + d) * 0.25
-		var normal := (bb - a).cross(d - a).normalized()
+		var mid := (a + b + c + d) * 0.25
+		var normal := (b - a).cross(d - a).normalized()
 		if normal.dot(axis - mid) < 0.0:
 			normal = -normal
 		var color := HOLLOW_WALL
@@ -362,17 +457,21 @@ func _add_hollow_tier(st: SurfaceTool, hem: float, apex: float, radius: float) -
 			color = HOLLOW_FLOOR
 		elif normal.y < -0.35:
 			color = HOLLOW_DARK
-		LowPoly.add_tri(st, a, bb, c, mid - normal, color)
+		LowPoly.add_tri(st, a, b, c, mid - normal, color)
 		LowPoly.add_tri(st, a, c, d, mid - normal, color)
-	var back := center - out * HOLLOW_DEPTH
+	var back := center - out * OPENING_DEPTH
 	for k in 6:
 		LowPoly.add_tri(st, inner[k], inner[(k + 1) % 6], back, back - out, HOLLOW_DARK)
 
+	# The nest: leafy lumps across the floor, spilling out over the lip.
 	var nest_rng := RandomNumberGenerator.new()
 	nest_rng.seed = 5
-	var nest := center - out * HOLLOW_DEPTH * 0.55 + Vector3(0, -HOLLOW_SIZE.y * 0.3, 0)
-	LowPoly.add_icosphere(st, nest, Vector3(0.5, 0.13, 0.36), 1, 0.35, 21,
-		func(_n: Vector3) -> Color: return NEST[nest_rng.randi() % NEST.size()])
+	var nest := center - out * OPENING_DEPTH * 0.42 + Vector3(0, -(top.y - bottom.y) * 0.3, 0)
+	for lump: Array in NEST_LUMPS:
+		var at: Vector2 = lump[0]
+		var r: float = lump[1]
+		LowPoly.add_icosphere(st, nest + Vector3(at.x, at.y, 0), Vector3(r, r * 0.5, r * 0.85), 1, 0.3,
+			nest_rng.randi(), func(_n: Vector3) -> Color: return NEST[nest_rng.randi() % 4])
 	return nest + Vector3(0, 0.1, 0)
 
 
@@ -562,7 +661,7 @@ func _make_variants() -> void:
 
 func _plant_trees() -> void:
 	for tree: Array in HERO_TREES:
-		_add_tree(tree[0], tree[1], tree[2])
+		_add_tree(tree[0], tree[1], 1.0, tree[2])
 	for i in 7000:
 		var p := Vector2(_rng.randf_range(WORLD.position.x, WORLD.end.x), _rng.randf_range(WORLD.position.y, WORLD.end.y))
 		if _is_open(p) or _too_close(p, 2.9 if BOUNDS.has_point(p) else 2.6):
@@ -585,10 +684,14 @@ func _random_kind() -> String:
 	return "birch"
 
 
-func _add_tree(kind: String, p: Vector2, scale := 1.0) -> void:
+## A tree of `kind` at `p`, `scale` times its size give or take a little, or exactly
+## `height` metres tall if that's given.
+func _add_tree(kind: String, p: Vector2, scale := 1.0, height := 0.0) -> void:
 	var list: Array = _variants[kind]
 	var pick := _rng.randi() % list.size()
 	var s := scale * _rng.randf_range(0.88, 1.12)
+	if height > 0.0:
+		s = height / (list[pick][0] as Mesh).get_aabb().end.y
 	var xform := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _v3(p))
 	_place("%s%d" % [kind, pick], list[pick][0], xform, true)
 	_remember(p)
@@ -716,7 +819,7 @@ func _reed_mesh(seed: int) -> ArrayMesh:
 	return LowPoly.commit(st)
 
 
-func _leaf_mesh(color: Color) -> ArrayMesh:
+static func _leaf_mesh(color: Color) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var outline: Array[Vector3] = [Vector3(0.075, 0, 0), Vector3(0.027, 0, 0.031), Vector3(-0.033, 0, 0.028),
@@ -954,6 +1057,10 @@ func _window(st: SurfaceTool, xform: Transform3D) -> void:
 
 ## Adds an instance of a mesh to its MultiMesh batch.
 func _place(key: String, mesh: Mesh, xform: Transform3D, see := false, shadow := true) -> void:
+	if night:
+		if not _night_meshes.has(key):
+			_night_meshes[key] = _at_night(mesh)
+		mesh = _night_meshes[key]
 	if not _batches.has(key):
 		_batches[key] = {"mesh": mesh, "xforms": [], "see": see, "shadow": shadow}
 	_batches[key].xforms.append(xform)
@@ -988,12 +1095,44 @@ func _flush() -> void:
 
 func _add_mesh(mesh: Mesh, xform := Transform3D.IDENTITY, see := false) -> MeshInstance3D:
 	var instance := MeshInstance3D.new()
-	instance.mesh = mesh
+	instance.mesh = _at_night(mesh) if night else mesh
 	instance.transform = xform
 	if see:
 		instance.material_override = see_through
 	add_child(instance)
 	return instance
+
+
+## `mesh` with every vertex colour in its night colour.
+func _at_night(mesh: Mesh) -> ArrayMesh:
+	var out := ArrayMesh.new()
+	for s in mesh.get_surface_count():
+		var arrays := mesh.surface_get_arrays(s)
+		var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+		for i in colors.size():
+			colors[i] = _night_color(colors[i])
+		arrays[Mesh.ARRAY_COLOR] = colors
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		out.surface_set_material(s, mesh.surface_get_material(s))
+	return out
+
+
+func _night_color(c: Color) -> Color:
+	if _night_colors.has(c):
+		return _night_colors[c]
+	var best := NIGHT_MATCH
+	var gain := Color(1, 1, 1)
+	for pair: Array in NIGHT:
+		var day: Color = pair[0]
+		for base: Color in [day, day.darkened(0.4)]:
+			var d := Vector3(c.r - base.r, c.g - base.g, c.b - base.b).length()
+			if d < best:
+				best = d
+				gain = pair[1]
+	var l := c.srgb_to_linear()
+	var out := Color(minf(l.r * gain.r, 1.0), minf(l.g * gain.g, 1.0), minf(l.b * gain.b, 1.0), c.a).linear_to_srgb()
+	_night_colors[c] = out
+	return out
 
 
 func _collider(shape: Shape3D, xform: Transform3D) -> void:

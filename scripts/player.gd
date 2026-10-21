@@ -73,6 +73,9 @@ var held: RigidBody3D
 var sneaking := false
 ## True while curled up in the hollow, including the hop in and the leap out.
 var resting := false
+## Set while the title screen is up: asleep in the hollow, a move key doesn't wake him
+## (the menu uses W, S and the arrows).
+var keep_asleep := false
 ## True while on a tree trunk, including the hops on and off.
 var climbing := false
 ## True while he runs on the ground: Shift held, not sneaking, faster than a walk.
@@ -304,6 +307,21 @@ func rest(spot: Transform3D, exit: Transform3D) -> void:
 	_hop(global_transform, spot, 0.5 if from_trunk else 0.8, 0.25 if from_trunk else 0.9)
 
 
+## Puts him straight into `spot` in the hollow, already curled up asleep, as the title
+## screen leaves him when the game starts. A move key wakes him and he leaps out to
+## `exit`, as after any nap.
+func start_asleep(spot: Transform3D, exit: Transform3D) -> void:
+	_rest_spot = spot
+	_rest_exit = exit
+	resting = true
+	_waking = false
+	_shape.disabled = true
+	velocity = Vector3.ZERO
+	global_transform = spot
+	model.sleep = 1.0
+	reset_physics_interpolation()
+
+
 ## Moves him from one transform to another along an arc `height` high, turning as
 ## he goes, then calls `done`. Collisions are off meanwhile.
 func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done := Callable()) -> void:
@@ -342,7 +360,7 @@ func _rest_process(delta: float) -> void:
 	model.turn = 0.0
 	if not _waking:
 		model.sleep = move_toward(model.sleep, 1.0, delta * DOZE_RATE)
-		_waking = model.sleep >= 1.0 and _move_input().length_squared() > 0.1
+		_waking = not keep_asleep and model.sleep >= 1.0 and _move_input().length_squared() > 0.1
 		if _waking:
 			_leave_t = 0.0
 		return

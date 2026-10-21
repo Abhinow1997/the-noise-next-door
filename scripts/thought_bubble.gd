@@ -27,7 +27,7 @@ const SHAKE := 0.022
 const SHAKE_TURN := 3.0
 ## Icons that move by themselves rather than bobbing: the glints twinkle in place over
 ## the loot, the z's float up, and the sigh puffs out of his mouth.
-const STILL := ["sparkles", "zzz", "sigh"]
+const STILL := ["sparkles", "zzz", "snooze", "sigh"]
 
 enum Phase { HIDDEN, UP, LEAVING }
 

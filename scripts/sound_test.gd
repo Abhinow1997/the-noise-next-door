@@ -62,15 +62,15 @@ func _ready() -> void:
 	_at(395, Input.action_release.bind("move_back"))
 
 	# A nap: from the trunk into the hollow, asleep long enough to tick off the nap
-	# (its laugh comes mid-nap), then woken, leaping out and landing.
+	# (silently: there's no laughing in his sleep), then woken, leaping out and landing.
 	_at(400, func() -> void: player.rest(level.forest.rest_spot, level.forest.rest_exit))
 	_at(700, _check_nap)
 	_at(700, Input.action_press.bind("move_back"))
 	_at(705, Input.action_release.bind("move_back"))
 	_at(860, _check_awake)
 
-	# Tasks: five ticked off over four frames, two of them in the same frame (the
-	# nap's was ticked off in the hollow). Things are put straight in place with the
+	# Tasks: the other four ticked off over three frames, two of them in the same frame
+	# (the nap's was ticked off in the hollow). Things are put straight in place with the
 	# interpolation reset, so they aren't drawn sliding there.
 	var den: Vector3 = level.Forest.HOME
 	_at(920, func() -> void:
@@ -120,9 +120,11 @@ func _check(name: String, expected, actual) -> void:
 	_results.append([name, str(expected), str(actual), "pass" if ok else "FAIL"])
 
 
-## Asleep, after the nap's laugh: the lullaby has taken over, and the camera is in close.
+## Asleep, with the nap ticked off and no laugh: the lullaby has taken over, and the
+## camera is in close.
 func _check_nap() -> void:
 	_check("Nap: the nap is ticked off in the hollow", true, level.tasks[4].done)
+	_check("Nap: no laugh in his sleep", 0, level.sound_counts.get("SFX-TASK-LAUGH", 0))
 	_check("Nap: the lullaby is playing", true, level._sleep_music.playing)
 	_check("Nap: the lullaby is at full level", true,
 		absf(level._sleep_music.volume_db - level.SLEEP_MUSIC_DB) < 0.5)
@@ -130,12 +132,14 @@ func _check_nap() -> void:
 	_check("Nap: the camera has eased in close", 1.0, level._sleep_view)
 
 
-## Woken and out of the hollow: the forest loop is back, the lullaby has stopped.
+## Woken and out of the hollow: the forest loop is back, the lullaby has stopped, and
+## the nap never laughed.
 func _check_awake() -> void:
 	_check("Awake: he's out and on the ground", true, not level.player.resting and level.player.is_on_floor())
 	_check("Awake: the lullaby has stopped", false, level._sleep_music.playing)
 	_check("Awake: the forest loop is back to full", true, absf(level._music.volume_db - level.MUSIC_DB) < 0.5)
 	_check("Awake: the camera is back out", 0.0, level._sleep_view)
+	_check("Awake: the nap ticked off with no laugh", 0, level.sound_counts.get("SFX-TASK-LAUGH", 0))
 
 
 func _check_pause_and_mute() -> void:
@@ -162,7 +166,7 @@ func _finish() -> void:
 	_check("SFX-CHITTER: 5 quick presses + 1 held press", 6, counts.get("SFX-CHITTER", 0))
 	_check("SFX-RUN: 2 runs, Shift tapped during the first", 2, counts.get("SFX-RUN", 0))
 	_check("SFX-CLIMB: 2 climbs, clinging still between", 2, counts.get("SFX-CLIMB", 0))
-	_check("SFX-TASK-LAUGH: 5 tasks over 4 frames", 4, counts.get("SFX-TASK-LAUGH", 0))
+	_check("SFX-TASK-LAUGH: 4 tasks in 3 frames, not the nap", 3, counts.get("SFX-TASK-LAUGH", 0))
 	_check("Every task done", true, level.tasks.all(func(t: Dictionary) -> bool: return t.done))
 	_check("End: the music has stopped after its fade", false, level._music.playing)
 	for path: String in ["res://assets/audio/music/forest-loop.wav", "res://assets/audio/sfx/run-loop.wav", "res://assets/audio/sfx/climb-loop.wav"]:

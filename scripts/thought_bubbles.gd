@@ -21,6 +21,10 @@ extends Node
 ##   bored       a round thought with a bored face in it, and a sigh puffing out of his
 ##               mouth, while he's bored: standing still long enough for the bored pose
 ##               (raccoon_model.gd BORED_AFTER)
+##   laugh       "hehehe" written by hand over his head, with no bubble, while he
+##               chitters (Space); never in his sleep
+##   asleep      z's floating up from him one after another while he naps in the
+##               hollow in his den, until he wakes
 ## Over his head only one shows at a time, the most urgent; when it ends, one still
 ## wanted shows. The sparkles are over the loot, so they can show alongside.
 ## Other meta it reads: "found" (set once he's picked a thing up), "bubble_range" (a
@@ -40,8 +44,12 @@ const VisionCone := preload("res://scripts/vision_cone.gd")
 ## up, in seconds, unless it's asked for again. Frustrated outranks alert, so losing
 ## his loot to an NPC who's looking at him still shows.
 const KINDS := {
-	"frustrated": {"rank": 6, "icon": "scribble", "hold": 1.8},
-	"alert": {"rank": 5, "icon": "alert", "hold": 0.4},
+	# Asleep, he thinks of nothing else.
+	"asleep": {"rank": 8, "icon": "snooze", "hold": 0.3},
+	"frustrated": {"rank": 7, "icon": "scribble", "hold": 1.8},
+	"alert": {"rank": 6, "icon": "alert", "hold": 0.4},
+	# About as long as the laugh he chitters with (chitter.wav).
+	"laugh": {"rank": 5, "icon": "hehehe", "hold": 1.2},
 	"hiding": {"rank": 4, "icon": "zzz", "hold": 2.0},
 	"idea": {"rank": 3, "icon": "bulb", "hold": 2.2},
 	"hungry": {"rank": 2, "icon": "fish", "hold": 3.0},
@@ -49,7 +57,7 @@ const KINDS := {
 }
 ## Kinds asked for on every tick while what causes them lasts; asking again doesn't
 ## pop them once more.
-const HELD_UP := ["alert", "hungry", "bored"]
+const HELD_UP := ["asleep", "alert", "hungry", "bored"]
 ## Loot glints within SHINY_RANGE metres, and keeps glinting until he's RANGE_SLACK
 ## further away.
 const SHINY_RANGE := 5.0
@@ -83,6 +91,11 @@ const HEIGHT := 0.61
 ## When his head is up (sitting up bored, climbing), they hang at least this far above
 ## his mouth instead, in metres at size 0.8.
 const MOUTH_CLEAR := 0.4
+## And over his head rather than his back: this share of the way out to his mouth.
+const HEAD_FORWARD := 0.7
+## Asleep, curled up with his head tucked in, his z's rise from this far above his
+## mouth instead (about the tips of his ears), in metres at size 0.8.
+const SLEEP_LIFT := 0.22
 ## The sigh comes out of his mouth, but at least this far (units) to the side of where
 ## his icons hang, on the side he faces, so it never runs across the bored thought.
 const SIGH_BESIDE := 0.17
@@ -108,6 +121,8 @@ var _until := {}
 var _icons := {}
 var _shown := ""
 var _shown_icon := ""
+## The kind the icon over his head is placed for: the one showing, or the one going.
+var _placed := ""
 var _time := 0.0
 ## The loot glinting now: thing -> its sparkles.
 var _glints := {}
@@ -128,6 +143,7 @@ func _ready() -> void:
 	add_to_group("thought_bubbles")
 	if player:
 		player.add_to_group("player")
+		player.chittered.connect(_on_chitter)
 	_layer = CanvasLayer.new()
 	# Under the level's own UI: the to-do list, the hints and the pause.
 	_layer.layer = 0
@@ -151,6 +167,22 @@ func pop(kind: String, hold := -1.0, icon := "") -> void:
 	_icons[kind] = icon if icon != "" else String(info.icon)
 	if again and kind not in HELD_UP and _icons[kind] == _shown_icon:
 		_bubble.bump()
+
+
+## A chitter: "hehehe" over his head, on the side he's facing on the screen. Never in
+## the hollow, where he sleeps (he can't chitter there anyway).
+func _on_chitter() -> void:
+	if player.resting:
+		return
+	pop("laugh", -1.0, "hehehe_left" if _facing_left() else "hehehe")
+
+
+## True if he faces to the left on the screen.
+func _facing_left() -> bool:
+	if camera == null:
+		return false
+	var drawn := player.get_global_transform_interpolated()
+	return camera.unproject_position(drawn.origin - drawn.basis.z).x < camera.unproject_position(drawn.origin).x
 
 
 ## Ends icon `kind` early.
@@ -203,6 +235,7 @@ func _physics_process(delta: float) -> void:
 	_watch_stuck(delta)
 	_watch_hunger(delta)
 	_watch_bored()
+	_watch_sleep()
 	_choose()
 
 
@@ -214,19 +247,22 @@ func _process(_delta: float) -> void:
 	var k := player.size / 0.8
 	var drawn := player.get_global_transform_interpolated()
 	var mouth := drawn * (player.global_transform.affine_inverse() * player.model.mouth.global_position)
-	var head := drawn * (HEAD * k) + Vector3.UP * LIFT * k
-	head.y = maxf(head.y, mouth.y + MOUTH_CLEAR * k)
+	var back := drawn * (HEAD * k) + Vector3.UP * LIFT * k
+	var head := back.lerp(Vector3(mouth.x, back.y, mouth.z), HEAD_FORWARD)
+	head.y = maxf(back.y, mouth.y + MOUTH_CLEAR * k)
 	var screen := get_viewport().get_visible_rect().size.y
 	var away := maxf(camera.global_position.distance_to(head), 0.1)
 	var per_metre := screen / (2.0 * away * tan(deg_to_rad(camera.fov) * 0.5))
 	_unit = clampf(HEIGHT * k * per_metre, UNIT_MIN * screen / 720.0, UNIT_MAX * screen / 720.0)
 	var over := head
-	if _shown == "hiding" and is_instance_valid(_cover):
+	if _placed == "hiding" and is_instance_valid(_cover):
 		over = _cover.top()
+	elif _placed == "asleep":
+		over = mouth + Vector3.UP * SLEEP_LIFT * k
 	_place(_bubble, over)
 	# Bored, his thought and his sigh face the way he faces on the screen.
-	var left := camera.unproject_position(drawn.origin - drawn.basis.z).x < camera.unproject_position(drawn.origin).x
-	_bubble.flip = left and _shown == "bored"
+	var left := _facing_left()
+	_bubble.flip = left and _placed == "bored"
 	_sigh.flip = left
 	_place(_sigh, mouth)
 	var side := -1.0 if left else 1.0
@@ -389,6 +425,17 @@ func _watch_bored() -> void:
 		pop("bored")
 
 
+## Asleep in the hollow: z's float up from him until he wakes. And no laughing in his
+## sleep: a laugh still up as he hops in ends there.
+func _watch_sleep() -> void:
+	if player.resting:
+		clear("laugh")
+	if player.is_napping() and player.model.sleep >= 1.0:
+		pop("asleep")
+	else:
+		clear("asleep")
+
+
 func _watch_hunger(delta: float) -> void:
 	if not hungry_objective:
 		return
@@ -412,6 +459,8 @@ func _choose() -> void:
 		return
 	_shown = best
 	_shown_icon = icon
+	if best != "":
+		_placed = best
 	if best == "":
 		_bubble.hide_icon()
 	else:

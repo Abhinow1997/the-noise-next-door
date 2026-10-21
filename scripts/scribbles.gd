@@ -6,11 +6,15 @@ extends RefCounted
 ##   fish      a scribbled loop with a fish skeleton in it (hungry); apple: an apple core
 ##   alert     a crooked red "!" with white marks round it
 ##   zzz       three handwritten z's floating up (hiding)
+##   snooze    z's floating up from him one after another, for as long as he naps (asleep)
 ##   bulb      a flat yellow bulb with short rays (idea)
 ##   scribble  an angry white spiral with dark scribble clouds (frustrated)
 ##   bored     a round scribbled thought with a bored face in it, and
 ##   sigh      a zigzag puff out of his mouth beside it (both from the author's mock-up
 ##             of the bored raccoon, shared in chat on 20 Oct 2026)
+##   hehehe    his laugh when he chitters: the word written by hand, popping up over his
+##             head, with a few white marks and no bubble (from the author's mock-up);
+##             hehehe_left is the same, for when he faces left
 ## An icon is a list of strokes in units of the raccoon's height on the screen, with y
 ## pointing down and (0, 0) at the point it hangs over. Each stroke is wobbled a little
 ## sideways and runs on past its ends, like a quick pencil line. `frame` picks one of a
@@ -52,9 +56,17 @@ const SIGH_CYCLE := 48
 const SIGH_GROW := 6
 const SIGH_FADE := 18
 const SIGH_GONE := 30
+## The laugh's size beside the author's mock-up, which the author asked to be smaller.
+const LAUGH_SIZE := 0.25
 ## The z's and the spiral: their pop, and the spiral's turns a second.
 const POP := [0.55, 1.2, 0.92, 1.0]
 const SPIN := 1.0
+## Asleep, a z pops up by his head every SNOOZE_GAP steps and floats up, growing, until
+## it goes SNOOZE_LIFE steps later, so three are always on their way up, small to big,
+## like the hiding z's. SNOOZE_GO: a z's size and opacity on its last steps.
+const SNOOZE_GAP := 12
+const SNOOZE_LIFE := 36
+const SNOOZE_GO := [[0.85, 0.85], [0.6, 0.55], [0.35, 0.25]]
 
 static var _rng := RandomNumberGenerator.new()
 static var _cache := {}
@@ -68,6 +80,11 @@ static func strokes(icon: String, frame: int, step: int) -> Array:
 			step = step % TWINKLE_CYCLE
 		"zzz":
 			step = mini(step, 48)
+		"snooze":
+			# Once the stream is full, it comes round again every SNOOZE_GAP steps.
+			var full := SNOOZE_LIFE - SNOOZE_GAP
+			if step > full:
+				step = full + (step - full) % SNOOZE_GAP
 		"scribble":
 			step = step % int(STEPS / SPIN)
 		"sigh":
@@ -91,6 +108,8 @@ static func strokes(icon: String, frame: int, step: int) -> Array:
 			_alert(out, frame)
 		"zzz":
 			_zzz(out, t, step)
+		"snooze":
+			_snooze(out, step)
 		"bulb":
 			_bulb(out, frame)
 		"scribble":
@@ -99,6 +118,8 @@ static func strokes(icon: String, frame: int, step: int) -> Array:
 			_bored(out)
 		"sigh":
 			_sigh(out, step)
+		"hehehe", "hehehe_left":
+			_laugh(out, frame, icon == "hehehe_left")
 		_:
 			push_warning("There's no thought icon called %s" % icon)
 	_cache[key] = out
@@ -261,24 +282,48 @@ static func _zzz(out: Array, t: float, step: int) -> void:
 		_z(out, at, float(sizes[i]) * grow)
 
 
-## One z, `s` tall: a top bar rising a little to the right, the diagonal, and a bottom
-## bar, with its corners rounded off.
-static func _z(out: Array, c: Vector2, s: float) -> void:
-	var tl := c + Vector2(-0.48, -0.4) * s
-	var tr := c + Vector2(0.48, -0.48) * s
-	var bl := c + Vector2(-0.43, 0.44) * s
-	var br := c + Vector2(0.52, 0.37) * s
+## Asleep: z's floating up from him one after another for as long as he naps. Each pops
+## up small by his head, grows as it drifts up and away, rocking a little as it goes,
+## and shrinks away about where the hiding z's stop.
+static func _snooze(out: Array, step: int) -> void:
+	var born := step - step % SNOOZE_GAP
+	while born >= 0 and step - born < SNOOZE_LIFE:
+		var age := step - born
+		var s := float(age) / SNOOZE_LIFE
+		var size := lerpf(0.22, 0.52, s)
+		var color := WHITE
+		if age < POP.size():
+			size *= float(POP[age])
+		var going := age - (SNOOZE_LIFE - SNOOZE_GO.size())
+		if going >= 0:
+			size *= float(SNOOZE_GO[going][0])
+			color.a = float(SNOOZE_GO[going][1])
+		# Up the hiding z's slope from the reference sheet, far enough apart that the
+		# three never run into each other, bobbing a little as they go.
+		var at := Vector2(0.1 + 1.3 * s, -0.25 - 0.72 * s + sin(s * TAU * 1.5) * 0.03)
+		_z(out, at, size, color, sin(s * TAU * 1.5) * 0.1)
+		born -= SNOOZE_GAP
+
+
+## One z, `s` tall and tipped `tilt` radians: a top bar rising a little to the right,
+## the diagonal, and a bottom bar, with its corners rounded off.
+static func _z(out: Array, c: Vector2, s: float, color := WHITE, tilt := 0.0) -> void:
+	var place := Transform2D(tilt, c)
+	var tl := place * (Vector2(-0.48, -0.4) * s)
+	var tr := place * (Vector2(0.48, -0.48) * s)
+	var bl := place * (Vector2(-0.43, 0.44) * s)
+	var br := place * (Vector2(0.52, 0.37) * s)
 	var cut := 0.1 * s
 	var tr_in := tr - (tr - tl).normalized() * cut
 	var tr_out := tr + (bl - tr).normalized() * cut
 	var bl_in := bl - (bl - tr).normalized() * cut
 	var bl_out := bl + (br - bl).normalized() * cut
-	var path := _quad(tl, (tl + tr_in) * 0.5 + Vector2(0, -0.04 * s), tr_in, 5)
+	var path := _quad(tl, (tl + tr_in) * 0.5 + place.basis_xform(Vector2(0, -0.04 * s)), tr_in, 5)
 	path.append_array(_quad(tr_in, tr, tr_out, 3).slice(1))
 	path.append_array(_quad(tr_out, (tr_out + bl_in) * 0.5, bl_in, 5).slice(1))
 	path.append_array(_quad(bl_in, bl, bl_out, 3).slice(1))
-	path.append_array(_quad(bl_out, (bl_out + br) * 0.5 + Vector2(0, 0.03 * s), br, 5).slice(1))
-	_line(out, path, WHITE, 0.044, true, 0.006)
+	path.append_array(_quad(bl_out, (bl_out + br) * 0.5 + place.basis_xform(Vector2(0, 0.03 * s)), br, 5).slice(1))
+	_line(out, path, color, 0.044, true, 0.006)
 
 
 ## A flat yellow bulb with a thin outline, a looped filament, a screw base of three
@@ -378,6 +423,70 @@ static func _sigh(out: Array, step: int) -> void:
 	var shown := clampi(int(path.size() * float(step + 1) / SIGH_GROW), 2, path.size())
 	path = Transform2D(0.0, lift) * path.slice(0, shown)
 	_line(out, path, Color(WHITE, 1.0 - going), 0.036, true)
+
+
+## His laugh when he chitters: "hehehe" written by hand over his head, at (0, 0) like
+## the other icons, with a few white marks flicking at its far end. It pops up whole, as
+## the other icons do (thought_bubble.gd). No bubble, as the author asked. It sits a
+## little toward the way he faces on the screen (`left` when that's left), tipped up a
+## touch that way, and always reads left to right. Letters as measured from the mock-up
+## (the word 1.8 units long, the h's 0.56 tall, the e's 0.32, leaning a little right),
+## drawn at LAUGH_SIZE of that. (By his mouth instead, the author said it looked bad.)
+static func _laugh(out: Array, frame: int, left: bool) -> void:
+	var word := "hehehe"
+	var length := 0.31 * (word.length() - 1) + 0.25
+	# The word's own space: its line from (0, 0) to (length, 0), its middle set over his
+	# head, a little toward the way he faces.
+	var place := Transform2D(deg_to_rad(4.0 if left else -4.0), Vector2.ONE * LAUGH_SIZE, 0.0,
+		Vector2(-0.12 if left else 0.12, -0.1)) * Transform2D(0.0, Vector2(-length * 0.5, 0.0))
+	# Each letter's own slant, size and height off the line, the same in every drawing.
+	var hand := RandomNumberGenerator.new()
+	hand.seed = 4242
+	for i in word.length():
+		var size := hand.randf_range(0.94, 1.06)
+		var slant := 0.1 + hand.randf_range(-0.05, 0.05)     # leaning a little right
+		var off := hand.randf_range(-0.025, 0.025)
+		var letter := place * Transform2D(slant, Vector2(size, size), 0.0, Vector2(0.31 * i, off))
+		for stroke: PackedVector2Array in _letter(word[i]):
+			_line(out, letter * stroke, WHITE, 0.024, true, 0.003)
+	# The marks, at the far end of the word: dashes flicking outward, and a tiny glint.
+	var far := Vector2(-0.22, 0.0) if left else Vector2(length + 0.22, 0.0)
+	var side := -1.0 if left else 1.0
+	var flick := 0.04 if frame % 2 == 1 else 0.0
+	for mark: Array in [[Vector2(0.0, -0.42), Vector2(0.1, -0.54)], [Vector2(0.04, -0.24), Vector2(0.18, -0.28)],
+			[Vector2(0.02, -0.06), Vector2(0.16, -0.01)]]:
+		var a: Vector2 = far + Vector2(mark[0].x * side, mark[0].y)
+		var b: Vector2 = far + Vector2(mark[1].x * side, mark[1].y)
+		var away := (b - a).normalized() * flick
+		_line(out, place * PackedVector2Array([a + away, b + away]), WHITE, 0.02, true, 0.003)
+	var glint := place * (far + Vector2(0.06 * side, -0.68))
+	var r := 0.025 if frame % 2 == 0 else 0.017
+	_line(out, PackedVector2Array([glint + Vector2(0, -r), glint + Vector2(0, r)]), WHITE, 0.012, false, 0.0)
+	_line(out, PackedVector2Array([glint + Vector2(-r, 0), glint + Vector2(r, 0)]), WHITE, 0.012, false, 0.0)
+
+
+static var _letters := {}
+
+
+## A handwritten letter (h or e) as its strokes, its line's left end at the origin: an h
+## is a tall stem, then a round arch out of it and down; an e is a bar across its middle
+## that runs on round anticlockwise and ends with a little flick up.
+static func _letter(ch: String) -> Array:
+	if _letters.has(ch):
+		return _letters[ch]
+	var strokes := []
+	if ch == "h":
+		strokes.append(PackedVector2Array([Vector2(0.03, -0.56), Vector2(0.0, 0.0)]))
+		var arch := _quad(Vector2(0.004, -0.15), Vector2(0.04, -0.34), Vector2(0.14, -0.33), 8)
+		arch.append_array(_quad(Vector2(0.14, -0.33), Vector2(0.245, -0.32), Vector2(0.24, -0.17), 6).slice(1))
+		arch.append(Vector2(0.245, 0.0))
+		strokes.append(arch)
+	else:
+		var e := PackedVector2Array([Vector2(0.02, -0.15), Vector2(0.245, -0.16)])
+		e.append_array(_ellipse(Vector2(0.13, -0.16), Vector2(0.125, 0.16), -5.0, -310.0, 26).slice(1))
+		strokes.append(e)
+	_letters[ch] = strokes
+	return strokes
 
 
 # --- Lines ----------------------------------------------------------------------

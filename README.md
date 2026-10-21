@@ -182,7 +182,7 @@ timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --f
 | [assets/props/](assets/props/) | Assignment 3's props: the s'more, the pizza slice and the cooler, and the camper's dropped beanie. Each has its `.blend` source and the `.glb` Godot loads. |
 | [asset_room/](asset_room/), `Look at the A3 assets.bat`, `look_at_a3_assets.sh` | Assignment 3's asset room, with every asset at game size and its measured size, and the launchers for Windows and for macOS or Linux. See [For the grader](#for-the-grader-the-assets-in-godot-with-their-sizes). |
 | [tests/a3_asset_check.gd](tests/a3_asset_check.gd) | Assignment 3's headless check of the three assets against the brief |
-| `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project |
+| `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project. It opens on the title screen, shown over the level itself (`main.tscn`), and New Game starts play in the same scene. |
 
 ## What the slice demonstrates
 
@@ -201,9 +201,13 @@ You need Godot 4.7.2. The project uses the Forward+ renderer.
 - **Windows:** double-click `Play The Noise Next Door.bat`, or `Edit in Godot.bat` to open the editor. They look for Godot in the `GODOT` environment variable, then in `%LOCALAPPDATA%\Programs\Godot`, then in your Downloads folder. The first run takes a few seconds longer while Godot imports the raccoon model.
 - **Anywhere:** run `godot --path .` from this folder. On a fresh clone, first run `godot --headless --path . --import` once (or open the project in the editor), so the raccoon model is imported.
 
+**The title screen:** Up and Down (or W and S, or the mouse) pick a line, and Enter, Space, E or a click chooses it. Continue stays faint until there are save states to continue from. Settings has the music and effects volumes (Left and Right) and full screen, and Esc goes back. The title is the game's own world at night, seen from where your title picture was taken, so New Game changes nothing but the camera: it glides in to the close-up of the raccoon asleep in his hollow, the lullaby playing on, and W, A, S or D wakes him to start. Any `--` argument other than the title's own skips the title, so the checks below still work as before.
+
 **Controls:** WASD or the arrow keys to move, Shift to run, Ctrl or C to sneak, E or a click to grab or drop, Space to chitter, and the mouse wheel to zoom. Walk into a tree to climb it. Then W and S climb up and down, A and D go round the trunk, and E lets go. Climb to the top of the home pine to get into the hollow. Esc pauses. M turns the music on and off, and N does the same for the sound effects. Tab opens a panel for trying out camera views live; its "Copy numbers" button copies the settings.
 
 **The automated sound check:** run `godot --headless --path . -- --sound-test`. It plays a scripted input sequence, counts how often each sound effect starts, and checks the music's pause, mute, loop and end behaviour. It prints a table, and its exit code is 0 only if every check passes (`scripts/sound_test.gd`).
+
+**The title screen check:** run `godot --headless --path . -- --title-test`. It moves through the menu with the keys and the mouse, changes the volumes and checks they reach the buses and the settings file, checks the menu's keys leave him asleep, then chooses New Game and checks the way in: the same scene throughout with nothing laid over it, the camera ending in the nap close-up, the lullaby carrying on, that first nap not ticking off the nap task, and a move key waking him and bringing in the forest music and the to-do list. It puts your settings file back afterwards (`scripts/title_test.gd`). Run in a window with `--title-shots=<folder>` as well, it saves pictures of the way in. `godot --path . -- --title-shot=out.png` saves a picture of the title screen.
 
 To redraw the storyboard after editing it, run `python design/storyboard/make_thumbnails.py`. To remake the character-sheet images and the raccoon's cut-outs, run `godot --path . --script res://design/character/make_character_sheet.gd`, then copy the five cut-outs the slice uses into `assets/characters/raccoon/`. For the stump, run `godot --headless --path . --script res://design/environment/make_props.gd`. For the sound loops, run `python design/sfx/make_sfx_loops.py`. To update the game's raccoon after editing `raccoon.blend`, run `blender -b assets/characters/raccoon.blend --python assets/characters/export_raccoon.py`.
 

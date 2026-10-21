@@ -1,5 +1,9 @@
 extends Node3D
-## Builds the forest, the props, the raccoon and the to-do list.
+## Builds the forest, the props, the raccoon and the to-do list. The game opens on the
+## title screen (title_screen.gd), shown over this level: him curled up asleep in his
+## hollow at night with the lullaby playing. New Game glides the camera in to the nap
+## close-up, and play starts from there when a move key wakes him. Any `--` argument
+## other than the title's own (`--title-...`) skips the title, for the debug flags below.
 ## Debug: `-- --screenshot=out.png [--closeup] [--pose=<state> [--left]]` saves a
 ## frame and quits; --pose shows the raccoon in one state: an animation of the rigged
 ## model (idle, walk, run, sneak, bored, sleep, climb), or with USE_SPRITES a
@@ -27,6 +31,18 @@ const SoundTest := preload("res://scripts/sound_test.gd")
 const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
 const BubbleDemo := preload("res://scripts/bubble_demo.gd")
 const BubbleTest := preload("res://scripts/bubble_test.gd")
+## His laughing face while he chitters.
+const RaccoonFace := preload("res://scripts/raccoon_face.gd")
+## The moonlight (night.gd), and the title screen's chalk writing (title_menu.gd) for the
+## prompt to wake him.
+const Night := preload("res://scripts/night.gd")
+const TitleMenu := preload("res://scripts/title_menu.gd")
+const TitleScreen := preload("res://scripts/title_screen.gd")
+## Fireflies and falling leaves in the moonlight (night_life.gd).
+const NightLife := preload("res://scripts/night_life.gd")
+## The level is at night, as the title screen is: the author asked for the game to be at
+## night too on 21 Oct 2026. Off, it's the daylight it had before.
+const NIGHT := true
 
 ## The author's generated grass texture (ENV-GROUND in SOURCES.md), repeated every
 ## GROUND_TILE metres, with GROUND_TINT to darken it. Off: on 6 Oct the author saw
@@ -61,7 +77,8 @@ const BIN_INSIDE := Color("454b50")
 const CAN := Color("5f7387")
 const SILVER := Color("c3c6c8")
 const LID := Color("cfc8b8")
-## The sky is never seen; this is the haze the far trees fade into.
+## The sky is never seen; this is the haze the far trees fade into by day (night.gd has
+## the night's).
 const HAZE := Color("8fa58c")
 
 ## The camera view the author picked with the Tab panel (camera_tuner.gd): it looks
@@ -112,6 +129,13 @@ const SLEEP_MUSIC_PATH := "res://assets/audio/music/lullaby-loop.wav"
 const SLEEP_MUSIC_DB := MUSIC_DB
 const SLEEP_FADE := 3.0
 const WAKE_FADE := 1.5
+## Starting under the title screen, asleep: how long the lullaby takes to fade in; once
+## New Game has brought the camera in, how long the prompt to wake him waits to come
+## up; and how long it, the to-do list and the hints take to fade in or out.
+const LULLABY_FADE_IN := 2.5
+const WAKE_PROMPT_AFTER := 2.5
+const UI_FADE := 0.8
+const WAKE_PROMPT := "Press W, A, S or D to wake up"
 
 const INPUTS := {
 	"move_forward": [KEY_W, KEY_UP],
@@ -183,6 +207,23 @@ var _paused_label: Label
 var sound_counts := {}
 var sprite: RaccoonSprite
 var bubbles: ThoughtBubbles
+## The title screen while it's up, or null. Meanwhile, how much (1..0) the camera is
+## its view rather than the game's own, and that view; the game's keys wait for it.
+var title: TitleScreen
+var title_view := 0.0
+var title_camera: Transform3D
+var title_fov := 40.0
+## And the title's haze (where it begins and ends, in metres, and how thick), eased
+## into the level's own as the camera glides in.
+var title_fog := Vector3.ZERO
+var _env: Environment
+var _fog := Vector3.ZERO
+## True from the start under the title until he's out of the hollow. That nap isn't the
+## nap task, and the to-do list and the hints stay hidden until he wakes.
+var _first_nap := false
+var _todo_panel: PanelContainer
+var _wake_prompt: Label
+var _wake_tween: Tween
 
 
 ## Turns the keys that work while paused (Esc, M, N) into calls on the level.
@@ -193,7 +234,7 @@ class Keys extends Node:
 		process_mode = Node.PROCESS_MODE_ALWAYS
 
 	func _unhandled_input(event: InputEvent) -> void:
-		if not (event is InputEventKey and event.pressed and not event.echo):
+		if not (event is InputEventKey and event.pressed and not event.echo) or level.title:
 			return
 		match event.physical_keycode:
 			KEY_ESCAPE:
@@ -205,7 +246,7 @@ class Keys extends Node:
 
 
 func _enter_tree() -> void:
-	_setup_buses()
+	setup_buses()
 	for action: String in INPUTS:
 		if InputMap.has_action(action):
 			continue
@@ -227,6 +268,7 @@ func _ready() -> void:
 	var bubble_demo := false
 	var bubble_test := false
 	var bubble_shots := ""
+	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			_shot_path = arg.get_slice("=", 1)
@@ -263,7 +305,10 @@ func _ready() -> void:
 
 	_build_environment()
 	forest = Forest.new()
+	forest.night = NIGHT
 	add_child(forest)
+	if NIGHT:
+		add_child(NightLife.new())
 	_texture_ground()
 	_build_props()
 
@@ -281,6 +326,13 @@ func _ready() -> void:
 	player.trees = forest.climbable
 	add_child(player)
 	player.sound_started.connect(_count_sound)
+	if title_mode:
+		# Under the title he's asleep in the hollow, and stays so until it has gone.
+		_first_nap = true
+		player.start_asleep(forest.rest_spot, forest.rest_exit)
+		player.keep_asleep = true
+		_napping = true
+		_sleep_view = 1.0
 	if use_sprites:
 		# Drawn with the author's generated images; the 3D model underneath only
 		# casts his shadow and carries things.
@@ -292,6 +344,12 @@ func _ready() -> void:
 		player.add_child(sprite)
 	else:
 		player.model.forced_animation = POSE_ANIMATIONS.get(pose, pose)
+		if NIGHT:
+			Night.tint_raccoon(player.model)
+		# Before the model's first frame, while it's still at rest (see raccoon_face.gd).
+		var face := RaccoonFace.new()
+		face.player = player
+		add_child(face)
 	if sprite and _see_collision:
 		# Half see-through, so `--debug-collisions` shows his capsule inside him.
 		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
@@ -316,6 +374,10 @@ func _ready() -> void:
 	_build_ui()
 	_refresh_todo()
 	_start_music()
+	if title_mode:
+		title = TitleScreen.new()
+		title.level = self
+		add_child(title)
 	if sound_test:
 		var test := SoundTest.new()
 		test.level = self
@@ -338,6 +400,8 @@ func _process(delta: float) -> void:
 	if napping != _napping:
 		_napping = napping
 		_nap_music(napping)
+		if not napping and _first_nap:
+			_show_ui()
 	_sleep_view = move_toward(_sleep_view, 1.0 if napping else 0.0,
 		delta / (SLEEP_CAMERA_IN if napping else SLEEP_CAMERA_OUT))
 	if _closeup:
@@ -401,8 +465,10 @@ func _start_music() -> void:
 	_music.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_music)
 	_music.play()
-	_music_tween = create_tween()
-	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
+	# Starting asleep, it stays right down under the lullaby until he wakes (_nap_music).
+	if not _first_nap:
+		_music_tween = create_tween()
+		_music_tween.tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
 	if not ResourceLoader.exists(SLEEP_MUSIC_PATH):
 		push_warning("The nap music isn't imported yet: %s" % SLEEP_MUSIC_PATH)
 		return
@@ -412,6 +478,11 @@ func _start_music() -> void:
 	_sleep_music.bus = "Music"
 	_sleep_music.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_sleep_music)
+	if _first_nap:
+		# Asleep under the title: the lullaby is the title's music.
+		_sleep_music.play()
+		_restart_sleep_tween()
+		_sleep_tween.tween_property(_sleep_music, "volume_db", SLEEP_MUSIC_DB, LULLABY_FADE_IN)
 
 
 ## As he curls up, the lullaby starts from its beginning and fades in while the
@@ -454,8 +525,9 @@ func _restart_sleep_tween() -> void:
 # --- Sound -------------------------------------------------------------------
 
 ## Music and effects get buses of their own, so each can be muted on its own.
-## The music bus has a low-pass filter, switched on only while paused.
-func _setup_buses() -> void:
+## The music bus has a low-pass filter, switched on only while paused. The title screen
+## (title_screen.gd) sets them up the same way first.
+static func setup_buses() -> void:
 	for bus_name: String in ["Music", "SFX"]:
 		if AudioServer.get_bus_index(bus_name) != -1:
 			continue
@@ -474,20 +546,13 @@ func _count_sound(id: String) -> void:
 	sound_counts[id] = sound_counts.get(id, 0) + 1
 
 
-## The laugh for a ticked-off task, with the music dipping under it: the lullaby
-## while he naps, the forest loop otherwise.
+## The laugh for a ticked-off task, with the forest loop dipping under it. It never
+## plays while he's in the hollow (_check_tasks), so the lullaby never dips.
 func _play_task_laugh() -> void:
 	if _task_laugh.stream == null:
 		return
 	_task_laugh.play()
 	_count_sound("SFX-TASK-LAUGH")
-	if _napping:
-		if _sleep_music:
-			_restart_sleep_tween()
-			_sleep_tween.tween_property(_sleep_music, "volume_db", SLEEP_MUSIC_DB - DUCK_DB, 0.1)
-			_sleep_tween.tween_interval(_task_laugh.stream.get_length())
-			_sleep_tween.tween_property(_sleep_music, "volume_db", SLEEP_MUSIC_DB, 0.4)
-		return
 	if _music == null or _finished:
 		return
 	_restart_music_tween()
@@ -585,6 +650,17 @@ func _place_camera() -> void:
 	camera.fov = lerpf(camera_fov, SLEEP_CAMERA_FOV, w)
 	camera.global_position = focus + (back * cos(pitch) + Vector3.UP * sin(pitch)) * distance
 	camera.look_at(focus)
+	# Under the title, its view; as New Game glides in, between the two.
+	if title_view > 0.0:
+		camera.global_transform = camera.global_transform.interpolate_with(title_camera, title_view)
+		camera.fov = lerpf(camera.fov, title_fov, title_view)
+		_set_fog(_fog.lerp(title_fog, title_view))
+
+
+func _set_fog(fog: Vector3) -> void:
+	_env.fog_depth_begin = fog.x
+	_env.fog_depth_end = fog.y
+	_env.fog_density = fog.z
 
 
 ## Where the raccoon is drawn this frame. He moves in physics ticks (60 a second)
@@ -608,6 +684,8 @@ func _camper_lean() -> Vector3:
 
 
 func _input(event: InputEvent) -> void:
+	if title:
+		return
 	# Before the UI sees it, which would use Tab to move focus.
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_TAB:
 		_tuner.visible = not _tuner.visible
@@ -615,6 +693,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if title:
+		return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom = clampf(zoom / 1.15, ZOOM_MIN, ZOOM_MAX)
@@ -634,9 +714,10 @@ func _check_tasks(delta: float) -> void:
 
 	# Sneaking into the den and keeping still sends him up into the hollow to sleep.
 	if player.resting:
-		if player.model.sleep >= 1.0:
+		if player.model.sleep >= 1.0 and not _first_nap:
 			_sleep_time += delta
 	else:
+		_first_nap = false
 		var still := Vector2(player.velocity.x, player.velocity.z).length() < 0.1
 		var napping := player.sneaking and still and not player.climbing and _in_den(player)
 		_nap_time = _nap_time + delta if napping else 0.0
@@ -658,8 +739,9 @@ func _check_tasks(delta: float) -> void:
 			changed = true
 			ticked += 1
 	# The sound follows the change in state, never the other way round. One laugh
-	# a frame, however many tasks finish together.
-	if ticked > 0:
+	# a frame, however many tasks finish together; and none in his sleep (the author
+	# asked): a task done while he's in the hollow, as the nap is, ticks off silently.
+	if ticked > 0 and not player.resting:
 		_play_task_laugh()
 	if changed:
 		_refresh_todo()
@@ -706,7 +788,8 @@ func _refresh_todo() -> void:
 func _build_environment() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = HAZE
+	# At night the sky shows, from the title's view over the trees.
+	env.background_color = Night.SKY.linear_to_srgb() if NIGHT else HAZE
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("e8eef0")
 	env.ambient_light_energy = 0.8
@@ -724,9 +807,22 @@ func _build_environment() -> void:
 	env.fog_depth_end = 60.0
 	env.fog_sun_scatter = 0.0
 	env.fog_aerial_perspective = 0.0
+	_env = env
+	_fog = Vector3(env.fog_depth_begin, env.fog_depth_end, env.fog_density)
+	if NIGHT:
+		Night.light(env)
+		env.fog_sky_affect = 0.0
+		# Only the fireflies are bright enough to glow.
+		env.glow_enabled = true
+		env.glow_intensity = 0.8
+		env.glow_bloom = 0.0
+		env.glow_hdr_threshold = 1.0
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	add_child(world_env)
+	if NIGHT:
+		add_child(Night.moon(40.0))
+		return
 
 	# The reference is lit from the upper right.
 	var sun := DirectionalLight3D.new()
@@ -824,6 +920,8 @@ func _build_stump() -> void:
 	picture.offset = Vector2(-float(m.anchor_x), -(img.get_height() - 1.0 - float(m.feet_row)))
 	picture.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	picture.shaded = false
+	if NIGHT:
+		picture.modulate = Night.PICTURE_TINT.linear_to_srgb()
 	picture.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
 	picture.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	stump.add_child(picture)
@@ -910,7 +1008,10 @@ func _build_ui() -> void:
 	style.shadow_size = 6
 	panel.add_theme_stylebox_override("panel", style)
 	panel.position = Vector2(24, 24)
+	# Only to read: the mouse goes through it (to the title's menu while that's up).
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(panel)
+	_todo_panel = panel
 
 	_todo = RichTextLabel.new()
 	_todo.bbcode_enabled = true
@@ -954,3 +1055,43 @@ func _build_ui() -> void:
 	_tuner.visible = false
 	layer.add_child(_tuner)
 	_tuner.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 24)
+
+	if _first_nap:
+		# Asleep under the title: just him until he's woken, then a chalk prompt, as on
+		# the title, saying how (begin_play).
+		_todo_panel.modulate.a = 0.0
+		_hint.modulate.a = 0.0
+		_wake_prompt = Label.new()
+		_wake_prompt.text = WAKE_PROMPT
+		_wake_prompt.add_theme_font_override("font", TitleMenu.FONT)
+		_wake_prompt.add_theme_font_size_override("font_size", 34)
+		_wake_prompt.add_theme_color_override("font_color", TitleMenu.CHALK)
+		_wake_prompt.material = TitleMenu.chalk()
+		_wake_prompt.modulate.a = 0.0
+		layer.add_child(_wake_prompt)
+		_wake_prompt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 48)
+
+
+## New Game has brought the camera in: the title is gone, he can be woken now, and the
+## prompt saying how comes up after a moment.
+func begin_play() -> void:
+	title = null
+	title_view = 0.0
+	_set_fog(_fog)
+	player.keep_asleep = false
+	if _wake_prompt:
+		_wake_tween = create_tween()
+		_wake_tween.tween_interval(WAKE_PROMPT_AFTER)
+		_wake_tween.tween_property(_wake_prompt, "modulate:a", 1.0, UI_FADE)
+
+
+## He's woken from the nap the game started with: the prompt goes, and the to-do list
+## and the hints come in.
+func _show_ui() -> void:
+	if _wake_tween:
+		_wake_tween.kill()
+	var tween := create_tween().set_parallel()
+	for item: CanvasItem in [_todo_panel, _hint]:
+		tween.tween_property(item, "modulate:a", 1.0, UI_FADE)
+	if _wake_prompt:
+		tween.tween_property(_wake_prompt, "modulate:a", 0.0, UI_FADE * 0.5)

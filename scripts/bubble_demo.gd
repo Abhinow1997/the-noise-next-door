@@ -56,6 +56,8 @@ const TRIES := [
 	["idea", "Idea: pick up the keys or the hose, then use it"],
 	["frustrated", "Frustrated: walk into a wall, try the shed door\n    without the keys, or get caught with loot"],
 	["bored", "Bored: stand still for a few seconds"],
+	["laugh", "Laugh: chitter (Space)"],
+	["asleep", "Asleep: sneak into your den and keep still"],
 ]
 
 ## Set by the level (main.gd).

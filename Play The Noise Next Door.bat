@@ -13,12 +13,13 @@ if not defined GODOT_EXE (
 	pause
 	exit /b 1
 )
-rem Import the raccoon models and the music on the first run, or after they are
+rem Import the raccoon models, the music and the title font on the first run, or after they are
 rem added, as the editor would.
 set "NEED_IMPORT="
 if not exist "%~dp0.godot\imported\raccoon.glb-*.scn" set "NEED_IMPORT=1"
 if not exist "%~dp0.godot\imported\raccoon_v2.glb-*.scn" set "NEED_IMPORT=1"
 if not exist "%~dp0.godot\imported\forest-loop.wav-*.sample" set "NEED_IMPORT=1"
 if not exist "%~dp0.godot\imported\lullaby-loop.wav-*.sample" set "NEED_IMPORT=1"
+if not exist "%~dp0.godot\imported\PatrickHand-Regular.ttf-*.fontdata" set "NEED_IMPORT=1"
 if defined NEED_IMPORT "%GODOT_EXE%" --headless --path "%~dp0." --import
 start "" "%GODOT_EXE%" --path "%~dp0." %*

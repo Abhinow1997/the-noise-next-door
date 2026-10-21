@@ -11,6 +11,7 @@ extends Node
 const Scribbles := preload("res://scripts/scribbles.gd")
 const Bubble := preload("res://scripts/thought_bubble.gd")
 const HideSpot := preload("res://scripts/hide_spot.gd")
+const RaccoonFace := preload("res://scripts/raccoon_face.gd")
 
 ## Set by the level (main.gd).
 var level: Node
@@ -24,12 +25,17 @@ var _failed := false
 var _player: Node3D
 var _bubbles: Node
 var _bubble: Bubble
+## His face (raccoon_face.gd), which laughs when he does.
+var _smile: Node
 
 
 func _ready() -> void:
 	_player = level.player
 	_bubbles = level.bubbles
 	_bubble = _bubbles._bubble
+	for child in level.get_children():
+		if child.get_script() == RaccoonFace:
+			_smile = child
 
 	# The yard from further out, for its picture.
 	_at(2, func() -> void:
@@ -261,13 +267,59 @@ func _ready() -> void:
 		_check("Bored: and the sigh", "", _bubbles._sigh.current())
 		Input.action_release("move_right"))
 
-	_at(1750, _check_drawing)
+	# Laugh: a chitter writes "hehehe" over his head, a little toward the side he faces,
+	# for about as long as the laugh.
+	_at(1745, func() -> void: _player.chitter())
+	_at(1748, func() -> void:
+		_expect("Laugh: he chitters", "laugh")
+		_check("Laugh: hehehe, facing right", "hehehe", _bubble.current())
+		_check("Laugh: his laughing face", true, _laughing())
+		var mouth: Vector2 = level.camera.unproject_position(_player.model.mouth.global_position)
+		_check("Laugh: it hangs over his head, above his mouth", true, _bubble.anchor.y < mouth.y))
+	_at(1790, _shot.bind("09_laugh"))
+	_at(1800, func() -> void:
+		_go(_player.global_position, Vector3.LEFT.rotated(Vector3.UP, deg_to_rad(level.CAMERA_YAW)))
+		_player.chitter())
+	_at(1803, func() -> void: _check("Laugh: on his left when he faces left", "hehehe_left", _bubble.current()))
+	_at(1840, _shot.bind("10_laugh_left"))
+	_at(1880, _expect.bind("Laugh: gone after the laugh", ""))
+
+	# Asleep: up in the hollow in his den, z's float up from him until he wakes. And no
+	# laughing in his sleep: a laugh as he hops up ends, and neither Space nor a chitter
+	# from anywhere starts one.
+	_at(1890, func() -> void:
+		_quiet()
+		_player.chitter()
+		_player.rest(level.forest.rest_spot, level.forest.rest_exit))
+	_at(1893, func() -> void:
+		_expect("Asleep: a laugh as he hops up into the hollow ends", "")
+		_check("Asleep: and so does his laughing face", false, _laughing()))
+	_at(1930, _expect.bind("Asleep: not yet, while he hops up and curls up", ""))
+	_at(2000, func() -> void:
+		_expect("Asleep: curled up in the hollow", "asleep")
+		_check("Asleep: the z's", "snooze", _bubble.current())
+		var mouth: Vector2 = level.camera.unproject_position(_player.model.mouth.global_position)
+		_check("Asleep: they rise from his head", true, _bubble.anchor.distance_to(mouth) < 0.5 * _bubbles._unit))
+	_at(2010, _press.bind(true, "chitter"))
+	_at(2012, _press.bind(false, "chitter"))
+	_at(2014, _expect.bind("Asleep: Space doesn't make him laugh in his sleep", "asleep"))
+	_at(2020, func() -> void: _player.chitter())
+	_at(2023, func() -> void:
+		_expect("Asleep: nor does a chitter from anywhere", "asleep")
+		_check("Asleep: nor his laughing face", false, _laughing()))
+	_at(2150, _shot.bind("11_asleep"))
+	_at(2160, Input.action_press.bind("move_back"))
+	_at(2165, Input.action_release.bind("move_back"))
+	_at(2166, _expect.bind("Asleep: waking ends the z's", ""))
+	_at(2270, func() -> void: _check("Asleep: woken, he's out of the hollow", false, _player.resting))
+
+	_at(2330, _check_drawing)
 	# Stopped well before the quit, so the audio thread has let go of them.
-	_at(1750, func() -> void:
+	_at(2330, func() -> void:
 		for music: AudioStreamPlayer in [level._music, level._sleep_music]:
 			if music:
 				music.stop())
-	_at(1770, _finish)
+	_at(2350, _finish)
 
 
 func _physics_process(_delta: float) -> void:
@@ -351,12 +403,17 @@ func _quiet() -> void:
 		can.set_meta("found", true)
 
 
-## E, as the player presses it.
-func _press(down: bool) -> void:
+## E (or the key for another action), as the player presses it.
+func _press(down: bool, action := "grab") -> void:
 	var ev := InputEventAction.new()
-	ev.action = "grab"
+	ev.action = action
 	ev.pressed = down
 	Input.parse_input_event(ev)
+
+
+## True while his laughing face shows.
+func _laughing() -> bool:
+	return _smile != null and _smile._mouth != null and _smile._mouth.visible
 
 
 # --- Checks ---------------------------------------------------------------------
@@ -373,10 +430,13 @@ func _expect(name: String, kind: String) -> void:
 
 func _check_drawing() -> void:
 	var empty: Array[String] = []
-	for icon: String in ["sparkles", "fish", "apple", "alert", "zzz", "bulb", "scribble", "bored", "sigh"]:
+	for icon: String in ["sparkles", "fish", "apple", "alert", "zzz", "snooze", "bulb", "scribble", "bored", "sigh",
+			"hehehe", "hehehe_left"]:
 		if Scribbles.strokes(icon, 0, 6).is_empty():
 			empty.append(icon)
 	_check("Every icon draws", "[]", str(empty))
+	_check("Asleep: three z's on their way up", 3, Scribbles.strokes("snooze", 0, 30).size())
+	_check("Asleep: still three after a minute asleep", 3, Scribbles.strokes("snooze", 0, 720).size())
 	var a: Array = Scribbles.strokes("fish", 0, 0)
 	var b: Array = Scribbles.strokes("fish", 1, 0)
 	_check("Boil: each drawing of an icon wobbles differently", true, a[0].pts != b[0].pts)
