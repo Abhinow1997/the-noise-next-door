@@ -1351,3 +1351,45 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - **The game's checks still pass:** the sound check, the title check and the bubble check (87). The walk to the camp still takes 19.5 s.
 - **Not done:** it's a stand-in. The author's own party track (Suno, like the rest of the music) can take its place. The level music doesn't dip when he's at the party. Nobody has listened to it yet.
 - **Human / Claude / model:** the request is mine. The beat, the code, the measurements and this write-up are Claude's. No generative model.
+
+## 2026-10-23 — The campers react to the raccoon: frightened, then the men chase him off while the girl hides
+
+- **Asked** (16:58): "ok we need to add mechanics for the human when the raccoon comes close and is visiable to them they should be scraed initially but then if it lingers around the camp the guys start to chasing it away and girl is always scared guys trying to protect them"
+- **Done by Claude** (the rules below are Claude's reading of the request; nothing was asked on the way):
+  - **Noticing him:** each of the three has eyes (the existing `vision_cone.gd`). While calm, they see 7 m in a 110° cone, drawn pale on the ground, and only about 4 m while he sneaks. They also hear a chitter within 8 m, or his running within 4 m. Once one of them takes fright, the other two catch it a moment later.
+  - **First, all three are scared:** they flinch back with their hands up (`scared`).
+  - **The girl is always scared:** she hurries behind the low-poly man and cowers (`cower`). If the raccoon comes within 2.5 m of her, she runs further off. She only goes back to dancing once he's been gone 6 s. She never chases.
+  - **The men protect her:** they stand guard, arms spread (`guard`), facing him. The low-poly man puts himself between the raccoon and the girl.
+  - **If he lingers:** after 4 s in the camp in sight, the men chase him (`run`), the camper at 2.7 m/s and the low-poly man at 3.1. That's faster than his walk (2) and slower than his run (4), and they come at him from either side.
+  - **Caught:** one who reaches him stamps and shoos (`shoo`). He drops what he's carrying and leaps up to 1.6 m away (`player.gd` `startle`). They keep chasing while he's still in the camp.
+  - **Up a tree:** they shoo up at him from the foot of it for 4 s, then give up and leave him be while he stays up there.
+  - **Calming down:** once he's out of the camp, or out of sight for 4 s, they walk back, calm down and go back to hammering and dancing.
+  - **The camper's mallet** lies by the peg while he's away from it.
+  - **The new code:**
+    - `scripts/camp_person.gd`: each person's states;
+    - `campsite.gd`: what the camp knows between them, and a navigation mesh baked over the camp, so they walk round tents, the fire and trees instead of into them;
+    - `vision_cone.gd`: its drawing follows its reach and can be hidden.
+  - **New animations** in the same scripts as the others:
+    - `scared`, `guard` and `shoo` for the two men, and `scared` and `cower` for the girl;
+    - the chubby man's short arms turn out, so his hands clear each other.
+    - The three figures were rebuilt from their downloads; the earlier clips are keyed as before.
+- **Checked:**
+  - **A new automated check,** `scripts/camp_test.gd` (`godot --headless --path . --audio-driver Dummy -- --camp-test`), passes all 32 checks, three runs in a row. It covers:
+    - unseen while sneaking 5 m off, seen standing there;
+    - the fright spreading, everyone flinching;
+    - her hiding behind him while he stands between them;
+    - the men chasing, never the girl, catching and shooing him, his leap staying on the ground;
+    - all three back at work where they were, with the mallet back in his hand;
+    - unseen behind the camper but heard when he chitters;
+    - up a tree: shooed from below, not caught, then left be.
+  - **Bugs it caught on the way:** the girl's hiding place landed inside the table; an old fright set them off again once they were calm; the leap left him falling through the ground; and the men shooed at a tree forever. All four were fixed before it passed.
+  - **The rebuilds** give byte-identical files: chubby man 1,801,408 bytes, low-poly man 2,402,840, simple girl 1,526,076.
+  - **The other checks still pass:** the sound check, the title check, the bubble check (87) and the Assignment 3 check.
+  - **Speed:** 7.8 ms a frame at 1920 × 1080 during a chase.
+  - **Pictures:** `design/level1/campsite/` 08–13.
+- **Not done:**
+  - No voices or footsteps for them; there are no sounds for that.
+  - Being caught doesn't yet do what the GDD says (the humans take back what he carries and the puzzle resets): he just drops it.
+  - The level 1 tasks aren't built.
+  - The numbers (how far they see, 4 s to chase, their speeds) are first guesses for the author to play and tune.
+- **Human / Claude / model:** the request is mine. The rules, the code, the animations, the checks and this write-up are Claude's. No generative model.

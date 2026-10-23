@@ -15,6 +15,8 @@ extends Node3D
 ## `-- --bubble-demo` adds a yard of stand-ins for trying the thought bubbles
 ## (scripts/bubble_demo.gd); `-- --bubble-test` runs their automated check in it
 ## (scripts/bubble_test.gd), with `--bubble-shots=<folder>` for a picture of each.
+## `-- --camp-test` runs the automated check of the campers' reactions to the raccoon
+## at the campsite (scripts/camp_test.gd), with `--camp-shots=<folder>` for pictures.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -31,6 +33,7 @@ const SoundTest := preload("res://scripts/sound_test.gd")
 const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
 const BubbleDemo := preload("res://scripts/bubble_demo.gd")
 const BubbleTest := preload("res://scripts/bubble_test.gd")
+const CampTest := preload("res://scripts/camp_test.gd")
 ## His laughing face while he chitters.
 const RaccoonFace := preload("res://scripts/raccoon_face.gd")
 ## The moonlight (night.gd), and the title screen's chalk writing (title_menu.gd) for the
@@ -275,6 +278,8 @@ func _ready() -> void:
 	var bubble_demo := false
 	var bubble_test := false
 	var bubble_shots := ""
+	var camp_test := false
+	var camp_shots := ""
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -308,6 +313,10 @@ func _ready() -> void:
 			bubble_test = true
 		elif arg.begins_with("--bubble-shots="):
 			bubble_shots = arg.get_slice("=", 1)
+		elif arg == "--camp-test":
+			camp_test = true
+		elif arg.begins_with("--camp-shots="):
+			camp_shots = arg.get_slice("=", 1)
 	_rng.seed = 7
 
 	_build_environment()
@@ -401,6 +410,11 @@ func _ready() -> void:
 		var test := SoundTest.new()
 		test.level = self
 		add_child(test)
+	if camp_test and campsite:
+		var camp_check := CampTest.new()
+		camp_check.level = self
+		camp_check.shots = camp_shots
+		add_child(camp_check)
 	if bubble_demo:
 		var demo := BubbleDemo.new()
 		demo.level = self

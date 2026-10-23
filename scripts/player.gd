@@ -20,6 +20,11 @@ const CHITTER_DB := -4.0
 ## A loop keeps going this long after he stops, so a one-frame stumble doesn't
 ## restart it.
 const LOOP_HOLD := 0.12
+## Shooed off by a camper (startle): how far he leaps, trying the longest first, how
+## long it takes and how high it goes.
+const STARTLE_LEAPS := [1.6, 1.1, 0.7]
+const STARTLE_TIME := 0.42
+const STARTLE_HEIGHT := 0.35
 ## How fast he drops off in the hollow (sleep per second). He starts just before he
 ## lands there, so the sleep animation has blended in by the time he touches down.
 const DOZE_RATE := 1.5
@@ -324,6 +329,36 @@ func start_asleep(spot: Transform3D, exit: Transform3D) -> void:
 
 ## Moves him from one transform to another along an arc `height` high, turning as
 ## he goes, then calls `done`. Collisions are off meanwhile.
+## Shooed by one of the campers standing at `from` (camp_person.gd): he drops what he's
+## carrying and leaps away from them, as far as STARTLE_LEAPS allows without landing
+## in anything. Not while he's up a tree, in the hollow or already in the air.
+func startle(from: Vector3) -> void:
+	if resting or climbing or is_hopping():
+		return
+	if held:
+		_drop()
+	var away := global_position - from
+	away.y = 0.0
+	away = away.normalized() if away.length() > 0.01 else global_basis.z
+	var facing := Basis(Vector3.UP, atan2(-away.x, -away.z))
+	var space := get_world_3d().direct_space_state
+	var probe := PhysicsShapeQueryParameters3D.new()
+	var ball := SphereShape3D.new()
+	ball.radius = 0.25
+	probe.shape = ball
+	probe.exclude = [get_rid()]
+	for far: float in STARTLE_LEAPS:
+		var land := global_position + away * far
+		probe.transform = Transform3D(Basis(), land + Vector3.UP * 0.3)
+		if space.intersect_shape(probe, 1).is_empty():
+			_hop(global_transform, Transform3D(facing, land), STARTLE_TIME, STARTLE_HEIGHT, _end_startle)
+			return
+
+
+func _end_startle() -> void:
+	_shape.disabled = false
+
+
 func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done := Callable()) -> void:
 	_hop_from = from
 	_hop_to = to

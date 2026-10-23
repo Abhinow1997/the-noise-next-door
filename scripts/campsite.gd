@@ -18,6 +18,9 @@ extends Node3D
 ##     a far-off thump at his tree (added the same day: "make the speaker play the
 ##     party's music as a sound in the world, loud near the camp and faint at his
 ##     tree"). main.gd hears the world from the raccoon.
+##   - The people react to the raccoon (camp_person.gd: they take fright, the girl
+##     cowers behind the low-poly man, the men guard and then chase him off); the camp
+##     keeps what they know between them (saw, seen_within, in_camp, frighten).
 ##   - Built here: the fire pit (a ring of stones, burning logs, flickering flames,
 ##     sparks and the fire's light), the logs to sit on, the speaker and its cable, the
 ##     string lights, the mallet and the tent pegs. The tents, the table with the
@@ -28,6 +31,8 @@ extends Node3D
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Forest := preload("res://scripts/forest.gd")
 const FireShader := preload("res://scripts/fire.gdshader")
+const CampPerson := preload("res://scripts/camp_person.gd")
+const Player := preload("res://scripts/player.gd")
 
 const TENT := "res://assets/props/tent.glb"
 const TABLE_WITH_LAPTOP := "res://assets/props/table_with_laptop.glb"
@@ -54,6 +59,17 @@ const LOGS := [[FIRE + Vector2(-1.5, 0.2), 80.0, 1.5], [FIRE + Vector2(0.7, 1.4)
 ## first, so they step out to opposite sides.
 const DANCERS := [[LOWPOLY_MAN, FIRE + Vector2(-0.7, -1.5)], [SIMPLE_GIRL, FIRE + Vector2(0.9, -1.25)]]
 const DANCE_OFFSETS := [0.0, 2.0]
+## Each one's walk and run at 1x (m/s, from their animate_*.py) and how fast they chase:
+## the camper, the low-poly man, the girl (who never chases).
+const CAMPER_SPEEDS := [1.02, 3.28, 2.7]
+const MAN_SPEEDS := [1.10, 3.56, 3.1]
+const GIRL_SPEEDS := [1.04, 3.33, 0.0]
+## The camp, as the people see it: within CAMP_ZONE metres of its middle. A chitter
+## this near any of them is heard.
+const CAMP_ZONE := 9.0
+const HEAR_CHITTER := 8.0
+## The camper's mallet, put down by the peg while he's away from it (in his own space).
+const MALLET_DOWN := Vector3(0.25, 0.04, 0.45)
 ## The string lights' poles, in the order the string runs.
 const POLES := [FIRE + Vector2(-2.4, -3.3), FIRE + Vector2(1.3, -3.7), FIRE + Vector2(4.1, -2.1)]
 ## Ground the forest keeps clear of rocks and tufts (x, z, radius).
@@ -124,8 +140,18 @@ var forest: Forest
 var music: AudioStreamPlayer
 ## The people, for the level: the camper (in the "camper" group, so the camera leans
 ## toward him) and the two dancers.
-var camper: Node3D
-var dancers: Array[Node3D] = []
+var camper: CampPerson
+var dancers: Array[CampPerson] = []
+var people: Array[CampPerson] = []
+## What the people know between them: the clock (s), when and where he was last seen,
+## and when someone last took fright.
+var clock := 0.0
+var last_seen := -INF
+var last_seen_at := Vector3.ZERO
+var frightened := -INF
+## Set when the men have given up shooing him down from a tree: they let him be while
+## he stays up it.
+var gave_up_on_tree := false
 ## The party's music, playing from the speaker.
 var party: AudioStreamPlayer3D
 
@@ -134,6 +160,9 @@ var _fire_light: OmniLight3D
 var _flames: Array[Dictionary] = []
 var _dance_players: Array[AnimationPlayer] = []
 var _woofer: MeshInstance3D
+var _mallet_hand: MeshInstance3D
+var _mallet_down: MeshInstance3D
+var _player: Player
 
 
 func _ready() -> void:
@@ -162,19 +191,68 @@ func _ready() -> void:
 	var rope_end: Vector3 = tent.transform * TENT_ROPE_ENDS[1]
 	var facing := Basis(Vector3.UP, deg_to_rad(CAMPER_FACING))
 	camper = _person(CAMPER, rope_end - facing * Vector3(HAMMER_PEG.x, 0, HAMMER_PEG.z), CAMPER_FACING,
-		"hammer", 1.25)
+		"hammer", "guy", CAMPER_SPEEDS)
 	camper.add_to_group("camper")
 	_give_mallet(camper)
 	for i in DANCERS.size():
 		var at: Vector2 = DANCERS[i][1]
 		var to_fire := FIRE - at
-		var dancer := _person(DANCERS[i][0], _v3(at), rad_to_deg(atan2(to_fire.x, to_fire.y)), "dance", 1.7)
+		var dancer := _person(DANCERS[i][0], _v3(at), rad_to_deg(atan2(to_fire.x, to_fire.y)), "dance",
+			"guy" if i == 0 else "girl", MAN_SPEEDS if i == 0 else GIRL_SPEEDS)
+		dancer.work_speed = MUSIC_BPM / DANCE_BPM
 		dancers.append(dancer)
-		var anim := _animation_player(dancer)
-		anim.speed_scale = MUSIC_BPM / DANCE_BPM
+		var anim := dancer.anim
+		anim.speed_scale = dancer.work_speed
 		anim.seek(fposmod(DANCE_OFFSETS[i], 4.0) * 60.0 / DANCE_BPM, true)
 		_dance_players.append(anim)
+	# The low-poly man looks after the girl, and comes at the raccoon from the other side.
+	dancers[1].protector = dancers[0]
+	dancers[0].protects = dancers[1]
+	dancers[0].flank_side = -1.0
+	_bake_walkways()
 	_process(0.0)
+
+
+func _physics_process(delta: float) -> void:
+	clock += delta
+	if _player == null:
+		_player = get_tree().get_first_node_in_group("player") as Player
+		if _player:
+			_player.chittered.connect(_on_chitter)
+	if _player and not _player.climbing:
+		gave_up_on_tree = false
+
+
+## True while the men are letting him be up a tree (gave_up_on_tree).
+func let_be() -> bool:
+	return gave_up_on_tree and _player != null and _player.climbing
+
+
+## Someone has just seen him at `at`.
+func saw(at: Vector3) -> void:
+	last_seen = clock
+	last_seen_at = at
+
+
+## True if someone has seen him within the last `seconds`.
+func seen_within(seconds: float) -> bool:
+	return clock - last_seen <= seconds
+
+
+## True if `at` is in the camp, give or take `margin` metres.
+func in_camp(at: Vector3, margin := 0.0) -> bool:
+	return Vector2(at.x, at.z).distance_to(Forest.CAMP) < CAMP_ZONE + margin
+
+
+## Someone has just taken fright: the others catch it (camp_person.gd).
+func frighten() -> void:
+	frightened = clock
+
+
+func _on_chitter() -> void:
+	for person in people:
+		if person.global_position.distance_to(_player.global_position) < HEAR_CHITTER:
+			person.hear()
 
 
 func _process(delta: float) -> void:
@@ -189,6 +267,10 @@ func _process(delta: float) -> void:
 		node.scale = Vector3(flame.size * width, flame.height * lick, flame.size * width)
 		node.rotation = Vector3(0.14 * sin(_t * 3.1 + ph), flame.yaw, 0.14 * sin(_t * 2.7 + ph * 1.3))
 	_keep_the_beat()
+	if _mallet_hand:
+		# In his hand while he's hammering, down by the peg while he's not.
+		_mallet_hand.visible = camper.anim.current_animation == "hammer"
+		_mallet_down.visible = not _mallet_hand.visible
 
 
 ## Keeps the party's music on the level music's beat, the dancers on that beat, and
@@ -209,6 +291,8 @@ func _keep_the_beat() -> void:
 		beats = (heard - MUSIC_DOWNBEAT) * MUSIC_BPM / 60.0
 		for i in _dance_players.size():
 			var anim := _dance_players[i]
+			if anim.current_animation != "dance":
+				continue
 			var want := fposmod(beats + DANCE_OFFSETS[i], 4.0) * 60.0 / DANCE_BPM
 			if absf(_wrapped(want - anim.current_animation_position, anim.current_animation_length)) > SYNC_SLACK:
 				anim.seek(want, true)
@@ -409,30 +493,62 @@ func _set_table(table: Node3D) -> void:
 
 # --- The people ----------------------------------------------------------------
 
-## One of the humans at `at`, facing `deg`, playing `clip` (looped on import), with a
-## capsule `height` tall to stop the raccoon.
-func _person(path: String, at: Vector3, deg: float, clip: String, height: float) -> StaticBody3D:
-	var body := StaticBody3D.new()
+## Where the people can walk round the camp, so they go round the tents, the fire and
+## the trees rather than into them: a navigation mesh baked over the camp and a little
+## beyond it from the level's static colliders (the forest's trunks and walls, the
+## campsite's props), on a flat floor.
+func _bake_walkways() -> void:
+	var map := get_world_3d().navigation_map
+	var nav := NavigationMesh.new()
+	nav.cell_size = NavigationServer3D.map_get_cell_size(map)
+	nav.cell_height = NavigationServer3D.map_get_cell_height(map)
+	# Whole cells, as the bake rounds them up anyway.
+	nav.agent_radius = nav.cell_size * 2.0
+	nav.agent_height = nav.cell_height * 7.0
+	nav.agent_max_climb = nav.cell_height
+	nav.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+	nav.geometry_collision_mask = 1
+	var reach := CAMP_ZONE + 6.0
+	nav.filter_baking_aabb = AABB(Vector3(Forest.CAMP.x - reach, -1.0, Forest.CAMP.y - reach),
+		Vector3(reach * 2.0, 4.0, reach * 2.0))
+	var source := NavigationMeshSourceGeometryData3D.new()
+	NavigationServer3D.parse_source_geometry_data(nav, source, get_parent())
+	var a := Vector3(Forest.CAMP.x - reach, 0.0, Forest.CAMP.y - reach)
+	var b := Vector3(Forest.CAMP.x + reach, 0.0, Forest.CAMP.y + reach)
+	source.add_faces(PackedVector3Array([a, Vector3(b.x, 0, a.z), b, a, b, Vector3(a.x, 0, b.z)]),
+		Transform3D.IDENTITY)
+	NavigationServer3D.bake_from_source_geometry_data(nav, source)
+	var region := NavigationRegion3D.new()
+	region.navigation_mesh = nav
+	add_child(region)
+
+
+## One of the humans at `at`, facing `deg`, at work playing `clip` (looped on import),
+## a "guy" or the "girl" (camp_person.gd), with their `speeds` (walk, run, chase), and a
+## capsule to stop the raccoon.
+func _person(path: String, at: Vector3, deg: float, clip: String, role: String, speeds: Array) -> CampPerson:
+	var body := CampPerson.new()
+	body.name = path.get_file().get_basename()
 	body.position = at
 	body.rotation.y = deg_to_rad(deg)
-	add_child(body)
-	_model(path, body)
+	body.post = Transform3D(Basis(Vector3.UP, deg_to_rad(deg)), at)
+	body.role = role
+	body.work_clip = clip
+	body.walk_natural = speeds[0]
+	body.run_natural = speeds[1]
+	body.chase_speed = speeds[2]
+	body.camp = self
+	body.model = _model(path, body)
 	var col := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.28
-	shape.height = height
+	shape.height = 1.6
 	col.shape = shape
-	col.position = Vector3(0, height * 0.5, 0)
+	col.position = Vector3(0, 0.8, 0)
 	body.add_child(col)
-	var anim := _animation_player(body)
-	if anim:
-		anim.play(clip)
+	add_child(body)
+	people.append(body)
 	return body
-
-
-func _animation_player(person: Node) -> AnimationPlayer:
-	var players := person.find_children("*", "AnimationPlayer", true, false)
-	return null if players.is_empty() else players[0]
 
 
 ## The camper's mallet, in his right hand: its handle runs from his palm toward his
@@ -453,7 +569,12 @@ func _give_mallet(person: Node3D) -> void:
 	var half: Vector3 = MALLET_ACROSS * MALLET.head * 0.5
 	st.append_from(LowPoly.loft([tip - half, tip + half], [Vector2(MALLET.head_r, MALLET.head_r),
 		Vector2(MALLET.head_r, MALLET.head_r)], 8, LowPoly.solid(MALLET_HEAD)), 0, Transform3D.IDENTITY)
-	_mesh(LowPoly.commit(st), hand)
+	var mallet := LowPoly.commit(st)
+	_mallet_hand = _mesh(mallet, hand)
+	# And lying by the peg, for while he's away from it: its handle along the ground.
+	_mallet_down = _mesh(mallet, self)
+	_mallet_down.transform = person.transform * Transform3D(Basis.from_euler(Vector3(0, 0.4, PI / 2)), MALLET_DOWN)
+	_mallet_down.visible = false
 
 
 # --- The music corner and the lights --------------------------------------------

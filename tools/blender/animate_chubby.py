@@ -23,6 +23,7 @@
 #              he ends there, holding it (the game decides what comes next)
 #   dance      64 frames, looping (added 23 Oct 2026 for the campsite): a step-touch over four beats, fists up, see DANCE
 #   hammer     25 frames, looping (the same day): squatting, knocks a tent peg in with a mallet, see hammer_clip
+#   scared, guard, shoo  (the same day, the campers' reactions to the raccoon), see react_clips
 # All in place, facing -Y (+Z in Godot): the game moves him and plays walk and run at speed / their speed above.
 #
 # prepare_chubby.py ends by running this file (the build gives the whole .blend and .glb). On its own, it re-keys the
@@ -357,7 +358,10 @@ class Keys:
 REST = dict(pel=Vector(), hips_p=0.0, hips_r=0.0, hips_y=0.0, tum_p=0.0, tum_r=0.0, tum_y=0.0, chest_p=0.0,
             neck_p=0.0, head_p=0.0, head_r=0.0, head_y=0.0, knee_out=0.0, l_toe=0.0, r_toe=0.0,
             l_ik=0.0, r_ik=0.0, l_pole_w=0.0, r_pole_w=0.0, l_sw=0.0, r_sw=0.0, l_el=0.0, r_el=0.0,
-            l_at=("fk",), r_at=("fk",))
+            l_at=("fk",), r_at=("fk",), l_out=0.0, r_out=0.0, l_lift=0.0, r_lift=0.0, l_twist=0.0, r_twist=0.0)
+# (l_out and r_out raise an arm out to the side, l_twist and r_twist turn it outward about itself (negative) or
+# inward, l_lift and r_lift a foot off the ground: added on 23 Oct 2026 for
+# the campers' reactions; at 0, as every earlier clip has them, they change nothing.)
 # a hand's place: ("fk",) as the arm hangs; (bone, rest point, (finger dir, palm dir)): the rest-pose point and the
 # way the hand faces, both carried by that bone; ("world", point, (finger dir, palm dir)): fixed in the rig's space
 
@@ -401,7 +405,9 @@ def keyed_pose(body, keys, f):
     pose["head_world"] = [(Y, g("head_r")), (X, g("head_p")), (Z, g("head_y"))]
     pose["knee_out"] = g("knee_out")
     for k, sd in body.side.items():
-        pose["feet"][k] = body.foot(k, g(k + "_toe"), "heel")
+        pose["feet"][k] = body.foot(k, g(k + "_toe"), "heel", Vector((0, 0, g(k + "_lift"))))
+        turn("arm_" + k, Z, -sd["s"] * g(k + "_twist"))
+        turn("arm_" + k, Y, -sd["s"] * g(k + "_out"))
         turn("arm_" + k, X, g(k + "_sw"))
         turn("fore_" + k, sd["arm_n"], g(k + "_el"))
         w, pw = g(k + "_ik"), g(k + "_pole_w")
@@ -601,8 +607,73 @@ def mallet_grip(body, log=print):
     return sd["hand"], grip, across.normalized()
 
 
+# --- scared, cower, guard and shoo: the campers and the raccoon (23 Oct 2026) ----------------------------------------
+# Asked for with the campers' reactions: "when the raccoon comes close and is visible to them they should be scraed
+# initially but then if it lingers around the camp the guys start to chasing it away and girl is always scared guys
+# trying to protect them". In place, keyed poses like bend's:
+#   scared  30 frames: the start: flinches back onto his heels, hands up in front of his face, then settles, wary,
+#           his hands at his chest (he ends there; the game goes on to the next)
+#   cower   50 frames, looping (the girl): hunched, knees bent, her fists up by her chin, looking from side to side
+#   guard   50 frames, looping (the men): feet set, knees soft, arms spread out in front (stay back!), shifting his
+#           weight and following the raccoon with his head
+#   shoo    25 frames, looping (the men): leaning in, flapping both arms down at the raccoon, stamping his right foot
+# REACT's numbers are the chubby man's (his short arms turn out, so his hands clear each other); the other two
+# change them.
+REACT = dict(hands_sw=-100.0, hands_el=115.0, hands_out=30.0, hands_twist=-30.0, chest_sw=-45.0, chest_el=95.0, guard_out=38.0, guard_sw=-40.0,
+             guard_el=35.0, cower_sw=-115.0, cower_el=135.0, cower_drop=-0.14, stamp=0.10)
+
+
+def react_clips(body, r=None):
+    """scared, cower, guard and shoo (see above), as Keys."""
+    r = dict(REACT, **(r or {}))
+    V = Vector
+    def both(**kw):
+        return {side + k: v for k, v in kw.items() for side in ("l_", "r_")}
+    scared = Keys(REST, [
+        (0, {}),
+        (3, dict(pel=V((0, 0.05, -0.05)), hips_p=-4.0, tum_p=-14.0, chest_p=-4.0, neck_p=-6.0, head_p=-12.0,
+                 l_toe=8.0, r_toe=8.0,
+                 **both(sw=r["hands_sw"], el=r["hands_el"], out=r["hands_out"], twist=r["hands_twist"]))),  # flinches
+        (6, dict(pel=V((0, 0.07, -0.02)), tum_p=-12.0, head_p=-10.0)),
+        (12, dict(pel=V((0, 0.05, -0.06)), hips_p=2.0, tum_p=-6.0, head_p=-4.0, l_toe=0.0, r_toe=0.0,
+                  **both(sw=r["hands_sw"] + 20.0, el=r["hands_el"] - 5.0))),
+        (20, dict(pel=V((0, 0.03, -0.05)), hips_p=0.0, tum_p=0.0, head_p=0.0,
+                  **both(sw=r["chest_sw"] - 10.0, el=r["chest_el"] + 5.0, out=12.0, twist=r["hands_twist"] * 0.5))),
+        (30, dict(pel=V((0, 0.02, -0.04)), tum_p=2.0, **both(sw=r["chest_sw"], el=r["chest_el"]))),   # wary
+    ])
+    hunch = dict(pel=V((0, 0.03, r["cower_drop"])), hips_p=12.0, tum_p=22.0, chest_p=8.0, neck_p=-12.0, head_p=6.0,
+                 knee_out=8.0, **both(sw=r["cower_sw"], el=r["cower_el"], out=10.0))
+    cower = Keys(REST, [
+        (0, dict(hunch, head_y=-7.0, tum_y=-2.0)),
+        (12, dict(pel=V((0.01, 0.03, r["cower_drop"] - 0.012)), head_y=6.0, tum_y=2.0, l_el=r["cower_el"] + 6.0)),
+        (25, dict(pel=V((0, 0.035, r["cower_drop"])), head_y=-4.0, tum_y=-1.0, l_el=r["cower_el"])),
+        (37, dict(pel=V((-0.01, 0.03, r["cower_drop"] - 0.012)), head_y=7.0, tum_y=2.0, r_el=r["cower_el"] + 6.0)),
+        (50, dict(hunch, head_y=-7.0, tum_y=-2.0)),
+    ])
+    stand = dict(pel=V((0.02, 0.0, -0.05)), hips_p=4.0, hips_r=2.0, tum_p=8.0, chest_p=2.0, neck_p=-4.0, head_p=4.0,
+                 head_y=-8.0, knee_out=8.0, **both(sw=r["guard_sw"], el=r["guard_el"], out=r["guard_out"]))
+    guard = Keys(REST, [
+        (0, stand),
+        (25, dict(pel=V((-0.02, 0.0, -0.055)), hips_r=-2.0, head_y=8.0, l_out=r["guard_out"] + 6.0,
+                  r_out=r["guard_out"] - 4.0)),
+        (50, stand),
+    ])
+    up = dict(pel=V((0.03, -0.02, -0.06)), hips_p=6.0, tum_p=18.0, chest_p=4.0, neck_p=-6.0, head_p=22.0,
+              knee_out=6.0, r_lift=r["stamp"], **both(sw=-75.0, el=60.0, out=20.0))
+    shoo = Keys(REST, [
+        (0, up),
+        (6, dict(pel=V((0.01, -0.03, -0.09)), tum_p=24.0, r_lift=0.0, **both(sw=-25.0, el=30.0))),   # stamp, flap
+        (12, dict(pel=V((0.0, -0.02, -0.06)), tum_p=18.0, **both(sw=-75.0, el=60.0))),
+        (18, dict(pel=V((0.0, -0.03, -0.08)), tum_p=22.0, **both(sw=-25.0, el=30.0))),               # flap
+        (25, up),
+    ])
+    return dict(scared=scared, cower=cower, guard=guard, shoo=shoo)
+
+
+REACT_CLIPS = [("scared", 30, False), ("guard", 50, True), ("shoo", 25, True)]
+
 CLIPS = [("walk", WALK["frames"], True), ("run", RUN["frames"], True), ("bend", 72, False), ("take_away", 72, False),
-         ("dance", DANCE["frames"], True), ("hammer", HAMMER_FRAMES, True)]
+         ("dance", DANCE["frames"], True), ("hammer", HAMMER_FRAMES, True)] + REACT_CLIPS
 
 
 def animate(rig, body, only=None, log=print):
@@ -615,6 +686,8 @@ def animate(rig, body, only=None, log=print):
     poses = {"walk": lambda f, n: cycle_pose(b, f / n, WALK), "run": lambda f, n: cycle_pose(b, f / n, RUN),
              "bend": lambda f, n: keyed_pose(b, bend, f), "take_away": lambda f, n: keyed_pose(b, take, f),
              "dance": lambda f, n: dance_pose(b, f / n, DANCE)}
+    for name, keys in react_clips(b, REACT).items():
+        poses[name] = lambda f, n, keys=keys: keyed_pose(b, keys, f)
     if any(name == "hammer" for name, _, _ in CLIPS) and (not only or "hammer" in only):
         hammer = hammer_clip(b)
         poses["hammer"] = lambda f, n: keyed_pose(b, hammer, f)

@@ -29,6 +29,8 @@ var seeing := false
 var ignore: Array[RID] = []
 
 var _material: StandardMaterial3D
+var _cone: MeshInstance3D
+var _drawn_reach := 1.0
 
 
 func _ready() -> void:
@@ -49,6 +51,8 @@ func _physics_process(_delta: float) -> void:
 			lost.emit(target)
 	if _material:
 		_material.albedo_color = SEEING if seeing else WATCHING
+		# Drawn as far as it sees now: the level may change `reach` as it goes.
+		_cone.scale = Vector3.ONE * (reach / _drawn_reach)
 
 
 ## True if it can see `body` right now.
@@ -80,6 +84,12 @@ static func hidden(body: Node3D) -> bool:
 	return HideSpot.is_hidden(body) or body.get("resting") == true
 
 
+## Shows or hides the cone on the ground (it still sees either way).
+func show_on_ground(on: bool) -> void:
+	if _cone:
+		_cone.visible = on
+
+
 ## The cone, as a fan on the ground under the eyes, fading toward its edge.
 func _build_cone() -> void:
 	var st := SurfaceTool.new()
@@ -103,8 +113,9 @@ func _build_cone() -> void:
 	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_material.disable_fog = true
 	_material.albedo_color = WATCHING
-	var cone := MeshInstance3D.new()
-	cone.mesh = st.commit()
-	cone.material_override = _material
-	cone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(cone)
+	_cone = MeshInstance3D.new()
+	_cone.mesh = st.commit()
+	_cone.material_override = _material
+	_cone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_drawn_reach = reach
+	add_child(_cone)

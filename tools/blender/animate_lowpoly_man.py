@@ -15,6 +15,7 @@
 #              he ends there, holding it
 #   dance      64 frames, looping (added 23 Oct 2026 for the campsite): the chubby man's step-touch with his own
 #              arms (DANCE below)
+#   scared, guard, shoo  (added 23 Oct 2026, the campers' reactions) as animate_chubby.py has them
 # All in place, facing -Y (+Z in Godot): the game moves him and plays walk and run at speed / their speed above.
 #
 # prepare_lowpoly_man.py ends by running this file. On its own, it re-keys the four actions on the saved .blend, saves
@@ -51,6 +52,10 @@ _arm = L["_arm"]
 DANCE = dict(L["DANCE"], step=0.18, bounce=0.04, pop=5.0,
              arms={"l": _arm(sw=-30.0, sw_amp=20.0, out=16.0, el=90.0, el_amp=10.0, phase=0.0, inward=-20.0),
                    "r": _arm(sw=-120.0, sw_amp=-25.0, out=45.0, el=45.0, el_amp=-25.0, period=1.0)})
+
+# His reactions (scared and the rest, 23 Oct 2026): his arms are long enough to put his hands up without
+# turning them out, as the chubby man's are
+REACT = dict(L["REACT"], hands_out=18.0, hands_twist=0.0)
 
 
 def clips(body):
@@ -113,8 +118,9 @@ def clips(body):
 def animate(rig, body, only=None, log=print):
     """animate_chubby.animate with his numbers."""
     L["WALK"], L["RUN"], L["clips"], L["DANCE"] = WALK, RUN, clips, DANCE
+    L["REACT"] = REACT
     L["CLIPS"] = [("walk", WALK["frames"], True), ("run", RUN["frames"], True), ("bend", 72, False), ("take_away", 72, False),
-                  ("dance", DANCE["frames"], True)]
+                  ("dance", DANCE["frames"], True)] + L["REACT_CLIPS"]
     return L["animate"](rig, body, only=only, log=log)
 
 

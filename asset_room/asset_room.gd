@@ -28,8 +28,9 @@ const GAME_PITCH := 27.0
 const GAME_YAW := -14.0
 const GAME_FOV := 15.0
 const GAME_DISTANCE := 19.2
-const CAMPER_CLIPS := ["walk", "run", "bend", "take_away", "dance", "hammer"]   # the people's animations, keys C, K, P and W
-# (dance and hammer since 23 Oct 2026, for level 1's campsite; whoever doesn't have one skips it)
+const CAMPER_CLIPS := ["walk", "run", "bend", "take_away", "dance", "hammer", "scared", "guard", "shoo", "cower"]
+# (the people's animations, keys C, K, P and W; dance and hammer since 23 Oct 2026, for level 1's campsite, and
+# scared, guard, shoo and cower the same day, for the campers' reactions; whoever doesn't have one skips it)
 
 @onready var _camera: Camera3D = $Camera3D
 @onready var _focus := {
@@ -237,7 +238,8 @@ func _play_idle(node: Node) -> void:
 		player.play("idle")
 
 
-## A camper's animations, one at a time: walk, run, dance and hammer loop; bend and take_away play again after a pause.
+## A camper's animations, one at a time: walk, run, dance, hammer, guard, shoo and cower loop; bend, take_away and
+## scared play again after a pause.
 func _play_camper(key: String, i: int) -> void:
 	var player := _camper_player(key)
 	if player == null:
