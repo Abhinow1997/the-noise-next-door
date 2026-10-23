@@ -78,10 +78,33 @@ const DEN_RADIUS := 2.0
 const START := Vector3(0, 0.02, 3.4)
 const CABIN := Vector3(-5.5, 0, -20.0)
 const BENCH := Vector3(6.0, 0, -1.6)
-## Where the raccoon can walk. Trees beyond it are only scenery.
+## Where the raccoon can walk, with EAST_PLAY. Trees beyond them are only scenery.
+## (BOUNDS also sets how the forest was laid out, so it stays as it is.)
 const BOUNDS := Rect2(-15, -23, 30, 33)
 ## Where scenery is generated.
 const WORLD := Rect2(-44, -50, 88, 74)
+
+## Level 1's campsite (campsite.gd) is out east, about 20 seconds' walk (40 m) from the
+## home pine, as the author asked on 23 Oct 2026 ("move the party away like 25seconds
+## walk away from the house tree", then "20seconds*"). It's a clearing round CAMP at the
+## forest's south edge, so the open ground in front of the camera stays open, reached
+## by a trodden trail (TRAIL_POINTS) along the edge of the trees, where the trees stand
+## back to north of TRAIL_EDGE. No tree grows in either, without moving any other tree
+## (see _plant_trees). The forest carries on east to EAST_END, and the raccoon can walk
+## in EAST_PLAY too.
+const CAMP := Vector2(40.5, 3.0)
+const CAMP_RADIUS := 7.5
+const TRAIL_POINTS := [Vector2(2.6, 3.0), Vector2(6.5, 4.8), Vector2(11.2, 6.9), Vector2(17.0, 6.8), Vector2(24.0, 6.1),
+	Vector2(30.0, 5.6), Vector2(34.5, 4.4), Vector2(37.0, 3.6)]
+const TRAIL_EDGE := 4.2
+const EAST_PLAY := Rect2(15, -5, 33, 15)
+const EAST_END := 80.0
+## The stream and the path east of x = 50, where they stopped before: each drawn on
+## from there along these points (the first two are their own last two).
+const STREAM_EAST := [Vector2(34, -14.4), Vector2(50, -13.6), Vector2(64, -14.6), Vector2(76, -13.9),
+	Vector2(92, -14.4)]
+const FORK_EAST := [Vector2(20.0, -8.8), Vector2(50.0, -7.6), Vector2(66.0, -8.6), Vector2(78.0, -8.0),
+	Vector2(92.0, -8.3)]
 
 ## The home pine, from the author's title picture (design/reference/title-screen.webp):
 ## since 21 Oct 2026 the level has the title's pine too, so the title hands over to the
@@ -168,6 +191,10 @@ var see_through: ShaderMaterial
 ## Set before it's added: draws everything in its night colours (NIGHT), for the
 ## moonlit game (night.gd).
 var night := false
+## Set before it's added: circles of ground (x, z, radius) kept clear of the small
+## things (rocks, mushrooms, tufts and leaves), where the campsite stands
+## (campsite.gd). The rest of the forest is laid out as it was without them.
+var clearings: Array[Vector3] = []
 ## The grass sheet under everything, so the level can give it a texture.
 var ground: MeshInstance3D
 
@@ -217,6 +244,12 @@ func _ready() -> void:
 	_build_bench()
 	_plant_trees()
 	_scatter()
+	# Out east, after everything above, so none of that moves.
+	_rng.seed = 13
+	_extend_east()
+	_plant_east()
+	_scatter_east()
+	_build_trail()
 	_build_walls()
 	_flush()
 
@@ -228,7 +261,7 @@ func _ready() -> void:
 func _build_ground() -> void:
 	var cell := 2.0
 	var origin := WORLD.position - Vector2(6, 4)
-	var nx := int(ceil((WORLD.size.x + 12) / cell))
+	var nx := int(ceil((EAST_END + 6 - origin.x) / cell))
 	var nz := int(ceil((WORLD.size.y + 8) / cell))
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -267,14 +300,18 @@ func _build_path_and_stream() -> void:
 
 
 ## A flat strip along `line` at height `y`, about `half_width` either side, with
-## wobbly edges. Quads whose middle makes `skip` return true are left out.
+## wobbly edges. Quads whose middle makes `skip` return true are left out. With a
+## `taper`, it narrows to a point over that many metres at each end.
 func _ribbon(line: PackedVector2Array, half_width: float, wobble: float, y: float, color: Color,
-		skip := Callable()) -> ArrayMesh:
+		skip := Callable(), taper := 0.0) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var lefts: Array[Vector3] = []
 	var rights: Array[Vector3] = []
 	var phase := _rng.randf() * TAU
+	var length := 0.0
+	for i in range(1, line.size()):
+		length += line[i].distance_to(line[i - 1])
 	var s := 0.0
 	for i in line.size():
 		if i > 0:
@@ -283,6 +320,10 @@ func _ribbon(line: PackedVector2Array, half_width: float, wobble: float, y: floa
 		var side := Vector2(-dir.y, dir.x)
 		var wl := half_width + wobble * (sin(s * 0.8 + phase) * 0.6 + sin(s * 2.3 + phase * 1.7) * 0.4)
 		var wr := half_width + wobble * (sin(s * 0.7 + phase * 2.3) * 0.6 + sin(s * 1.9 + phase * 0.6) * 0.4)
+		if taper > 0.0:
+			var narrow := smoothstep(0.0, 1.0, minf(s, length - s) / taper)
+			wl *= narrow
+			wr *= narrow
 		lefts.append(_v3(line[i] + side * wl, y))
 		rights.append(_v3(line[i] - side * wr, y))
 	for i in line.size() - 1:
@@ -318,12 +359,16 @@ func _build_bridge() -> void:
 ## Invisible walls round the play area and along both banks of the stream.
 func _build_walls() -> void:
 	var b := BOUNDS
-	var c := b.get_center()
-	for wall: Array in [[Vector2(c.x, b.position.y), Vector2(b.size.x, 0.4)], [Vector2(c.x, b.end.y), Vector2(b.size.x, 0.4)],
-			[Vector2(b.position.x, c.y), Vector2(0.4, b.size.y)], [Vector2(b.end.x, c.y), Vector2(0.4, b.size.y)]]:
+	# Round BOUNDS and EAST_PLAY together: BOUNDS with EAST_PLAY on its east side.
+	var e := EAST_PLAY
+	var corners := [b.position, Vector2(b.end.x, b.position.y), e.position, Vector2(e.end.x, e.position.y), e.end,
+		Vector2(b.position.x, b.end.y)]
+	for i in corners.size():
+		var p: Vector2 = corners[i]
+		var q: Vector2 = corners[(i + 1) % corners.size()]
 		var box := BoxShape3D.new()
-		box.size = Vector3(wall[1].x, 3.0, wall[1].y)
-		_collider(box, Transform3D(Basis(), _v3(wall[0], 1.5)))
+		box.size = Vector3(p.distance_to(q) + 0.4, 3.0, 0.4)
+		_collider(box, Transform3D(Basis(Vector3.UP, -(q - p).angle()), _v3((p + q) * 0.5, 1.5)))
 	for i in range(0, _stream.size() - 2, 2):
 		var p := _stream[i]
 		var q := _stream[i + 2]
@@ -666,7 +711,9 @@ func _plant_trees() -> void:
 		var p := Vector2(_rng.randf_range(WORLD.position.x, WORLD.end.x), _rng.randf_range(WORLD.position.y, WORLD.end.y))
 		if _is_open(p) or _too_close(p, 2.9 if BOUNDS.has_point(p) else 2.6):
 			continue
-		_add_tree(_random_kind(), p)
+		# On the trail or in the camp: worked out all the same, so every tree after it
+		# grows where it did, but not there.
+		_add_tree(_random_kind(), p, 1.0, 0.0, not _east_open(p))
 
 
 func _random_kind() -> String:
@@ -685,19 +732,22 @@ func _random_kind() -> String:
 
 
 ## A tree of `kind` at `p`, `scale` times its size give or take a little, or exactly
-## `height` metres tall if that's given.
-func _add_tree(kind: String, p: Vector2, scale := 1.0, height := 0.0) -> void:
+## `height` metres tall if that's given. Not `shown`, it's left out but still counted
+## for spacing, so the trees round it come out the same.
+func _add_tree(kind: String, p: Vector2, scale := 1.0, height := 0.0, shown := true) -> void:
 	var list: Array = _variants[kind]
 	var pick := _rng.randi() % list.size()
 	var s := scale * _rng.randf_range(0.88, 1.12)
 	if height > 0.0:
 		s = height / (list[pick][0] as Mesh).get_aabb().end.y
 	var xform := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), _v3(p))
-	_place("%s%d" % [kind, pick], list[pick][0], xform, true)
 	_remember(p)
 	var trunk: float = list[pick][1] * s
 	_trees.append([p, kind, trunk])
-	if BOUNDS.grow(1.0).has_point(p):
+	if not shown:
+		return
+	_place("%s%d" % [kind, pick], list[pick][0], xform, true)
+	if _in_play(p, 1.0):
 		var shape := CylinderShape3D.new()
 		shape.radius = trunk + 0.08
 		shape.height = 2.0
@@ -719,6 +769,53 @@ func _is_open(p: Vector2) -> bool:
 	if _path_dist(p) < 1.5 or _stream_dist(p) < 2.1:
 		return true
 	return Rect2(CABIN.x - 4.6, CABIN.z - 3.0, 9.2, 8.5).has_point(p)
+
+
+## The camp's clearing and the open ground along the trail to it, where no tree grows.
+func _east_open(p: Vector2) -> bool:
+	if p.distance_to(CAMP) < CAMP_RADIUS:
+		return true
+	return p.x > 9.0 and p.x < CAMP.x and p.y > TRAIL_EDGE + sin(p.x * 0.45) * 0.7
+
+
+## True where the raccoon can walk (to within `margin`): where trees and big rocks get
+## colliders.
+func _in_play(p: Vector2, margin := 0.0) -> bool:
+	return BOUNDS.grow(margin).has_point(p) or EAST_PLAY.grow(margin).has_point(p)
+
+
+## The stream and the path on east from x = 50, a hair under the old ends where they
+## overlap, and in the masks, so the forest out there keeps off them.
+func _extend_east() -> void:
+	var off_stream := func(p: Vector2) -> bool: return _stream_dist(p) < 1.45
+	var stream := _from_x(_spline(STREAM_EAST, 0.35), STREAM_EAST[1].x - 0.3)
+	var fork := _from_x(_spline(FORK_EAST, 0.35), FORK_EAST[1].x - 0.3)
+	_rasterize(stream, _near_stream)
+	_rasterize(fork, _near_path)
+	_add_mesh(_ribbon(fork, 0.88, 0.1, 0.0042, PATH_EDGE, off_stream))
+	_add_mesh(_ribbon(fork, 0.74, 0.1, 0.0062, PATH, off_stream))
+	_add_mesh(_ribbon(stream, 1.38, 0.12, 0.0037, BANK))
+	_add_mesh(_ribbon(stream, 0.98, 0.1, 0.0057, WATER))
+	_add_mesh(_ribbon(stream, 0.5, 0.12, 0.0077, WATER_DEEP))
+
+
+## The part of `line` from where it first reaches x.
+func _from_x(line: PackedVector2Array, x: float) -> PackedVector2Array:
+	for i in line.size():
+		if line[i].x >= x:
+			return line.slice(i)
+	return PackedVector2Array()
+
+
+## The forest east of WORLD, out to EAST_END, as thick as the rest and by the same
+## rules, round the camp.
+func _plant_east() -> void:
+	var area := Rect2(WORLD.end.x, WORLD.position.y, EAST_END - WORLD.end.x, WORLD.size.y)
+	for i in int(7000.0 * area.get_area() / WORLD.get_area()):
+		var p := Vector2(_rng.randf_range(area.position.x, area.end.x), _rng.randf_range(area.position.y, area.end.y))
+		if _is_open(p) or _east_open(p) or _too_close(p, 2.6):
+			continue
+		_add_tree(_random_kind(), p)
 
 
 # --- Small things ------------------------------------------------------------
@@ -903,6 +1000,52 @@ func _scatter() -> void:
 		_place_variant("reed", xform, false)
 
 
+## Rocks, mushrooms, tufts and leaves east of where _scatter reaches, at the same
+## thickness, out to EAST_END.
+func _scatter_east() -> void:
+	var area := Rect2(BOUNDS.end.x + 14, BOUNDS.position.y - 12, EAST_END - BOUNDS.end.x - 14, BOUNDS.size.y + 16)
+	var share := area.get_area() / ((BOUNDS.size.x + 28) * (BOUNDS.size.y + 16))
+	var spot := func() -> Vector2:
+		return Vector2(_rng.randf_range(area.position.x, area.end.x), _rng.randf_range(area.position.y, area.end.y))
+	var east: Array = _trees.filter(func(t: Array) -> bool: return area.has_point(t[0]))
+	var leafy: Array = east.filter(func(t: Array) -> bool: return t[1] != "pine")
+	for i in int(150 * share):
+		var p: Vector2 = spot.call()
+		if _free_ground(p, 0.6):
+			_add_rock(p, 0.12 + pow(_rng.randf(), 2.2) * 0.45)
+	for i in int(22 * share):
+		var tree: Array = east[_rng.randi() % east.size()]
+		for k in _rng.randi_range(1, 3):
+			var p: Vector2 = tree[0] + Vector2.from_angle(_rng.randf() * TAU) * (tree[2] + _rng.randf_range(0.3, 0.8))
+			if area.has_point(p) and _free_ground(p, 0.0):
+				var xform := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(0.8, 1.5)), _v3(p))
+				_place_variant("mushroom", xform, false)
+	for i in int(520 * share):
+		var p: Vector2 = spot.call()
+		if i % 2 == 0:
+			var tree: Array = east[_rng.randi() % east.size()]
+			p = tree[0] + Vector2.from_angle(_rng.randf() * TAU) * (tree[2] + _rng.randf_range(0.2, 1.0))
+		if area.has_point(p) and _free_ground(p, 0.0):
+			var xform := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(0.8, 1.3)), _v3(p))
+			_place_variant("tuft", xform, false)
+	for i in int(1400 * share):
+		var p: Vector2 = spot.call()
+		if _rng.randf() < 0.7:
+			var tree: Array = leafy[_rng.randi() % leafy.size()]
+			p = tree[0] + Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(0.3, 3.4)
+		if area.has_point(p) and _path_dist(p) > 0.9 and _stream_dist(p) > 1.5:
+			var xform := Transform3D(Basis(Vector3.UP, _rng.randf() * TAU), _v3(p, 0.01))
+			_place_variant("leaf", xform, false)
+
+
+## The campers' trail: a narrow trodden path along the edge of the trees, from the
+## clearing by the home pine to the camp.
+func _build_trail() -> void:
+	var trail := _spline(TRAIL_POINTS, 0.35)
+	_add_mesh(_ribbon(trail, 0.55, 0.12, 0.004, PATH_EDGE, Callable(), 2.5))
+	_add_mesh(_ribbon(trail, 0.36, 0.1, 0.006, PATH, Callable(), 2.5))
+
+
 func _random_spot() -> Vector2:
 	return Vector2(_rng.randf_range(BOUNDS.position.x - 14, BOUNDS.end.x + 14),
 		_rng.randf_range(BOUNDS.position.y - 12, BOUNDS.end.y + 4))
@@ -929,7 +1072,7 @@ func _free_ground(p: Vector2, margin: float) -> bool:
 func _add_rock(p: Vector2, size: float) -> void:
 	var s := Vector3(size, size * _rng.randf_range(0.75, 1.2), size * _rng.randf_range(0.8, 1.1))
 	_place_variant("rock", Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(s), _v3(p)))
-	if size > 0.45 and BOUNDS.has_point(p):
+	if size > 0.45 and _in_play(p) and not _in_clearing(p):
 		var shape := CylinderShape3D.new()
 		shape.radius = size * 0.42
 		shape.height = 1.0
@@ -1069,7 +1212,26 @@ func _place(key: String, mesh: Mesh, xform: Transform3D, see := false, shadow :=
 func _place_variant(kind: String, xform: Transform3D, shadow := true, see := false) -> void:
 	var list: Array = _variants[kind]
 	var pick := _rng.randi() % list.size()
+	# Still picked in a clearing, so everything after it comes out the same. On the
+	# trail and in the camp the ground is trodden: no mushrooms or fallen leaves.
+	if kind in ["rock", "mushroom", "tuft", "leaf"] and _in_clearing(_v2(xform.origin)):
+		return
+	if kind in ["mushroom", "leaf"] and _east_open(_v2(xform.origin)):
+		return
 	_place("%s%d" % [kind, pick], list[pick][0], xform, see, shadow)
+
+
+func _in_clearing(p: Vector2) -> bool:
+	for c: Vector3 in clearings:
+		if p.distance_to(Vector2(c.x, c.y)) < c.z:
+			return true
+	return false
+
+
+## `mesh` in the forest's colours: its night colours (NIGHT) when `night` is on, for
+## things the level builds beside the forest.
+func night_mesh(mesh: Mesh) -> Mesh:
+	return _at_night(mesh) if night else mesh
 
 
 ## Turns the batches into one MultiMeshInstance3D each.

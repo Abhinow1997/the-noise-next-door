@@ -799,6 +799,24 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 21 Oct | One home pine for the title and the game | 5c8ae39 |
 | 21 Oct | One world: the title becomes the game's opening shot | 5c8ae39 |
 | 21 Oct | Committed and pushed | 5c8ae39 |
+| 21 Oct | Downloaded assets: a campfire and the Blendkit add-on, checked and cleared away | none |
+| 21 Oct | The tent: checked, then made game-ready | not committed yet |
+| 21 Oct | The table with a laptop: fan art, made game-ready without its pictures | not committed yet |
+| 21 Oct | The humans, and clearing away the downloads | not committed yet |
+| 21 Oct | The male human, dressed as the camper and rigged | not committed yet |
+| 21 Oct | The rigged camper chosen for the game, and his hips and jacket fixed | not committed yet |
+| 21 Oct | The Rigify mannequin, checked; Rigify for our camper instead | not committed yet |
+| 21 Oct | The camper's first four animations: walk, run, bend and take away | not committed yet |
+| 21 Oct | The camper's jacket, sleeves and hood made again for him | not committed yet |
+| 21 Oct | Still boxy; the Rigify mannequin tried with the run, then left | none |
+| 22 Oct | Two Blendkit humans: the hoodie scan tried and dropped, Arnold not tried | none |
+| 22 Oct | The chubby man, made game-ready with his walk | not committed yet |
+| 22 Oct | The chubby man's skin in the game's style, his face smoothed, no nose, cartoon eyebrows | not committed yet |
+| 22 Oct | The chubby man becomes the camper, the main NPC | not committed yet |
+| 22 Oct | The camper's red beanie on the chubby man | not committed yet |
+| 22 Oct | The chubby man's animations: walk, run, bend and take away | not committed yet |
+| 23 Oct | The low-poly man, made game-ready like the chubby man, with his own walk, run, bend and take away | not committed yet |
+| 23 Oct | The simple girl, made game-ready the same way, with her own walk, run, bend and take away | not committed yet |
 
 ## 2026-10-21 — A description of the title screen, then a prompt for it
 
@@ -859,3 +877,477 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Done by Claude:** commit 5c8ae39 on `feature-update-main-raccoon`, pushed to GitHub. It also carries the thought-icon work from 20–21 Oct, which hadn't been committed.
 - **Not built yet:** the three bass thumps (they need a bass-thump sound), a way back to the title from play, and save states, so Continue stays faint. The GDD still lists the title screen as planned; it wasn't edited, since it has its own change log.
 - **Human / Claude:** the requests, the picture and the choices are mine; the code, the measuring and this write-up are Claude's.
+
+## 2026-10-21 — Downloaded assets: a campfire and the Blendkit add-on, checked and cleared away
+
+- **Asked** (17:38): "in the assest room i have downloaded some free assests and updated the rar in the same can u check and see if we can use them ?"
+- **Got:** Claude unpacked them in a scratch folder outside the repo and ran nothing from them.
+  - `17-camp_fire.rar`: a low-poly campfire from 2018, 376 triangles, stones and logs only. The flames in its preview picture aren't in the model, it has no licence file, it's 2.6 m across and off its own centre, and its texture has painted-in shading where the game is flat colour.
+  - `blenderkit-v3.21.3.261002.zip`: not an asset but the Blendkit add-on for Blender (BlenderKit renamed itself in June 2026, which Claude checked online because the new name looked like a fake). It's a library browser with bundled programs; installing it and signing in would be mine to do.
+- **Asked** (17:55): "ok what format would the models be good ?", then a screenshot of a download menu.
+- **Got:** .glb first (what the game loads), .blend next (we export a .glb from it), .fbx and .obj only if there's nothing better, and not .usdz or .stl. Also: low-poly and flat-coloured, CC0 or CC-BY, real size in metres with the centre at the bottom; and if a model comes from an AI generator, record the site, prompt and settings for SOURCES.md.
+- **Decided** (18:00): "no clean these all up delete these assests"
+- **Done by Claude:** both files moved to the Recycle Bin rather than deleted outright, and its scratch copies removed. The asset room was back to its Assignment 3 files.
+
+## 2026-10-21 — The tent: checked, then made game-ready
+
+- **Asked** (18:03): "ok i have updated a new tent can u see if it works ?" (`asset_room/Tent.zip`)
+- **Got:**
+  - The zip holds "Tent" by SSimpossible from Blend Swap, made for Blender 2.56 in 2011, under CC0, with its licence file.
+  - Claude opened it in a background Blender with the file's scripts switched off (it has none): a dome tent with a fly, a door, four poles and guy ropes, plus a ground plane, a camera and two lights.
+  - It exported and loaded in Godot, but it was red (kept for the beanie), smoothed to 57,120 triangles, about 9.5 m wide, and its 2011 colours didn't export until they were rebuilt.
+- **Decided** (18:09): "Yes, get the tent ready for the game: a non-red colour, lighter and faceted, game size, exported as .glb and logged."
+- **Done by Claude:**
+  - The download is kept as it came in `design/downloads/tent/`.
+  - `tools/blender/prepare_tent.py` turns it into `assets/props/tent.blend` and `tent.glb`.
+  - **Colour:** ochre walls and fly. That choice was Claude's, since I'd only asked for "a non-red colour", picked to stay clear of the beanie's red and to read at night. The rest: a cream patch, a muted blue door and trim, a grey groundsheet, dark poles and pale ropes.
+  - **Detail:** 1,668 triangles, faceted.
+  - **Size:** 1.2 m tall, 4.30 × 2.08 m with its ropes, standing on the ground with the door to the front.
+  - It's in the asset room on key 9, and logged in SOURCES.md.
+- **Checked:** in the asset room and under the game's moonlight beside the raccoon.
+- **Not done:** it isn't in the level yet (that's level 1's campsite), and the "Collapse the tent" task will need a collapsed version.
+- **Human / Claude:** the download and the requests are mine. The script, the colours and the measurements are Claude's.
+
+## 2026-10-21 — The table with a laptop: fan art, made game-ready without its pictures
+
+- **Asked** (18:27): "one more zip free of free assest add them in as well like the tent" (`asset_room/the-noise-next-door-a3.zip`)
+- **Got:**
+  - Despite its name, the zip holds Blend Swap 92671, "Table with laptop, radio and documents", from 2018: a white desk on steel tube legs with a laptop, a walkie-talkie, a map, documents and two photos, 4,678 triangles with photo-like textures.
+  - Its licence page says CC0, but also that it's fan art and can't be used commercially under any circumstance. Claude pointed out that its map and photos are probably someone else's pictures.
+- **Decided** (18:30): from Claude's three options (flat colours with no pictures, everything as it is, or skip it), "Flat colours, no pictures (Recommended)".
+- **Done by Claude:**
+  - The repo keeps the licence page and a copy of the download with its four pictures taken out (196 KB, not 17.7 MB). The download as it came isn't in the repo.
+  - `tools/blender/prepare_table.py` gives it flat colours (pale top, grey legs, dark laptop with a slate screen, dark radio) and replaces the map, documents and photos with plain paper sheets where they lay. It also simplifies the table to 700 triangles (1,054 in all), faceted.
+  - It turns the table so its long side and the laptop face the front, and sizes it to a 0.74 m desk.
+  - It's in the asset room on key T, and logged in SOURCES.md as fan art: non-commercial only, to be replaced before the game is ever sold.
+- **Checked:** in the asset room and under the game's moonlight. Re-running the script from the repo's copy gives the same result.
+- **Not done:** it isn't in the level yet.
+- **Human / Claude:** the download, the request and the choice are mine. The script, the colours and where the papers go are Claude's.
+
+## 2026-10-21 — The humans, and clearing away the downloads
+
+- **Asked** (18:42): "now added humans as well remove all the rar and unecessary files for these assests after u have got them" (`asset_room/Human Basic Shapes- male and female basemesh.zip`)
+- **Got:**
+  - Blend Swap 72307, "Human Basic Shapes: male and female basemesh" by Josephbburg (2014), under CC-BY 3.0, so he must be credited.
+  - The file holds a male and a female, each with an animation rig and body-proportion sliders, an androgynous figure with no rig, the rigs' control shapes and helpers, and three large packed pictures. The download is 26.5 MB.
+- **Done by Claude:**
+  - The repo keeps the licence page and a copy of the download with its pictures taken out (560 KB).
+  - `tools/blender/prepare_humans.py` keeps the male and the female with the 62 deforming bones of their rigs, so they can be posed and animated later. It fixes their proportions as the file left them and simplifies each to 1,800 faceted triangles in one flat clay colour.
+  - It stands them on the ground in their T-pose, facing the front: the male 1.78 m tall (like the camper) and the female 1.68 m.
+  - They're in the asset room on keys M and F. They're logged in SOURCES.md, and the README's "Who made what" now credits Josephbburg and lists the other downloads.
+- **Checked:** in Godot each loads with its skeleton (62 bones) and a skinned mesh, and turning two arm bones brings the arms down, so the rigs work. Re-running the script from the repo's copy gives the same result.
+- **Cleared away, as asked:** the three downloaded zips (the tent, the table and the humans) and Blender's backup copies of the new `.blend` files went to the Recycle Bin. Everything needed is kept in `design/downloads/`: each licence, the tent as it came, and the table and the humans without their pictures. Claude's scratch copies were deleted.
+- **Not done:** they aren't in the level yet. They're plain figures for the game's people, which will need clothes, colours and animations.
+- **Human / Claude:** the downloads and the requests are mine. The script and the choices in it (heights, colour, which figures to keep) are Claude's.
+
+## 2026-10-21 — The male human, dressed as the camper and rigged
+
+- **Asked** (19:37): "we have a model named human in our assest i want you to work with the man's model and make it like the camper with beanie we have using blender"
+- **Done by Claude**, in my Blender through the MCP (libraries and generators all off). The result is `assets/characters/human_camper.blend` and `.glb`:
+  - **His stance:** it posed the man from his T-pose to stand like the camper (shoulders down, arms a little out, elbows soft, fingers loosely curled, toes out). It made that his rig's rest pose, so he stands that way in Godot.
+  - **The clothes:** it copied the camper's jacket, hoodie, hood, jeans, boots, beanie, hair and nose onto him. Each part was moved to fit his body as measured: the torso parts with his torso, the jeans and boots along his legs, the sleeves along his arms, and the beanie, hair and nose scaled to his smaller head. The camper's head turn was taken out, so his head faces the front and can be turned with the rig.
+  - **His body:** it took the body away under the clothes and kept his head, neck and hands. The neck is a little fuller. The hands are fused and cut to flat facets like the camper's; as they came they were thin separate mannequin fingers.
+  - **The rig:** every part is skinned to his 62 deforming bones from the nearest point on his own body. The sleeves follow his arms, the jeans and boots his legs, and the jacket and hood his torso. The beanie, hair and nose go with his head. A test stride with a head turn bent cleanly.
+  - He's 4,467 triangles (the camper has 4,472), 0.641 × 0.339 × 1.854 m to the top of the pompom, centred on his boots and facing the front. He's in the asset room on key C, beside the camper.
+  - `tools/blender/build_human_camper.py` rebuilds him in a background Blender. Its rebuild gives a byte-identical `.glb`. The pictures are in `design/character/human_camper/`.
+- **Found:**
+  - The download's walk and run cycles (still in `humans.blend`) don't play without the rig's IK, which `prepare_humans.py` takes out: the arms stay out in front and the legs don't step. They're left out of the camper, whose new rest pose would break them anyway.
+  - In `humans.blend`, the man's pelvis is weighted only to a group, "000", that has no bone, so posing him in Blender leaves it behind. `human_male.glb` is fine: importing it back shows those vertices on his hips. The camper doesn't have the problem: that body is gone, and the jeans and jacket take that weight on the hips.
+- **Checked:** in Godot he imports with his skeleton and stands at rest beside the camper. Only his rest pose was checked in Godot; the test stride was in Blender.
+- **Not done:** he isn't in the level, and he has no animations yet.
+- **Human / Claude / model:** the request is mine. The fit, the measurements, the script and this write-up are Claude's. The camper he's dressed as is Claude's model of REF-CAMPER, a Gemini picture. No generative model made him.
+
+## 2026-10-21 — The rigged camper chosen for the game, and his hips and jacket fixed
+
+- **Asked** (20:03): "do this feel better of a model from the original one we had looking at it looks similar but i want to know from ur aspect as well will this better not just visually but to animate and work with in the game ?"
+- **Got:** Claude tested him in hard poses in Blender, then answered:
+  - **To look at:** about a tie, with an edge to the original. The original is closer to REF-CAMPER, and its bigger head and beanie read better from the game's camera: at 1080p his head is about 48 px tall, the original's about 64 px.
+  - **To animate:** clearly the new one. The original has no skeleton, so it would have to be rigged and weighted by hand. The new one already has 62 bones, fingers included, with every part attached, and his head faces the front.
+  - **Its weak points then:** a deep knee lift crumpled the jeans at the hip and pushed the thigh out through the jacket. He has no animations yet. His bones keep the 2014 file's own names, so using animations from elsewhere (Mixamo, say) needs a one-time name table in Godot.
+  - **Recommended:** the new one for the game, with the original kept as the look to aim for, and the hips fixed before any animation.
+- **Decided** (20:09): "ok taking the input provide we will go ahead with the new one casue the main aspect is goin to be animation as the game is more for the mechanics and the animations of the charater", and "yes fix the animations jackets and hips"
+- **Found by Claude**, starting the fix: its own bug from earlier that evening.
+  - Centring him on his feet moved the bones one at a time, which moved each joint shared by two connected bones two or three times. His knee joint ended up 19 cm behind his knee.
+  - At rest that doesn't show, so the check Claude ran then (nothing moves at rest) passed. The `.glb` in Godot had the same fault.
+  - Every pose since then had turned about the wrong points, and that caused much of the crumpling at the hip.
+- **Done by Claude:**
+  - **The bones:** they now move with the model in one step. The script checks that every bone moved by exactly that amount, and that the knee, elbow and head pivots sit inside their parts.
+  - **The jeans:** smooth weights of their own, instead of ones copied from his low-detail body. The hips blend into each thigh over 15 cm round the hip joints, and each thigh into its shin over 13 cm round the knee. The two legs share the crotch.
+  - **The jacket and hoodie:** their lower parts go partway with his thighs, up to 65% at the front hem and 30% at the back, so a raised knee lifts the jacket instead of coming through it. The pockets, flaps, buttons and collar take their weights from the jacket under them.
+  - `tools/blender/build_human_camper.py` has both steps, and its rebuild gives a byte-identical `.glb` (612,444 bytes). Four test poses (climb, run, bend, sit) are kept in the file as the text block `hcamper_test_poses`.
+- **Checked:**
+  - In Blender, all four test poses: no crumpling, the knee bends cleanly, the jacket rides up over a raised thigh and rests on his thighs when he sits. The pictures are 05–10 in `design/character/human_camper/`.
+  - In Godot, the imported skeleton's hip and knee joints are where his are, and a knee-up pose bends the same way (picture 11).
+- **Still rough:** at a 70° knee lift, a little of the thigh still shows below the jacket's front edge.
+- **Not done:** the animations I asked for next: walk, run (the chase), bend, and take away. They're being done in a session of their own.
+- **Human / Claude / model:** the question, the decision and the request are mine. The answer, the bug and its fix, the weights and this write-up are Claude's. No generative model.
+
+## 2026-10-21 — The Rigify mannequin, checked; Rigify for our camper instead
+
+- **Asked** (20:26): "checkout one more model i got analyze this and see if this is better for animations ?"
+- **Got:**
+  - The model is "Rigged Human Mannequin Man (Rigify)" by Fasolka 3D, free from Blendkit (the renamed BlenderKit) under its Royalty Free licence. The add-on saved it next to the open file, as `assets/characters/assets/models/rigged-human-man_c1983198-…/…rigify….blend`.
+  - Claude checked that `human_camper.blend` hadn't been changed by it.
+  - It studied a copy in a background Blender, with the file's script (Rigify's `rig_ui.py`) switched off, so as not to disturb the animation session using my open Blender.
+  - **Better for animating:** a full Rigify control rig. It has IK and FK legs and arms with knee and elbow targets, heel, toe and spin controls on the feet, torso and hip controls, finger controls and twist bones. With its torso lowered 42 cm, its feet stayed exactly where they were and the knees folded by themselves. Our camper has plain bones, posed one at a time.
+  - **Against it:**
+    - The licence allows games only if the assets can't easily be taken out of them, and a public GitHub repo with the raw `.blend` would break that.
+    - It's a smooth artist's mannequin of rigid pieces (22,124 triangles as shown, 5,514 without the smoothing), so the camper's clothes and weights would have to be fitted again.
+    - Its moving bones aren't linked to each other: thighs, shoulders and finger bases hang off hidden helper bones. So it would reach Godot as about two dozen loose bones until a game skeleton was made.
+  - **Recommended:** keep our camper, and give him Blender's own Rigify (free, built in, and the rig it makes is ours), baking the animations onto his 62 bones for Godot.
+- **Decided** (20:33): "Yes: keep our camper, and have the animation session add a Rigify control rig to him (IK feet and hands), animate walk, run, bend and take away with it, and bake onto his existing bones for Godot."
+- **Done by Claude:** passed the decision, with these findings, to the animation session.
+- **Not done:** the mannequin's download is still untracked where the add-on saved it. It isn't used, and it mustn't be committed while the repo is public.
+- **Human / Claude / model:** the download, the question and the decision are mine. The checks, the comparison and this write-up are Claude's. No generative model.
+
+## 2026-10-21 — The camper's first four animations: walk, run, bend and take away
+
+- **Asked** (20:09): "this human needs to walk, run(chase), bend and take away these are the main one others will comin as we go"
+- **Decided** (about 20:35): Claude asked what "take away" and "bend" should show, with options it wrote.
+  - Take away: "Snatch it back (Recommended)". He bends, takes the item out of the raccoon's mouth, straightens up and holds it close. That fits GDD 0.9: when he's caught, the humans take back what he carries.
+  - Bend: "Look down at the raccoon (Recommended)". He bends forward with his hands on his knees, peers at the raccoon's level, holds it, then straightens up.
+- **Done by Claude**, in a background Blender (my open Blender had another file in it, so it was left alone):
+  - `tools/blender/animate_human_camper.py` keys four actions on his 62 bones, on every frame at 24 fps. `build_human_camper.py` now ends by running it, so one build gives the whole `.blend` and `.glb`.
+  - **How:** the legs are solved, not posed by hand. Each boot is placed (planted, rolling from heel to toe, or swinging forward) and the thigh and shin turn to reach it, so the feet don't slide. The arms swing by angle in the walk and run, and are solved to a point in the other two: the hands on his knees, the right hand at the raccoon's mouth, both hands at his chest. Bend and take away are key poses, eased through.
+  - **walk** (28 frames, loops): an easy stroll, 0.65 m steps, 1.11 m/s at normal speed.
+  - **run** (16 frames, loops): the chase, leaning in with his fists pumping, 1.2 m steps, 3.6 m/s.
+  - **bend** (72 frames, 3 s): hands onto his knees, peers ahead and down, tilts his head one way and then the other, stands back up.
+  - **take_away** (72 frames, 3 s): he stoops with his left hand on his knee and reaches with his right, grabs, tugs twice, yanks it free and rocks back on his heels. Then he holds it at his chest in both hands and shakes his head at the raccoon. It ends there, holding it.
+  - All four are in place and facing the front. The game moves him, and plays walk and run at its speed ÷ theirs.
+  - **For the game:** in take away the raccoon's mouth goes 0.37 m in front of his feet, 0.30 m up and 0.10 m to his right. The item is in his right hand from 0.67 s (frame 16): attached to the bone `Hum_r.002` at (-0.0107, 0.0917, -0.0199), it sits where his hand closes.
+  - Godot's import of him now loops walk and run, at 24 fps; LODs stay off.
+  - In the asset room, key C now plays his walk, and C again plays run, bend, take away, then walk.
+- **Checked:**
+  - A second headless build gives a byte-identical `.glb` (1,251,300 bytes), and so does running the animation script on its own. The meshes, skin and rest pose in it are unchanged from before.
+  - In Blender, the poses play exactly as the script works them out (to 0.01 mm). The boots stay on the ground: a leg is never more than 1.5 mm short of a planted boot. In take away his arm is at full stretch for a few frames as he stoops, up to 2.5 cm short of where the hand is heading. That's meant: he's reaching.
+  - The clothes in the deepest poses (the run's knee drive, the squat to grab, the hands on his knees): the jacket rides over his thighs, and no clipping showed. The run keeps the knee lift to 60°, under the 70° where the thigh showed below the jacket. No weights needed changing.
+  - In Godot 4.7.2: all four play from the imported `.glb`, walk and run loop, and his bones are where Blender has them, within 2.2 mm. The asset room plays the walk. Pictures 12–16 in `design/character/human_camper/`: side and three-quarter strips of each, and one frame of each from the game's camera.
+- **Found:** the Rigify mannequin's download (saved at 20:24 to `assets/characters/assets/models/…`) has no `.import` file. Godot's headless import stops when it reaches it, because it would need Blender, and it still exits as if it had worked. So the new `.glb` wasn't re-imported in the project. Claude didn't touch the download, and did the Godot checks in a scratch copy of the project without it.
+- **Asked** (21:21): "Yes: add a .gdignore in assets/characters/assets/ so Godot skips the mannequin download, then re-import the project and check the camper plays in the asset room."
+- **Done by Claude:** an empty `assets/characters/assets/.gdignore`, beside the download, which is left as it was. The project's import then ran with no errors and brought in the animated camper.
+- **Checked:** in the project's own asset room he walks from the start. C shows him, C again plays run, bend, take away and walk in turn, and bend plays again 0.8 s after it ends. The `.gdignore` goes with the download's folder, so it isn't committed either.
+- **Decided** (21:15): at 20:33, in another session, I'd chosen to animate him through a Rigify control rig, baked onto his bones. That reached this work after it was done, and from Claude's options I picked "Keep these, Rigify later (Recommended)".
+- **Not done:** he isn't in the level, and no game code drives him yet. A Rigify control rig, for posing and animating him by hand in Blender, is for later. Bend is one clip, so the game can't hold the peering pose for longer yet.
+- **Human / Claude / model:** the request and the choices are mine. The options, the animations, the script, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-21 — The camper's jacket, sleeves and hood made again for him
+
+- **Asked** (about 22:30): "ok the animations look good but the clothes damnnn its bad the way it looks"
+- **Decided** (about 22:35): Claude rendered his clothes up close in the hardest frames and asked which parts, from a list it wrote. I picked "Jacket is a stiff box", "Hood and hoodie" and "Shoulders and sleeves" (not "Neck and collar"), and "Both" for whether it was how they look standing or how they move.
+- **Found by Claude:**
+  - The jacket (the camper's own, moved onto him) had almost no vertices between its hem and waist, so each side was one flat panel that could only fold in one place. That was the box.
+  - The sleeves had almost nothing between the shoulder and the cuff. The jacket and sleeves were weighted separately, so they parted at the shoulder.
+  - The hood was a thick ring right round his neck, and the hoodie's front hung like a tie.
+- **Done by Claude,** in `tools/blender/build_human_camper.py` (a new stage, `CLOTHES`), in a background Blender:
+  - **The jacket's body, sleeves, hood and hoodie front, made again for him** in the camper's style (lofted, voxel-fused, relaxed, cut to flat facets). The shoulders are squared and the sleeves set into them with turned-up cuffs, as in REF-CAMPER. The hood lies bunched round his neck and rises behind it, thin at the front. The hoodie's front is a panel filling the jacket's opening.
+  - **The details:** the pockets, flaps, buttons, lapels and strings are moved onto the new jacket. Each piece lies on a plane fitted to the jacket under it.
+  - **More corners to bend with:** every jacket, sleeve and hood edge longer than 6 cm is split. The new triangles lie in the same flat facets, so he looks the same standing. The pockets had been sinking up to 2 cm into the jacket's front in the run, because one flat triangle there ran 17 cm from the hem to the waist.
+  - **One weight field for the jacket, sleeves and hood:** where they meet at the shoulder they move together. The arm takes the sleeve, and only the outer edge of the jacket's shoulder. The collarbones take the tops of the shoulders. The jacket hangs from his chest, with the hips taking only up to 45% at the hem, so bending no longer folds it at the waist. The front of the hem still follows his thighs, now over a longer stretch. The hoodie's front and the details move as the jacket.
+  - He's now 8,810 triangles (4,467 before), 0.635 × 0.306 × 1.854 m. Nothing else changed: the jeans, boots, beanie, head, hands and the four animations are as they were.
+- **Checked:**
+  - A second headless build gives a byte-identical `.glb` (1,588,092 bytes). The four animations are unchanged.
+  - **Sinking:** measured on every vertex in the key frames of all four clips. In walk and run no pocket, flap, button or lapel sinks into the jacket (at most 1 mm). In bend, at most 4 mm. In take away's deepest stoop, the top corner of a lower pocket sinks up to 14 mm, where it's folded between his chest and thighs and doesn't show in the renders.
+  - In Godot 4.7.2, after a fresh import: all four still play, walk and run loop, his bones are within 2.2 mm of Blender's, and the item still sits where his hand closes.
+  - **Pictures** in `design/character/human_camper/`: 17, before and after in the same five frames; 18, beside REF-CAMPER; 19–22, the four clips; 23, at the game's camera. Pictures 12–16 show the old clothes.
+- **Not done:** he isn't in the level yet. He's nearly twice the triangles he was; Claude judged that fine for one main NPC, but it could be trimmed. The neck (not picked) is unchanged. A Rigify control rig is still for later.
+- **Human / Claude / model:** the complaint and the choices are mine. The list of problems, the new clothes, the weights, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-21 — Still boxy; the Rigify mannequin tried with the run, then left
+
+- **Asked** (about 23:25): "The clothes still look off", then: "the clothes feel boxy I want you to try the lastest model i gave u other one along with tht model we can get some clothes as well assest and u can try running on it"
+- **Done by Claude:** on a scratch copy of the Rigify mannequin's download, outside the repo (the download itself untouched), it drove the camper's run through the mannequin's own controls: its IK feet on the run's foot paths, scaled to its shorter legs, its torso, hips and chest for the bob and lean, and its arms by angle. The legs ran cleanly, with the feet planted and the heels kicking up; its hands came up too high. Claude reminded me that its licence only allows games when users can't easily extract it, which the public repo breaks.
+- **Decided** (23:3x): "Nah leve this then if i cant commit in public there no point using this"
+- **Done by Claude:** deleted its scratch copy. Nothing in the repo changed.
+- **Still open:** the clothes still feel boxy to me. Where better ones come from (downloaded clothes fitted to him, or softer ones made by Claude) isn't decided.
+- **Human / Claude / model:** the request and the decision are mine. The test and this write-up are Claude's. No generative model.
+
+## 2026-10-22 — Two Blendkit humans: the hoodie scan tried and dropped, Arnold not tried
+
+- **Asked** (about 23:50): I picked clothes in Blendkit myself (CC0 only), then: "ok i have added a free asset in the blender try to simpliy him give the colurs of the reference to clothes face needs to clean nothing on the face but the nose", and later "i have added 2 humans try both of them".
+- **Got:** Claude read both from my open Blender without changing it:
+  - "Male Hoodie Standing" by OverseerThuror: CC0. A photo-scan of a real man in a printed university hoodie and a baseball cap with a team logo, 153,880 triangles in an A-pose, no rig.
+  - "Pvt. Arnold" by Pushover: Royalty Free, like the mannequin, so not for the public repo. Claude didn't try him.
+- **Done by Claude,** on a scratch copy of the hoodie man's download only:
+  - It sorted every facet into skin, hair, hoodie, strings, jeans, cap or shoes from his texture. It smoothed him, cut him to 3,000 flat facets and gave each part the reference's colour.
+  - It smoothed his face to just the nose, which also removed his likeness and the logos, and put the camper's red beanie on him.
+  - It showed him with a grey hoodie and a brown one, beside our camper.
+- **Decided:** "Noo this is even more bad try arnold dont try to make the exact replicates of the refernece we need a decent looking model it doesnt need to be eaxctly like the referecen img if it doesnt work dont force it this one is looking a monstor". Claude pointed out again that Arnold's licence keeps him out of a public repo, and offered: Arnold anyway (repo private), a CC0 low-poly character instead, or keeping our camper with softer clothes. My answer: "damn leave it then".
+- **Done by Claude:** deleted its scratch copies. Nothing in the repo changed, and my Blender scene is as I left it.
+- **Asked** (00:0x): "dont try that", and "delete all the unecessary files".
+- **Done by Claude:**
+  - Moved to the Recycle Bin, so they can be restored: the four Blendkit downloads in `blenderkit_data/models` (the mannequin, the hoodie man, Arnold, and "young guy keeps his hands in pockets", about 32 MB); the mannequin's copy in `assets/characters/assets/`, and the `.gdignore` with it; and `human_camper.blend1`, Blender's backup from the camper's builds. Blendkit's own settings are kept.
+  - It first checked that my open Blender scene doesn't need them: everything in it is a local copy with its pictures packed in.
+  - Deleted its own scratch files. The check tools stay in the side-session notes.
+- **Checked:** Godot's import of the project now runs clean, and the asset room still plays the camper.
+- **Left as they are:** older Blender backups (`*.blend1` from 5 to 19 Oct) and my unsaved Blender scene, which still holds Arnold and the hoodie man; closing it without saving gets rid of them.
+- **Still open:** the camper keeps the clothes made for him on 21 Oct, which I still find boxy.
+- **Human / Claude / model:** the downloads, the requests and the decisions are mine. The tests, the licence checks and this write-up are Claude's. No generative model.
+
+## 2026-10-22 — The chubby man, made game-ready with his walk
+
+- **Asked** (00:48): "chubby boy a new assest rar has been added can u open it in belnder" (`asset_room/chubby boy.zip`)
+- **Got:**
+  - The zip holds Blend Swap 66415, "chubby boy" by TiZeta (2013, for Blender 2.65), under CC-BY 3.0, so TiZeta must be credited. It comes with its licence file.
+  - Claude unpacked it in a scratch folder and checked it in a background Blender with the file's scripts off (it has none).
+  - He's one mesh of 1,743 triangles with a painted 1024 × 1024 texture, a 20-bone rig named in Italian with no IK, a 25-frame walk ("cammina") and a one-frame idle pose. He's built 5.17 m tall, partly below the floor.
+  - Despite the name he's a grown man: moustache, red sweater, jeans.
+  - My open Blender held an unsaved scene of Blendkit downloads, so Claude didn't replace it. It opened him in a second Blender window instead.
+- **Asked** (00:50): "Yes, make the chubby boy game-ready like the humans: keep the download with its licence in design/downloads, scale him to game size on the ground, export a .glb with his walk, and log him with TiZeta's credit."
+- **Done by Claude:**
+  - The download is kept as it came in `design/downloads/chubby/`.
+  - `tools/blender/prepare_chubby.py` turns it into `assets/characters/chubby_boy.blend` and `chubby_boy.glb`. It keeps his mesh, rig, texture and smooth shading as TiZeta made them.
+  - **His texture:** the 2013 file linked it in an old way that Blender no longer reads, so as it came it didn't show or export. The script wires it into his material again.
+  - **His size:** 1.72 m (0.65 × 0.39 m), on the ground, centred on his feet, facing the front. The height is Claude's choice for a stocky grown man, a little shorter than the camper's 1.78 m figure.
+  - **His walk:** kept and renamed `walk`. Its root movement is scaled with him, and it's lowered 2.4 cm, because as it came he never touched the ground while walking. Now his lowest point touches the floor at each step, and it rises up to 2.3 cm at the top of the bounce, which is how the walk was keyed. Its first and last poses match, so it loops without a jump.
+  - The one-frame idle pose and an empty "bake" action are left out.
+  - In Godot: LODs off, the walk at its own 25 fps and looping. He's in the asset room on key K, walking on the spot.
+  - TiZeta is credited in the README's "Who made what", and he's logged in SOURCES.md.
+- **Checked:**
+  - Re-running the script gives a byte-identical `.glb` (1,335,556 bytes).
+  - In Godot he imports with his skeleton, texture and walk, and walks in the asset room, labelled 0.651 × 0.385 × 1.720 m.
+  - The Assignment 3 asset check still passes.
+- **Not done:** he isn't in the level. His painted, lifelike texture stands apart from the game's flat colours; whether that suits is for me to judge.
+- **Asked** (about 01:00): "Yes, move asset_room/chubby boy.zip to the Recycle Bin; the download is kept in design/downloads/chubby."
+- **Done by Claude:** it checked that every file in the zip is in `design/downloads/chubby/` at the same size, then moved the zip to the Recycle Bin, so it can be restored.
+- **Human / Claude / model:** the download and the requests are mine. The script, the height and this write-up are Claude's. No generative model.
+
+## 2026-10-22 — The chubby man's skin in the game's style, his face smoothed, no nose, cartoon eyebrows
+
+- **Asked** (01:02): "Can u update the model to match the man's skin to the game's style also remove the face features only keep or create nose just the skin nothing to clothes"
+- **Found by Claude:**
+  - His skin is three pieces of his texture: his head with its neck and ears, and each hand.
+  - His eyes, brows and mouth are only painted on, but his nose is modelled, about 3 cm proud of the face, so it was kept rather than made.
+  - His moustache is a small separate piece of mesh in front of his mouth.
+- **Done by Claude,** in `tools/blender/prepare_chubby.py`:
+  - His head, neck, ears and hands now have their own material in the camper's flat skin colour (`C99C85`, from `camper.blend`), so the painted face is gone.
+  - The moustache is taken off as a face feature, along with 4 loose points the file had.
+  - His hair, sweater, jeans and shoes keep TiZeta's texture, untouched. He's now 1,735 triangles.
+  - **Faceted or smooth:** Claude tried his skin cut to flat facets like the camper's, but that showed his modelled mouth and brow as hard edges. So his skin stays smooth like his clothes, which leaves a clean face with just the nose. The faceted try is picture 02, the smooth one picture 03.
+- **Checked:**
+  - Re-running the script gives a byte-identical `.glb` (1,336,284 bytes).
+  - In Godot his skin matches the two campers' beside him in the asset room (picture 04). The pictures are in `design/character/chubby/`; picture 01 is him as downloaded.
+- **Asked** (01:08): "make the face smother and have a bigger nose a bit red"
+- **Done by Claude:**
+  - It evened out the front of his face (6 smoothing passes over 84 points, the edges by his hair and collar held still). That took away the modelled mouth and brow, and flattened his own small nose.
+  - Its first try used a volume-keeping smooth, which pulled his face into long spikes down his chest. That was only in a scratch copy, and it switched to a plain one.
+  - It made a round, slightly red nose (`#D0806E`), a bulb with a short bridge, 4.5 cm out from his face. It's in picture 05.
+- **Decided** (01:11): "noo its too big remvoe the nose"
+- **Done by Claude:**
+  - It took the new nose off. His face stays smooth, so he has no nose at all now.
+  - The script records the nose as tried and taken off. Re-running it gives a byte-identical `.glb` (1,336,284 bytes, 1,735 triangles).
+- **Checked:** in Godot he walks with the smooth face beside the campers (picture 06).
+- **Decided** (01:13), when Claude asked whether he should get a small nose back: "No nose is fine, leave him as he is."
+- **Asked** (01:15): "can we have cartoon like eyebrows only eye brows"
+- **Done by Claude:**
+  - It gave him two chunky, arched cartoon eyebrows in a dark brown (`#3E2A1E`), the only thing on his face. Each is a chain of flattened blobs laid on his face, full at the inner end and tapering outwards, fused into one smooth shape. They're moved by his head bone.
+  - **Tries on the way:** the first came out as thin hollow outlines (too few triangles), then the outer tips ended in a ball, then the thinnest tip broke off as a dot. More blobs and a fuller end fixed that.
+  - They're 300 triangles for the pair, so he's 2,035 now. Re-running the script gives a byte-identical `.glb` (1,347,348 bytes).
+- **Checked:** close-ups in Blender (pictures 07 and 08), and in Godot he walks with them beside the campers (picture 09).
+- **Human / Claude / model:** the requests and the decisions are mine. Claude's: finding the skin, the moustache and the nose; the faceted-or-smooth choice; the smoothing; the nose and its removal; the eyebrows' shape; and this write-up. No generative model.
+
+## 2026-10-22 — The chubby man becomes the camper, the main NPC
+
+- **Decided** (01:21): "ok i like how this one looks this is our camper now we will work with this as the main npc log the model in and work on creating the animations for this model"
+- **What that means:**
+  - The game's camper is now `assets/characters/chubby_boy.glb`: TiZeta's "chubby boy" as made game-ready on 22 Oct, with the camper's skin colour, a smooth face and cartoon eyebrows. He's the main NPC.
+  - The two earlier campers are no longer the game's camper, but they're kept, not deleted: the Assignment 3 camper (`camper.blend`/`.glb`, Claude's model of REF-CAMPER, unrigged) and the rigged camper on the male human (`human_camper.blend`/`.glb`, with its four animations from 21 Oct).
+  - He doesn't wear the red beanie that the story and REF-CAMPER give the camper. Whether he should is still my call.
+- **Done by Claude:**
+  - Relabelled him in the asset room ("Camper: the chubby man", key K) and in the README.
+  - Logged the change in SOURCES.md.
+  - Passed the animation work to the session that made the rigged camper's animations, with his rig's details: walk, run (the chase), bend and take away, as for the last camper.
+- **Not done:** the animations, which are being made in that session. The GDD wasn't changed: it's the submitted 1.0, and it changes only through its own change log.
+- **Human / Claude / model:** the decision is mine; the relabelling and this write-up are Claude's. No generative model.
+
+## 2026-10-22 — The camper's red beanie on the chubby man
+
+- **Asked** (01:28), when Claude asked whether he should wear it: "Yes, give the chubby man the camper's red beanie with its pompom, on his head bone, so he can lose it like in the story."
+- **Done by Claude,** as a new step in `tools/blender/prepare_chubby.py`:
+  - It took the camper's own cuff, crown and pompom from `camper.blend`, with their big flat facets and the camper's red (`#AC453B`), and turned them back to face the front.
+  - **The fit:** 90% as wide, as deep and 85% as tall, because his head is narrower and shorter on top than the camper's. The cuff sits just above his eyebrows, tipped back as the camper wears it, and his hair shows below it at the sides and back.
+  - It's a part of its own, `ChubbyBoy_Beanie` (313 triangles), moved only by his head bone, so the game can hide it when he loses it. `assets/props/beanie_dropped.glb` is the same beanie lying crumpled.
+  - The build now checks that none of his head or hair shows through it: 0 points.
+- **On the way:**
+  - The first fit had the cuff resting on his eyebrows, so it went up 8 mm.
+  - The first check reported 44 points poking out that weren't. It compared the beanie as posed by the walk with his head at rest, and it counted his brows at the rim. Fixed.
+- **Shared work:** the animation session was building his animations on the same script at the same time. Claude told it about the beanie and its export before changing anything, and its export already takes every part under his rig. Claude tested the beanie only in scratch builds and didn't write his files in the repo, so as not to clash with that session's builds. The beanie reaches `chubby_boy.glb` with its next build.
+- **Checked:** in the scratch builds, his body and the beanie both export (1,575,284 bytes with the animations). The pictures, at rest, are 09a–09c in `design/character/chubby/`.
+- **Not done yet:** the beanie in the repo's `.glb` and in Godot, through the animation session's next build. That session was asked to check that it stays on his head through every clip.
+- **Human / Claude / model:** the request is mine. The fit, the check and this write-up are Claude's. The beanie is from Claude's camper model. No generative model.
+
+## 2026-10-22 — The chubby man's animations: walk, run, bend and take away
+
+- **Asked** (01:21, passed on by the session that logged him): "ok i like how this one looks this is our camper now we will work with this as the main npc log the model in and work on creating the animations for this model". The clips, and what bend and take away show, are the ones I asked for the last camper on 21 Oct ("Snatch it back", "Look down at the raccoon").
+- **Done by Claude:**
+  - `tools/blender/animate_chubby.py` keys four actions on his 20 bones, on every frame at 25 fps, the same way as the last camper's. His legs are solved to where each shoe is placed, so his feet don't slide. His arms swing by angle, or are solved to a point. Bend and take away are key poses, eased through. `prepare_chubby.py` ends by running it; that hook is the only change to it.
+  - **His walk is new.** As measured, TiZeta's walk had problems: the standing foot slid back unevenly (8 mm in one frame, 9 cm in another), neither foot quite reached the ground, and each foot was down only half the time. Moving at a steady speed in the game, he'd skate. The new walk plants his feet. TiZeta's is still in `design/downloads/chubby/chubby.blend`.
+  - **Made for his shape:** the steps are scaled to his 0.77 m legs, his arms swing out round his belly, and he sways a little as he walks. In the bend and the stoop he uses more knee, with his knees spread round his belly and less lean, because his belly is 21 cm in front of his hips. His rig has no collarbones or fingers.
+  - **The clips:**
+    - walk: 28 frames, looping, 1.02 m/s at normal speed.
+    - run: 16 frames, looping, 3.28 m/s.
+    - bend: 2.9 s.
+    - take away: 2.9 s, ending with him holding the item.
+  - **For the game:** in take away the raccoon's mouth goes 0.33 m in front of his feet, 0.31 m up and 0.16 m to his right. The item is in his right hand from 0.64 s: a BoneAttachment3D on `mano_L` (TiZeta's _L is his right) at (-0.0046, 0.0928, 0.0502).
+  - **Godot:** `run` loops too. Godot's import had been thinning his keys (his pelvis from 29 to 16), which put his head up to 1.2 cm off. That's switched off for him in `chubby_boy.glb.import`, on the AnimationPlayer. LODs stay off, at 25 fps.
+  - **Asset room:** K again plays his next animation, as C does for the rigged camper; one function now does both.
+- **Checked:**
+  - A second headless build gives a byte-identical `.glb` (1,575,284 bytes, with the beanie).
+  - **Feet and hands:** no leg is more than 1.5 mm short of a planted shoe. At the grab his hand is within 7 mm of the point. On the way down his arms reach at full stretch, up to 2.8 cm short, which is meant.
+  - **TiZeta's weights in the deepest poses** (the run's knee lift, hands on knees, the squat, an arm raised): clean. The only flaw is a small point the sweater's front hem makes between his knees in the deepest squat.
+  - **Godot 4.7.2:** all four play, walk and run loop, and his bones are within 0.06 mm of Blender's. The beanie stays on his head through every clip, and the asset room's K steps through them. Pictures 10–14 are in `design/character/chubby/`.
+- **Not done:** he isn't in the level, and no game code drives him yet. The rigged camper's import still thins its keys (up to 2.2 mm off); it's left as it was.
+- **Human / Claude / model:** the request and the earlier choices are mine. The animations, the script, the checks and this write-up are Claude's. TiZeta made the model, his rig and his weights. No generative model.
+
+## 2026-10-23 — The low-poly man, made game-ready like the chubby man, with his own walk, run, bend and take away
+
+- **Asked** (about 00:20): "ok lets create the same like we have done for the chubby guy for this guy as well and add him in the assets and charaters" (`asset_room/Lowpoly man.zip`)
+- **Got:**
+  - The zip holds Blend Swap 66412, "Lowpoly man" by TiZeta, the chubby man's artist (2013, for Blender 2.65), under CC-BY 3.0, so TiZeta must be credited. It comes with its licence file.
+  - He has the chubby man's rig: the same 20 bones, with the same Italian names. He's a slim blond man in a ribbed grey sweater, flared jeans and black shoes, with a painted face and stubble.
+- **Done by Claude:**
+  - The download is kept as it came in `design/downloads/lowpoly_man/`.
+  - **`tools/blender/prepare_lowpoly_man.py`** follows `prepare_chubby.py` step for step. It writes `assets/characters/lowpoly_man.blend` and `.glb`, and does this:
+    - keeps his mesh, rig, texture and smooth shading as TiZeta made them;
+    - stands him on the ground at 1.80 m;
+    - gives his head, neck, ears and hands the camper's flat skin colour, which clears his painted eyes, mouth and stubble;
+    - smooths the front of his face, which flattens his nose;
+    - adds chunky cartoon eyebrows in a darker shade of his blond hair. They're the only thing on his face.
+  - **What's different from the chubby man:**
+    - He has no moustache piece to take off, and no beanie, since the chubby man is the camper.
+    - His eyebrows first sat at his hairline. They now sit where his painted brows were, measured from his texture: just above his eyes, which are at 1.66 m.
+    - His forehead slopes back steeply, so his eyebrows are flattened against it rather than front to back; otherwise they stood off it like a ledge.
+    - TiZeta's walk ("walkLikeMan") is left out: he gets his own walk, as the chubby man did. TiZeta's is still in the download.
+  - **`tools/blender/animate_lowpoly_man.py`** keys walk, run, bend and take away. It runs `animate_chubby.py`'s pose solver and gaits, left unchanged, with his own numbers:
+    - his steps are scaled to his 0.84 m legs, and his arms swing close to his sides;
+    - bend and take away use the rigged camper's poses. His arms are short for his long legs, so he leans further, and his hands go just above his knees.
+  - **The clips:**
+    - walk: 28 frames, looping, 1.10 m/s at normal speed.
+    - run: 16 frames, looping, 3.56 m/s.
+    - bend: 2.9 s.
+    - take away: 2.9 s, ending with him holding the item at his chest.
+  - **For the game:** in take away the raccoon's mouth goes 0.37 m in front of his feet, 0.30 m up and 0.10 m to his right. The item is in his right hand from 0.64 s: a BoneAttachment3D on `mano_L` at (0.0204, 0.1065, 0.0347).
+  - **Godot:** `lowpoly_man.glb.import` sets LODs off, 25 fps, walk and run looping, and the key thinning off. Godot unpacks his texture beside him as `lowpoly_man_OMO1.png`. `lowpoly_man.blend.import` tells Godot to skip the `.blend`.
+  - **Asset room:** key P, to the left of the camper; P again plays his next animation.
+  - TiZeta is credited in the README's "Who made what", and he's logged in SOURCES.md.
+- **Checked:**
+  - A second headless build gives a byte-identical `.glb` (2,209,876 bytes). He's 2,034 triangles, 0.58 × 0.31 × 1.80 m.
+  - **Feet and hands:**
+    - In the walk and run no leg is more than 1.3 mm short of a planted shoe.
+    - At the grab his hand reaches the point, and in the bend his hands reach his knees.
+    - On the way down and up his arms reach at full stretch, up to 3.0 cm short, which is meant.
+  - **Godot 4.7.2:** all four clips play, walk and run loop, and his bones are within 0.07 mm of Blender's.
+  - **Pictures:** in `design/character/lowpoly_man/`. Picture 01 is him as downloaded, 02 and 03 him game-ready, 04 the asset room, and 05–09 the clips in Godot. In those strips TiZeta's weights look clean in the deepest poses; Claude didn't check them close up.
+- **Not done:** he isn't in the level, and no game code drives him; the GDD doesn't give him a part yet. His clothes keep TiZeta's painted texture, which differs from the game's flat colours.
+- **Human / Claude / model:** the request is mine. The scripts, the animations, the checks and this write-up are Claude's. TiZeta made the model, his rig, his weights and his texture. No generative model.
+- **Asked** (after that): "Yes, move asset_room/Lowpoly man.zip to the Recycle Bin; the download is kept in design/downloads/lowpoly_man."
+- **Done by Claude:** it checked that both files in the zip are byte-for-byte the same as the ones in `design/downloads/lowpoly_man/`, then moved the zip to the Recycle Bin, so it can be restored.
+
+## 2026-10-23 — The simple girl, made game-ready the same way, with her own walk, run, bend and take away
+
+- **Asked** (00:40): "added one more its a girl now do the same for her model" (`asset_room/Simple girl.zip`)
+- **Got:**
+  - The zip holds Blend Swap 66413, "Simple girl" by TiZeta again (2013, for Blender 2.65), under CC-BY 3.0, so TiZeta must be credited. It comes with its licence file.
+  - She has the low-poly man's rig, bone for bone. She's a slim young woman with long red hair, in a dark purple top, flared trousers and black shoes, with a painted face.
+- **Done by Claude:**
+  - The download is kept as it came in `design/downloads/simple_girl/`.
+  - **`tools/blender/prepare_simple_girl.py`** follows `prepare_lowpoly_man.py` step for step. It writes `assets/characters/simple_girl.blend` and `.glb`, and does this:
+    - keeps her mesh (her body, her hair and a lock of it), rig, texture and smooth shading as TiZeta made them;
+    - stands her on the ground at 1.68 m;
+    - gives her head, neck, ears and hands the camper's flat skin colour, which clears her painted eyes, brows and lips;
+    - smooths the front of her face, which flattens her nose;
+    - adds arched cartoon eyebrows in a darker shade of her red hair, a little finer than the men's, just above where her eyes were and under her fringe. They're the only thing on her face.
+  - **What's different from the men:**
+    - She has no beanie (the chubby man is the camper).
+    - Blender adds an "Auto Smooth" modifier when it opens her 2013 file. It's taken off, because the `.glb` is exported without modifiers; she's smooth-shaded all over like the two men.
+    - Her walk turns and dips her hips a little more, and her arms stay closer to her sides.
+    - TiZeta's walk ("cammina") is left out: she gets her own, as the men did. TiZeta's is still in the download.
+  - **`tools/blender/animate_simple_girl.py`** keys walk, run, bend and take away. It runs `animate_chubby.py`'s pose solver and gaits, left unchanged, with her own numbers: the low-poly man's steps and poses, at her size.
+  - **The clips:**
+    - walk: 28 frames, looping, 1.04 m/s at normal speed.
+    - run: 16 frames, looping, 3.33 m/s.
+    - bend: 2.9 s.
+    - take away: 2.9 s, ending with her holding the item at her chest.
+  - **For the game:** in take away the raccoon's mouth goes 0.35 m in front of her feet, 0.30 m up and 0.10 m to her right. The item is in her right hand from 0.64 s: a BoneAttachment3D on `mano_L` at (-0.0056, 0.0901, 0.0363).
+  - **Godot:** `simple_girl.glb.import` sets LODs off, 25 fps, walk and run looping, and the key thinning off. Godot unpacks her texture beside her as `simple_girl_repack.png`. `simple_girl.blend.import` tells Godot to skip the `.blend`.
+  - **Asset room:** key W, in front of the table; W again plays her next animation. She was first placed beside the chubby man, but there the female mannequin hid her, so she was moved.
+  - TiZeta is credited again in the README's "Who made what", and she's logged in SOURCES.md.
+- **Checked:**
+  - A second headless build gives a byte-identical `.glb` (1,367,480 bytes). She's 2,132 triangles, 0.49 × 0.27 × 1.68 m.
+  - **Feet and hands:**
+    - In the walk and run no leg is more than 1.0 mm short of a planted shoe.
+    - In the bend her hands reach her knees (within 3.5 mm), and at the grab her hand reaches the point.
+    - On the way down and up in take away her arms reach at full stretch, up to 2.7 cm short, which is meant.
+  - **Godot 4.7.2:** all four clips play, walk and run loop, and her bones are within 0.06 mm of Blender's.
+  - **Pictures:** in `design/character/simple_girl/`. Picture 01 is her as downloaded, 02 and 03 her game-ready, 04 the asset room, and 05–09 the clips in Godot. In those strips TiZeta's weights look clean in the deepest poses, and her hair moves with her head; Claude didn't check them close up.
+- **Not done:** she isn't in the level, and no game code drives her; the GDD doesn't give her a part yet. Her clothes keep TiZeta's painted texture, which differs from the game's flat colours.
+- **Human / Claude / model:** the request is mine. The scripts, the animations, the checks and this write-up are Claude's. TiZeta made the model, her rig, her weights and her texture. No generative model.
+- **Asked** (after that): "Yes, move asset_room/Simple girl.zip to the Recycle Bin; the download is kept in design/downloads/simple_girl."
+- **Done by Claude:** it checked that both files in the zip are byte-for-byte the same as the ones in `design/downloads/simple_girl/`, then moved the zip to the Recycle Bin, so it can be restored.
+
+## 2026-10-23 — Level 1's campsite: the fire pit, the tents, the camper pegging out his tent and two people dancing
+
+- **Asked** (01:11): "lets work on creating the 1st level initial campsite from the assests we have humans a place for fire pit they are setting tents and partying"
+- **Done by Claude** (nothing asked of the author on the way; the layout follows STORYBOARD.md's "The party layout never changes" list):
+  - **Where:** in the clearing right under his tree, to its right as the camera sees it: the fire in the middle, the dancers between it and the table, the two tents on the right, the logs and the cooler by the fire, string lights at the back. No station wagon or backpack: there's no model of either yet.
+  - **`scripts/campsite.gd`** (new) builds it, and `main.gd` adds it after the forest:
+    - **built in code:** the fire pit (a ring of sooty stones, an ash bed, four burning logs leaning in, five flickering flames drawn by the new `scripts/fire.gdshader` bright enough to glow, rising sparks, and a flickering warm light that casts shadows), two logs to sit on, the speaker with its cable to the table (its woofer thumps on the beat), the string lights (three poles, sagging wire, glowing warm bulbs and a soft light under each span), the camper's mallet and the tents' pegs;
+    - **the assets:** two tents (the second one green instead of ochre, so they read as two people's), the table with the laptop, the cooler, three s'mores on a log, five pizza slices and the donut on the table;
+    - **the people:** the camper (the chubby man, in his beanie) squats at his tent's guy rope knocking the peg in, side-on to the camera so the swing shows; the low-poly man and the simple girl dance by the fire, facing it. Their dance is played at the level music's speed and kept on its beat while it plays, two beats apart so they step out to opposite sides;
+    - colliders on all of it, so the raccoon walks round; the camper is in the "camper" group, so the camera leans toward him; the cooler and the s'mores are in the "food" group, so facing them makes him think of food.
+  - **`forest.gd`:** a new `clearings` list keeps the campsite's ground clear of rocks, tufts, mushrooms and leaves. They're still picked from the random sequence and just not placed, so everything else in the forest is exactly where it was. A new `night_mesh()` gives the campsite's stones the forest's night colours.
+  - **The people's new animations,** in the same scripts as their others:
+    - `animate_chubby.py`: `dance` (64 frames, looping: a step-touch over four beats with a bounce on each beat, hips popping, fists up, swinging in turn) and `hammer` (25 frames, looping, one blow a second: squatting, he raises the mallet, cocks it and brings it down on the peg, his left hand on his knee). `mallet_grip` prints where the game puts the mallet in his right hand.
+    - `animate_lowpoly_man.py`: his own `dance`, his right fist punching up from his shoulder on every beat.
+    - `animate_simple_girl.py`: her own `dance`, both hands up over her head swaying side to side, with more hip.
+    - The three `.glb.import` files loop the new clips.
+    - The three figures were rebuilt from their downloads with their `prepare_*.py` scripts; the first four clips are keyed as before.
+- **Checked:**
+  - **Rebuilds:** a second build of each figure from its download gives byte-identical `.glb`s (the chubby man 1,675,392 bytes, the low-poly man 2,275,620, the simple girl 1,433,224).
+  - **Reach:** in both new clips no hand or foot is short of its target (0.0 mm); the first try at `hammer` had his arm 85 mm short at the blow, so the peg was moved out beside his right foot and he stoops further.
+  - **The mallet in Godot 4.7.2:** at the blow his hand bone points exactly along the handle the clip asks for, and his palm is where Blender puts it, so the mallet's head lands on the peg.
+  - **The game's checks still pass:** the sound check, the title check, and the bubble check (87 checks). The bubble check first failed twice ("got hungry"): its demo yard puts a stand-in cooler where the campsite now stands, so the campsite is left out of the bubble demo.
+  - **Speed:** about 8 ms a frame at 1920 × 1080 with the raccoon by the fire (8.6 ms away from it), about what the level took before.
+  - **Pictures:** in `design/level1/campsite/`: 01 an overview, 02 the game's own camera by the fire, 03 the party, 04 the camper pegging his tent, 05 from above, 06 the title screen.
+- **Not done:**
+  - The campsite now shows on the title screen: the dancers, table, speaker and string lights stand bottom right, under his tree, cut off by the frame. Not yet decided whether it stays there or moves out of the title's frame.
+  - No party music: the dancers keep to the forest loop's beat. The storyboard's MUS-PARTY hasn't been made.
+  - Nobody reacts to the raccoon yet (no eyes, no chase), the people don't move about, and none of the level 1 tasks in the GDD are built; the prototype's to-do list is still the one in play.
+  - The tents don't go see-through when he's behind one, as the trees do.
+  - The GDD's asset tables still list the tent, the campfire and the string lights as planned.
+- **Human / Claude / model:** the request is mine. The layout, the code, the animations, the checks and this write-up are Claude's. The tent is SSimpossible's, the table's maker isn't named, and the three people are TiZeta's. No generative model.
+
+## 2026-10-23 — The campsite moved 20 seconds' walk east of his tree, with a trail to it
+
+- **Asked** (15:22): "move the party away like 25seconds walk away from the house tree", then (15:23) "20seconds*"
+- **Done by Claude:**
+  - **How far:** he walks at 2 m/s, so 20 seconds is about 40 m. The camp is now in a new clearing round (40.5, 3.0), about 40 m east of the home pine, still on the right of his tree as the storyboard has it. It sits at the forest's south edge, like his own clearing, so nothing stands between the camera and the party.
+  - **The way there:** a narrow trodden trail (`forest.gd` `TRAIL_POINTS`) runs from just east of his tree along the edge of the trees to the fire, bending round an old stump and narrowing to a point at each end. The trees stand back north of it, so the camera sees him all the way. The walls now take in the trail and the camp as well (`EAST_PLAY`), and the trees and big rocks out there stop him and can be climbed, as the ones near home can.
+  - **Nothing else in the forest moves:** the trees that would have grown on the trail and in the camp are still worked out but not drawn, so every other tree, rock, tuft and leaf comes out exactly as before. Where the old campsite stood is back as it was, tufts and leaves included.
+  - **The forest goes on east:** the old world stopped at x = 44 (trees) and 50 (ground, stream and side path), which would now show from the camp. New trees, rocks, tufts and leaves out to x = 80, at the same thickness and by the same rules, with the stream and the side path drawn on east from where they ended. All of it is made after the old forest, from its own random seed, so the old forest is untouched.
+  - **`campsite.gd`:** every place is now measured from the fire, and the fire from `CAMP`; the layout itself is the same as before.
+- **Checked:**
+  - **Walk test:** walking him from where he lands out of the hollow to the fire's side takes 19.5 s at walking speed, and nothing blocks the way.
+  - **Same forest:** compared with the forest as committed, instance by instance, nothing moved or vanished, except the 135 small things and trees that would have been on the trail or in the camp, and nothing new appears west of the new east part except the trail.
+  - **The title screen** is back to its own picture: the party is out of its frame.
+  - **The game's checks pass:** the sound check, the title check and the bubble check (87 checks).
+  - **Speed:** 6.6 ms a frame at 1920 × 1080 by the fire, and 3.7 ms by his tree.
+  - **Pictures:** `design/level1/campsite/` 01–06 are retaken at the new place; 07 is a map of the walk from his tree.
+- **Not done:** as in the last entry: no party music, nobody reacts to him, the level 1 tasks aren't built, and the tents aren't see-through. He can't hear the party from his tree yet: no sound comes from the camp.
+- **Human / Claude / model:** the request and the distance are mine. The place, the trail, the code, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-23 — The party's music from the speaker, loud at the camp and faint at his tree
+
+- **Asked** (15:39): "Yes, make the speaker play the party's music as a sound in the world, loud near the camp and faint at his tree." (Claude had offered it.)
+- **Got:** there was no party music to play: every track so far is the score, and the storyboard's MUS-PARTY hasn't been made.
+- **Done by Claude:**
+  - **A stand-in party beat,** made from plain synthesised sounds by a new script, `design/music/make_party_beat.py` (no generative model). Its output is `assets/audio/music/party-beat.wav`: 8 bars, 20.884 s, looping. It has a kick on every beat, claps on 2 and 4, hats, a bass pumping on F, and a soft plucked tune in F major pentatonic. The level music is in F major, so the two don't clash.
+  - **On the level music's beat:** the loop is exactly half as long as `forest-loop.wav` and starts the same 50 ms before its downbeat. `campsite.gd` keeps it at the level music's place, and the dancers follow it; if the level music has stopped, the party keeps its own time.
+  - **A sound in the world:** the speaker plays it as a 3D sound on the effects bus, so N mutes it and the effects slider sets it. It's -4 dB 3 m from the speaker and falls off 6 dB each time the distance doubles, with the top filtered off far away.
+  - **Heard from the raccoon:** the game used to hear from the camera, about 19 m behind and above him. `main.gd` now has an ear on the raccoon, turned as the camera is, so sounds on the right of the screen are heard on the right.
+- **Checked:**
+  - **Loudness:** the game's own mix was recorded with the silent audio driver, with the author's settings (music 5, effects 9). The party is -17.4 dBFS 2 m from the speaker, -31.9 at 10 m, -38.6 at 20 m and -43.9 at his tree, 39 m away. The level music is -30.5, so the party is about 13 dB louder than it by the speaker and about 13 dB under it at his tree. These are measurements; no one has listened to it yet.
+  - **Timing:** the party stays on the level music's beat (0.000 s off, and 0.003 s just after a pause before it catches up).
+  - **Rebuild:** the script gives a byte-identical WAV every time.
+  - **The game's checks still pass:** the sound check, the title check and the bubble check (87). The walk to the camp still takes 19.5 s.
+- **Not done:** it's a stand-in. The author's own party track (Suno, like the rest of the music) can take its place. The level music doesn't dip when he's at the party. Nobody has listened to it yet.
+- **Human / Claude / model:** the request is mine. The beat, the code, the measurements and this write-up are Claude's. No generative model.

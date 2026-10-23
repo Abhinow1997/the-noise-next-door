@@ -40,6 +40,8 @@ const TitleMenu := preload("res://scripts/title_menu.gd")
 const TitleScreen := preload("res://scripts/title_screen.gd")
 ## Fireflies and falling leaves in the moonlight (night_life.gd).
 const NightLife := preload("res://scripts/night_life.gd")
+## Level 1's campsite under his tree: the fire, the tents and the party (23 Oct 2026).
+const Campsite := preload("res://scripts/campsite.gd")
 ## The level is at night, as the title screen is: the author asked for the game to be at
 ## night too on 21 Oct 2026. Off, it's the daylight it had before.
 const NIGHT := true
@@ -151,6 +153,11 @@ const INPUTS := {
 var player: Player
 var camera: Camera3D
 var forest: Forest
+var campsite: Campsite
+## What the game hears through: on the raccoon, turned as the camera is, so sounds in
+## the world (the party's music, campsite.gd) are as loud as they are where he is, and
+## what's on the right of the screen is heard on the right.
+var _ear: AudioListener3D
 var bin: RigidBody3D
 var lid: RigidBody3D
 var gnome: RigidBody3D
@@ -306,11 +313,17 @@ func _ready() -> void:
 	_build_environment()
 	forest = Forest.new()
 	forest.night = NIGHT
+	forest.clearings.assign(Campsite.CLEARINGS)
 	add_child(forest)
 	if NIGHT:
 		add_child(NightLife.new())
 	_texture_ground()
 	_build_props()
+	# The bubble demo's yard of stand-ins stands where the campsite does.
+	if not bubble_demo:
+		campsite = Campsite.new()
+		campsite.forest = forest
+		add_child(campsite)
 
 	camera = Camera3D.new()
 	camera.fov = CAMERA_FOV
@@ -318,6 +331,10 @@ func _ready() -> void:
 	# the raccoon is drawn instead (see _drawn).
 	camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	add_child(camera)
+	_ear = AudioListener3D.new()
+	_ear.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	add_child(_ear)
+	_ear.make_current()
 	player = Player.new()
 	player.position = Forest.START
 	# Side-on to the camera and turned a little toward it, so his pose reads at once.
@@ -374,6 +391,8 @@ func _ready() -> void:
 	_build_ui()
 	_refresh_todo()
 	_start_music()
+	if campsite:
+		campsite.music = _music
 	if title_mode:
 		title = TitleScreen.new()
 		title.level = self
@@ -414,6 +433,7 @@ func _process(delta: float) -> void:
 		_anchor = _anchor.lerp(aim, 1.0 - exp(-6.0 / _zoom_now * delta))
 		_zoom_now = lerpf(_zoom_now, zoom, 1.0 - exp(-10.0 * delta))
 		_place_camera()
+	_ear.global_transform = Transform3D(camera.global_basis, _drawn() + Vector3(0, 0.35, 0))
 	_update_see_through()
 	_check_tasks(delta)
 
@@ -446,6 +466,8 @@ func _process(delta: float) -> void:
 			for music: AudioStreamPlayer in [_music, _sleep_music]:
 				if music:
 					music.stop()
+			if campsite and campsite.party:
+				campsite.party.stop()
 		if _frames == _shot_frame:
 			get_viewport().get_texture().get_image().save_png(_shot_path)
 			get_tree().quit()

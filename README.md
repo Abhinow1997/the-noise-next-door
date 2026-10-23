@@ -88,7 +88,7 @@ The asset room, `asset_room/asset_room.tscn`, shows every asset at game size on 
 
 **Controls:**
 - Drag to orbit and use the wheel to zoom.
-- **1** raccoon, **2** cooler, **3** s'more, **4** pizza slice, **5** donut, **6** round pizza, **7** camper, **8** his dropped beanie, **0** all of them.
+- **1** raccoon, **2** cooler, **3** s'more, **4** pizza slice, **5** donut, **6** round pizza, **7** camper, **8** his dropped beanie, **9** the tent, **T** the table with a laptop, and **M** and **F** the male and female humans (downloads made game-ready on 21 Oct 2026, after Assignment 3; see SOURCES.md), **C** the male human dressed as the camper and rigged, **K** the game's camper, the chubby man, walking (TiZeta's download, made game-ready and chosen as the main NPC on 22 Oct 2026), **P** the low-poly man and **W** the simple girl (TiZeta's too, made game-ready the same way on 23 Oct 2026), **0** all of them.
 - **G** shows the game's own camera, **B** looks from below, **L** turns the labels on and off, and **Esc** quits.
 
 **What the labels should read:**
@@ -203,6 +203,8 @@ You need Godot 4.7.2. The project uses the Forward+ renderer.
 
 **The title screen:** Up and Down (or W and S, or the mouse) pick a line, and Enter, Space, E or a click chooses it. Continue stays faint until there are save states to continue from. Settings has the music and effects volumes (Left and Right) and full screen, and Esc goes back. The title is the game's own world at night, seen from where your title picture was taken, so New Game changes nothing but the camera: it glides in to the close-up of the raccoon asleep in his hollow, the lullaby playing on, and W, A, S or D wakes him to start. Any `--` argument other than the title's own skips the title, so the checks below still work as before.
 
+**Level 1's campsite** (23 Oct 2026, `scripts/campsite.gd`): the party is set up about 20 seconds' walk east of his tree, at the end of a trodden trail along the edge of the trees: a fire pit, two tents, logs, the cooler, a table with the laptop, pizza and a donut, a speaker and string lights. The camper is pegging out his tent with a mallet, and the low-poly man and the simple girl dance by the fire on the music's beat. The speaker plays a party beat you hear from where the raccoon is: loud at the camp, a far-off thump at his tree. Nobody reacts to the raccoon yet. Pictures are in [design/level1/campsite/](design/level1/campsite/).
+
 **Controls:** WASD or the arrow keys to move, Shift to run, Ctrl or C to sneak, E or a click to grab or drop, Space to chitter, and the mouse wheel to zoom. Walk into a tree to climb it. Then W and S climb up and down, A and D go round the trunk, and E lets go. Climb to the top of the home pine to get into the hollow. Esc pauses. M turns the music on and off, and N does the same for the sound effects. Tab opens a panel for trying out camera views live; its "Copy numbers" button copies the settings.
 
 **The automated sound check:** run `godot --headless --path . -- --sound-test`. It plays a scripted input sequence, counts how often each sound effect starts, and checks the music's pause, mute, loop and end behaviour. It prints a table, and its exit code is 0 only if every check passes (`scripts/sound_test.gd`).
@@ -240,9 +242,17 @@ Two changes were made with Claude Code on 4 Oct 2026, before this repo existed:
 ## Who made what
 
 - **The author:** the prototype, the story, and the design decisions. The provenance notes at the end of CONCEPT.md and STORYBOARD.md list them.
-- **Claude Code:** drafts and wording for the docs, the storyboard thumbnails (drawn in code), the two prototype changes above, the raccoon model in `assets/characters/` (built in Blender with Python) and the code that puts it in the game, tree climbing, the camera code and its Tab panel (the camera view itself is the author's pick), the character-sheet images and pose cut-outs (`design/character/make_character_sheet.gd`), the music and sound-effect loop cuts (`design/sfx/make_sfx_loops.py`), drawing the raccoon with the generated images (`scripts/raccoon_sprite.gd`), placing the stump, wiring up the sounds, mute and pause, the automated sound check (`scripts/sound_test.gd`), and this README.
+- **Claude Code:** drafts and wording for the docs, the storyboard thumbnails (drawn in code), the two prototype changes above, the raccoon model in `assets/characters/` (built in Blender with Python) and the code that puts it in the game, tree climbing, the camera code and its Tab panel (the camera view itself is the author's pick), the character-sheet images and pose cut-outs (`design/character/make_character_sheet.gd`), the music and sound-effect loop cuts (`design/sfx/make_sfx_loops.py`), drawing the raccoon with the generated images (`scripts/raccoon_sprite.gd`), placing the stump, wiring up the sounds, mute and pause, the automated sound check (`scripts/sound_test.gd`), level 1's campsite (`scripts/campsite.gd`) with the people's dance and hammer animations, and this README.
 - **Generative models, run by the author:**
   - Google Gemini for every image: the raccoon's style target (made before any design doc was committed), his pose images, the other character and scene references, and the ground texture;
   - Suno for the five music tracks, and ElevenLabs for all the sound effects.
 
   [SOURCES.md](SOURCES.md) logs every generation. Claude Code generated none of them: it cut out the poses and cut the loops.
+- **Other people's work, downloaded by the author** (logged under "Third-party assets" in SOURCES.md, with the changes Claude Code made to each):
+  - "Human Basic Shapes: male and female basemesh" by **Josephbburg** ([Blend Swap 72307](http://www.blendswap.com/blends/view/72307)), under [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/). This credit is required.
+  - "chubby boy" by **TiZeta** ([Blend Swap 66415](http://www.blendswap.com/blends/view/66415)), under [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/). This credit is required.
+  - "Lowpoly man" by **TiZeta** ([Blend Swap 66412](http://www.blendswap.com/blends/view/66412)), under [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/). This credit is required.
+  - "Simple girl" by **TiZeta** ([Blend Swap 66413](http://www.blendswap.com/blends/view/66413)), under [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/). This credit is required.
+  - The Patrick Hand font by Patrick Wagesreiter, under the SIL Open Font License 1.1 (`assets/fonts/PatrickHand-OFL.txt`).
+  - "Tent" by SSimpossible ([Blend Swap 5010](http://www.blendswap.com/blends/view/5010)), CC0.
+  - "Table with laptop, radio and documents" ([Blend Swap 92671](http://www.blendswap.com/blends/view/92671)), CC0 but marked fan art: not for commercial use.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://asset_room/asset_room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://assets/characters/raccoon_v2.glb" id="2_raccoon"]
@@ -8,6 +8,14 @@
 [ext_resource type="PackedScene" path="res://assets/practice/donut.glb" id="6_donut"]
 [ext_resource type="PackedScene" path="res://assets/characters/camper.glb" id="7_camper"]
 [ext_resource type="PackedScene" path="res://assets/props/beanie_dropped.glb" id="8_beanie"]
+[ext_resource type="PackedScene" path="res://assets/props/tent.glb" id="9_tent"]
+[ext_resource type="PackedScene" path="res://assets/props/table_with_laptop.glb" id="10_table"]
+[ext_resource type="PackedScene" path="res://assets/characters/human_male.glb" id="11_male"]
+[ext_resource type="PackedScene" path="res://assets/characters/human_female.glb" id="12_female"]
+[ext_resource type="PackedScene" path="res://assets/characters/human_camper.glb" id="13_human_camper"]
+[ext_resource type="PackedScene" path="res://assets/characters/chubby_boy.glb" id="14_chubby"]
+[ext_resource type="PackedScene" path="res://assets/characters/lowpoly_man.glb" id="15_lowpoly"]
+[ext_resource type="PackedScene" path="res://assets/characters/simple_girl.glb" id="16_girl"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
@@ -34,7 +42,7 @@ roughness = 1.0
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 material = SubResource("Material_floor")
-size = Vector2(5, 3)
+size = Vector2(7.4, 6.6)
 
 [node name="AssetRoom" type="Node3D"]
 script = ExtResource("1_room")
@@ -52,7 +60,7 @@ shadow_opacity = 0.6
 directional_shadow_max_distance = 40.0
 
 [node name="Floor" type="MeshInstance3D" parent="."]
-position = Vector3(0.05, 0, 0)
+position = Vector3(0.4, 0, -1.8)
 mesh = SubResource("PlaneMesh_floor")
 
 [node name="Raccoon" parent="." instance=ExtResource("2_raccoon")]
@@ -100,6 +108,30 @@ position = Vector3(-0.45, 0, -0.95)
 [node name="BeanieDropped" parent="." instance=ExtResource("8_beanie")]
 position = Vector3(-0.1, 0, 0.4)
 rotation = Vector3(0, -1.3089969, 0)
+
+[node name="Tent" parent="." instance=ExtResource("9_tent")]
+position = Vector3(0.3, 0, -3.3)
+
+[node name="TableWithLaptop" parent="." instance=ExtResource("10_table")]
+position = Vector3(-2.1, 0, -1.4)
+
+[node name="HumanMale" parent="." instance=ExtResource("11_male")]
+position = Vector3(2.35, 0, -1.5)
+
+[node name="HumanFemale" parent="." instance=ExtResource("12_female")]
+position = Vector3(2.35, 0, 0.6)
+
+[node name="HumanCamper" parent="." instance=ExtResource("13_human_camper")]
+position = Vector3(0.2, 0, -0.95)
+
+[node name="ChubbyBoy" parent="." instance=ExtResource("14_chubby")]
+position = Vector3(0.95, 0, -1.05)
+
+[node name="LowpolyMan" parent="." instance=ExtResource("15_lowpoly")]
+position = Vector3(-1.15, 0, -0.95)
+
+[node name="SimpleGirl" parent="." instance=ExtResource("16_girl")]
+position = Vector3(-1.9, 0, -0.35)
 
 [node name="Camera3D" type="Camera3D" parent="."]
 current = true
