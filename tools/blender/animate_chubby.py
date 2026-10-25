@@ -310,7 +310,13 @@ def cycle_pose(body, u, g):
         turn("arm_" + k, Z, -s * g["arm_in"])
         turn("arm_" + k, Y, -s * g["arm_out"])               # out from his sides, round his belly
         turn("arm_" + k, X, sw)
-        turn("fore_" + k, sd["arm_n"],
+        # the elbow bends about the hinge of TiZeta's resting arm, which is turned about 22 degrees towards the body:
+        # bent far, as in the run, that carries the forearm across him and into his belly and hips. hinge_flat (0 to
+        # 1) turns the hinge back square to his sides, so the forearm comes up straight ahead instead
+        hinge = sd["arm_n"]
+        if g.get("hinge_flat"):
+            hinge = hinge.lerp(Vector((-1, 0, 0)), g["hinge_flat"]).normalized()
+        turn("fore_" + k, hinge,
              g["elbow"] + g["elbow_fwd"] * max(0.0, fwd) + g["elbow_back"] * max(0.0, -fwd))
         lag = math.cos(math.tau * (ph - 0.5 - g["arm_lag"] - 0.08))
         turn("hand_" + k, sd["arm_n"], g["wrist"] * lag)
@@ -328,8 +334,10 @@ RUN = dict(frames=16, stride=2.10, duty=0.36, flat=0.06, heel_off=0.20, strike=9
            d0=-0.30, lift=0.17, lift_early=0.65,
            bob=0.026, bob_low=0.14, drop=-0.050, sway=0.020, sway_lag=0.10,
            yaw=8.0, list=3.5, roll=0.5, tilt=5.0, lean=14.0, lean_bob=1.5, twist=8.0, chest=2.0, look=0.0,
-           arm_swing=42.0, arm_bias=-4.0, arm_lag=0.03, arm_in=10.0, arm_out=12.0,
-           elbow=80.0, elbow_fwd=8.0, elbow_back=-15.0, wrist=4.0)
+           arm_swing=42.0, arm_bias=-4.0, arm_lag=0.03, arm_in=10.0, arm_out=14.0,
+           elbow=80.0, elbow_fwd=8.0, elbow_back=-15.0, wrist=4.0, hinge_flat=1.0)
+# (23 Oct 2026, 20:20, the author: "while running the arms are goin inside the humans": his hands went 17 cm into his belly
+# and hips. With the elbow square to his sides, and his arms 2 degrees further out, they clear him.)
 
 
 # --- bend and take_away: key poses ---------------------------------------------------------------------------------

@@ -78,8 +78,9 @@ const DEN_RADIUS := 2.0
 const START := Vector3(0, 0.02, 3.4)
 const CABIN := Vector3(-5.5, 0, -20.0)
 const BENCH := Vector3(6.0, 0, -1.6)
-## Where the raccoon can walk, with EAST_PLAY. Trees beyond them are only scenery.
-## (BOUNDS also sets how the forest was laid out, so it stays as it is.)
+## Where the raccoon could first walk. Since 23 Oct 2026 he can go anywhere in REACH,
+## but BOUNDS still sets how the forest was laid out (how close trees grow, where small
+## things lie), so it stays as it is.
 const BOUNDS := Rect2(-15, -23, 30, 33)
 ## Where scenery is generated.
 const WORLD := Rect2(-44, -50, 88, 74)
@@ -90,15 +91,26 @@ const WORLD := Rect2(-44, -50, 88, 74)
 ## forest's south edge, so the open ground in front of the camera stays open, reached
 ## by a trodden trail (TRAIL_POINTS) along the edge of the trees, where the trees stand
 ## back to north of TRAIL_EDGE. No tree grows in either, without moving any other tree
-## (see _plant_trees). The forest carries on east to EAST_END, and the raccoon can walk
-## in EAST_PLAY too.
+## (see _plant_trees). The forest carries on east to EAST_END.
 const CAMP := Vector2(40.5, 3.0)
 const CAMP_RADIUS := 7.5
 const TRAIL_POINTS := [Vector2(2.6, 3.0), Vector2(6.5, 4.8), Vector2(11.2, 6.9), Vector2(17.0, 6.8), Vector2(24.0, 6.1),
 	Vector2(30.0, 5.6), Vector2(34.5, 4.4), Vector2(37.0, 3.6)]
 const TRAIL_EDGE := 4.2
-const EAST_PLAY := Rect2(15, -5, 33, 15)
 const EAST_END := 80.0
+## Where the raccoon can go: the whole forest, everywhere a tree can grow, out to a
+## fence just inside its edge, the only one in the level. Every tree and big rock in it
+## is solid and every tree can be climbed. (There used to be invisible walls round the
+## play area and along the stream; the author asked on 23 Oct 2026 for them to go:
+## "remove the barriers u have in the game in the invisible barriers those are killing
+## the game we are unable to play correctly".) The ground goes on GROUND_BEYOND metres
+## further, so the camera doesn't see where it ends.
+const REACH := Rect2(WORLD.position.x + 2.0, WORLD.position.y + 2.0, EAST_END - WORLD.position.x - 4.0,
+	WORLD.size.y - 4.0)
+const GROUND_BEYOND := 30.0
+## How far apart the bushes of the hedge round REACH stand (m): close enough that they
+## make a solid hedge.
+const EDGE_SPACING := 1.2
 ## The stream and the path east of x = 50, where they stopped before: each drawn on
 ## from there along these points (the first two are their own last two).
 const STREAM_EAST := [Vector2(34, -14.4), Vector2(50, -13.6), Vector2(64, -14.6), Vector2(76, -13.9),
@@ -250,7 +262,7 @@ func _ready() -> void:
 	_plant_east()
 	_scatter_east()
 	_build_trail()
-	_build_walls()
+	_build_edge()
 	_flush()
 
 
@@ -260,9 +272,9 @@ func _ready() -> void:
 ## over tens of metres so it doesn't look painted on.
 func _build_ground() -> void:
 	var cell := 2.0
-	var origin := WORLD.position - Vector2(6, 4)
-	var nx := int(ceil((EAST_END + 6 - origin.x) / cell))
-	var nz := int(ceil((WORLD.size.y + 8) / cell))
+	var origin := WORLD.position - Vector2.ONE * GROUND_BEYOND
+	var nx := int(ceil((EAST_END + GROUND_BEYOND - origin.x) / cell))
+	var nz := int(ceil((WORLD.end.y + GROUND_BEYOND - origin.y) / cell))
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var up := [Vector3.UP, Vector3.UP, Vector3.UP]
@@ -357,30 +369,28 @@ func _build_bridge() -> void:
 
 
 ## Invisible walls round the play area and along both banks of the stream.
-func _build_walls() -> void:
-	var b := BOUNDS
-	# Round BOUNDS and EAST_PLAY together: BOUNDS with EAST_PLAY on its east side.
-	var e := EAST_PLAY
-	var corners := [b.position, Vector2(b.end.x, b.position.y), e.position, Vector2(e.end.x, e.position.y), e.end,
-		Vector2(b.position.x, b.end.y)]
+## The edge of the world he can reach (REACH): a thick hedge of bushes all the way
+## round, solid, with boulders where the stream runs through it, so he sees where it
+## ends; and a fence just outside it, so nothing gets through a gap. The stream has no
+## wall of its own: he wades across it.
+func _build_edge() -> void:
+	var r := REACH
+	var corners := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
 	for i in corners.size():
 		var p: Vector2 = corners[i]
 		var q: Vector2 = corners[(i + 1) % corners.size()]
+		var along := (q - p).normalized()
+		var inward := Vector2(-along.y, along.x)
+		var count := int(p.distance_to(q) / EDGE_SPACING)
+		for k in count:
+			var at := p + along * (k + 0.5) * EDGE_SPACING + inward * (0.6 + _rng.randf_range(-0.2, 0.2))
+			if _stream_dist(at) < 1.6:
+				_add_rock(at, _rng.randf_range(0.8, 1.0))
+			else:
+				_add_bush(at, _rng.randf_range(0.95, 1.35))
 		var box := BoxShape3D.new()
 		box.size = Vector3(p.distance_to(q) + 0.4, 3.0, 0.4)
-		_collider(box, Transform3D(Basis(Vector3.UP, -(q - p).angle()), _v3((p + q) * 0.5, 1.5)))
-	for i in range(0, _stream.size() - 2, 2):
-		var p := _stream[i]
-		var q := _stream[i + 2]
-		var mid := (p + q) * 0.5
-		if mid.x < b.position.x - 1.0 or mid.x > b.end.x + 1.0 or mid.distance_to(_bridge) < 0.75:
-			continue
-		var dir := (q - p).normalized()
-		var side := Vector2(-dir.y, dir.x)
-		for sgn: float in [-1.0, 1.0]:
-			var box := BoxShape3D.new()
-			box.size = Vector3(p.distance_to(q) + 0.3, 2.0, 0.3)
-			_collider(box, Transform3D(Basis(Vector3.UP, -atan2(dir.y, dir.x)), _v3(mid + side * sgn * 1.15, 1.0)))
+		_collider(box, Transform3D(Basis(Vector3.UP, -(q - p).angle()), _v3((p + q) * 0.5 - inward * 0.2, 1.5)))
 
 
 # --- The home pine -----------------------------------------------------------
@@ -781,7 +791,7 @@ func _east_open(p: Vector2) -> bool:
 ## True where the raccoon can walk (to within `margin`): where trees and big rocks get
 ## colliders.
 func _in_play(p: Vector2, margin := 0.0) -> bool:
-	return BOUNDS.grow(margin).has_point(p) or EAST_PLAY.grow(margin).has_point(p)
+	return REACH.grow(margin).has_point(p)
 
 
 ## The stream and the path on east from x = 50, a hair under the old ends where they

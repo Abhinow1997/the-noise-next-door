@@ -44,8 +44,10 @@ RUN = dict(frames=16, stride=2.28, duty=0.36, flat=0.06, heel_off=0.20, strike=9
            d0=-0.323, lift=0.19, lift_early=0.65,
            bob=0.028, bob_low=0.14, drop=-0.055, sway=0.011, sway_lag=0.10,
            yaw=8.0, list=3.0, roll=0.5, tilt=6.0, lean=15.0, lean_bob=1.5, twist=9.0, chest=2.0, look=0.0,
-           arm_swing=45.0, arm_bias=-4.0, arm_lag=0.03, arm_in=12.0, arm_out=4.0,
-           elbow=80.0, elbow_fwd=8.0, elbow_back=-15.0, wrist=4.0)
+           arm_swing=45.0, arm_bias=-4.0, arm_lag=0.03, arm_in=6.0, arm_out=8.0,
+           elbow=80.0, elbow_fwd=8.0, elbow_back=-15.0, wrist=4.0, hinge_flat=1.0)
+# (23 Oct 2026: his hands went 9 cm into his waist and hips in the run. With the elbow square to his sides, his arms
+# across him less and a little further out, they clear him.)
 # his dance (23 Oct 2026, the campsite): the chubby man's step-touch a little wider, his right fist punching up from
 # his shoulder on every beat, his left arm bent and swinging
 _arm = L["_arm"]

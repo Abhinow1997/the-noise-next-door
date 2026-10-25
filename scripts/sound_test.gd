@@ -61,35 +61,28 @@ func _ready() -> void:
 	_at(380, Input.action_press.bind("move_back"))
 	_at(395, Input.action_release.bind("move_back"))
 
-	# A nap: from the trunk into the hollow, asleep long enough to tick off the nap
-	# (silently: there's no laughing in his sleep), then woken, leaping out and landing.
+	# A nap: from the trunk into the hollow, asleep long enough to count as a nap, with
+	# two tasks ticked off while he sleeps (silently: there's no laughing in his sleep;
+	# following the music is ticked off here too, as he never goes to the camp),
+	# then woken, leaping out and landing.
 	_at(400, func() -> void: player.rest(level.forest.rest_spot, level.forest.rest_exit))
+	_at(650, func() -> void:
+		level.tasks.done("investigate")
+		level.tasks.done("marshmallows"))
 	_at(700, _check_nap)
 	_at(700, Input.action_press.bind("move_back"))
 	_at(705, Input.action_release.bind("move_back"))
 	_at(860, _check_awake)
 
-	# Tasks: the other four ticked off over three frames, two of them in the same frame
-	# (the nap's was ticked off in the hollow). Things are put straight in place with the
-	# interpolation reset, so they aren't drawn sliding there.
-	var den: Vector3 = level.Forest.HOME
-	_at(920, func() -> void:
-		level.bin.rotation = Vector3(PI / 2, 0, 0)
-		level.bin.reset_physics_interpolation())
+	# Tasks (level 1's, camp_tasks.gd; the camp's puzzles tick them off): the other two
+	# ticked off in the same frame, for one laugh (the first was ticked off in his sleep).
 	_at(940, func() -> void:
-		level.lid.global_position = den + Vector3(1.4, 0.3, 0.6)
-		level.gnome.global_position = den + Vector3(-1.4, 0.3, 0.6)
-		level.lid.reset_physics_interpolation()
-		level.gnome.reset_physics_interpolation())
-	_at(960, func() -> void:
-		for k in 3:
-			level.cans[k].global_position = den + Vector3(-0.6 + 0.6 * k, 0.3, 1.3)
-			level.cans[k].reset_physics_interpolation())
-	_at(980, func() -> void: level._sleep_time = 3.0)
+		level.tasks.done("music")
+		level.tasks.done("cooler"))
 
 	# Pause and mute: switched on and off again; the game mustn't care.
 	_at(1000, _check_pause_and_mute)
-	# The end: after the last laugh and the fade, the music has stopped.
+	# No ending yet: with every task done, the music carries on.
 	_at(1280, _finish)
 
 
@@ -120,10 +113,11 @@ func _check(name: String, expected, actual) -> void:
 	_results.append([name, str(expected), str(actual), "pass" if ok else "FAIL"])
 
 
-## Asleep, with the nap ticked off and no laugh: the lullaby has taken over, and the
-## camera is in close.
+## Asleep, the nap counted, and the task ticked off in his sleep with no laugh: the
+## lullaby has taken over, and the camera is in close.
 func _check_nap() -> void:
-	_check("Nap: the nap is ticked off in the hollow", true, level.tasks[4].done)
+	_check("Nap: it counts as a nap", 1, level.naps)
+	_check("Nap: a task done in his sleep is ticked off", true, level.tasks.is_done("marshmallows"))
 	_check("Nap: no laugh in his sleep", 0, level.sound_counts.get("SFX-TASK-LAUGH", 0))
 	_check("Nap: the lullaby is playing", true, level._sleep_music.playing)
 	_check("Nap: the lullaby is at full level", true,
@@ -139,7 +133,7 @@ func _check_awake() -> void:
 	_check("Awake: the lullaby has stopped", false, level._sleep_music.playing)
 	_check("Awake: the forest loop is back to full", true, absf(level._music.volume_db - level.MUSIC_DB) < 0.5)
 	_check("Awake: the camera is back out", 0.0, level._sleep_view)
-	_check("Awake: the nap ticked off with no laugh", 0, level.sound_counts.get("SFX-TASK-LAUGH", 0))
+	_check("Awake: still no laugh for it", 0, level.sound_counts.get("SFX-TASK-LAUGH", 0))
 
 
 func _check_pause_and_mute() -> void:
@@ -166,9 +160,9 @@ func _finish() -> void:
 	_check("SFX-CHITTER: 5 quick presses + 1 held press", 6, counts.get("SFX-CHITTER", 0))
 	_check("SFX-RUN: 2 runs, Shift tapped during the first", 2, counts.get("SFX-RUN", 0))
 	_check("SFX-CLIMB: 2 climbs, clinging still between", 2, counts.get("SFX-CLIMB", 0))
-	_check("SFX-TASK-LAUGH: 4 tasks in 3 frames, not the nap", 3, counts.get("SFX-TASK-LAUGH", 0))
-	_check("Every task done", true, level.tasks.all(func(t: Dictionary) -> bool: return t.done))
-	_check("End: the music has stopped after its fade", false, level._music.playing)
+	_check("SFX-TASK-LAUGH: 2 tasks in a frame, not in his sleep", 1, counts.get("SFX-TASK-LAUGH", 0))
+	_check("Every task done", true, level.tasks.all_done())
+	_check("No ending yet: the music carries on", true, level._music.playing)
 	for path: String in ["res://assets/audio/music/forest-loop.wav", "res://assets/audio/sfx/run-loop.wav", "res://assets/audio/sfx/climb-loop.wav"]:
 		var s := load(path) as AudioStreamWAV
 		var frames := roundi(s.get_length() * s.mix_rate)

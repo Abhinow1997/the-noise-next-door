@@ -817,6 +817,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 22 Oct | The chubby man's animations: walk, run, bend and take away | not committed yet |
 | 23 Oct | The low-poly man, made game-ready like the chubby man, with his own walk, run, bend and take away | not committed yet |
 | 23 Oct | The simple girl, made game-ready the same way, with her own walk, run, bend and take away | not committed yet |
+| 23 Oct | The people's arms kept out of their bodies when they run | not committed yet |
 
 ## 2026-10-21 — A description of the title screen, then a prompt for it
 
@@ -1393,3 +1394,198 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - The level 1 tasks aren't built.
   - The numbers (how far they see, 4 s to chase, their speeds) are first guesses for the author to play and tune.
 - **Human / Claude / model:** the request is mine. The rules, the code, the animations, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-23 — The invisible walls taken out
+
+- **Asked** (20:05): "remove the barriers u have in the game in the invisible barriers those are killing the game we are unable to play correctly"
+- **Found:** the level had invisible walls in three places:
+  - **Round the old play area,** his clearing plus the strip to the camp. The main path ran west into one, the side path east into another, and the meadow and the forest round the camp were walled off too.
+  - **Along both banks of the stream,** except at the bridge.
+  - **Under the camp's table:** a solid box from the ground up, though the table is open underneath.
+  - The trees and big rocks outside the old play area had no collision, which is why those walls were there.
+- **Done by Claude** (in `forest.gd` and `campsite.gd`; the jump being added at the same time in `player.gd`, `main.gd` and `raccoon_model.gd` wasn't touched):
+  - **No more invisible walls:** the walls round the play area and along the stream are gone. He can go anywhere in the forest, and he wades across the stream.
+  - **Everything solid instead:** every tree and big rock in the forest stops him, and every tree can be climbed.
+  - **The edge of the world** is now a hedge of bushes all the way round, with boulders where the stream runs out, so you can see where it ends. A fence just behind it stops anything slipping through a gap. The ground runs on 30 m past it, so the camera never sees where the ground stops.
+  - **The table** stops him only at its top and its legs, so he can walk under it.
+  - The forest is laid out exactly as before: the hedge goes in after everything else.
+- **Checked:**
+  - **Six walks across the old wall lines** (scripted, steering with the move keys) all get through: west along the main path past x = -15, east along the side path past x = 15, south into the meadow, east past the camp, across the stream, and under the table. Walking south, he stops at the hedge.
+  - **Same forest:** compared instance by instance with the forest as committed, nothing moved or vanished. The only additions are the hedge and the earlier trail, camp and east forest.
+  - **The game's checks still pass:** the camp check (32), the sound check, the title check and the bubble check (87). The walk from his tree to the camp still takes 19.5 s.
+  - **Speed:** 4.0 ms a frame by his tree and 5.3 ms near the camp, at 1920 × 1080.
+- **Not done:** the forest beyond the old play area wasn't laid out for the camera, so out there the tree tops often stand between the camera and him; the see-through window keeps him visible. Nobody has played it yet.
+- **Human / Claude / model:** the request is mine. The changes, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-23 — The people's arms kept out of their bodies when they run
+
+- **Asked** (20:20): "while running the arms are goin inside the humans"
+- **Found** (measured on the chubby man, the low-poly man and the girl):
+  - In the run each forearm swung across the body: the hands met in front of the stomach, and as the upper arm swung back they went through the hips. At worst the hands were 17.5 cm into the chubby man (his belly and hips), 9 cm into the low-poly man and 9.5 cm into the girl.
+  - The cause: the elbow bent about the hinge of TiZeta's resting arm, which is turned about 22° towards the body. Bent as far as the run bends it, that carries the forearm across.
+  - In the walks, only the girl's hands dipped into her hips (3 cm).
+- **Done by Claude:**
+  - `tools/blender/animate_chubby.py` has a new gait setting, `hinge_flat`, which turns the elbow's hinge square to the sides so the forearm comes up straight ahead. A gait without it is keyed exactly as before.
+  - **The runs:**
+    - The chubby man: the square hinge, and his arms 2° further out.
+    - The low-poly man: the square hinge, his arms across him less (12° to 6°) and further out (4° to 8°).
+    - The girl: the square hinge, her arms across her less (14° to 7°) and further out (3° to 11°).
+  - **The girl's walk:** the square hinge, and her arms 2° further out.
+  - All three were rebuilt with their prepare scripts and reimported into Godot. The run pictures are new: chubby 11, low-poly man 06, the girl's 05 (walk) and 06.
+- **Checked:**
+  - **How:** a point of the arm counts as inside when most of 14 rays from it cross the rest of the body an odd number of times. The first tests, by the nearest surface, were fooled where the sweater hems overlap the trousers.
+  - **After the fix:** no point of any arm is inside the body on any frame of the three runs and walks.
+  - **Nothing else changed:** comparing with the committed builds, only the runs and the girl's walk have new keys. Every other clip (bend, take away, dance, hammer, scared, guard, shoo, cower) is keyed exactly as before.
+  - **Godot 4.7.2:** the bones are within 0.07 mm of Blender's, and the camp check passes (32 checks).
+- **Not done:** the same test finds the arms going into the body in other clips, left as they were:
+  - bend and take away on all three: up to 5–7 cm, as the hands go down to the knees and come back up, and when the arm swings out as he rocks back (11 cm on the chubby man);
+  - the chubby man's hammering (4 cm).
+  - Dance, scared, guard, shoo and cower are clear.
+  - Asked whether to fix those too, I said: "Leave bend, take away and hammer as they are for now."
+- **Human / Claude / model:** the request is mine. The fix, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-24 — Level 1's first tasks: the campers' routines and three puzzles
+
+- **Asked** (23 Oct, 20:39): "now I need you to plan a smother working and rotuines and tasks we can work in the game puzzle like working them in so it add gameplay along with it being fun"
+- **Decided by me** (Claude asked; I picked each of its recommendations):
+  - three tasks first: Steal the marshmallows, Music off and Raid the cooler;
+  - routines that loop, so a missed chance comes round again;
+  - the to-do list becomes the camp's tasks; the bin, lid, cans and gnome stay as things to play with, and the nap still works but isn't a task;
+  - no ending yet.
+- **Done by Claude** (to a plan I approved; the rules and numbers are Claude's):
+  - **Routines:** each person loops through activities, walking between them:
+    - the camper pegs out his tent (25–35 s), roasts marshmallows by the fire with his back to his backpack (50–70 s), then stands at the table for pizza (12–18 s);
+    - the low-poly man dances (35–55 s), then fetches a drink from the cooler, opening its lid (about 3 s; 30% of the time he leaves it open);
+    - the girl dances (30–45 s), then warms her hands at the fire (12–18 s).
+    - After a fright they go back to wherever their routine had got to.
+  - **E does the work:** next to something he can use, a chalk E shows over it. Slow jobs are held: a ring fills while he holds E and slowly runs back if he lets go. The press goes to the job instead of grabbing.
+  - **Noise:** jobs, his running, a chitter and the bag crinkling all make noise. Anyone in earshot stops ("huh?"); the men walk over to look, everyone looks about for 3 s, then they go back to their routine. A "?" shows over them while they wonder, and a "!" when they spot him.
+  - **The music matters:**
+    - while it plays, noises carry only 60% as far;
+    - while they dance, the dancers see only 60% as far (lost in the music).
+    - So with the music on he can work near them, and after Music off the camp is quieter and more watchful.
+  - **Steal the marshmallows:** hold E for 3 s at the camper's backpack to unzip it, and the bag tumbles out. The task ticks when the bag is lying in his stash at his tree.
+  - **Music off:** hold E for 0.8 s at the plug under the table to tug it out with his teeth. The music stops and the task ticks.
+    - The dancers stop dead mid-move for 2 s, which is his moment to get away.
+    - Then everyone wonders, and the low-poly man finds the plug wherever it was dropped and plugs it back in. The cord reaches 4 m.
+  - **Raid the cooler:** hold E for 2 s to nose the lid open (a clunk the camper hears from the fire), or use the lid the low-poly man left open. Take the sausages home.
+  - **Caught carrying their things,** a man snatches them back (`take_away`) and the puzzle resets: the bag zipped back in, the sausages back in the shut cooler. Caught with nothing, they shoo him as before.
+  - **Smoother people:**
+    - they walk round the fire's logs instead of trying to step over them (the walkways are baked finer);
+    - they no longer ride up onto things they brush against;
+    - they walk right onto their spot instead of popping the last bit;
+    - a fright caught just before a calm spell can't go off afterwards;
+    - the girl no longer flickers between fleeing and cowering when she's cornered.
+  - **Props drawn in code** as stand-ins for Blender models: the backpack and the bag, the power strip, plug and cord, and the tray of sausages. The cooler's lid now opens on a hinge.
+  - **The new code:**
+    - `scripts/camp_puzzles.gd` (the three tasks);
+    - `scripts/interactable.gd` (a place he works at with E);
+    - `scripts/camp_input.gd` (the E, the ring and the marks over heads);
+    - `scripts/camp_tasks.gd` (the to-do list);
+    - routines and the new states (wondering, snatching back, fixing the plug) in `camp_person.gd`;
+    - the noise and the routines' places in `campsite.gd`;
+    - the to-do list in `main.gd`.
+- **Checked:**
+  - **A new automated check,** `scripts/tasks_test.gd` (`godot --headless --path . --audio-driver Dummy -- --tasks-test`), passes all 43 checks, headless and in a window. It covers:
+    - each routine moving on and coming round again;
+    - the marshmallows caught and snatched back, then stolen unseen and taken home;
+    - the music off, the dancers frozen, the plug found and put back, the task staying ticked;
+    - a clunk drowned by the music but heard without it;
+    - the cooler nosed open unseen and the sausages taken home.
+  - **Bugs it caught:**
+    - the camper got stuck on the log on his way to roast;
+    - one man floated up onto a prop;
+    - and with no time to escape after pulling the plug, the man always saw him. The freeze in the plan fixes that.
+  - **The campers check** (31) passes again. Its "in plain sight" spot had been hidden from the camper by the other tent all along; it only passed because the dancers saw him instead, which they no longer do from 5 m while dancing. The spot is now one the camper can see.
+  - **The other checks still pass:** sound, title, bubble (87) and the Assignment 3 check.
+  - **Pictures:** `design/level1/tasks/` 01–07.
+- **Not done:**
+  - The new clips the plan names (`roast`, `idle` and `freeze`) wait until the work on the people's running arms is committed, since it's in the same Blender scripts and files. Until then:
+    - the camper bends at the fire instead of sitting to roast;
+    - the camper sways (the dance, slowed) at the pizza table, and so does the girl warming her hands;
+    - when the music's off or they're wondering, the men stand with their arms ready (`guard`) and the girl hugs herself (`cower`);
+    - the freeze is the dance paused.
+  - No sounds for the zip, the plug or the lid, and no voices.
+  - Every number is a first guess for me to play and tune. The ones to try first are how far they see (7 m; ×0.55 sneaking, ×0.6 dancing), the music's masking (×0.6), the freeze (2 s), the hold times (3, 0.8 and 2 s) and the routine lengths.
+  - Cocoa, the sock swap and the tent are next, on the same machinery.
+- **Human / Claude / model:** the request and the choices are mine. The plan, the code, the props, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-24 — THE PLAN: the task list as a torn notebook page on Tab
+
+- **Asked** (24 Oct, 20:21), with a picture (REF-PLAN, `design/reference/the-plan.webp`): "now loos at this inspiration of the tasks collections in the game i want a similar UI for tasks listing in the game and as we proceed ahead and pass and get it done the tasks get crossed off so update a menu to be like this in the game using tab the panel comes up and goes away if user selects to see them
+  * if user completes a tasks from the listing let it come up in the bottom to suggest it was completed
+  * if there is a specific task like investigate the music at the start when it come down let it linger down at the bottom suggesting a imp task to complete to follow"
+- **Done by Claude** (no questions asked; the choices below are Claude's):
+  - **The page** (`scripts/plan_note.gd`): a page torn out of a spiral notebook, as in the picture, measured on it with the page turned straight (it leans 2.5° in the picture, and does in the game too):
+    - faceted brown paper, its torn edges, the eleven spiral holes torn open down the left with two bits of tab bent over them, the six ruled lines and the margin;
+    - "THE PLAN" underlined in chalk, the tasks written in chalk on the lines (Patrick Hand, a little thinner, through the title's chalk material), a square or a circle box at the end of each, by turns as in the picture;
+    - a chalk paw after the key task, and the raccoon's dirty paw prints on the paper.
+    - The picture's sizes were checked by drawing the page with the picture's own six tasks at the picture's size and laying the two side by side.
+  - **Tab** brings the page up from the bottom of the screen and puts it away again. The game darkens behind it to the picture's night blue and carries on (it doesn't pause).
+  - **Crossed off:** a task that's done gets a chalk line through it and a paw-and-tick stamp in its box. A task done while the page was away is crossed off as the page comes up next, so you see it happen; one done while it's up is crossed off there and then.
+  - **At the bottom of the screen,** on torn scraps of the same paper:
+    - a task just done comes up, is crossed off and stamped, stays about 2.6 s and goes;
+    - the key task stays there, with a rocking chalk paw (the title's), until it's done; then its own scrap is crossed off and goes.
+    - They first sat above the line of controls, until that was taken out (below).
+  - **A first task, "Investigate the music"** (`scripts/camp_tasks.gd`): the key task. It comes up at the bottom once he's woken and come down from the hollow, and `main.gd` ticks it off when he reaches the camp (within 9 m of its middle, where the campers count him as in the camp). It laughs like the other tasks.
+  - **The old to-do panel** at the top left is gone. **The camera panel moved from Tab to V.**
+  - **The line of controls along the bottom is gone** (asked 24 Oct, while this was being built: "remove the bottom suggestions"; Claude asked which, and I chose the controls line, keeping the task scraps). The scraps now sit lower, near the bottom edge. The controls are in the README. With it went the "M music: on / N effects: on" readout, so muting has nothing on screen.
+- **Checked:**
+  - **A new automated check,** `scripts/plan_test.gd` (`godot --headless --path . --audio-driver Dummy -- --plan-test`), passes all 19 checks, headless and in a window: Tab up and away, V for the camera panel, the key task waiting at the bottom, a task done coming up crossed off above it and going, the key task crossed off at the camp and going, and the page crossing off what was done while it was away and what's done while it's up.
+  - **The other checks were updated and pass:** the title check now looks for the key task at the bottom after he wakes (instead of the old panel); the tasks check (43) counts four tasks; the sound check ticks the music task off in his sleep too, as he never goes to the camp in it. Camp (31), bubble (87) and the Assignment 3 check pass as before.
+  - **Pictures:** `design/ui/plan/` 01–05 from the check in a window, and 06 the picture above the page drawn with the picture's own tasks.
+- **Not done:**
+  - The picture's own tasks (the trash bin, the wind chimes, the trowel and so on) aren't level 1's; the page lists level 1's four.
+  - The done task in the picture isn't crossed through; here it is, as asked.
+  - No sound for the page or for crossing off; the laugh plays for a task as before.
+  - A small detail: the apostrophe in Patrick Hand is so thin that the chalk can rub it out ("human's" in the side-by-side). None of level 1's tasks has one yet.
+- **Human / Claude / model:** the request and the picture are mine. The build, the measurements, the check and this write-up are Claude's. No generative model.
+
+## 2026-10-25 — New Game starts the party next door, and its sound waves show the way
+
+- **Asked** (00:00), with a picture of a man shouting at a raccoon, his shouts rolling out in curved strokes (now [design/reference/noise-waves.webp](design/reference/noise-waves.webp), REF-WAVES): "ok when user selects new game start a loud music from the party can u use the noise waves from this img as reference distrubing the raccoon and keep giving these waves that help player to understand where to go make it minialistic for the waves in the gameplay let these flow from the speaker"
+- **Done by Claude** (the rules and numbers are Claude's):
+  - **The party starts with New Game:**
+    - Under the title the night is quiet: the party only starts the moment New Game is chosen.
+    - The lullaby drops 6 dB under it over 1.5 s.
+    - The party is louder all round: flat out anywhere in the camp, and at his tree about as loud as the forest music (it was 22 dB quieter there).
+  - **Disturbing his nap:** until he's woken, each set of waves that reaches him showed a new "disturbed" icon over his z's (the frustrated scribble), at most every 3 s. Taken out again later the same day (see below).
+  - **The waves**, in `scripts/sound_waves.gd`:
+    - A set every two beats, on the party's beat, while the speaker plays.
+    - While the speaker is off the screen, each set pulses in place on the edge of the screen the music is coming from, and slides along the edge as he turns or walks.
+    - Once the speaker is on the screen, the sets come out of the speaker itself, toward him (stopping short of him) and away on the far side, like the shouts round the man in the picture.
+    - They stop when the music does (the plug pulled).
+- **How the look was settled:** in steps, each after I'd seen it in the game.
+  1. Soft crescents of rings rolling over the ground from the speaker. "no i dont like the currrent version of the wave animation u have." Asked which look instead, I chose the picture's own: sets of three curved strokes.
+  2. Sets of three soft brush strokes rolling over him. "no still no", "use the drawing style we have."
+  3. The thought icons' hand-scribbled style: three wobbly white pen arcs with the icons' faint shadow, boiling like them and sized to him (a new "waves" icon in `scribbles.gd`), rolling in from beside him.
+     - "make the waves from the edge of the screen when source is not in the picture": they rolled in from the edge.
+     - "no need for it flow on the raccoon": they stopped short of him.
+     - "still its flowing just have it om the edge", "fr0k wuere 8t is cpmimg from": they stay on the edge the music comes from.
+  4. "The waves look right now. Log it."
+- **Checked:**
+  - **A new automated check,** `scripts/waves_test.gd` (`godot --headless --path . --audio-driver Dummy -- --waves-test`), passes all 14 checks. It covers:
+    - a set every two beats (4 in 5.22 s), each gone after its 1.6 s;
+    - by his tree (39 m from the speaker) and on the trail (23 m): from the music's side of him, on the edge of the screen;
+    - at the camp: out of the speaker itself;
+    - awake, they don't disturb him;
+    - with the music stopped, no more come and the last fade.
+    - Run headless, it gives the game a 1280 × 720 screen, since a headless screen is 64 pixels square.
+  - **Bug it caught:** the beat wobbles back a hair at a boundary, so some runs made 6 or 8 sets in that time instead of 4. Small steps back are now ignored.
+  - **The title check** has 6 new checks, all passing: the party quiet under the title, started by New Game, the lullaby dropped under it, the waves out, and his nap disturbed. It also stops the party before quitting.
+  - **The bubble check** (87) now also draws the "waves" icon.
+  - **All the other checks pass:** tasks (43), camp (31), plan (19), sound, title, bubble and Assignment 3.
+  - **Pictures:** `design/level1/waves/` 01–03.
+- **Not done:**
+  - How loud the party should be is a first guess: `PARTY_NEAR` in `campsite.gd` (16 m), and the lullaby's drop `PARTY_DUCK_DB` in `main.gd` (6 dB).
+  - The waves are white throughout; the picture's are warm near the shouting man.
+- **Later the same day** (16:35): "remove the irriting when sleeping even tho listing to song dont make the irritated".
+  - **Done by Claude:** the "disturbed" icon is gone. Asleep, he sleeps on through the party with just his z's; the waves still show.
+  - **Checked:** the title check now confirms only his z's show while he sleeps to the party. The waves check drops its "awake, they don't disturb him" step (13 checks).
+- **Later the same day** (18:50): "There are two sounds right now for the start of the game remove the party sound just let the sound waves be there".
+  - **Done by Claude:** the party's music is no longer heard, anywhere. The speaker still plays it, silently (`PARTY_HEARD` off in `campsite.gd`), because it keeps the party's time: the dancers, the speaker's thump, the waves and the plug puzzle all run on it as before. The lullaby no longer drops at New Game (`PARTY_DUCK_DB` is gone from `main.gd`); it plays on as it was.
+  - **Checked:** the title check swaps "the lullaby has dropped under the party" for two checks, "the party isn't heard, just its waves" and "the lullaby plays on, not dropped". Title, waves (13), tasks (43), camp (31) and sound all pass. Nobody has listened to it in the game yet.
+- **Later the same day** (19:00): "also can we make the sounds waves wavy rather than rounded the exactly same wahy tehy are but just wavy rathern than (((?"
+  - **Done by Claude:** in the "waves" icon (`scribbles.gd`), each of the three arcs is now a wavy line that snakes either side of the same arc (`WAVE_HEIGHT`, 0.045 of his height), in 3, 5 and 7 half waves from the small one to the big one, so each starts and ends on its arc and all three bulge out together in the middle. Their sizes, places, timing and boil are unchanged.
+  - **Checked:** waves (13) and bubble (87) pass. Pictures: `design/level1/waves/` 04–05.
+- **Human / Claude / model:** the request, the picture and the choices are mine. The code, the check and this write-up are Claude's. No generative model.

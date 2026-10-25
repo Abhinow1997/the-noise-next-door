@@ -40,14 +40,16 @@ WALK = dict(frames=28, stride=1.16, duty=0.60, flat=0.11, heel_off=0.40, strike=
             d0=-0.316, lift=0.040, lift_early=0.8,
             bob=0.014, bob_low=0.04, drop=-0.020, sway=0.022, sway_lag=0.02,
             yaw=6.0, list=4.5, roll=0.5, tilt=2.0, lean=2.0, lean_bob=0.6, twist=4.0, chest=1.0, look=4.0,
-            arm_swing=17.0, arm_bias=-2.0, arm_lag=0.04, arm_in=5.0, arm_out=2.0,
-            elbow=14.0, elbow_fwd=10.0, elbow_back=0.0, wrist=4.0)
+            arm_swing=17.0, arm_bias=-2.0, arm_lag=0.04, arm_in=5.0, arm_out=4.0,
+            elbow=14.0, elbow_fwd=10.0, elbow_back=0.0, wrist=4.0, hinge_flat=1.0)
 RUN = dict(frames=16, stride=2.13, duty=0.36, flat=0.06, heel_off=0.20, strike=9.0, off=-40.0,
            d0=-0.302, lift=0.178, lift_early=0.65,
            bob=0.026, bob_low=0.14, drop=-0.051, sway=0.010, sway_lag=0.10,
            yaw=8.0, list=3.0, roll=0.5, tilt=6.0, lean=14.0, lean_bob=1.5, twist=9.0, chest=2.0, look=0.0,
-           arm_swing=44.0, arm_bias=-4.0, arm_lag=0.03, arm_in=14.0, arm_out=3.0,
-           elbow=82.0, elbow_fwd=8.0, elbow_back=-15.0, wrist=4.0)
+           arm_swing=44.0, arm_bias=-4.0, arm_lag=0.03, arm_in=7.0, arm_out=11.0,
+           elbow=82.0, elbow_fwd=8.0, elbow_back=-15.0, wrist=4.0, hinge_flat=1.0)
+# (23 Oct 2026: her hands went 9 cm into her waist and hips in the run, and 3 cm into her hips in the walk. With the
+# elbow square to her sides, and in the run her arms across her less and further out, they clear her.)
 # her dance (23 Oct 2026, the campsite): the step-touch at her size with more hip, both hands up over her head,
 # swaying from side to side over the four beats
 _arm = L["_arm"]

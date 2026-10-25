@@ -10,13 +10,20 @@ extends Node3D
 ## cut-out (see raccoon_sprite.gd). `-- --sprites` uses the cut-outs for one run.
 ## `-- --sound-test` runs the automated sound check (scripts/sound_test.gd).
 ## Screenshot helpers: --grab-test, --climb-test, --rest-test (he naps in the hollow),
-## --tick-test (the bin is knocked over), --shot-frame=N (default 45), and
+## --tick-test (the bin is knocked over), --jump-test (he jumps on frame 1, F held; he's
+## at the top around frame 14), --shot-frame=N (default 45), and
 ## --see-collision (the raccoon half see-through, for use with --debug-collisions).
 ## `-- --bubble-demo` adds a yard of stand-ins for trying the thought bubbles
 ## (scripts/bubble_demo.gd); `-- --bubble-test` runs their automated check in it
 ## (scripts/bubble_test.gd), with `--bubble-shots=<folder>` for a picture of each.
 ## `-- --camp-test` runs the automated check of the campers' reactions to the raccoon
 ## at the campsite (scripts/camp_test.gd), with `--camp-shots=<folder>` for pictures.
+## `-- --tasks-test` plays level 1's camp tasks and routines through and checks them
+## (scripts/tasks_test.gd), with `--tasks-shots=<folder>` for pictures.
+## `-- --waves-test` checks the party's sound waves (scripts/waves_test.gd), with
+## `--waves-shots=<folder>` for pictures.
+## `-- --plan-test` checks THE PLAN, the to-do list on Tab, and the scraps at the bottom
+## (scripts/plan_test.gd), with `--plan-shots=<folder>` for pictures.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -34,6 +41,9 @@ const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
 const BubbleDemo := preload("res://scripts/bubble_demo.gd")
 const BubbleTest := preload("res://scripts/bubble_test.gd")
 const CampTest := preload("res://scripts/camp_test.gd")
+const TasksTest := preload("res://scripts/tasks_test.gd")
+const WavesTest := preload("res://scripts/waves_test.gd")
+const PlanTest := preload("res://scripts/plan_test.gd")
 ## His laughing face while he chitters.
 const RaccoonFace := preload("res://scripts/raccoon_face.gd")
 ## The moonlight (night.gd), and the title screen's chalk writing (title_menu.gd) for the
@@ -45,6 +55,10 @@ const TitleScreen := preload("res://scripts/title_screen.gd")
 const NightLife := preload("res://scripts/night_life.gd")
 ## Level 1's campsite under his tree: the fire, the tents and the party (23 Oct 2026).
 const Campsite := preload("res://scripts/campsite.gd")
+## Level 1's to-do list: the campsite's tasks (23 Oct 2026), shown as THE PLAN, a torn
+## notebook page on Tab, with scraps at the bottom of the screen (24 Oct 2026).
+const CampTasks := preload("res://scripts/camp_tasks.gd")
+const PlanNote := preload("res://scripts/plan_note.gd")
 ## The level is at night, as the title screen is: the author asked for the game to be at
 ## night too on 21 Oct 2026. Off, it's the daylight it had before.
 const NIGHT := true
@@ -69,10 +83,10 @@ const STUMP_NEAR := 0.6
 ## A to-do item ticked off: take B of the author's laugh (SFX-TASK-LAUGH).
 const TASK_LAUGH_PATH := "res://assets/audio/sfx/task-laugh.wav"
 const TASK_LAUGH_DB := -2.0
-## How far the music dips under the laugh, how long the fade at the end takes, and
-## how the music is muffled while paused (CHANGE-BRIEF.md, music behaviour).
+## How far the music dips under the laugh, and how the music is muffled while paused
+## (CHANGE-BRIEF.md, music behaviour). (Its fade at the end went with the prototype's
+## to-do list on 23 Oct 2026: level 1 has no ending yet.)
 const DUCK_DB := 4.0
-const END_FADE := 3.0
 const PAUSE_DB := 8.0
 const PAUSE_CUTOFF_HZ := 900.0
 
@@ -86,7 +100,7 @@ const LID := Color("cfc8b8")
 ## the night's).
 const HAZE := Color("8fa58c")
 
-## The camera view the author picked with the Tab panel (camera_tuner.gd): it looks
+## The camera view the author picked with the camera panel (camera_tuner.gd): it looks
 ## down 27 degrees from 19.2 m away through a very narrow lens (15 degrees tall),
 ## turned 14 degrees and aimed just past the raccoon, so the scene reads like a
 ## tabletop diorama. The player can zoom it but not turn it.
@@ -136,7 +150,8 @@ const SLEEP_FADE := 3.0
 const WAKE_FADE := 1.5
 ## Starting under the title screen, asleep: how long the lullaby takes to fade in; once
 ## New Game has brought the camera in, how long the prompt to wake him waits to come
-## up; and how long it, the to-do list and the hints take to fade in or out.
+## up; how long it takes to fade in or out; and how long after he's woken the key task
+## comes up (THE PLAN).
 const LULLABY_FADE_IN := 2.5
 const WAKE_PROMPT_AFTER := 2.5
 const UI_FADE := 0.8
@@ -151,6 +166,7 @@ const INPUTS := {
 	"sneak": [KEY_CTRL, KEY_C],
 	"grab": [KEY_E],
 	"chitter": [KEY_SPACE],
+	"jump": [KEY_F],
 }
 
 var player: Player
@@ -166,34 +182,34 @@ var lid: RigidBody3D
 var gnome: RigidBody3D
 var cans: Array[RigidBody3D] = []
 var zoom := 1.0
-## The camera's settings, starting from the constants above. Tab in the game opens
-## a panel (camera_tuner.gd) that changes them live.
+## The camera's settings, starting from the constants above. V in the game opens a
+## panel (camera_tuner.gd) that changes them live (it was Tab until THE PLAN took Tab).
 var camera_pitch := CAMERA_PITCH
 var camera_yaw := CAMERA_YAW
 var camera_fov := CAMERA_FOV
 var camera_distance := CAMERA_DISTANCE
 var camera_ahead := CAMERA_AHEAD
 
-var tasks := [
-	{"id": "bin", "text": "Knock over the trash bin", "done": false},
-	{"id": "lid", "text": "Steal the bin lid", "done": false},
-	{"id": "cans", "text": "Stash 3 cans in your den", "done": false},
-	{"id": "gnome", "text": "Kidnap the garden gnome", "done": false},
-	{"id": "nap", "text": "Sneak into your den for a nap", "done": false},
-]
+## Level 1's to-do list (camp_tasks.gd), ticked off by the puzzles at the campsite.
+## The prototype's bin, lid, cans and gnome are still about to play with, and he can
+## still nap in his den, but none of them is a task any more.
+var tasks := CampTasks.new()
+## How many naps he's had in the hollow (not counting the one under the title).
+var naps := 0
 
-var _todo: RichTextLabel
-var _banner: Label
+var _plan: PlanNote
 var _tuner: CameraTuner
-var _cans_in_den := 0
 var _nap_time := 0.0
 var _sleep_time := 0.0
+## Tasks ticked off since the last frame: one laugh for them all.
+var _ticked := 0
 var _rng := RandomNumberGenerator.new()
 var _closeup := false
 var _grab_test := false
 var _climb_test := false
 var _rest_test := false
 var _tick_test := false
+var _jump_test := false
 var _shot_frame := 45
 var _see_collision := false
 var _shot_path := ""
@@ -210,8 +226,6 @@ var _sleep_tween: Tween
 var _napping := false
 var _sleep_view := 0.0
 var _task_laugh: AudioStreamPlayer
-var _finished := false
-var _hint: Label
 var _paused_label: Label
 ## How many times each sound effect has started, by asset ID.
 var sound_counts := {}
@@ -229,9 +243,8 @@ var title_fog := Vector3.ZERO
 var _env: Environment
 var _fog := Vector3.ZERO
 ## True from the start under the title until he's out of the hollow. That nap isn't the
-## nap task, and the to-do list and the hints stay hidden until he wakes.
+## nap task, and the key task stays hidden until he wakes.
 var _first_nap := false
-var _todo_panel: PanelContainer
 var _wake_prompt: Label
 var _wake_tween: Tween
 
@@ -280,6 +293,12 @@ func _ready() -> void:
 	var bubble_shots := ""
 	var camp_test := false
 	var camp_shots := ""
+	var tasks_test := false
+	var tasks_shots := ""
+	var waves_test := false
+	var waves_shots := ""
+	var plan_test := false
+	var plan_shots := ""
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -294,6 +313,8 @@ func _ready() -> void:
 			_rest_test = true
 		elif arg == "--tick-test":
 			_tick_test = true
+		elif arg == "--jump-test":
+			_jump_test = true
 		elif arg == "--see-collision":
 			_see_collision = true
 		elif arg.begins_with("--shot-frame="):
@@ -317,6 +338,18 @@ func _ready() -> void:
 			camp_test = true
 		elif arg.begins_with("--camp-shots="):
 			camp_shots = arg.get_slice("=", 1)
+		elif arg == "--tasks-test":
+			tasks_test = true
+		elif arg.begins_with("--tasks-shots="):
+			tasks_shots = arg.get_slice("=", 1)
+		elif arg == "--waves-test":
+			waves_test = true
+		elif arg.begins_with("--waves-shots="):
+			waves_shots = arg.get_slice("=", 1)
+		elif arg == "--plan-test":
+			plan_test = true
+		elif arg.begins_with("--plan-shots="):
+			plan_shots = arg.get_slice("=", 1)
 	_rng.seed = 7
 
 	_build_environment()
@@ -332,7 +365,11 @@ func _ready() -> void:
 	if not bubble_demo:
 		campsite = Campsite.new()
 		campsite.forest = forest
+		campsite.tasks = tasks
+		# Under the title the night's quiet; the party starts with New Game (start_party).
+		campsite.party_from_start = not title_mode
 		add_child(campsite)
+	tasks.ticked.connect(func(_id: String) -> void: _ticked += 1)
 
 	camera = Camera3D.new()
 	camera.fov = CAMERA_FOV
@@ -398,7 +435,6 @@ func _ready() -> void:
 	add_child(keys)
 
 	_build_ui()
-	_refresh_todo()
 	_start_music()
 	if campsite:
 		campsite.music = _music
@@ -415,6 +451,21 @@ func _ready() -> void:
 		camp_check.level = self
 		camp_check.shots = camp_shots
 		add_child(camp_check)
+	if tasks_test and campsite:
+		var tasks_check := TasksTest.new()
+		tasks_check.level = self
+		tasks_check.shots = tasks_shots
+		add_child(tasks_check)
+	if waves_test and campsite:
+		var waves_check := WavesTest.new()
+		waves_check.level = self
+		waves_check.shots = waves_shots
+		add_child(waves_check)
+	if plan_test and campsite:
+		var plan_check := PlanTest.new()
+		plan_check.level = self
+		plan_check.shots = plan_shots
+		add_child(plan_check)
 	if bubble_demo:
 		var demo := BubbleDemo.new()
 		demo.level = self
@@ -444,6 +495,9 @@ func _process(delta: float) -> void:
 	else:
 		# Zoomed in, the camera follows more tightly, so he doesn't drift across the screen.
 		var aim := _drawn() + PIVOT + _camper_lean()
+		# Through a jump it stays at the height he took off from, so the view doesn't bob.
+		if player.jumping:
+			aim.y = player.jump_from_y + PIVOT.y
 		_anchor = _anchor.lerp(aim, 1.0 - exp(-6.0 / _zoom_now * delta))
 		_zoom_now = lerpf(_zoom_now, zoom, 1.0 - exp(-10.0 * delta))
 		_place_camera()
@@ -475,6 +529,11 @@ func _process(delta: float) -> void:
 		elif _tick_test and _frames == 1:
 			bin.rotation = Vector3(PI / 2, 0, 0)
 			bin.reset_physics_interpolation()
+		elif _jump_test and _frames == 1:
+			Input.action_press("jump")
+			player.jump()
+		elif _jump_test and _frames == 30:
+			Input.action_release("jump")
 		if _frames == _shot_frame - 15:
 			# Stopped well before the quit, so the audio thread has let go of them.
 			for music: AudioStreamPlayer in [_music, _sleep_music]:
@@ -523,11 +582,10 @@ func _start_music() -> void:
 
 ## As he curls up, the lullaby starts from its beginning and fades in while the
 ## forest loop fades right down (it keeps playing, so it comes back where it was);
-## as he wakes, it's the other way round. Once every task is done the forest loop
-## has ended, and waking leaves the clearing quiet.
+## as he wakes, it's the other way round.
 func _nap_music(napping: bool) -> void:
 	var time := SLEEP_FADE if napping else WAKE_FADE
-	if _music and not _finished:
+	if _music:
 		_restart_music_tween()
 		_crossfade(_music_tween, _music, -60.0 if napping else MUSIC_DB, time)
 	if _sleep_music == null:
@@ -589,27 +647,12 @@ func _play_task_laugh() -> void:
 		return
 	_task_laugh.play()
 	_count_sound("SFX-TASK-LAUGH")
-	if _music == null or _finished:
+	if _music == null:
 		return
 	_restart_music_tween()
 	_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
 	_music_tween.tween_interval(_task_laugh.stream.get_length())
 	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, 0.4)
-
-
-## Every task done: after the last laugh, the music fades out and the clearing goes
-## quiet (pillar 3, Home should be quiet). If he's napping, the forest loop is
-## already faded down under the lullaby, so it just finishes fading.
-func _end_music() -> void:
-	if _music == null:
-		return
-	_restart_music_tween()
-	if not _napping:
-		_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
-		if _task_laugh.stream:
-			_music_tween.tween_interval(_task_laugh.stream.get_length())
-	_music_tween.tween_property(_music, "volume_db", -60.0, END_FADE)
-	_music_tween.tween_callback(_music.stop)
 
 
 func _restart_music_tween() -> void:
@@ -636,14 +679,6 @@ func toggle_pause() -> void:
 func toggle_mute(bus_name: String) -> void:
 	var index := AudioServer.get_bus_index(bus_name)
 	AudioServer.set_bus_mute(index, not AudioServer.is_bus_mute(index))
-	_update_hint()
-
-
-func _update_hint() -> void:
-	var music_on := not AudioServer.is_bus_mute(AudioServer.get_bus_index("Music"))
-	var sfx_on := not AudioServer.is_bus_mute(AudioServer.get_bus_index("SFX"))
-	_hint.text = "WASD move   Shift run   Ctrl sneak   E / click grab   Space chitter   Walk into a tree to climb (E lets go)\nWheel zoom   Tab camera   Esc pause   M music: %s   N effects: %s" % [
-		"on" if music_on else "off", "on" if sfx_on else "off"]
 
 
 # --- Ground ------------------------------------------------------------------
@@ -722,8 +757,14 @@ func _camper_lean() -> Vector3:
 func _input(event: InputEvent) -> void:
 	if title:
 		return
-	# Before the UI sees it, which would use Tab to move focus.
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_TAB:
+	# Before the UI sees it, which would use Tab to move focus. Tab brings THE PLAN up
+	# or puts it away; V shows or hides the camera panel.
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode == KEY_TAB:
+		_plan.toggle()
+		get_viewport().set_input_as_handled()
+	elif event.physical_keycode == KEY_V:
 		_tuner.visible = not _tuner.visible
 		get_viewport().set_input_as_handled()
 
@@ -741,19 +782,16 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Tasks -----------------------------------------------------------------
 
 func _check_tasks(delta: float) -> void:
-	var cans_in := 0
-	for can in cans:
-		if _in_den(can):
-			cans_in += 1
-	var changed := cans_in != _cans_in_den
-	_cans_in_den = cans_in
-
-	# Sneaking into the den and keeping still sends him up into the hollow to sleep.
+	# Sneaking into the den and keeping still sends him up into the hollow to sleep;
+	# two seconds asleep there counts as a nap (the one under the title doesn't).
 	if player.resting:
 		if player.model.sleep >= 1.0 and not _first_nap:
+			if _sleep_time <= 2.0 and _sleep_time + delta > 2.0:
+				naps += 1
 			_sleep_time += delta
 	else:
 		_first_nap = false
+		_sleep_time = 0.0
 		var still := Vector2(player.velocity.x, player.velocity.z).length() < 0.1
 		var napping := player.sneaking and still and not player.climbing and _in_den(player)
 		_nap_time = _nap_time + delta if napping else 0.0
@@ -761,30 +799,18 @@ func _check_tasks(delta: float) -> void:
 			_nap_time = 0.0
 			player.rest(forest.rest_spot, forest.rest_exit)
 
-	var state := {
-		"bin": bin.global_basis.y.y < 0.5,
-		"lid": _in_den(lid),
-		"cans": cans_in >= 3,
-		"gnome": _in_den(gnome),
-		"nap": _sleep_time > 2.0,
-	}
-	var ticked := 0
-	for task: Dictionary in tasks:
-		if not task.done and state[task.id]:
-			task.done = true
-			changed = true
-			ticked += 1
-	# The sound follows the change in state, never the other way round. One laugh
-	# a frame, however many tasks finish together; and none in his sleep (the author
-	# asked): a task done while he's in the hollow, as the nap is, ticks off silently.
-	if ticked > 0 and not player.resting:
-		_play_task_laugh()
-	if changed:
-		_refresh_todo()
-		_banner.visible = tasks.all(func(t: Dictionary) -> bool: return t.done)
-		if _banner.visible and not _finished:
-			_finished = true
-			_end_music()
+	# The first task, following the party's music, is done once he's at the camp.
+	if campsite and not tasks.is_done("investigate") and campsite.in_camp(player.global_position):
+		tasks.done("investigate")
+
+	# The camp's puzzles tick tasks off (camp_tasks.gd). The sound follows the change in
+	# state, never the other way round. One laugh a frame, however many tasks finish
+	# together; and none in his sleep (the author asked): a task done while he's in the
+	# hollow ticks off silently. THE PLAN (plan_note.gd) crosses them off itself.
+	if _ticked > 0:
+		if not player.resting:
+			_play_task_laugh()
+		_ticked = 0
 
 
 ## The den is the ground round the roots of the home pine.
@@ -804,19 +830,6 @@ func _update_see_through() -> void:
 	# Wide enough to show all of him: his size over the height of the view at his distance.
 	var view_height := 2.0 * camera.global_position.distance_to(target) * tan(deg_to_rad(camera.fov) * 0.5)
 	mat.set_shader_parameter("radius", 0.0 if player.resting or _closeup else 1.4 * player.size / view_height)
-
-
-func _refresh_todo() -> void:
-	var text := "[font_size=24][b]To do[/b][/font_size]\n"
-	for task: Dictionary in tasks:
-		var line: String = task.text
-		if task.id == "cans":
-			line += "  (%d/3)" % mini(_cans_in_den, 3)
-		if task.done:
-			text += "\n[color=#a39a88][s]%s[/s][/color]" % line
-		else:
-			text += "\n•  %s" % line
-	_todo.text = text
 
 
 # --- Level -------------------------------------------------------------------
@@ -1035,36 +1048,15 @@ func _build_ui() -> void:
 	if _closeup:
 		layer.visible = false
 
-	var panel := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("f4eedc")
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(18)
-	style.shadow_color = Color(0, 0, 0, 0.18)
-	style.shadow_size = 6
-	panel.add_theme_stylebox_override("panel", style)
-	panel.position = Vector2(24, 24)
-	# Only to read: the mouse goes through it (to the title's menu while that's up).
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(panel)
-	_todo_panel = panel
-
-	_todo = RichTextLabel.new()
-	_todo.bbcode_enabled = true
-	_todo.fit_content = true
-	_todo.custom_minimum_size = Vector2(320, 0)
-	_todo.add_theme_color_override("default_color", Color("3b3630"))
-	_todo.add_theme_font_size_override("normal_font_size", 18)
-	_todo.add_theme_font_size_override("bold_font_size", 18)
-	panel.add_child(_todo)
-
-	_hint = Label.new()
-	_hint.add_theme_color_override("font_color", Color("f4eedc"))
-	_hint.add_theme_color_override("font_outline_color", Color("3b3630"))
-	_hint.add_theme_constant_override("outline_size", 6)
-	layer.add_child(_hint)
-	_update_hint()
-	_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 20)
+	# THE PLAN: put away until Tab, with the key task at the bottom once he's up. Only
+	# to read: the mouse goes through it (to the title's menu while that's up). The line
+	# of controls that ran along the bottom was taken out on 24 Oct 2026, when the author
+	# asked to "remove the bottom suggestions"; the controls are in the README.
+	_plan = PlanNote.new()
+	_plan.tasks = tasks
+	layer.add_child(_plan)
+	if not _first_nap:
+		_plan.show_key()
 
 	_paused_label = Label.new()
 	_paused_label.text = "Paused"
@@ -1076,16 +1068,6 @@ func _build_ui() -> void:
 	layer.add_child(_paused_label)
 	_paused_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 
-	_banner = Label.new()
-	_banner.text = "Mischief managed!"
-	_banner.visible = false
-	_banner.add_theme_font_size_override("font_size", 48)
-	_banner.add_theme_color_override("font_color", Color("f4eedc"))
-	_banner.add_theme_color_override("font_outline_color", Color("3b3630"))
-	_banner.add_theme_constant_override("outline_size", 12)
-	layer.add_child(_banner)
-	_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 40)
-
 	_tuner = CameraTuner.new()
 	_tuner.main = self
 	_tuner.visible = false
@@ -1095,8 +1077,6 @@ func _build_ui() -> void:
 	if _first_nap:
 		# Asleep under the title: just him until he's woken, then a chalk prompt, as on
 		# the title, saying how (begin_play).
-		_todo_panel.modulate.a = 0.0
-		_hint.modulate.a = 0.0
 		_wake_prompt = Label.new()
 		_wake_prompt.text = WAKE_PROMPT
 		_wake_prompt.add_theme_font_override("font", TitleMenu.FONT)
@@ -1106,6 +1086,17 @@ func _build_ui() -> void:
 		_wake_prompt.modulate.a = 0.0
 		layer.add_child(_wake_prompt)
 		_wake_prompt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 48)
+
+
+## New Game, as the camera starts to glide in: the party next door starts up, and its
+## sound waves (sound_waves.gd) pulse at the edge of the screen. Asked for on 25 Oct
+## 2026: "when user selects new game start a loud music from the party". At first the
+## party was heard and the lullaby dropped under it; later that day the author asked
+## for just the waves ("remove the party sound just let the sound waves be there"), so
+## the party is silent (campsite.gd PARTY_HEARD) and the lullaby plays on as it was.
+func start_party() -> void:
+	if campsite:
+		campsite.start_party()
 
 
 ## New Game has brought the camera in: the title is gone, he can be woken now, and the
@@ -1121,13 +1112,11 @@ func begin_play() -> void:
 		_wake_tween.tween_property(_wake_prompt, "modulate:a", 1.0, UI_FADE)
 
 
-## He's woken from the nap the game started with: the prompt goes, and the to-do list
-## and the hints come in.
+## He's woken from the nap the game started with: the prompt goes, and once he's down,
+## the key task comes up at the bottom (THE PLAN).
 func _show_ui() -> void:
 	if _wake_tween:
 		_wake_tween.kill()
-	var tween := create_tween().set_parallel()
-	for item: CanvasItem in [_todo_panel, _hint]:
-		tween.tween_property(item, "modulate:a", 1.0, UI_FADE)
+	_plan.show_key(UI_FADE)
 	if _wake_prompt:
-		tween.tween_property(_wake_prompt, "modulate:a", 0.0, UI_FADE * 0.5)
+		create_tween().tween_property(_wake_prompt, "modulate:a", 0.0, UI_FADE * 0.5)

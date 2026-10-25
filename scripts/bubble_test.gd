@@ -431,7 +431,7 @@ func _expect(name: String, kind: String) -> void:
 func _check_drawing() -> void:
 	var empty: Array[String] = []
 	for icon: String in ["sparkles", "fish", "apple", "alert", "zzz", "snooze", "bulb", "scribble", "bored", "sigh",
-			"hehehe", "hehehe_left"]:
+			"hehehe", "hehehe_left", "waves"]:
 		if Scribbles.strokes(icon, 0, 6).is_empty():
 			empty.append(icon)
 	_check("Every icon draws", "[]", str(empty))

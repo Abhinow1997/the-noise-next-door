@@ -1,7 +1,9 @@
 extends Node
 ## The automated check for the campers' reactions to the raccoon (camp_person.gd): it
 ## puts him near the campsite in turn sneaking, in plain sight, lingering, up a tree,
-## gone again and chittering out of sight, and checks how each of them takes it. Run it
+## gone again and chittering out of sight, and checks how each of them takes it. Since
+## the routines came in (23 Oct 2026), "back at work" means back on their routine, and
+## a noise makes them wonder (INVESTIGATE) before anything else. Run it
 ## headless from the project folder:
 ##   godot --headless --path . --audio-driver Dummy -- --camp-test
 ## It prints a table and quits with exit code 0 if every check passes, 1 if not.
@@ -40,7 +42,6 @@ func _ready() -> void:
 	_man = _camp.dancers[0]
 	_girl = _camp.dancers[1]
 	_player = level.player
-	var watch_front := _ahead_of(_camper, 5.0)
 
 	_at(1.0, func() -> void:
 		_check("At first: the camper hammers", "hammer", _camper.anim.current_animation)
@@ -48,9 +49,11 @@ func _ready() -> void:
 		_check("At first: the mallet is in his hand", true, _camp._mallet_hand.visible))
 
 	# Sneaking, 5 m in front of the camper: out of his sight, which sneaking shortens.
-	_at(1.5, func() -> void:
-		Input.action_press("sneak")
-		_player.place(watch_front))
+	# Straight ahead of him the other tent's in the way (since 23 Oct 2026 the dancers,
+	# lost in the music, no longer see that far to make up for it), so a little to the
+	# side, where he can see.
+	_at(1.4, func() -> void: Input.action_press("sneak"))
+	_at(1.5, func() -> void: _player.place(_in_view(_camper, 5.0)))
 	_at(3.0, func() -> void:
 		_check("Sneaking 5 m in front of him: unseen", "WORK WORK WORK", _states()))
 	# Standing up there: he's seen.
@@ -89,22 +92,23 @@ func _ready() -> void:
 	_at(17.0, func() -> void:
 		_check("Gone: the men head back", true, _camper.state in [S.SHOO, S.RETURN, S.WORK] and _man.state in [S.SHOO, S.RETURN, S.WORK]))
 	_at(36.0, func() -> void:
-		_check("Calm again: all three back at what they were doing", "WORK WORK WORK", _states())
-		_check("Calm again: the camper hammers", "hammer", _camper.anim.current_animation)
-		_check("Calm again: the two dance", "dance dance", _man.anim.current_animation + " " + _girl.anim.current_animation)
-		_check("Calm again: back where they were", true, _at_posts())
-		_check("Calm again: the mallet's back in his hand", true, _camp._mallet_hand.visible))
+		_check("Calm again: all three back at their routines", "WORK WORK WORK", _states())
+		_check("Calm again: each at their activity or on the way", true, _on_routine())
+		_check("Calm again: the mallet's in his hand only while he pegs", _camper.anim.current_animation == "hammer",
+			_camp._mallet_hand.visible))
 
 	# Heard, not seen: a chitter behind the camper, out of his sight.
 	_at(36.5, func() -> void:
-		_player.place(_around(_camper, -130.0, 4.0))
+		_player.place(_behind(_camper, 130.0, 4.0))
 		_mark())
 	_at(37.5, func() -> void:
 		_check("Behind him and quiet: unseen", "WORK", S.keys()[_camper.state])
 		_player.chitter())
-	_at(38.2, func() -> void:
-		_check("A chitter behind him: he takes fright", true, S.STARTLED in _seen(_camper)))
-	_at(38.5, func() -> void: _player.place(Vector3(20.0, 0.02, 6.5)))
+	_at(38.4, func() -> void:
+		_check("A chitter behind him: he turns to see what it was", true, S.INVESTIGATE in _seen(_camper)))
+	_at(39.2, func() -> void:
+		_check("Turned round, he sees him and takes fright", true, S.STARTLED in _seen(_camper)))
+	_at(39.5, func() -> void: _player.place(Vector3(20.0, 0.02, 6.5)))
 
 	_at(60.0, func() -> void:
 		_check("Calm again after the chitter", "WORK WORK WORK", _states()))
@@ -126,21 +130,20 @@ func _ready() -> void:
 	_at(61.6, func() -> void:
 		Input.action_release("move_forward")
 		_mark()
-		for person: CampPerson in [_camper, _man, _girl]:
-			person.hear())
-	_at(72.0, func() -> void:
+		_player.chitter())
+	_at(80.0, func() -> void:
 		_check("Up a tree: he's still up it", true, _player.climbing)
 		_check("Up a tree: a man shoos at the foot of it", true,
 			S.SHOO in _seen(_camper) or S.SHOO in _seen(_man))
 		_check("Up a tree: they can't catch him", false, _hopped))
-	_at(78.0, func() -> void:
+	_at(88.0, func() -> void:
 		_check("Up a tree: they give up and head back", true, S.RETURN in _seen(_camper) and S.RETURN in _seen(_man))
 		for music: AudioStreamPlayer in [level._music, level._sleep_music]:
 			if music:
 				music.stop()
 		if _camp.party:
 			_camp.party.stop())
-	_at(78.5, _finish)
+	_at(88.5, _finish)
 
 
 func _physics_process(delta: float) -> void:
@@ -186,9 +189,10 @@ func _states() -> String:
 	return " ".join([_camper, _man, _girl].map(func(p: CampPerson) -> String: return S.keys()[p.state]))
 
 
-func _at_posts() -> bool:
+## True if each of them is at their activity's place or walking to it.
+func _on_routine() -> bool:
 	for person: CampPerson in [_camper, _man, _girl]:
-		if _flat(person.global_position - person.post.origin).length() > 0.2:
+		if person.at_activity() and _flat(person.global_position - person.activity_spot()).length() > 0.2:
 			return false
 	return true
 
@@ -204,15 +208,29 @@ func _camp_tree() -> Dictionary:
 	return best
 
 
-## `metres` in front of `person`'s post, on the ground.
-func _ahead_of(person: CampPerson, metres: float) -> Vector3:
-	return _around(person, 0.0, metres)
+## `metres` in front of where `person`'s activity is done, on the ground, as near
+## straight ahead as they can see it with nothing in the way, and out of the dancers'
+## sight while they dance.
+func _in_view(person: CampPerson, metres: float) -> Vector3:
+	var space := person.get_world_3d().direct_space_state
+	var at := Vector3.ZERO
+	for degrees: float in [0.0, -15.0, 15.0, -30.0, 30.0, -45.0, 45.0]:
+		var yaw := person.activity_facing() + deg_to_rad(degrees)
+		at = person.activity_spot() + Vector3(sin(yaw), 0, cos(yaw)) * metres + Vector3(0, 0.02, 0)
+		var ray := PhysicsRayQueryParameters3D.create(person.eyes.global_position, at + Vector3.UP * 0.45, 1,
+			[person.get_rid(), _player.get_rid()])
+		var dancers_far := [_man, _girl].all(func(d: CampPerson) -> bool:
+			return _flat(d.global_position - at).length() > CampPerson.SIGHT * CampPerson.DANCE_SIGHT + 0.3)
+		if dancers_far and space.intersect_ray(ray).is_empty():
+			return at
+	return at
 
 
-## `metres` from `person`'s post, `degrees` round from the way they face there.
-func _around(person: CampPerson, degrees: float, metres: float) -> Vector3:
-	var way := person.post.basis.z.rotated(Vector3.UP, deg_to_rad(degrees))
-	return person.post.origin + way * metres + Vector3(0, 0.02, 0)
+## `metres` from `person` as they stand now, `degrees` round from the way they face.
+func _behind(person: CampPerson, degrees: float, metres: float) -> Vector3:
+	var way := person.global_basis.z.rotated(Vector3.UP, deg_to_rad(degrees))
+	way.y = 0.0
+	return person.global_position + way.normalized() * metres + Vector3(0, 0.02, 0)
 
 
 func _flat(v: Vector3) -> Vector3:

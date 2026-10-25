@@ -149,17 +149,23 @@ func _paw(at: Vector2) -> void:
 	var step := int(_since * STEPS)
 	var grow: float = PAW_POP[step] if step < PAW_POP.size() else 1.0
 	var rock: float = PAW_ROCK[int(_since * ROCK_STEPS) % PAW_ROCK.size()]
-	draw_set_transform(at, deg_to_rad(rock + 12.0), Vector2.ONE * PAW_SIZE * grow)
-	draw_colored_polygon(_oval(Vector2(0, 0.2), Vector2(0.3, 0.24), 0.25), CHALK)
+	paw(self, at, PAW_SIZE * grow, deg_to_rad(rock + 12.0), CHALK)
+
+
+## Draws a paw print on `item`, `size` across, centred on `at` and turned `angle`: a pad
+## and four toes in an arc above it. The plan's paws are the same (plan_note.gd).
+static func paw(item: CanvasItem, at: Vector2, size: float, angle: float, color: Color) -> void:
+	item.draw_set_transform(at, angle, Vector2.ONE * size)
+	item.draw_colored_polygon(_oval(Vector2(0, 0.2), Vector2(0.3, 0.24), 0.25), color)
 	for toe: Vector3 in [Vector3(-0.36, -0.08, -0.5), Vector3(-0.14, -0.34, -0.15), Vector3(0.14, -0.34, 0.15),
 			Vector3(0.36, -0.08, 0.5)]:
 		var turned := _oval(Vector2.ZERO, Vector2(0.095, 0.13), 0.0)
-		draw_colored_polygon(Transform2D(toe.z, Vector2(toe.x, toe.y)) * turned, CHALK)
-	draw_set_transform(Vector2.ZERO)
+		item.draw_colored_polygon(Transform2D(toe.z, Vector2(toe.x, toe.y)) * turned, color)
+	item.draw_set_transform(Vector2.ZERO)
 
 
 ## An oval round `c`, flattened a little along its bottom by `flat`, like a paw's pad.
-func _oval(c: Vector2, r: Vector2, flat: float) -> PackedVector2Array:
+static func _oval(c: Vector2, r: Vector2, flat: float) -> PackedVector2Array:
 	var pts := PackedVector2Array()
 	for k in 20:
 		var a := TAU * k / 20.0

@@ -17,10 +17,19 @@ extends Node3D
 ##   - The speaker plays the party's music as a sound in the world: loud by the camp,
 ##     a far-off thump at his tree (added the same day: "make the speaker play the
 ##     party's music as a sound in the world, loud near the camp and faint at his
-##     tree"). main.gd hears the world from the raccoon.
+##     tree"). main.gd hears the world from the raccoon. Since 25 Oct 2026 it's louder,
+##     starts with New Game when there's a title (start_party), and its sound waves
+##     roll out from the speaker on the beat (sound_waves.gd). Later that day it went
+##     silent (PARTY_HEARD): the waves show the party, nothing plays it.
 ##   - The people react to the raccoon (camp_person.gd: they take fright, the girl
 ##     cowers behind the low-poly man, the men guard and then chase him off); the camp
-##     keeps what they know between them (saw, seen_within, in_camp, frighten).
+##     keeps what they know between them (saw, seen_within, in_camp, frighten, noise).
+##   - Each of them has a routine (_routines): the camper pegs out his tent, roasts
+##     marshmallows by the fire with his back to his backpack, then has some pizza at
+##     the table; the low-poly man dances and gets a drink from the cooler; the girl
+##     dances and warms her hands at the fire.
+##   - Level 1's first puzzles (camp_puzzles.gd): the backpack, the speaker's plug and
+##     the cooler; E at them goes through camp_input.gd.
 ##   - Built here: the fire pit (a ring of stones, burning logs, flickering flames,
 ##     sparks and the fire's light), the logs to sit on, the speaker and its cable, the
 ##     string lights, the mallet and the tent pegs. The tents, the table with the
@@ -33,6 +42,10 @@ const Forest := preload("res://scripts/forest.gd")
 const FireShader := preload("res://scripts/fire.gdshader")
 const CampPerson := preload("res://scripts/camp_person.gd")
 const Player := preload("res://scripts/player.gd")
+const CampTasks := preload("res://scripts/camp_tasks.gd")
+const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
+const CampInput := preload("res://scripts/camp_input.gd")
+const SoundWaves := preload("res://scripts/sound_waves.gd")
 
 const TENT := "res://assets/props/tent.glb"
 const TABLE_WITH_LAPTOP := "res://assets/props/table_with_laptop.glb"
@@ -68,10 +81,36 @@ const GIRL_SPEEDS := [1.04, 3.33, 0.0]
 ## this near any of them is heard.
 const CAMP_ZONE := 9.0
 const HEAR_CHITTER := 8.0
+## While the party's music plays, noises carry only this much as far.
+const PARTY_MASK := 0.6
+## The walkways' cells, across and up (m): see _bake_walkways.
+const WALK_CELL := Vector2(0.1, 0.05)
+## Where in the right hand each one holds what they carry (mano_L's space, measured on
+## each rig for take_away): the camper, the low-poly man, the girl.
+const CAMPER_GRIP := Vector3(-0.0046, 0.0928, 0.0502)
+const MAN_GRIP := Vector3(0.0204, 0.1065, 0.0347)
+const GIRL_GRIP := Vector3(-0.0056, 0.0901, 0.0363)
+## Their routines' other places, from the fire (x, z): where the camper roasts (facing
+## the fire, his back to the backpack), where he has his pizza at the table, and where
+## the girl warms her hands. The low-poly man's drink is in front of the cooler.
+const ROAST := Vector2(-0.95, 0.3)
+const PIZZA := Vector2(-1.5, -1.85)
+const WARM := Vector2(0.95, 0.75)
+## How long each activity lasts (seconds, from, to).
+const PEG_TIME := Vector2(25, 35)
+const ROAST_TIME := Vector2(50, 70)
+const PIZZA_TIME := Vector2(12, 18)
+const DANCE_TIME := Vector2(35, 55)
+const DRINK_TIME := Vector2(3.0, 3.4)
+const GIRL_DANCE_TIME := Vector2(30, 45)
+const WARM_TIME := Vector2(12, 18)
 ## The camper's mallet, put down by the peg while he's away from it (in his own space).
 const MALLET_DOWN := Vector3(0.25, 0.04, 0.45)
 ## The string lights' poles, in the order the string runs.
 const POLES := [FIRE + Vector2(-2.4, -3.3), FIRE + Vector2(1.3, -3.7), FIRE + Vector2(4.1, -2.1)]
+## The table's top (m) and where its legs stand, either side of its middle (x, z).
+const TABLE_TOP := 0.74
+const TABLE_LEGS := Vector2(0.59, 0.36)
 ## Ground the forest keeps clear of rocks and tufts (x, z, radius).
 const CLEARINGS: Array[Vector3] = [Vector3(FIRE.x, FIRE.y - 0.6, 3.0), Vector3(FIRE.x + 5.0, FIRE.y - 0.4, 1.6),
 	Vector3(FIRE.x + 2.2, FIRE.y + 3.6, 1.6), Vector3(FIRE.x + 5.6, FIRE.y + 1.6, 0.7)]
@@ -107,11 +146,19 @@ const SYNC_SLACK := 0.05
 ## author's own party track): a loop half as long as the level music's, on the same
 ## beat, kept there. PARTY_DB is how loud it is PARTY_NEAR metres from the speaker;
 ## it falls off with distance (6 dB each time the distance doubles), never louder
-## than PARTY_MAX_DB, and far off loses its top above PARTY_CUTOFF Hz, so at his
-## tree, 40 m away, it's about 22 dB quieter and mostly the kick and the bass.
+## than PARTY_MAX_DB, and far off loses its top above PARTY_CUTOFF Hz. Since 25 Oct
+## 2026 it's a loud party ("start a loud music from the party"): flat out anywhere in
+## the camp, and at his tree, 40 m away, about as loud as the level's music, mostly
+## the kick and the bass (it was 22 dB quieter there before). Later that day the author
+## heard it over the lullaby at the start and asked for it to go ("remove the party
+## sound just let the sound waves be there"): with PARTY_HEARD off it plays on at
+## SILENT_DB, so it still keeps the party's time for the dancers, the speaker's thump,
+## its waves and its plug, but nobody hears it.
 const PARTY_MUSIC := "res://assets/audio/music/party-beat.wav"
+const PARTY_HEARD := false
+const SILENT_DB := -80.0
 const PARTY_DB := -4.0
-const PARTY_NEAR := 3.0
+const PARTY_NEAR := 16.0
 const PARTY_MAX_DB := 0.0
 const PARTY_CUTOFF := 2500.0
 const PARTY_SLACK := 0.03
@@ -135,9 +182,13 @@ const HANDLE := Color("c9a26b")
 const MALLET_HEAD := Color("2c2d31")
 const PEG := Color("b9bcc0")
 
-## Set before it's added: the forest (for its night colours) and the level's music.
+## Set before it's added: the forest (for its night colours), the level's to-do list
+## (camp_tasks.gd, which the camp's puzzles tick off) and, later, the level's music.
 var forest: Forest
+var tasks: CampTasks
 var music: AudioStreamPlayer
+## False under the title, where the party only starts with New Game (start_party).
+var party_from_start := true
 ## The people, for the level: the camper (in the "camper" group, so the camera leans
 ## toward him) and the two dancers.
 var camper: CampPerson
@@ -152,8 +203,16 @@ var frightened := -INF
 ## Set when the men have given up shooing him down from a tree: they let him be while
 ## he stays up it.
 var gave_up_on_tree := false
-## The party's music, playing from the speaker.
+## The party's music, playing from the speaker, and how many beats into it the party
+## is (it counts on, and goes back when the music loops).
 var party: AudioStreamPlayer3D
+var beat := 0.0
+## Level 1's puzzles (camp_puzzles.gd).
+var puzzles: CampPuzzles
+## True while the speaker's plugged in (the party's music can play).
+var music_on: bool:
+	get:
+		return puzzles == null or puzzles.music_on
 
 var _t := 0.0
 var _fire_light: OmniLight3D
@@ -163,6 +222,8 @@ var _woofer: MeshInstance3D
 var _mallet_hand: MeshInstance3D
 var _mallet_down: MeshInstance3D
 var _player: Player
+var _input: CampInput
+var _waves: SoundWaves
 
 
 func _ready() -> void:
@@ -174,9 +235,10 @@ func _ready() -> void:
 	var other := _prop(TENT, OTHER_TENT, Vector3(2.3, 1.2, 2.1))
 	_add_pegs(other)
 	_recolor(other, TENT_WALLS, OTHER_TENT_COLOR)
-	var table := _prop(TABLE_WITH_LAPTOP, TABLE, Vector3(1.28, 0.76, 0.83))
+	var table := _prop(TABLE_WITH_LAPTOP, TABLE, Vector3.ZERO)
+	_table_legs(table)
 	_set_table(table)
-	_build_speaker(table)
+	var speaker := _build_speaker()
 	var cooler := _prop(COOLER, COOLER_AT, Vector3(0.58, 0.36, 0.36))
 	cooler.add_to_group("food")
 	for i in 3:
@@ -190,27 +252,68 @@ func _ready() -> void:
 
 	var rope_end: Vector3 = tent.transform * TENT_ROPE_ENDS[1]
 	var facing := Basis(Vector3.UP, deg_to_rad(CAMPER_FACING))
-	camper = _person(CAMPER, rope_end - facing * Vector3(HAMMER_PEG.x, 0, HAMMER_PEG.z), CAMPER_FACING,
-		"hammer", "guy", CAMPER_SPEEDS)
+	var routines := _routines(rope_end - facing * Vector3(HAMMER_PEG.x, 0, HAMMER_PEG.z), cooler)
+	camper = _person(CAMPER, routines[0], "guy", CAMPER_SPEEDS, CAMPER_GRIP)
 	camper.add_to_group("camper")
 	_give_mallet(camper)
 	for i in DANCERS.size():
-		var at: Vector2 = DANCERS[i][1]
-		var to_fire := FIRE - at
-		var dancer := _person(DANCERS[i][0], _v3(at), rad_to_deg(atan2(to_fire.x, to_fire.y)), "dance",
-			"guy" if i == 0 else "girl", MAN_SPEEDS if i == 0 else GIRL_SPEEDS)
-		dancer.work_speed = MUSIC_BPM / DANCE_BPM
+		var dancer := _person(DANCERS[i][0], routines[i + 1], "guy" if i == 0 else "girl",
+			MAN_SPEEDS if i == 0 else GIRL_SPEEDS, MAN_GRIP if i == 0 else GIRL_GRIP)
 		dancers.append(dancer)
 		var anim := dancer.anim
-		anim.speed_scale = dancer.work_speed
+		anim.speed_scale = MUSIC_BPM / DANCE_BPM
 		anim.seek(fposmod(DANCE_OFFSETS[i], 4.0) * 60.0 / DANCE_BPM, true)
 		_dance_players.append(anim)
 	# The low-poly man looks after the girl, and comes at the raccoon from the other side.
 	dancers[1].protector = dancers[0]
 	dancers[0].protects = dancers[1]
 	dancers[0].flank_side = -1.0
+
+	puzzles = CampPuzzles.new()
+	puzzles.camp = self
+	puzzles.tasks = tasks
+	puzzles.fire = FIRE
+	puzzles.cooler = cooler
+	puzzles.speaker = speaker
+	puzzles.table = table
+	add_child(puzzles)
 	_bake_walkways()
+	# After the raccoon in the level, so an E next to something he can use goes to it first.
+	_input = CampInput.new()
+	_input.camp = self
+	get_parent().add_child.call_deferred(_input)
+	_waves = SoundWaves.new()
+	_waves.camp = self
+	get_parent().add_child.call_deferred(_waves)
 	_process(0.0)
+
+
+## Each one's routine, as camp_person.gd runs it: the camper, the low-poly man, the girl.
+## `peg` is where the camper stands to peg out his tent.
+func _routines(peg: Vector3, cooler: Node3D) -> Array:
+	var toward_fire := func(at: Vector2) -> float:
+		var d := FIRE - at
+		return atan2(d.x, d.y)
+	var dance := MUSIC_BPM / DANCE_BPM
+	var front := cooler.global_basis.z
+	var drink := cooler.global_position + front * 0.8
+	var man_at: Vector2 = DANCERS[0][1]
+	var girl_at: Vector2 = DANCERS[1][1]
+	return [
+		[_activity("peg", peg, deg_to_rad(CAMPER_FACING), "hammer", 1.0, PEG_TIME),
+			_activity("roast", _v3(FIRE + ROAST), toward_fire.call(FIRE + ROAST), "roast", 1.0, ROAST_TIME, "bend"),
+			_activity("pizza", _v3(FIRE + PIZZA), PI, "idle", 1.0, PIZZA_TIME, "dance", 0.4)],
+		[_activity("dance", _v3(man_at), toward_fire.call(man_at), "dance", dance, DANCE_TIME),
+			_activity("drink", Vector3(drink.x, 0, drink.z), atan2(-front.x, -front.z), "take_away", 1.0, DRINK_TIME)],
+		[_activity("dance", _v3(girl_at), toward_fire.call(girl_at), "dance", dance, GIRL_DANCE_TIME),
+			_activity("warm", _v3(FIRE + WARM), toward_fire.call(FIRE + WARM), "idle", 1.0, WARM_TIME, "dance", 0.4)],
+	]
+
+
+func _activity(name: String, at: Vector3, yaw: float, clip: String, speed: float, time: Vector2,
+		fallback := "", fallback_speed := 1.0) -> Dictionary:
+	return {"name": name, "at": at, "yaw": yaw, "clip": clip, "speed": speed, "time": time,
+		"fallback": fallback, "fallback_speed": fallback_speed}
 
 
 func _physics_process(delta: float) -> void:
@@ -219,8 +322,16 @@ func _physics_process(delta: float) -> void:
 		_player = get_tree().get_first_node_in_group("player") as Player
 		if _player:
 			_player.chittered.connect(_on_chitter)
+			_input.player = _player
+			_waves.player = _player
 	if _player and not _player.climbing:
 		gave_up_on_tree = false
+
+
+## New Game (main.gd): the party starts up, if the speaker's plugged in.
+func start_party() -> void:
+	if party and music_on and not party.playing:
+		party.play()
 
 
 ## True while the men are letting him be up a tree (gave_up_on_tree).
@@ -249,10 +360,44 @@ func frighten() -> void:
 	frightened = clock
 
 
-func _on_chitter() -> void:
+## A noise at `at` that carries `radius` metres (less while the party's music plays):
+## whoever's within it hears it and wonders. `freeze` catches dancers mid-move first
+## (camp_person.gd `hear`).
+func noise(at: Vector3, radius: float, freeze := 0.0) -> void:
+	var r := radius * (PARTY_MASK if music_on else 1.0)
 	for person in people:
-		if person.global_position.distance_to(_player.global_position) < HEAR_CHITTER:
-			person.hear()
+		var d := person.global_position - at
+		if Vector2(d.x, d.z).length() <= r:
+			person.hear(at, freeze)
+
+
+func _on_chitter() -> void:
+	noise(_player.global_position, HEAR_CHITTER)
+
+
+## What the people do with the camp's things (camp_puzzles.gd does the work).
+func lift(item: RigidBody3D) -> void:
+	puzzles.lift(item)
+
+
+func put_down(item: RigidBody3D, at: Vector3) -> void:
+	puzzles.put_down(item, at)
+
+
+func take_back(item: RigidBody3D) -> void:
+	puzzles.take_back(item)
+
+
+func plug_in(item: RigidBody3D) -> void:
+	puzzles.plug_in(item)
+
+
+func socket_spot() -> Vector3:
+	return puzzles.socket_spot()
+
+
+func socket_at() -> Vector3:
+	return puzzles.socket_at()
 
 
 func _process(delta: float) -> void:
@@ -296,6 +441,7 @@ func _keep_the_beat() -> void:
 			var want := fposmod(beats + DANCE_OFFSETS[i], 4.0) * 60.0 / DANCE_BPM
 			if absf(_wrapped(want - anim.current_animation_position, anim.current_animation_length)) > SYNC_SLACK:
 				anim.seek(want, true)
+	beat = beats
 	var thump := pow(1.0 - fposmod(beats, 1.0), 6.0)
 	_woofer.scale = Vector3(1.0 + 0.06 * thump, 1.0 + 0.06 * thump, 1.0 + 0.5 * thump)
 
@@ -432,20 +578,34 @@ func _build_log(at: Vector2, deg: float, length: float) -> void:
 
 
 ## One of the assets, standing at `place` ([x, z], degrees), with a box collider of
-## `size` on the ground under it.
+## `size` on the ground under it (none if `size` is zero).
 func _prop(path: String, place: Array, size: Vector3) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.position = _v3(place[0])
 	body.rotation.y = deg_to_rad(place[1])
 	add_child(body)
 	_model(path, body)
+	if size != Vector3.ZERO:
+		_box(body, size, Vector3(0, size.y * 0.5, 0))
+	return body
+
+
+## The table is open underneath, so the raccoon can walk under it: its collider is its
+## top and its four legs (TABLE_TOP high, TABLE_LEGS apart), not a block to the ground.
+func _table_legs(table: Node3D) -> void:
+	_box(table, Vector3(1.28, 0.06, 0.83), Vector3(0, TABLE_TOP - 0.03, 0))
+	for x: float in [-TABLE_LEGS.x, TABLE_LEGS.x]:
+		for z: float in [-TABLE_LEGS.y, TABLE_LEGS.y]:
+			_box(table, Vector3(0.06, TABLE_TOP, 0.06), Vector3(x, TABLE_TOP * 0.5, z))
+
+
+func _box(body: Node3D, size: Vector3, at: Vector3) -> void:
 	var col := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = size
 	col.shape = shape
-	col.position = Vector3(0, size.y * 0.5, 0)
+	col.position = at
 	body.add_child(col)
-	return body
 
 
 func _model(path: String, parent: Node) -> Node3D:
@@ -496,16 +656,20 @@ func _set_table(table: Node3D) -> void:
 ## Where the people can walk round the camp, so they go round the tents, the fire and
 ## the trees rather than into them: a navigation mesh baked over the camp and a little
 ## beyond it from the level's static colliders (the forest's trunks and walls, the
-## campsite's props), on a flat floor.
+## campsite's props), on a flat floor. Its cells (WALK_CELL) are fine enough that a
+## log (0.34 m) is something to go round, not a step up, and that there's a way into
+## the gap between the log and the fire, where the camper roasts.
 func _bake_walkways() -> void:
 	var map := get_world_3d().navigation_map
+	NavigationServer3D.map_set_cell_size(map, WALK_CELL.x)
+	NavigationServer3D.map_set_cell_height(map, WALK_CELL.y)
 	var nav := NavigationMesh.new()
-	nav.cell_size = NavigationServer3D.map_get_cell_size(map)
-	nav.cell_height = NavigationServer3D.map_get_cell_height(map)
+	nav.cell_size = WALK_CELL.x
+	nav.cell_height = WALK_CELL.y
 	# Whole cells, as the bake rounds them up anyway.
-	nav.agent_radius = nav.cell_size * 2.0
-	nav.agent_height = nav.cell_height * 7.0
-	nav.agent_max_climb = nav.cell_height
+	nav.agent_radius = WALK_CELL.x * 3.0
+	nav.agent_height = WALK_CELL.y * 35.0
+	nav.agent_max_climb = WALK_CELL.y * 2.0
 	nav.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
 	nav.geometry_collision_mask = 1
 	var reach := CAMP_ZONE + 6.0
@@ -523,17 +687,17 @@ func _bake_walkways() -> void:
 	add_child(region)
 
 
-## One of the humans at `at`, facing `deg`, at work playing `clip` (looped on import),
-## a "guy" or the "girl" (camp_person.gd), with their `speeds` (walk, run, chase), and a
-## capsule to stop the raccoon.
-func _person(path: String, at: Vector3, deg: float, clip: String, role: String, speeds: Array) -> CampPerson:
+## One of the humans, starting at the first place in their `routine`, a "guy" or the
+## "girl" (camp_person.gd), with their `speeds` (walk, run, chase) and where they hold
+## things (`grip`), and a capsule to stop the raccoon.
+func _person(path: String, routine: Array, role: String, speeds: Array, grip: Vector3) -> CampPerson:
 	var body := CampPerson.new()
 	body.name = path.get_file().get_basename()
-	body.position = at
-	body.rotation.y = deg_to_rad(deg)
-	body.post = Transform3D(Basis(Vector3.UP, deg_to_rad(deg)), at)
+	body.position = routine[0].at
+	body.rotation.y = routine[0].yaw
+	body.routine.assign(routine)
 	body.role = role
-	body.work_clip = clip
+	body.hand_grip = grip
 	body.walk_natural = speeds[0]
 	body.run_natural = speeds[1]
 	body.chase_speed = speeds[2]
@@ -579,9 +743,9 @@ func _give_mallet(person: Node3D) -> void:
 
 # --- The music corner and the lights --------------------------------------------
 
-## The speaker beside the table, its woofer thumping on the beat, and its cable to
-## the table.
-func _build_speaker(table: Node3D) -> void:
+## The speaker beside the table, its woofer thumping on the beat. (Its cord to the
+## socket under the table is camp_puzzles.gd's, as it can be pulled.)
+func _build_speaker() -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.position = _v3(SPEAKER[0])
 	body.rotation.y = deg_to_rad(SPEAKER[1])
@@ -611,13 +775,14 @@ func _build_speaker(table: Node3D) -> void:
 		party.bus = "SFX"
 		party.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
 		party.unit_size = PARTY_NEAR
-		party.volume_db = PARTY_DB
+		party.volume_db = PARTY_DB if PARTY_HEARD else SILENT_DB
 		party.max_db = PARTY_MAX_DB
 		party.attenuation_filter_cutoff_hz = PARTY_CUTOFF
 		party.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
 		party.position = Vector3(0, 0.3, size.z * 0.5)
 		body.add_child(party)
-		party.play()
+		if party_from_start:
+			party.play()
 	else:
 		push_warning("The party's music isn't imported yet: %s" % PARTY_MUSIC)
 	var col := CollisionShape3D.new()
@@ -626,18 +791,7 @@ func _build_speaker(table: Node3D) -> void:
 	col.shape = shape
 	col.position = Vector3(0, size.y * 0.5, 0)
 	body.add_child(col)
-
-	# The cable, along the ground from the back of the speaker to the table's leg.
-	var from := body.transform * Vector3(-0.1, 0.012, -size.z * 0.5)
-	var to := table.transform * Vector3(0.6, 0.012, -0.36)
-	var mid := from.lerp(to, 0.5) + Vector3(0, 0, -0.25)
-	var points := []
-	var radii := []
-	for i in 9:
-		var s := i / 8.0
-		points.append(from.lerp(mid, s).lerp(mid.lerp(to, s), s))
-		radii.append(Vector2(0.008, 0.008))
-	_mesh(LowPoly.loft(points, radii, 4, LowPoly.solid(WIRE)), self)
+	return body
 
 
 ## String lights at the back: a wire sagging between wooden poles, with warm bulbs

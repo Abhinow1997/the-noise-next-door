@@ -1,5 +1,5 @@
 extends PanelContainer
-## Live camera settings, for finding the right view while playing. Tab shows or
+## Live camera settings, for finding the right view while playing. V shows or
 ## hides it. "Copy numbers" puts the settings on the clipboard, ready to paste into
 ## a chat, so they can become the defaults in main.gd.
 
@@ -36,7 +36,7 @@ func _ready() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	add_child(box)
-	box.add_child(_text("Camera   (Tab hides this)", 18))
+	box.add_child(_text("Camera   (V hides this)", 18))
 	for setting: Array in SETTINGS:
 		var label := _text("", 15)
 		box.add_child(label)

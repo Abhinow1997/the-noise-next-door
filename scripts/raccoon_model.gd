@@ -31,6 +31,10 @@ const RIGGED_BLEND := 0.2
 ## point in its stride.
 const LOCOMOTION := ["idle", "walk", "run", "sneak"]
 const GAIT_BLEND := 0.3
+## A jump's poses come in quickly, and if he was already running his stride runs on
+## into them at up to LEAP_CATCH cycles a second rather than snapping to them.
+const JUMP_BLEND := 0.08
+const LEAP_CATCH := 8.0
 ## Turning on the spot faster than this (rad/s), he steps round rather than gliding.
 const TURN_STEP := 2.5
 ## His weight, on the rigged model. He banks into a turn by LEAN_GAIN of the angle the
@@ -131,6 +135,10 @@ var forced_animation := ""
 var leap := -1.0
 ## 0..1: squashes him down, crouching to spring or soaking up a landing.
 var squash := 0.0
+## Rigged model only: set by the player from a jump's takeoff until he has soaked up
+## its landing, and how far to tip him nose up then besides his weight's tip (radians).
+var jumping := false
+var pitch := 0.0
 
 var body: Node3D
 var head: Node3D
@@ -165,6 +173,8 @@ var _lean := 0.0
 var _lean_v := 0.0
 var _tilt := 0.0
 var _tilt_v := 0.0
+## Where in the run's cycle a jump's pose has got to (-1 when he isn't jumping).
+var _leap_u := -1.0
 
 
 func _ready() -> void:
@@ -383,14 +393,29 @@ func _process_rigged(delta: float) -> void:
 	var anim_name := forced_animation
 	if anim_name == "":
 		anim_name = _rigged_state(delta)
+	var was_running := _anim.current_animation == "run"
 	if _anim.current_animation != anim_name:
 		_change_animation(anim_name)
 	# Eased, so speeding up or slowing down doesn't jerk the stride.
 	_rate = lerpf(_rate, _rigged_rate(anim_name), 1.0 - exp(-10.0 * delta))
 	_anim.speed_scale = _rate
 	if leap >= 0.0 and forced_animation == "":
+		var u := leap
+		if jumping:
+			# Jumping from a run, his stride runs on from where it was into the jump's pose,
+			# or eases back to it if it's only just gone past.
+			if _leap_u < 0.0:
+				_leap_u = leap
+				if was_running:
+					var phase := _anim.current_animation_position / maxf(_anim.current_animation_length, 0.001)
+					var past := fposmod(phase - leap, 1.0)
+					_leap_u = leap + (past if past < 0.2 else past - 1.0)
+			_leap_u = move_toward(_leap_u, leap, delta * LEAP_CATCH)
+			u = _leap_u
 		# Seek every frame rather than pausing: a paused player never finishes its blend.
-		_anim.seek(fposmod(leap, 1.0) * _anim.current_animation_length, true)
+		_anim.seek(fposmod(u, 1.0) * _anim.current_animation_length, true)
+	if leap < 0.0 or not jumping:
+		_leap_u = -1.0
 	# As the sleep animation blends in, slide the model so the middle of the ball
 	# lies where he was laid, and back again as it blends out.
 	_curl = move_toward(_curl, 1.0 if anim_name == "sleep" else 0.0, delta / RIGGED_BLEND)
@@ -404,8 +429,10 @@ func _process_rigged(delta: float) -> void:
 
 	# On the ground his body gives in turns (raccoon_flex.gd) and carries weight: he
 	# banks into turns by the sideways force on him, and tips as he speeds up or brakes.
-	var grounded := not climbing and not hopping and leap < 0.0 and _curl <= 0.0 and forced_animation == ""
-	_flex.amount = move_toward(_flex.amount, 1.0 if grounded else 0.0, delta * 4.0)
+	# In a jump his body and tail still give, but there's no ground to bank against.
+	var on_feet := not climbing and not hopping and _curl <= 0.0 and forced_animation == ""
+	var grounded := on_feet and leap < 0.0
+	_flex.amount = move_toward(_flex.amount, 1.0 if grounded or (on_feet and jumping) else 0.0, delta * 4.0)
 	_flex.yaw_rate = yaw_rate
 	_flex.look = look
 	var lean_to := 0.0
@@ -425,8 +452,9 @@ func _process_rigged(delta: float) -> void:
 	var xf := Transform3D(Basis(Vector3.UP, PI) * Basis.from_scale(Vector3(wide, 1.0 - 0.12 * hop - 0.2 * squash, wide)),
 		Vector3(0, 0.05 * hop, 0))
 	xf = Transform3D(Basis(Vector3.BACK, _lean), Vector3.ZERO) * xf
-	var pivot := Vector3(0, 0, PAW_PIVOT if _tilt > 0.0 else -PAW_PIVOT)
-	var tip := Basis(Vector3.RIGHT, _tilt)
+	var tipped := _tilt + pitch
+	var pivot := Vector3(0, 0, PAW_PIVOT if tipped > 0.0 else -PAW_PIVOT)
+	var tip := Basis(Vector3.RIGHT, tipped)
 	_rig.transform = Transform3D(tip, pivot - tip * pivot) * xf
 
 
@@ -437,7 +465,10 @@ func _change_animation(anim_name: String) -> void:
 	var phase := -1.0
 	if from in GAITS and anim_name in GAITS and "climb" not in [from, anim_name] and leap < 0.0:
 		phase = _anim.current_animation_position / maxf(_anim.current_animation_length, 0.001)
-	_anim.play(anim_name, GAIT_BLEND if from in LOCOMOTION and anim_name in LOCOMOTION else RIGGED_BLEND)
+	var blend := GAIT_BLEND if from in LOCOMOTION and anim_name in LOCOMOTION else RIGGED_BLEND
+	if jumping and leap >= 0.0:
+		blend = JUMP_BLEND
+	_anim.play(anim_name, blend)
 	if phase >= 0.0:
 		_anim.seek(phase * _anim.current_animation_length, true)
 

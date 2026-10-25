@@ -5,7 +5,9 @@ extends Node
 ## fireflies and falling leaves (night_life.gd) and the lullaby; and the title and menu
 ## in chalk over the sky (title_menu.gd). New Game fades the writing and glides the
 ## camera in to the level's nap close-up: it's the same world all the way, so nothing
-## changes but the camera, and play starts from there.
+## changes but the camera, and play starts from there. Since 25 Oct 2026 New Game also
+## starts the party next door (main.gd start_party): you see its sound waves, but don't
+## hear it, so the lullaby plays on.
 ## Debug: `-- --title-shot=out.png [--title-frame=N] [--title-settings]` saves a frame
 ## (with the Settings page open) and quits; `-- --title-test` runs the automated check
 ## (scripts/title_test.gd).
@@ -148,5 +150,6 @@ func _on_chosen(item: String) -> void:
 			# Chosen while the game is still fading in from black: finish that quickly.
 			fade.tween_property(_fade, "color:a", 0.0, MENU_FADE)
 			_glide = 0.0
+			level.start_party()
 		"quit":
 			get_tree().quit()

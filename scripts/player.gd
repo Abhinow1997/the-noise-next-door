@@ -1,6 +1,6 @@
 extends CharacterBody3D
-## Goose-game style controls: walk, run, sneak, carry things in your mouth, chitter,
-## and climb trees.
+## Goose-game style controls: walk, run, sneak, jump, carry things in your mouth,
+## chitter, and climb trees.
 
 signal chittered
 ## A sound effect started; `id` is its asset ID (SOURCES.md). Counted by the level.
@@ -58,6 +58,24 @@ const ACCEL := 10.0
 const DECEL := 14.0
 const GRIP := 30.0
 const SLIP := 0.44
+## Jumping (F). He takes off the moment it's pressed and rises JUMP_HEIGHT (m) under
+## JUMP_GRAVITY, a snappier pull than the world's, then comes down under FALL_GRAVITY;
+## let go of F on the way up and the pull is JUMP_CUT times stronger, so a tap is a
+## small hop. A press up to JUMP_BUFFER (s) before he lands is kept until he does,
+## and he can still jump JUMP_COYOTE (s) after stepping off an edge. In the air he has
+## AIR_CONTROL of his turning and footing, and he soaks up a landing for LAND_TIME (s).
+const JUMP_HEIGHT := 0.55
+const JUMP_GRAVITY := 20.0
+const FALL_GRAVITY := 28.0
+const JUMP_CUT := 2.5
+const JUMP_BUFFER := 0.12
+const JUMP_COYOTE := 0.1
+const AIR_CONTROL := 0.35
+const LAND_TIME := 0.2
+## Points in the run animation's cycle he passes through in a jump, against how far
+## along he is from taking off (0) to coming down as fast as he went up (1): the hind
+## legs' push, the full stretch at the top, the front paws reaching down for the ground.
+const JUMP_AIR := [[0.0, 1.02], [0.25, 1.2], [0.5, 1.38], [1.0, 1.48]]
 
 @export var walk_speed := 2.0
 @export var run_speed := 4.0
@@ -87,6 +105,10 @@ var climbing := false
 var running := false
 ## True while he moves on a trunk.
 var climb_moving := false
+## True from a jump's takeoff until he lands, and the height he took off from (the
+## camera stays at it meanwhile).
+var jumping := false
+var jump_from_y := 0.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _push_speed := 0.0
@@ -123,6 +145,16 @@ var _climb_angle := 0.0
 var _climb_side := 0.0
 ## How long he's been pushing into a trunk.
 var _climb_push := 0.0
+## A jump press waiting to be used (seconds it has left), and how long he can still
+## jump since he was last on the ground.
+var _jump_press := 0.0
+var _coyote := 0.0
+## Seconds since a jump's takeoff; seconds into soaking up its landing (-1 when he
+## isn't), how hard that landing was (0..1) and how far he was tipped as he touched down.
+var _air_t := 0.0
+var _land_t := -1.0
+var _land_hard := 0.0
+var _land_pitch := 0.0
 
 
 func _ready() -> void:
@@ -177,6 +209,8 @@ func _physics_process(delta: float) -> void:
 		_climb_process(delta)
 	else:
 		_walk_process(delta)
+	# After walking, which may have just taken off, so the model knows it the same tick.
+	model.jumping = jumping or _land_t >= 0.0
 	_loop(_run_sfx, running, "SFX-RUN", delta)
 	_loop(_climb_sfx, climb_moving, "SFX-CLIMB", delta)
 
@@ -218,8 +252,10 @@ func _walk_process(delta: float) -> void:
 	_push_speed = speed * dir.length()
 
 	# Turn toward the input with weight: the turn rate builds up toward what it takes
-	# to face it, and brakes in time to finish facing it.
+	# to face it, and brakes in time to finish facing it. In the air he has less to
+	# push against, so he turns less and keeps his momentum.
 	var has_input := dir.length_squared() > 0.01
+	var control := AIR_CONTROL if jumping else 1.0
 	var want := 0.0
 	var target_rate := 0.0
 	if has_input:
@@ -227,11 +263,11 @@ func _walk_process(delta: float) -> void:
 		# Asked to go nearly straight back, he keeps turning the way he already is.
 		if absf(want) > 2.6 and _yaw_rate * want < 0.0:
 			want -= signf(want) * TAU
-		var top := turn_speed * lerpf(1.0, RUN_TURN, clampf(_speed / run_speed, 0.0, 1.0))
+		var top := turn_speed * lerpf(1.0, RUN_TURN, clampf(_speed / run_speed, 0.0, 1.0)) * control
 		var braking := minf(sqrt(1.6 * TURN_BRAKE * absf(want)), 12.0 * absf(want))
 		target_rate = signf(want) * minf(top, braking)
 	var building := absf(target_rate) > absf(_yaw_rate) and target_rate * _yaw_rate >= 0.0
-	_yaw_rate = move_toward(_yaw_rate, target_rate, (TURN_ACCEL if building else TURN_BRAKE) * delta)
+	_yaw_rate = move_toward(_yaw_rate, target_rate, (TURN_ACCEL if building else TURN_BRAKE) * control * delta)
 	rotation.y = wrapf(rotation.y + _yaw_rate * delta, -PI, PI)
 	var forward := -global_basis.z
 
@@ -248,16 +284,37 @@ func _walk_process(delta: float) -> void:
 		if moving <= 0.05:
 			heading = travel
 		else:
-			var most := GRIP / maxf(moving, 0.5) * delta
+			var most := GRIP * control / maxf(moving, 0.5) * delta
 			heading = heading.rotated(Vector3.UP, clampf(heading.signed_angle_to(travel, Vector3.UP), -most, most))
+	elif jumping:
+		target_speed = moving
 	var before := moving
-	moving = move_toward(moving, target_speed, (ACCEL if target_speed > moving else DECEL) * delta)
+	moving = move_toward(moving, target_speed, (ACCEL if target_speed > moving else DECEL) * control * delta)
 	_speed = moving
-	running = not sneaking and Input.is_action_pressed("run") and _speed > walk_speed + 0.1
+	running = not sneaking and Input.is_action_pressed("run") and _speed > walk_speed + 0.1 and not jumping
 	velocity.x = heading.x * moving
 	velocity.z = heading.z * moving
-	if not is_on_floor():
+
+	# Jumping: off at once (or as soon as he can, for a press just before he lands),
+	# up under a snappy pull that's stronger still if F is let go, down faster still.
+	_jump_press = maxf(_jump_press - delta, 0.0)
+	_coyote = JUMP_COYOTE if is_on_floor() and not jumping else maxf(_coyote - delta, 0.0)
+	if _jump_press > 0.0 and _coyote > 0.0:
+		_jump_press = 0.0
+		_coyote = 0.0
+		jumping = true
+		jump_from_y = global_position.y
+		_air_t = 0.0
+		_land_t = -1.0
+		velocity.y = sqrt(2.0 * JUMP_GRAVITY * JUMP_HEIGHT)
+	if jumping:
+		var pull := JUMP_GRAVITY if velocity.y > 0.0 else FALL_GRAVITY
+		if velocity.y > 0.0 and not Input.is_action_pressed("jump"):
+			pull *= JUMP_CUT
+		velocity.y -= pull * delta
+	elif not is_on_floor():
 		velocity.y -= _gravity * delta
+	var rising := velocity.y
 
 	# For the body: how hard he's turning, where he's looking to go, how he's speeding up.
 	model.turn = clampf(_yaw_rate / 6.0, -1.0, 1.0)
@@ -268,6 +325,7 @@ func _walk_process(delta: float) -> void:
 	move_and_slide()
 	_push_bodies(delta)
 	_carry()
+	_jump_pose(delta, rising)
 
 	var ground_speed := Vector2(velocity.x, velocity.z).length()
 	model.speed = ground_speed
@@ -284,6 +342,48 @@ func _walk_process(delta: float) -> void:
 
 func _move_input() -> Vector2:
 	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+
+
+## Jumps: now if he's on the ground, or as soon as he lands (see JUMP_BUFFER).
+func jump() -> void:
+	_jump_press = JUMP_BUFFER
+
+
+## Lands a jump once he's back down, and poses him through it. Leaving, his hind legs
+## push off and he squashes for a moment; at the top he's stretched out; he tips nose
+## up on the way up and nose down coming down. Landed, his front paws take it, he
+## squashes as hard as he came down and his hind legs come in, and then he's back in
+## his own stride. `rising` is how fast he was going up (m/s) before this tick's move.
+func _jump_pose(delta: float, rising: float) -> void:
+	var lift := sqrt(2.0 * JUMP_GRAVITY * JUMP_HEIGHT)
+	if jumping and _air_t > 0.0 and rising <= 0.0 and is_on_floor():
+		jumping = false
+		_land_t = 0.0
+		_land_hard = clampf(-rising / lift, 0.3, 1.0)
+		_land_pitch = model.pitch
+	if jumping:
+		_air_t += delta
+		model.leap = _keyed(JUMP_AIR, clampf((1.0 - velocity.y / lift) * 0.5, 0.0, 1.0))
+		model.squash = 0.5 * maxf(0.0, 1.0 - _air_t / 0.1)
+		var tip := clampf(atan2(velocity.y, maxf(_speed, 1.5)) * 0.35, -0.35, 0.3)
+		model.pitch = tip * smoothstep(0.0, 0.08, _air_t)
+	elif _land_t >= 0.0:
+		_land_t += delta
+		var f := minf(_land_t / LAND_TIME, 1.0)
+		model.leap = lerpf(1.48, 1.78, f)
+		model.squash = 0.8 * _land_hard * sin(PI * sqrt(f))
+		model.pitch = _land_pitch * (1.0 - smoothstep(0.0, 0.6, f))
+		if f >= 1.0:
+			_end_jump()
+
+
+## Out of a jump's poses, landed or not.
+func _end_jump() -> void:
+	jumping = false
+	_land_t = -1.0
+	model.leap = -1.0
+	model.squash = 0.0
+	model.pitch = 0.0
 
 
 ## Puts him straight at `pos` with whatever he's carrying, for the tests. He's drawn
@@ -370,6 +470,8 @@ func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done :
 	velocity = Vector3.ZERO
 	_speed = 0.0
 	_yaw_rate = 0.0
+	if jumping or _land_t >= 0.0:
+		_end_jump()
 
 
 func _hop_process(delta: float) -> void:
@@ -616,6 +718,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			_grab()
 	elif event.is_action_pressed("chitter"):
 		chitter()
+	elif event.is_action_pressed("jump"):
+		# Up a tree, a jump hops him off, as E does.
+		if climbing:
+			_climb_off()
+		else:
+			jump()
 
 
 ## Shoves rigid bodies we walk into; pushing high up lets tall things topple.

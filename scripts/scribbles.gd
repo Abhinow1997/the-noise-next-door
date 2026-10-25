@@ -15,6 +15,10 @@ extends RefCounted
 ##   hehehe    his laugh when he chitters: the word written by hand, popping up over his
 ##             head, with a few white marks and no bubble (from the author's mock-up);
 ##             hehehe_left is the same, for when he faces left
+##   waves     three wavy lines rolling out from a sound, small to big, the biggest at
+##             (0, 0), each snaking along an arc about a point to the left and bowing
+##             right, the way the sound goes (the party's music, sound_waves.gd; from the
+##             shouts in the author's picture shared in chat on 25 Oct 2026)
 ## An icon is a list of strokes in units of the raccoon's height on the screen, with y
 ## pointing down and (0, 0) at the point it hangs over. Each stroke is wobbled a little
 ## sideways and runs on past its ends, like a quick pencil line. `frame` picks one of a
@@ -67,6 +71,9 @@ const SPIN := 1.0
 const SNOOZE_GAP := 12
 const SNOOZE_LIFE := 36
 const SNOOZE_GO := [[0.85, 0.85], [0.6, 0.55], [0.35, 0.25]]
+## The sound waves' lines snake this far either side of their arcs (asked for on 25 Oct
+## 2026: "wavy rather than ((("), in units.
+const WAVE_HEIGHT := 0.045
 
 static var _rng := RandomNumberGenerator.new()
 static var _cache := {}
@@ -120,6 +127,8 @@ static func strokes(icon: String, frame: int, step: int) -> Array:
 			_sigh(out, step)
 		"hehehe", "hehehe_left":
 			_laugh(out, frame, icon == "hehehe_left")
+		"waves":
+			_waves(out)
 		_:
 			push_warning("There's no thought icon called %s" % icon)
 	_cache[key] = out
@@ -406,6 +415,24 @@ static func _bored(out: Array) -> void:
 		_line(out, _ellipse(eye + Vector2(0.0, 0.005), Vector2(0.16, 0.13), 180.0, -180.0, 16), WHITE, 0.038, true)
 		_fill(out, _ellipse(eye + Vector2(0.075, 0.01), Vector2(0.055, 0.055), 0.0, 180.0, 10), WHITE)
 	_line(out, PackedVector2Array([face + Vector2(-0.12, 0.17), face + Vector2(0.14, 0.165)]), WHITE, 0.042, true)
+
+
+## Three wavy lines along arcs about a point to the left, small to big, the biggest
+## across (0, 0) and about as tall as he is. Each snakes WAVE_HEIGHT either side of its
+## arc in an odd number of half waves, so it starts and ends on the arc and all three
+## bulge out together in the middle, where the sound's heading.
+static func _waves(out: Array) -> void:
+	var c := Vector2(-0.92, 0.0)
+	for arc: Array in [[0.4, 42.0, 3], [0.66, 38.0, 5], [0.92, 34.0, 7]]:
+		var half := deg_to_rad(arc[1])
+		var humps: int = arc[2]
+		var steps := humps * 10
+		var path := PackedVector2Array()
+		for i in steps + 1:
+			var t := float(i) / steps
+			var a := lerpf(-half, half, t)
+			path.append(c + Vector2(cos(a), sin(a)) * (arc[0] + WAVE_HEIGHT * cos((t - 0.5) * humps * PI)))
+		_line(out, path, WHITE, 0.04, true)
 
 
 ## A sigh: a zigzag puff out of his mouth, going wider as it rises, as in the mock-up
