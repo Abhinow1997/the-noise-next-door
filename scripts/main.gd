@@ -24,6 +24,10 @@ extends Node3D
 ## `--waves-shots=<folder>` for pictures.
 ## `-- --plan-test` checks THE PLAN, the to-do list on Tab, and the scraps at the bottom
 ## (scripts/plan_test.gd), with `--plan-shots=<folder>` for pictures.
+## `-- --cones-test` checks the tutorial at the camp and the campers' cones and search
+## (scripts/cones_test.gd), with `--cones-shots=<folder>` for pictures. The other tests
+## skip the tutorial: for them the camp's tasks are on the list and the cones on from
+## the start.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -44,6 +48,7 @@ const CampTest := preload("res://scripts/camp_test.gd")
 const TasksTest := preload("res://scripts/tasks_test.gd")
 const WavesTest := preload("res://scripts/waves_test.gd")
 const PlanTest := preload("res://scripts/plan_test.gd")
+const ConesTest := preload("res://scripts/cones_test.gd")
 ## His laughing face while he chitters.
 const RaccoonFace := preload("res://scripts/raccoon_face.gd")
 ## The moonlight (night.gd), and the title screen's chalk writing (title_menu.gd) for the
@@ -59,6 +64,7 @@ const Campsite := preload("res://scripts/campsite.gd")
 ## notebook page on Tab, with scraps at the bottom of the screen (24 Oct 2026).
 const CampTasks := preload("res://scripts/camp_tasks.gd")
 const PlanNote := preload("res://scripts/plan_note.gd")
+const CampTutorial := preload("res://scripts/camp_tutorial.gd")
 ## The level is at night, as the title screen is: the author asked for the game to be at
 ## night too on 21 Oct 2026. Off, it's the daylight it had before.
 const NIGHT := true
@@ -198,6 +204,8 @@ var tasks := CampTasks.new()
 var naps := 0
 
 var _plan: PlanNote
+## The tutorial at the camp (camp_tutorial.gd), or null in the tests that skip it.
+var _tutorial: CampTutorial
 var _tuner: CameraTuner
 var _nap_time := 0.0
 var _sleep_time := 0.0
@@ -261,7 +269,9 @@ class Keys extends Node:
 			return
 		match event.physical_keycode:
 			KEY_ESCAPE:
-				level.toggle_pause()
+				# The tutorial has the game paused already, until Tab.
+				if not level.tutorial_running():
+					level.toggle_pause()
 			KEY_M:
 				level.toggle_mute("Music")
 			KEY_N:
@@ -299,6 +309,8 @@ func _ready() -> void:
 	var waves_shots := ""
 	var plan_test := false
 	var plan_shots := ""
+	var cones_test := false
+	var cones_shots := ""
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -350,6 +362,10 @@ func _ready() -> void:
 			plan_test = true
 		elif arg.begins_with("--plan-shots="):
 			plan_shots = arg.get_slice("=", 1)
+		elif arg == "--cones-test":
+			cones_test = true
+		elif arg.begins_with("--cones-shots="):
+			cones_shots = arg.get_slice("=", 1)
 	_rng.seed = 7
 
 	_build_environment()
@@ -369,6 +385,10 @@ func _ready() -> void:
 		# Under the title the night's quiet; the party starts with New Game (start_party).
 		campsite.party_from_start = not title_mode
 		add_child(campsite)
+		if sound_test or camp_test or tasks_test or waves_test or plan_test:
+			# These skip the tutorial at the camp: everything's as it is after it.
+			tasks.reveal()
+			campsite.cones_on = true
 	tasks.ticked.connect(func(_id: String) -> void: _ticked += 1)
 
 	camera = Camera3D.new()
@@ -435,6 +455,12 @@ func _ready() -> void:
 	add_child(keys)
 
 	_build_ui()
+	if campsite and not campsite.cones_on:
+		_tutorial = CampTutorial.new()
+		_tutorial.plan = _plan
+		_tutorial.tasks = tasks
+		_tutorial.campsite = campsite
+		add_child(_tutorial)
 	_start_music()
 	if campsite:
 		campsite.music = _music
@@ -466,6 +492,11 @@ func _ready() -> void:
 		plan_check.level = self
 		plan_check.shots = plan_shots
 		add_child(plan_check)
+	if cones_test and campsite:
+		var cones_check := ConesTest.new()
+		cones_check.level = self
+		cones_check.shots = cones_shots
+		add_child(cones_check)
 	if bubble_demo:
 		var demo := BubbleDemo.new()
 		demo.level = self
@@ -674,6 +705,11 @@ func toggle_pause() -> void:
 	_paused_label.visible = tree.paused
 
 
+## True while the tutorial at the camp has the game paused.
+func tutorial_running() -> bool:
+	return _tutorial != null and _tutorial.running()
+
+
 ## M or N: mutes or unmutes the music or the effects. Only the buses change, so
 ## nothing in the game depends on it.
 func toggle_mute(bus_name: String) -> void:
@@ -799,9 +835,12 @@ func _check_tasks(delta: float) -> void:
 			_nap_time = 0.0
 			player.rest(forest.rest_spot, forest.rest_exit)
 
-	# The first task, following the party's music, is done once he's at the camp.
+	# The first task, following the party's music, is done once he's at the camp; and
+	# then the tutorial there starts (camp_tutorial.gd).
 	if campsite and not tasks.is_done("investigate") and campsite.in_camp(player.global_position):
 		tasks.done("investigate")
+		if _tutorial:
+			_tutorial.begin()
 
 	# The camp's puzzles tick tasks off (camp_tasks.gd). The sound follows the change in
 	# state, never the other way round. One laugh a frame, however many tasks finish

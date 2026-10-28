@@ -87,10 +87,12 @@ func _ready() -> void:
 		_check("Shooed, he leaps away", true, _hopped)
 		_check("Leaping away, he never sinks into the ground", true, _lowest > -0.05))
 
-	# Gone: well out of the camp. They stop, go back and get on with it.
+	# Gone: well out of the camp. They stop, look about confused (since 26 Oct 2026, the
+	# SEARCH state), go back and get on with it.
 	_at(13.5, func() -> void: _player.place(Vector3(20.0, 0.02, 6.5)))
 	_at(17.0, func() -> void:
-		_check("Gone: the men head back", true, _camper.state in [S.SHOO, S.RETURN, S.WORK] and _man.state in [S.SHOO, S.RETURN, S.WORK]))
+		var back := [S.SHOO, S.SEARCH, S.RETURN, S.WORK]
+		_check("Gone: the men look about, then head back", true, _camper.state in back and _man.state in back))
 	_at(36.0, func() -> void:
 		_check("Calm again: all three back at their routines", "WORK WORK WORK", _states())
 		_check("Calm again: each at their activity or on the way", true, _on_routine())

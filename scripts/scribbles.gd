@@ -1,14 +1,21 @@
 extends RefCounted
 ## The thought icons' art, drawn in code as loose, hand-scribbled lines over the game,
 ## following the author's reference sheet (shared in chat on 20 Oct 2026): flat colour,
-## no shading, no borders, mostly white lines with a little red or yellow.
-##   sparkles  three pale four-pointed glints (shiny loot)
-##   fish      a scribbled loop with a fish skeleton in it (hungry); apple: an apple core
-##   alert     a crooked red "!" with white marks round it
+## no shading, no borders. The sheet had a little red and yellow; since 25 Oct 2026 the
+## moods are white lines, as the author asked ("all the moods should be white"), all but
+## the anger mark and the food, which keep their colour ("have the colur for only rage
+## and food").
+##   sparkles  three four-pointed glints (shiny loot)
+##   fish      a scribbled loop with a half-eaten apple in it (hungry; still called
+##             "fish" after its first picture, a fish skeleton, which the author swapped
+##             for the apple on 25 Oct 2026); apple: an apple core
+##   alert     a crooked "!" with marks round it
 ##   zzz       three handwritten z's floating up (hiding)
 ##   snooze    z's floating up from him one after another, for as long as he naps (asleep)
-##   bulb      a flat yellow bulb with short rays (idea)
-##   scribble  an angry white spiral with dark scribble clouds (frustrated)
+##   bulb      a bulb drawn in outline, with short rays (idea)
+##   scribble  a red anger mark, four bent strokes round a middle, throbbing (frustrated;
+##             from the author's picture of one shared in chat on 25 Oct 2026, in place
+##             of the old spiral and then a #)
 ##   bored     a round scribbled thought with a bored face in it, and
 ##   sigh      a zigzag puff out of his mouth beside it (both from the author's mock-up
 ##             of the bored raccoon, shared in chat on 20 Oct 2026)
@@ -24,20 +31,22 @@ extends RefCounted
 ## sideways and runs on past its ends, like a quick pencil line. `frame` picks one of a
 ## few drawings that differ only in their wobble: cycling through them makes the lines
 ## "boil" like a hand-animated drawing. `step` (twelfths of a second since the icon
-## appeared) moves the parts that move: the glints twinkle, the z's rise, the spiral spins.
+## appeared) moves the parts that move: the glints twinkle, the z's rise, the anger mark
+## throbs.
 
-## Colours sampled from the reference sheet.
+## Colours sampled from the reference sheet (SPARKLE and DARK are only the E prompt's
+## now, camp_input.gd); the anger mark's red, from the author's picture of it; and the
+## apple's.
 const WHITE := Color("fbfaf3")
 const SPARKLE := Color("f2efc8")
 const DARK := Color("3c3c3a")
-const BONE := Color("ecebe4")
-const RED := Color("ec5b55")
-const RED_LINE := Color("5c1512")
-const BULB := Color("ffef8f")
-const BULB_LINE := Color("7d6c2c")
-const BASE := Color("4a4a48")
-const RAY := Color("f3efc0")
-const SCRIBBLE := Color("343432")
+const RAGE := Color("be1930")
+const APPLE := Color("d8342c")
+const APPLE_LINE := Color("5c1512")
+const FLESH := Color("f6eccb")
+const STEM := Color("6b4a2b")
+const LEAF := Color("7fb24a")
+const LEAF_LINE := Color("2f4a1c")
 ## A faint shadow under the white lines, so they still read over pale ground.
 const SHADOW := Color(0.08, 0.1, 0.08, 0.16)
 const SHADOW_OFFSET := Vector2(0.012, 0.016)
@@ -62,9 +71,14 @@ const SIGH_FADE := 18
 const SIGH_GONE := 30
 ## The laugh's size beside the author's mock-up, which the author asked to be smaller.
 const LAUGH_SIZE := 0.25
-## The z's and the spiral: their pop, and the spiral's turns a second.
+## The z's pop.
 const POP := [0.55, 1.2, 0.92, 1.0]
-const SPIN := 1.0
+## The anger mark: how wide it is across and where its middle is (units), how thick its
+## strokes are, and its throb (its size on each step, round and round).
+const ANGER_SIZE := 0.55
+const ANGER_AT := Vector2(0.02, -0.6)
+const ANGER_WIDTH := 0.05
+const THROB := [1.0, 1.0, 1.14, 1.06]
 ## Asleep, a z pops up by his head every SNOOZE_GAP steps and floats up, growing, until
 ## it goes SNOOZE_LIFE steps later, so three are always on their way up, small to big,
 ## like the hiding z's. SNOOZE_GO: a z's size and opacity on its last steps.
@@ -93,7 +107,7 @@ static func strokes(icon: String, frame: int, step: int) -> Array:
 			if step > full:
 				step = full + (step - full) % SNOOZE_GAP
 		"scribble":
-			step = step % int(STEPS / SPIN)
+			step = step % THROB.size()
 		"sigh":
 			step = step % SIGH_CYCLE
 		_:
@@ -120,7 +134,7 @@ static func strokes(icon: String, frame: int, step: int) -> Array:
 		"bulb":
 			_bulb(out, frame)
 		"scribble":
-			_scribble(out, t)
+			_scribble(out, step)
 		"bored":
 			_bored(out)
 		"sigh":
@@ -192,7 +206,7 @@ static func _glint(out: Array, c: Vector2, half: Vector2, double: bool) -> void:
 	path.append_array(_quad(right, c + Vector2(k * half.x, k * half.y), bottom).slice(1))
 	path.append_array(_quad(bottom, c + Vector2(-k * half.x, k * half.y), left).slice(1))
 	path.append_array(_quad(left, c + Vector2(-k * half.x, -k * half.y), top).slice(1))
-	_line(out, path, SPARKLE, 0.024, true)
+	_line(out, path, WHITE, 0.024, true)
 	if double:
 		var again := _quad(bottom, c + Vector2(-k * half.x, k * half.y), left)
 		again.append_array(_quad(left, c + Vector2(-k * half.x, -k * half.y), top).slice(1))
@@ -200,7 +214,7 @@ static func _glint(out: Array, c: Vector2, half: Vector2, double: bool) -> void:
 
 
 ## A thought: an uneven loop scribbled round two or three times, with a tail down to his
-## head, and a fish skeleton or an apple core inside.
+## head, and a half-eaten apple or an apple core inside.
 static func _food(out: Array, inside: String) -> void:
 	var c := Vector2(0.42, -0.73)
 	var r := Vector2(0.66, 0.53)
@@ -217,30 +231,49 @@ static func _food(out: Array, inside: String) -> void:
 	if inside == "apple":
 		_apple(out, c + Vector2(0.0, 0.03))
 	else:
-		_fish(out, c + Vector2(-0.02, 0.03))
+		_bitten_apple(out, c + Vector2(0.0, 0.05))
 
 
-## A fish skeleton: a rounded head with a cross for an eye, a spine with four ribs,
-## and a triangle of a tail.
-static func _fish(out: Array, f: Vector2) -> void:
-	var head := PackedVector2Array([f + Vector2(-0.11, -0.15)])
-	head.append_array(_quad(f + Vector2(-0.11, -0.15), f + Vector2(-0.38, -0.13), f + Vector2(-0.37, 0.0), 6).slice(1))
-	head.append_array(_quad(f + Vector2(-0.37, 0.0), f + Vector2(-0.38, 0.13), f + Vector2(-0.11, 0.15), 6).slice(1))
-	_fill(out, head, BONE)
-	head.append(head[0])
-	_line(out, head, DARK, 0.022)
-	_line(out, PackedVector2Array([f + Vector2(-0.29, -0.05), f + Vector2(-0.25, -0.01)]), DARK, 0.016, false, 0.004)
-	_line(out, PackedVector2Array([f + Vector2(-0.25, -0.05), f + Vector2(-0.29, -0.01)]), DARK, 0.016, false, 0.004)
-	_line(out, PackedVector2Array([f + Vector2(-0.11, 0.0), f + Vector2(0.23, 0.0)]), DARK, 0.024)
-	for x: float in [-0.075, 0.03, 0.13, 0.22]:
-		_line(out, PackedVector2Array([f + Vector2(x + 0.01, -0.12), f + Vector2(x - 0.006, 0.12)]), DARK, 0.02)
-	var tail := PackedVector2Array([f + Vector2(0.23, 0.0), f + Vector2(0.37, -0.12), f + Vector2(0.36, 0.12)])
-	_fill(out, tail, BONE)
-	tail.append(tail[0])
-	_line(out, tail, DARK, 0.022)
+## A half-eaten apple, red, a big bite out of its right side showing the cream flesh in
+## three tooth-mark scallops, with a stem and a green leaf; drawn 1.15 times the size of
+## the coordinates here, which are about the old fish's size.
+static func _bitten_apple(out: Array, a: Vector2) -> void:
+	var place := Transform2D(0.0, Vector2.ONE * 1.15, 0.0, a)
+	var bite := [Vector2(0.15, -0.23), Vector2(0.08, -0.08), Vector2(0.08, 0.07), Vector2(0.14, 0.22)]
+	# Round from the dip at the top: the right lobe, the bite, the bottom, the left side.
+	var skin := _quad(Vector2(0.0, -0.18), Vector2(0.06, -0.27), bite[0], 6)
+	var edge := PackedVector2Array([bite[0]])
+	for i in 3:
+		var mid: Vector2 = (bite[i] + bite[i + 1]) * 0.5 + Vector2(-0.055, 0.0)
+		edge.append_array(_quad(bite[i], mid, bite[i + 1], 6).slice(1))
+	skin.append_array(edge.slice(1))
+	skin.append_array(_quad(bite[3], Vector2(0.07, 0.28), Vector2(0.0, 0.23), 5).slice(1))
+	skin.append_array(_quad(Vector2(0.0, 0.23), Vector2(-0.07, 0.29), Vector2(-0.15, 0.24), 5).slice(1))
+	skin.append_array(_quad(Vector2(-0.15, 0.24), Vector2(-0.29, 0.17), Vector2(-0.27, -0.04), 8).slice(1))
+	skin.append_array(_quad(Vector2(-0.27, -0.04), Vector2(-0.27, -0.24), Vector2(-0.13, -0.25), 8).slice(1))
+	skin.append_array(_quad(Vector2(-0.13, -0.25), Vector2(-0.06, -0.27), Vector2(0.0, -0.18), 6).slice(1))
+	skin = place * skin
+	_fill(out, skin, APPLE)
+	# The flesh: a crescent between the bite and a curve a little way in from it, which
+	# leaves the bite's corners heading into the apple so it never crosses the bite.
+	var inner := _cubic(bite[3], Vector2(-0.04, 0.15), Vector2(-0.05, -0.16), bite[0], 12)
+	var flesh := edge.duplicate()
+	flesh.append_array(inner.slice(1, inner.size() - 1))
+	_fill(out, place * flesh, FLESH)
+	_line(out, place * inner, APPLE_LINE, 0.014, false, 0.004)
+	skin.append(skin[0])
+	_line(out, skin, APPLE_LINE, 0.022, false, 0.004)
+	_line(out, place * _quad(Vector2(0.0, -0.17), Vector2(-0.01, -0.25), Vector2(0.03, -0.31), 4), STEM, 0.03, false,
+		0.004)
+	var leaf := _quad(Vector2(0.02, -0.26), Vector2(0.08, -0.34), Vector2(0.17, -0.3), 5)
+	leaf.append_array(_quad(Vector2(0.17, -0.3), Vector2(0.1, -0.23), Vector2(0.02, -0.26), 5).slice(1))
+	leaf = place * leaf
+	_fill(out, leaf, LEAF)
+	_line(out, leaf, LEAF_LINE, 0.016, false, 0.004)
 
 
-## An apple core: skin top and bottom, bitten in at both sides, a stem and a leaf.
+## An apple core: red skin top and bottom, the cream core bitten in at both sides, a
+## stem and a green leaf.
 static func _apple(out: Array, a: Vector2) -> void:
 	var core := _quad(a + Vector2(-0.12, -0.11), a + Vector2(-0.16, -0.2), a + Vector2(0.0, -0.18), 6)
 	for seg: Array in [[Vector2(0.16, -0.2), Vector2(0.12, -0.11)], [Vector2(0.03, -0.03), Vector2(0.05, 0.03)],
@@ -248,15 +281,23 @@ static func _apple(out: Array, a: Vector2) -> void:
 			[Vector2(-0.12, 0.21), Vector2(-0.11, 0.12)], [Vector2(-0.03, 0.08), Vector2(-0.05, 0.03)],
 			[Vector2(-0.03, -0.03), Vector2(-0.12, -0.11)]]:
 		core.append_array(_quad(core[core.size() - 1], a + seg[0], a + seg[1], 6).slice(1))
-	_fill(out, core, BONE)
-	_line(out, core, DARK, 0.026)
-	_line(out, _quad(a + Vector2(0.0, -0.18), a + Vector2(0.0, -0.25), a + Vector2(0.03, -0.29), 4), DARK, 0.026)
+	_fill(out, core, FLESH)
+	# The skin left on: the top and bottom of the outline, closed straight across.
+	var top := _quad(a + Vector2(-0.12, -0.11), a + Vector2(-0.16, -0.2), a + Vector2(0.0, -0.18), 6)
+	top.append_array(_quad(a + Vector2(0.0, -0.18), a + Vector2(0.16, -0.2), a + Vector2(0.12, -0.11), 6).slice(1))
+	_fill(out, top, APPLE)
+	var bottom := _quad(a + Vector2(0.11, 0.12), a + Vector2(0.12, 0.21), a + Vector2(0.0, 0.2), 6)
+	bottom.append_array(_quad(a + Vector2(0.0, 0.2), a + Vector2(-0.12, 0.21), a + Vector2(-0.11, 0.12), 6).slice(1))
+	_fill(out, bottom, APPLE)
+	_line(out, core, APPLE_LINE, 0.026)
+	_line(out, _quad(a + Vector2(0.0, -0.18), a + Vector2(0.0, -0.25), a + Vector2(0.03, -0.29), 4), STEM, 0.026)
 	var leaf := _quad(a + Vector2(0.02, -0.25), a + Vector2(0.09, -0.32), a + Vector2(0.14, -0.26), 5)
 	leaf.append_array(_quad(a + Vector2(0.14, -0.26), a + Vector2(0.08, -0.22), a + Vector2(0.02, -0.25), 5).slice(1))
-	_line(out, leaf, DARK, 0.02)
+	_fill(out, leaf, LEAF)
+	_line(out, leaf, LEAF_LINE, 0.02)
 
 
-## A crooked red "!", wide at the top and narrow at the bottom, with four white marks
+## A crooked white "!", wide at the top and narrow at the bottom, with four marks
 ## radiating out round it, which flick outward every other drawing.
 static func _alert(out: Array, frame: int) -> void:
 	var bar := _quad(Vector2(-0.085, -0.84), Vector2(0.0, -0.93), Vector2(0.09, -0.85), 6)
@@ -265,11 +306,11 @@ static func _alert(out: Array, frame: int) -> void:
 	bar.append_array(_quad(Vector2(-0.035, -0.4), Vector2(-0.06, -0.62), Vector2(-0.085, -0.84), 5).slice(1))
 	var lean := Transform2D(0.0, Vector2(0.0, -0.6)) * Transform2D(deg_to_rad(5.0), Vector2.ZERO) * Transform2D(0.0, Vector2(0.0, 0.6))
 	bar = lean * bar
-	_fill(out, bar, RED)
-	_line(out, bar, RED_LINE, 0.018, false, 0.004)
+	_fill(out, bar, WHITE)
+	_line(out, bar, WHITE, 0.018, true, 0.004)
 	var dot := _ellipse(Vector2(-0.005, -0.235), Vector2(0.06, 0.058), 0.0, 360.0, 14)
-	_fill(out, dot, RED)
-	_line(out, dot, RED_LINE, 0.018, false, 0.004)
+	_fill(out, dot, WHITE)
+	_line(out, dot, WHITE, 0.018, true, 0.004)
 	var flick := 0.025 if frame % 2 == 1 else 0.0
 	for mark: Array in [[Vector2(-0.36, -0.3), Vector2(-0.27, -0.17)], [Vector2(-0.51, -0.03), Vector2(-0.38, 0.01)],
 			[Vector2(0.34, -0.3), Vector2(0.27, -0.18)], [Vector2(0.5, -0.09), Vector2(0.37, -0.04)]]:
@@ -335,8 +376,8 @@ static func _z(out: Array, c: Vector2, s: float, color := WHITE, tilt := 0.0) ->
 	_line(out, path, color, 0.044, true, 0.006)
 
 
-## A flat yellow bulb with a thin outline, a looped filament, a screw base of three
-## short dark lines, and short pale rays that flicker in and out.
+## A bulb in white outline, a looped filament, a screw base of three short lines, and
+## short rays that flicker in and out.
 static func _bulb(out: Array, frame: int) -> void:
 	var g := Vector2(0.04, -0.7)
 	var r := 0.21
@@ -344,56 +385,34 @@ static func _bulb(out: Array, frame: int) -> void:
 	glass.append_array(_quad(glass[glass.size() - 1], g + Vector2(0.085, 0.19), g + Vector2(0.085, 0.25), 4).slice(1))
 	glass.append(g + Vector2(-0.085, 0.25))
 	glass.append_array(_quad(g + Vector2(-0.085, 0.25), g + Vector2(-0.085, 0.19), glass[0], 4).slice(1))
-	_fill(out, glass, BULB)
-	_line(out, glass, BULB_LINE, 0.018, false, 0.005)
+	_line(out, glass, WHITE, 0.034, true, 0.005)
 	var filament := PackedVector2Array([g + Vector2(-0.035, 0.24), g + Vector2(-0.035, 0.08)])
 	filament.append_array(_ellipse(g + Vector2(0.0, 0.04), Vector2(0.04, 0.04), 160.0, 220.0, 12))
 	filament.append_array(PackedVector2Array([g + Vector2(0.035, 0.08), g + Vector2(0.035, 0.24)]))
-	_line(out, filament, BULB_LINE, 0.015, false, 0.004)
+	_line(out, filament, WHITE, 0.018, false, 0.004)
 	for k in 3:
 		var half: float = [0.085, 0.078, 0.065][k]
-		var y := 0.28 + 0.04 * k
-		_line(out, PackedVector2Array([g + Vector2(-half, y), g + Vector2(half, y + 0.005)]), BASE, 0.03, false, 0.004)
-	_line(out, PackedVector2Array([g + Vector2(-0.03, 0.4), g + Vector2(0.03, 0.4)]), BASE, 0.035, false, 0.004)
+		var y := 0.29 + 0.045 * k
+		_line(out, PackedVector2Array([g + Vector2(-half, y), g + Vector2(half, y + 0.005)]), WHITE, 0.03, true, 0.004)
+	_line(out, PackedVector2Array([g + Vector2(-0.03, 0.42), g + Vector2(0.03, 0.42)]), WHITE, 0.035, true, 0.004)
 	var rays := [270.0, 220.0, 320.0, 180.0, 0.0, 140.0, 40.0]
 	for i in rays.size():
 		var dir := Vector2.from_angle(deg_to_rad(rays[i]))
 		var flick := 0.02 if (i + frame) % 2 == 0 else -0.01
-		_line(out, PackedVector2Array([g + dir * (0.44 + flick), g + dir * (0.6 + flick)]), RAY, 0.034, true, 0.006)
+		_line(out, PackedVector2Array([g + dir * (0.44 + flick), g + dir * (0.6 + flick)]), WHITE, 0.034, true, 0.006)
 
 
-## An angry spiral whirling down to a squiggle, with dark scribble clouds beside it.
-static func _scribble(out: Array, t: float) -> void:
-	var spin := t * TAU * SPIN
-	var spiral := PackedVector2Array()
-	for i in 121:
-		var s := i / 120.0
-		var a := s * 4.5 * TAU + spin
-		var rx := lerpf(0.45, 0.07, s)
-		var cx := 0.02 + 0.05 * sin(s * 5.0)
-		spiral.append(Vector2(cx + cos(a) * rx, lerpf(-1.0, -0.42, s) + sin(a) * rx * 0.3))
-	spiral.append_array(PackedVector2Array([Vector2(0.03, -0.35), Vector2(-0.02, -0.26), Vector2(0.03, -0.17), Vector2(-0.01, -0.08)]))
-	_line(out, spiral, WHITE, 0.028, true)
-	_line(out, spiral, WHITE, 0.016, false, WOBBLE * 2.0)
-	for cloud: Array in [[Vector2(-0.63, -1.05), 0.3, 0.0], [Vector2(0.75, -0.97), 0.46, 1.3], [Vector2(0.71, -0.44), 0.26, 2.1]]:
-		_cloud(out, cloud[0] + Vector2(0.0, sin(t * 3.0 + cloud[2]) * 0.02), cloud[1], cloud[2])
-
-
-## A dark scribble cloud `size` across: a line looping round and round a wide oval,
-## and a tighter tangle in the middle.
-static func _cloud(out: Array, c: Vector2, size: float, phase: float) -> void:
-	var round_path := PackedVector2Array()
-	for i in 161:
-		var a := i / 160.0 * TAU
-		var b := a * 8.0 + phase
-		round_path.append(c + Vector2(cos(a) * 0.42, sin(a) * 0.24) * size + Vector2(cos(b), sin(b)) * size * 0.17)
-	_line(out, round_path, SCRIBBLE, 0.016, false, WOBBLE)
-	var core := PackedVector2Array()
-	for i in 121:
-		var a := i / 120.0 * TAU * 2.5
-		var b := a * 5.0 + phase
-		core.append(c + Vector2(cos(a) * 0.24, sin(a) * 0.12) * size + Vector2(cos(b), sin(b)) * size * 0.11)
-	_line(out, core, SCRIBBLE, 0.016, false, WOBBLE * 0.8)
+## Frustrated: a red anger mark, as in the author's picture: four strokes round a middle,
+## each bowing in toward it with its ends flicking out, turned like a pinwheel, and the
+## whole mark throbbing (THROB). The top stroke is measured from the picture (pixels
+## from its middle; the mark is 940 across) and turned a quarter at a time for the rest.
+static func _scribble(out: Array, step: int) -> void:
+	var size := ANGER_SIZE / 940.0 * float(THROB[step])
+	var stroke := [Vector2(-115, -432), Vector2(27, -176), Vector2(99, -189), Vector2(320, -342)]
+	for k in 4:
+		var place := Transform2D(k * PI / 2.0, Vector2.ONE * size, 0.0, ANGER_AT)
+		_line(out, _cubic(place * stroke[0], place * stroke[1], place * stroke[2], place * stroke[3], 16), RAGE,
+			ANGER_WIDTH, true, 0.006)
 
 
 ## Bored: a round scribbled loop with a short V of a tail down to his head, and a
@@ -599,4 +618,11 @@ static func _quad(a: Vector2, ctrl: Vector2, b: Vector2, steps := 10) -> PackedV
 	for i in steps + 1:
 		var t := float(i) / steps
 		pts.append(a.lerp(ctrl, t).lerp(ctrl.lerp(b, t), t))
+	return pts
+
+
+static func _cubic(a: Vector2, c1: Vector2, c2: Vector2, b: Vector2, steps := 12) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in steps + 1:
+		pts.append(a.bezier_interpolate(c1, c2, b, float(i) / steps))
 	return pts

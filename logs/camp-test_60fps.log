@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Camp reactions check, 2026-10-26T17:27:38
+  pass  At first: the camper hammers                               expected hammer           got hammer
+  pass  At first: the two dance                                    expected dance dance      got dance dance
+  pass  At first: the mallet is in his hand                        expected true             got true
+  pass  Sneaking 5 m in front of him: unseen                       expected WORK WORK WORK   got WORK WORK WORK
+  pass  In plain sight 5 m off: the camper takes fright            expected true             got true
+  pass  The other two catch his fright                             expected true             got true
+  pass  All three flinch with their hands up                       expected true             got true
+  pass  The girl hides and cowers                                  expected cower            got cower
+  pass  The camper stands guard                                    expected 2                got 2
+  pass  The low-poly man stands guard                              expected 2                got 2
+  pass  He stands between her and the raccoon                      expected true             got true
+  pass  She's behind him, away from the raccoon                    expected true             got true
+  pass  Lingering, the camper chases him                           expected true             got true
+  pass  Lingering, the low-poly man chases him                     expected true             got true
+  pass  The girl never chases                                      expected false            got false
+  pass  Caught standing still: he's shooed                         expected true             got true
+  pass  Shooed, he leaps away                                      expected true             got true
+  pass  Leaping away, he never sinks into the ground               expected true             got true
+  pass  Gone: the men look about, then head back                   expected true             got true
+  pass  Calm again: all three back at their routines               expected WORK WORK WORK   got WORK WORK WORK
+  pass  Calm again: each at their activity or on the way           expected true             got true
+  pass  Calm again: the mallet's in his hand only while he pegs    expected true             got true
+  pass  Behind him and quiet: unseen                               expected WORK             got WORK
+  pass  A chitter behind him: he turns to see what it was          expected true             got true
+  pass  Turned round, he sees him and takes fright                 expected true             got true
+  pass  Calm again after the chitter                               expected WORK WORK WORK   got WORK WORK WORK
+  pass  There's a tree to climb at the edge of the camp            expected true             got true
+  pass  Up a tree: he's still up it                                expected true             got true
+  pass  Up a tree: a man shoos at the foot of it                   expected true             got true
+  pass  Up a tree: they can't catch him                            expected false            got false
+  pass  Up a tree: they give up and head back                      expected true             got true
+RESULT: all checks passed (31 checks)

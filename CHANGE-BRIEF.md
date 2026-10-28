@@ -376,7 +376,7 @@ The v1 s'more above was built exactly to plan (0.065 × 0.065 × 0.04 m, 80 tria
 - **Before and after:** the v1 file is kept as `design/a3/build/smore/smore_v1.blend`.
 
 **Provenance (v2):** my look, my words and my decision to have Claude make the change. The diagnosis, the design, the sizes and the new budget are Claude's.
-
+ss
 ### Revised in v3 (14 Oct 2026): the crackers' groove and dots
 
 **What I asked for** (15:49): "add some indentations and textures to the biscuits".
@@ -401,3 +401,152 @@ Claude's design:
 ### Revised in v4 (14 Oct 2026): the cooler's body colour
 
 v1 left the cooler's body colour for me to confirm, with Claude's suggestion of blue `#3B7DBF`. On 14 Oct (about 17:25), picking from Claude's four options (blue, red, green, orange), **I chose blue `#3B7DBF`**. Claude's reason for it: it stands out best against the green forest ground. Everything else about the cooler is as in v1.
+
+## Assignment 5: shaders and materials
+
+Written 25 Oct 2026, before either shader. Revisions go below, dated 25th Oct 2026.
+
+### The NPC's vision cones 
+- what the effect tells the player:
+It tells the player what the NPC can see or observe while the player is trying to sneek around the game or avoid being seen by the NPCs.
+The game in its mechanics has multiple sneek requirements, to avoid detections from the NPCs. 
+
+
+- Why the player needs to see it:
+The vision cone is indicator as well it serves as the perception of what the NPC is able to detect the presence of the raccoon in his surrounding. The game has a lots of tasks that are expected to be done while sneaking around and avoid detection, so it's important that the players understand what the spotting vision is limited to or the detection feedback is working to play the game.
+
+- What the cone does:
+  - The state: The detection system will follows the color pattern of being tinge of yellow for indicating the general sight of vision, which will also increase and reduce depending upon the raccoon's/player's movements, and when detected we go a alerted state for the NPC and the raccoon.
+  - The two colours: The pale yellow and red are the two main vision colors.
+  - The change: When spotted the color should snap to red for a 2 seconds indicating the actions to the player along with state of alerted. If the player wants to fade the status away he needs to run away from the vicinity of the alerted NPC or hide away to become undetected again.
+
+  (My answers to Claude Code's questions, 26 Oct 2026, in my own words. Claude Code fixed the spelling and typos and added full stops and commas. This "why" replaces my first answer, which was about the moods in general.)
+
+- What the cone does, round 2 (26 Oct 2026):
+  - How long it stays red: 2 seconds. (I first wrote "Vanishing after 3 frames so the player understands he has been spotted"; Claude Code pointed out that 3 frames is 0.1 s at 30 fps and 0.02 s at 144 fps, and I picked 2 seconds from its options.)
+  - What starts the red: the moment he's spotted. (Picked from Claude Code's options.)
+  - Back to yellow: There should be no fade to yellow.
+  - After the red: Completely fade all the vision cones, make the NPC confused with the "??" around his head looking around and then walk back, and after like 5 seconds bring the vision cone back.
+  - When the confused part happens: This confused action happens after he has shooed him away and after the raccoon has evaded the sight.
+  - When the cones start: no cones until he reaches the camp. Yes, let's show him the tasks as some sort of tutorial workflow prompting him to open Tab. Before this there should be no tasks other than "identify the music", and then the "rock the party" main task should have sub tasks like steal marshmallows and all others which we have. It's a interactive tutorial style.
+
+  (My answers, in my own words, with spelling fixed by Claude Code.)
+
+- The gaps, filled by Claude Code because I asked it to ("take liberties with the gaps that feel approriate", 26 Oct 2026). These are Claude Code's choices, not mine:
+  - The fade-out: when the 2 s of red are up, all the cones fade out together over 0.5 s. During the 2 s only the cone of the camper who spotted him is red; the others stay yellow until they fade with it.
+  - Coming back: 5 s after a camper starts walking back from the confused looking-around, that camper's cone fades back in, yellow, over 0.5 s.
+  - The length: while the cones show after a spotting, each stays as long as it was while its camper watched (7 m standing, shorter while he sneaks), not the 14 m an alarmed camper sees.
+  - The names: "identify the music" is the task already in the game, "Investigate the music". The main task is "Rock the party", with the camp's tasks as its sub-tasks.
+  - The tutorial: he reaches the camp and "Investigate the music" is ticked off. The game pauses and a note says to press Tab. THE PLAN opens, showing "Rock the party" and its sub-tasks, and the note tells him to sneak so they don't see him. He closes it with Tab, the game carries on, and the cones fade in.
+  - The split: when the cones show, the campers' "??" search and the timers are the game's behaviour, written by Claude Code in GDScript. The yellow, the 2 s of red and the fades are my shader's job, driven from that behaviour.
+
+- The script and variable that hold it:
+
+- The other moods in the game, and why I picked this one:
+
+
+### The effect
+- Shader file: `shaders/vision_cone.gdshader` (picked from Claude Code's options, 27 Oct 2026)
+- shader_type and render_mode (my words, 28 Oct 2026):
+  - `shader_type spatial;`: In Godot, 3D materials require the spatial shader type to interact with the 3D rendering pipeline.
+  - `render_mode blend_mix, unshaded, depth_draw_opaque;`: `blend_mix` enables standard alpha transparency, `unshaded` prevents the environment's lights and shadows from altering the cone's flat colors, and `depth_draw_opaque` ensures the transparent cone correctly depth-sorts against other transparent elements.
+- The object it colours, and how that object is drawn: each camper's vision cone, a fan of 24 triangles on the ground under their eyes, built in code (`scripts/vision_cone.gd`, `_build_cone`). Its corners carry vertex colours, white, with alpha 0.55 at the camper fading to 0.12 at the far edge. Until my shader is in, it's drawn with a StandardMaterial3D made in code: unshaded, see-through, vertex colours as its colour, both sides drawn, no fog. (These facts are from the code, written in by Claude Code.)
+
+| Uniform | Type | Hint | Default | Set by |
+|---|---|---|---|---|
+| `alarm` | float | `hint_range(0.0, 1.0)` | 0.0 | The game, every frame: 0 = the yellow, 1 = the red |
+| `shown` | float | `hint_range(0.0, 1.0)` | 1.0 | The game, every frame: 0 = gone, 1 = fully shown (the fades) |
+| `watch_color` | vec4: a colour and its see-through amount | `source_color` | the game's yellow, `WATCHING`: (1.0, 0.93, 0.62, 0.5) | Its default, which a material can change in the Inspector |
+| `alarm_color` | vec4: a colour and its see-through amount | `source_color` | the game's red, `SEEING`: (1.0, 0.33, 0.27, 0.65) | Its default, which a material can change in the Inspector |
+
+(Picked from Claude Code's options on 26 and 27 Oct 2026: the names, what 0 and 1 mean for `alarm` and `shown`, their defaults, the hints, and the two colours as knobs keeping the game's colours and see-through amounts.)
+
+### The colour line
+(the one line inside fragment() that changes the colour)
+
+My choices for it (picked from Claude Code's options, 27 Oct 2026):
+- As `alarm` goes from 0 to 1, the colour blends smoothly from `watch_color` to `alarm_color`, halfway at 0.5.
+- How see-through the cone is at a pixel: its tip-to-edge fade × the colour's own amount × `shown`.
+
+### Rules
+- The uniform's value when the mood starts, and when it ends:
+  `alarm` jumps from 0 to 1 the moment he's spotted, and stays at 1 through the 2 s of red and the fade-out after it. It's back at 0 when the cone comes back. `shown` is 1 while the cone shows; it goes to 0 after the red, and back to 1 when the cone comes back.
+- How long the change takes (seconds, give or take one frame), the same at 30, 60 and 144 fps:
+  `alarm` takes no time: it snaps. `shown` goes from 1 to 0 over 0.5 s, starting 2 s after the spotting, and from 0 to 1 over 0.5 s when the cone comes back, 5 s after its camper starts walking back. Each takes the same time at 30, 60 and 144 fps, give or take one frame.
+
+  (These two are from my design above, as Claude Code put it together; I confirmed it on 27 Oct 2026.)
+- If the mood starts again mid-change: restart, extend or ignore?
+  Restart: the red lasts 2 s from the latest spotting, whether another camper spots him or the same one sees him again.
+- Scaled or unscaled time under Engine.time_scale, and what it does while paused:
+  Unscaled: always 2 real seconds, whatever speed the game runs at. While the game is paused, the red and the fades freeze where they are and carry on afterwards.
+- The value if the mood ends before the change finishes:
+  The red still runs its full 2 s and then fades, even if he's already hidden.
+
+  (The three answers above are mine, picked from Claude Code's options on 26 Oct 2026.)
+- With several copies of the object, how each gets its own value:
+  One material per cone: each cone makes its own ShaderMaterial from my one shader, and the game sets each one's values. (Picked from Claude Code's options on 27 Oct 2026.)
+
+### Boundaries
+(what this change must not touch)
+
+When my shader and its driver go in, these stay exactly as they are (ticked by me from Claude Code's list, 27 Oct 2026):
+- how he moves and collides, and which keys do what;
+- the campers' behaviour (when they see him, guard, chase, shoo and search) and all its timings, as built on 26 Oct;
+- everything else's look: only the cones change, and the trees, the fire, the icons and the other shaders stay the same;
+- no earlier test's expectations change (added at my request on 27 Oct 2026, after Claude Code pointed out that the assignment lists it).
+
+### Evidence split
+| Rule | Checked by (test or my eyes) | How |
+|---|---|---|
+| Spotted: `alarm` snaps to 1 and the red lasts 2 s; it starts over when he's re-spotted, and still runs its 2 s if he's lost early | A headless test | Claude's driver test reads `alarm` every frame at 30, 60 and 144 fps while he's spotted in play at the camp, and measures the times |
+| The fades: `shown` 1 to 0 over 0.5 s after the red, 0 to 1 over 0.5 s when the cone comes back | A headless test | The same test measures them on the game's clock |
+| Paused: the red and the fades freeze. Slowed down: always 2 real seconds | A headless test | The test pauses the game and sets `Engine.time_scale`, then checks `alarm` and `shown` |
+| Each cone has its own value: only the spotter's goes red | Both | The test checks each cone's `alarm` and `shown`; I check in play that only one cone turns red |
+
+(Picked by me from Claude Code's options, 27 Oct 2026. "Lost early" is in the first row because I chose a test for every timing rule.)
+
+### Predicted pixels
+| Pixel | Its colour now | At 0.0 (Yellow: 255, 237, 158) | At 0.5 (Blend: 255, 160, 113) | At 1.0 (Red: 255, 84, 69) |
+|---|---|---|---|---|
+| **Base at Camper** (Vertex Alpha 0.55 over Grass 80, 120, 80) | 80, 120, 80 | 176, 184, 123 | 176, 142, 98 | 176, 100, 74 |
+| **Far Edge** (Vertex Alpha 0.12 over Grass 80, 120, 80) | 80, 120, 80 | 100, 133, 89 | 100, 124, 83 | 100, 115, 78 |
+
+### Hint experiment predictions
+| Grey in the file | Quad with source_color | Quad without |
+|---|---|---|
+| 64 (0.25) | ~0.05 (Darkened via sRGB curve) | 0.25 |
+| 128 (0.50) | ~0.21 (Darkened via sRGB curve) | 0.50 |
+| 192 (0.75) | ~0.53 (Darkened via sRGB curve) | 0.75 |
+
+**Which quad shows the file's values unchanged, and why:**
+The quad **without** `source_color`. Godot’s 3D rendering pipeline operates in Linear color space. When a texture is imported or sampled with `source_color`, Godot assumes it was authored in sRGB (how monitors display color) and automatically applies an inverse gamma correction curve (~power of 2.2) to convert it to Linear space, mathematically altering the raw pixel values. Sampling without `source_color` reads the exact raw data bytes from the file.
+
+### Material plan (the textured shader)
+**The object, and the lighting I'll judge it under:** The 24-triangle vision cone fan on the ground, viewed under the game's flat-shaded, unlit night environment where only ALBEDO and ALPHA determine the final pixel output.
+
+| Texture | Role | Source | What its numbers mean | Colour or data | compress/mode | compress/normal_map | mipmaps/generate |
+|---|---|---|---|---|---|---|---|
+| `cone_edge_mask.png` | Softens the harsh side edges of the geometric triangles to look more like a projected light | 2D image | 1.0 (white) in the center fading to 0.0 (black) at the left and right borders | Data | Lossless / VRAM uncompressed | False | False (prevents edge bleeding at distances) |
+
+| Uniform | Type | Hint | Range | Default | Group | What changes on screen |
+|---|---|---|---|---|---|---|
+| `edge_softness` | float | `hint_range` | 0.0 to 1.0 | 0.1 | Edge Mask | How wide the blurred transition is at the side borders of the cone |
+| `mask_texture` | sampler2D | `filter_linear` | N/A | empty | Edge Mask | Applies the horizontal gradient falloff to the cone |
+
+**How the two materials differ, and why:**
+The untextured version relies solely on the CPU-generated vertex colors (alpha 0.55 to 0.12) to fade the cone outward, leaving sharp geometric edges on the sides. The textured material multiplies this vertex alpha by the `mask_texture`, resulting in a cone that smoothly fades out both over distance (via vertices) and at its peripheral vision edges (via the texture).
+
+### Predicted failures
+| What could go wrong | The check that would catch it |
+|---|---|
+| The 0.5s fade-out continues to animate while the game is paused because the `Tween` driving the `shown` uniform is not set to `TWEEN_PROCESS_PHYSICS` or is ignoring the node's pause mode. | A headless test or manual playtest that pauses the game the exact frame the cone starts fading after an alert; the alpha should freeze immediately. |
+| The cone flashes solid white or black when first spawned because the material's `watch_color` and `alarm_color` uniforms weren't properly initialized in the exported Godot resource. | A headless test verifying the ShaderMaterial's parameters immediately after instantiation before the first `_process` frame executes. |
+| Depth-sorting issues cause the transparent raccoon to render *in front* of the vision cone instead of inside it when the camera angle lowers. | Visual check in playtest ensuring `depth_draw_opaque` and the Render Priority settings on the cone material sort correctly behind the raccoon's material. |
+
+### Short answers
+1. The renderer project.godot names, and what it rules out:
+2. The colour that arrives in fragment() before I change it, and what the tempting alternative would give:
+3. canvas_item: what texture(TEXTURE, UV) would give instead of COLOR. Or spatial: what ALBEDO holds if I never write it, and what COLOR holds:
+4. How long a frame-counting version would last at 30, 60 and 144 fps:
+5. Which resource holds the uniform's default, which holds its current value, and what happens if two objects share the material:
+6. Does hint_range clamp a value set from code? My prediction:

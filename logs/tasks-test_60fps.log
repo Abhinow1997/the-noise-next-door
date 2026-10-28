@@ -1,0 +1,52 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Camp tasks check, 2026-10-26T17:27:47
+  pass  The to-do list: the music, then Rock the party and its three       expected investigate party marshmallows music cooler got investigate party marshmallows music cooler
+  pass  Routines: the camper starts pegging out his tent                   expected peg              got peg
+  pass  Routines: the low-poly man starts dancing                          expected dance            got dance
+  pass  Routines: each moves on to their next activity                     expected roast drink warm got roast drink warm
+  pass  Routines: walking there                                            expected false false false got false false false
+  pass  Routines: the low-poly man gets to the cooler and opens it for a drink expected true             got true
+  pass  Routines: drink done, he goes back to dancing                      expected dance            got dance
+  pass  Routines: he shuts the cooler after him, unless he forgets         expected false            got false
+  pass  Routines: the camper sits roasting by the fire                     expected true             got true
+  pass  Routines: the girl warms her hands at the fire                     expected true             got true
+  pass  Routines: and round again: she's back dancing                      expected true             got true
+  pass  Marshmallows: holding E unzips the backpack                        expected true             got true
+  pass  Marshmallows: the bag tumbles out                                  expected true             got true
+  pass  Marshmallows: unzipped behind his back, unheard over the music     expected WORK             got WORK
+  pass  Marshmallows: E picks the bag up                                   expected true             got true
+  pass  Caught with the bag: a man snatches it back                        expected true             got true
+  pass  Caught with the bag: it's out of his mouth                         expected false            got false
+  pass  Caught: the backpack's zipped up again                             expected false            got false
+  pass  Caught: the bag's back inside                                      expected false            got false
+  pass  Caught: the task's still to do                                     expected false            got false
+  pass  Calm again after the snatch                                        expected WORK WORK WORK   got WORK WORK WORK
+  pass  Marshmallows again: the bag's in his mouth                         expected true             got true
+  pass  Marshmallows again: nobody noticed                                 expected WORK WORK WORK   got WORK WORK WORK
+  pass  Marshmallows: dropped in his stash, the task's done                expected true             got true
+  pass  Music off: the plug comes out in his mouth                         expected true             got true
+  pass  Music off: the music stops                                         expected false            got false
+  pass  Music off: the speaker's quiet                                     expected false            got false
+  pass  Music off: the task's done                                         expected true             got true
+  pass  Music off: the dancers stop dead, mid-move                         expected 0 0              got 0 0
+  pass  Music off: he drops the plug away from the socket                  expected true             got true
+  pass  Music off: frozen, they don't see him get away                     expected false            got false
+  pass  Music off: the dancers wonder what happened                        expected true             got true
+  pass  Music off: the low-poly man goes to put it back                    expected true             got true
+  pass  Music off: he plugs it back in and the music's on                  expected true             got true
+  pass  Music off: the task stays done                                     expected true             got true
+  pass  Noise: a clunk 2.5 m off, with the music on: unheard               expected false            got false
+  pass  Noise: the same clunk with the music off: he wonders               expected true             got true
+  pass  Cooler: holding E noses the lid open                               expected true             got true
+  pass  Cooler: the sausages can be reached                                expected true             got true
+  pass  Cooler: E takes the sausages                                       expected true             got true
+  pass  Cooler: nobody noticed                                             expected WORK WORK WORK   got WORK WORK WORK
+  pass  Cooler: dropped in his stash, the task's done                      expected true             got true
+  pass  All four tasks done                                                expected true             got true
+RESULT: all checks passed (43 checks)
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

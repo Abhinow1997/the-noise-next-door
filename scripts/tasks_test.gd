@@ -65,7 +65,9 @@ func _physics_process(_delta: float) -> void:
 
 func _run() -> void:
 	await _wait(1.0)
-	_check("The to-do list is level 1's four tasks", "investigate marshmallows music cooler",
+	# Since 26 Oct 2026 the camp's three are the sub-tasks of one main task, Rock the party.
+	_check("The to-do list: the music, then Rock the party and its three",
+		"investigate party marshmallows music cooler",
 		" ".join(level.tasks.list.map(func(t: Dictionary) -> String: return t.id)))
 	_check("Routines: the camper starts pegging out his tent", "peg", _camper.activity())
 	_check("Routines: the low-poly man starts dancing", "dance", _man.activity())

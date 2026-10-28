@@ -28,6 +28,17 @@ extends CharacterBody3D
 ##     it back (FIX).
 ##   - Once he's out of the camp or out of sight a while, they walk back (`walk`) to
 ##     where their routine had got to, and carry on.
+##   - Since 26 Oct 2026, before they walk back they're confused (SEARCH): "??" over
+##     their heads (camp_input.gd), they look about where he was last seen for
+##     SEARCH_TIME. The author: "make the npc confused with the '??' around his head
+##     looking around and then walk back", "afetr he has shooed him away and after the
+##     raccoon has evaded the sight". Up a tree, they still just give up and go back.
+##   - Their cones (vision_cone.gd), since the same day: none, and no seeing him, until
+##     the tutorial at the camp is done (campsite.gd `cones_on`). When one of them spots
+##     him while watching for him, every cone shows until that one's red is over and has
+##     faded (campsite.gd `spot`); then each goes, and comes back BACK_AFTER seconds after
+##     its own person is calm again: when they start walking back, for the ones who took
+##     fright.
 ## The camp (campsite.gd) keeps what they know between them: where and when he was last
 ## seen, the camp's bounds, when someone last took fright, and whether the music's on.
 
@@ -36,7 +47,7 @@ signal state_changed(state: int)
 const VisionCone := preload("res://scripts/vision_cone.gd")
 const Player := preload("res://scripts/player.gd")
 
-enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX }
+enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX, SEARCH }
 
 ## How far they see while calm (times SNEAK_SIGHT while he sneaks), while wondering
 ## about a noise, and once alarmed, and how wide; where their eyes are.
@@ -56,6 +67,8 @@ const HUH := 0.6
 const STOP_SHORT := 1.3
 const LOOK_TIME := 3.0
 const LOOK_SWING := 50.0
+## Confused once he's got away: how long they look about before they go back.
+const SEARCH_TIME := 3.0
 ## How long the flinch lasts, and how long the others take to catch the fright.
 const FLINCH := 1.1
 const CATCH_FRIGHT := Vector2(0.25, 0.6)
@@ -129,6 +142,12 @@ var _step_left := 0.0
 var _arrived := false
 var _linger := 0.0
 var _away := 0.0
+## When their cone may show again (campsite.gd clock): INF from the moment someone spots
+## him until they're calm again.
+var _cone_back_at := -INF
+## How far they saw while last watching for him: their cone stays that long while it
+## shows after they've taken fright, rather than as far as they see then (ALERT_SIGHT).
+var _watch_length := SIGHT
 var _alarmed_at := -INF
 var _fright_seen := -INF
 var _fright_at := INF
@@ -192,22 +211,36 @@ func alarmed_for() -> float:
 	return camp.clock - _alarmed_at
 
 
+## Someone's spotted him (campsite.gd `spot`): their cone goes once the red's over, until
+## they're calm again.
+func hide_cone() -> void:
+	_cone_back_at = INF
+
+
 func _physics_process(delta: float) -> void:
 	if player == null:
 		player = get_tree().get_first_node_in_group("player") as Player
 		if player == null:
 			return
 	_t += delta
+	eyes.blind = not camp.cones_on
 	var calm := state in [State.WORK, State.RETURN, State.FIX]
 	if calm:
 		eyes.reach = SIGHT * (SNEAK_SIGHT if player.sneaking else 1.0)
 		if anim and anim.current_animation == "dance":
 			eyes.reach *= DANCE_SIGHT
-	elif state == State.INVESTIGATE:
+	elif state in [State.INVESTIGATE, State.SEARCH]:
 		eyes.reach = CURIOUS_SIGHT * (SNEAK_SIGHT if player.sneaking else 1.0)
 	else:
 		eyes.reach = ALERT_SIGHT
-	eyes.show_on_ground(calm or state == State.INVESTIGATE)
+	var watching := calm or state == State.INVESTIGATE
+	if watching:
+		_watch_length = eyes.reach
+	eyes.held_length = -1.0 if watching else _watch_length
+	if _cone_back_at == INF and watching and camp.clock >= camp.cones_shown_until():
+		_cone_back_at = camp.clock + VisionCone.BACK_AFTER
+	eyes.show_on_ground(camp.cones_on and (camp.clock < camp.cones_shown_until()
+		or watching and camp.clock >= _cone_back_at))
 	if eyes.seeing:
 		camp.saw(player.global_position)
 	_away = _away + delta if not camp.in_camp(camp.last_seen_at, 3.0) else 0.0
@@ -235,7 +268,7 @@ func _physics_process(delta: float) -> void:
 				elif camp.seen_within(0.5) and camp.in_camp(player.global_position):
 					_to_state(State.CHASE)
 				else:
-					_to_state(State.RETURN)
+					_to_state(State.SEARCH)
 		State.TAKE:
 			_play("take_away", 1.0, 0.15)
 			_face(camp.last_seen_at, delta)
@@ -243,7 +276,7 @@ func _physics_process(delta: float) -> void:
 				var item := carrying
 				_let_go()
 				camp.take_back(item)
-				_to_state(State.RETURN)
+				_to_state(State.SEARCH)
 		State.RETURN:
 			_return(delta)
 		State.FLEE:
@@ -258,11 +291,13 @@ func _physics_process(delta: float) -> void:
 				# Somewhere further off to go: she runs (cornered, she stays cowering).
 				_to_state(State.FLEE)
 			elif _gone(GIRL_CALM):
-				_to_state(State.RETURN)
+				_to_state(State.SEARCH)
 		State.INVESTIGATE:
 			_investigate(delta)
 		State.FIX:
 			_fix(delta)
+		State.SEARCH:
+			_search(delta)
 	var meant := velocity.length()
 	move_and_slide()
 	# Sliding along something's slanted side shouldn't lift them off the ground.
@@ -329,7 +364,7 @@ func _work(delta: float) -> void:
 				_step_left = _rng.randf_range(routine[_step].time.x, routine[_step].time.y)
 				_arrived = false
 	if eyes.seeing and not camp.let_be():
-		_startle()
+		_startle(true)
 	elif player.running and _flat(player.global_position - global_position).length() < HEAR_RUN:
 		hear(player.global_position)
 	elif camp.frightened > _fright_seen and camp.clock - camp.frightened < 1.0:
@@ -340,11 +375,14 @@ func _work(delta: float) -> void:
 		_startle()
 
 
-func _startle() -> void:
+## A fright: from seeing him themselves (`spotted`), or caught from someone else's.
+func _startle(spotted := false) -> void:
 	_fright_at = INF
 	_fright_seen = camp.clock
 	_alarmed_at = camp.clock
 	camp.frighten()
+	if spotted:
+		camp.spot()
 	_to_state(State.STARTLED)
 
 
@@ -353,7 +391,7 @@ func _startle() -> void:
 ## is a fright.
 func _investigate(delta: float) -> void:
 	if eyes.seeing and not camp.let_be():
-		_startle()
+		_startle(true)
 		return
 	var to := _flat(_noise_at - global_position)
 	if _t < _huh:
@@ -393,8 +431,10 @@ func _guard(delta: float) -> void:
 		_linger += delta
 	if _linger >= LINGER:
 		_to_state(State.CHASE)
-	elif _gone(CALM) or camp.let_be():
+	elif camp.let_be():
 		_to_state(State.RETURN)
+	elif _gone(CALM):
+		_to_state(State.SEARCH)
 
 
 func _chase(delta: float) -> void:
@@ -428,7 +468,7 @@ func _chase(delta: float) -> void:
 		_to_state(State.SHOO)
 		return
 	if not camp.seen_within(LOSE):
-		_to_state(State.RETURN)
+		_to_state(State.SEARCH)
 		return
 	var toward := _flat(target - global_position)
 	if toward.length() > 2.0:
@@ -440,7 +480,7 @@ func _chase(delta: float) -> void:
 ## table with it in hand, down to push it in.
 func _fix(delta: float) -> void:
 	if eyes.seeing and not camp.let_be():
-		_startle()
+		_startle(true)
 		return
 	match _fix_stage:
 		0:
@@ -479,9 +519,27 @@ func _fix(delta: float) -> void:
 				_to_state(State.RETURN)
 
 
+## Confused: he's got away, and they don't know where to. They look about where he was
+## last seen, with "??" over their heads (camp_input.gd), then go back. Still wary:
+## seeing him there sets them guarding (or her hiding) again, with no flinch.
+func _search(delta: float) -> void:
+	if eyes.seeing and camp.in_camp(camp.last_seen_at) and not camp.let_be():
+		camp.spot()
+		_to_state(State.FLEE if role == "girl" else State.GUARD)
+		return
+	_play(_stand())
+	var to := _flat(camp.last_seen_at - global_position)
+	var toward := atan2(to.x, to.z) if to.length() > 0.1 else rotation.y
+	rotation.y = rotate_toward(rotation.y, toward + deg_to_rad(LOOK_SWING) * sin(_t * 2.1), TURN * 0.5 * delta)
+	if _t > SEARCH_TIME:
+		_to_state(State.RETURN)
+
+
 func _return(delta: float) -> void:
 	if _t > 0.5 and camp.seen_within(0.3) and camp.in_camp(camp.last_seen_at) and not camp.let_be():
 		# He's back while they're still wary: no flinch this time.
+		if eyes.seeing:
+			camp.spot()
 		_to_state(State.FLEE if role == "girl" else State.GUARD)
 		return
 	var spot := activity_spot()

@@ -12,6 +12,10 @@ extends Control
 ##     up crossed off, then goes ("let it come up in the bottom to suggest it was
 ##     completed"); and the key task, the one to follow now (at the start, the music),
 ##     stays there until it's done ("let it linger down at the bottom").
+##   - Since 26 Oct 2026 the page shows only the tasks revealed so far (camp_tasks.gd
+##     `shown`), with a main task's sub-tasks indented under it; and the tutorial at the
+##     camp (camp_tutorial.gd) puts its notes on a scrap at the bottom, which stays up
+##     while the page is.
 ## The page is laid out in the picture's own pixels (1024 × 572), turned straight, and
 ## scaled to fit the window.
 
@@ -72,6 +76,8 @@ const UNDERLINE := [Vector2(381, 134), Vector2(520, 131.5), Vector2(660, 129)]
 ## line, and how much a crossed-off one fades.
 const TASK_SIZE := 50
 const INDENT := 17.0
+## How much further in a sub-task starts than its main task.
+const SUB_INDENT := 46.0
 const ABOVE_RULE := 4.0
 const DONE_FADE := 0.8
 ## Patrick Hand's capitals are this share of the font size tall (as on the title).
@@ -151,6 +157,8 @@ class Layer extends Control:
 class Scrap extends Layer:
 	var task: Dictionary
 	var key := false
+	## A note from the tutorial rather than a task: no box, and up even while the page is.
+	var note := false
 	var born := 0.0
 	## When it's crossed off, and when it goes, on the plan's clock (INF: not yet).
 	var struck := INF
@@ -216,6 +224,24 @@ func key_showing() -> String:
 	return ""
 
 
+## The tutorial's note (camp_tutorial.gd): `line` on a scrap at the bottom, in place of
+## the one up before; "" takes it away.
+func note(line: String) -> void:
+	for scrap in _scraps:
+		if scrap.note and scrap.leaves == INF:
+			scrap.leaves = _clock
+	if line != "":
+		_add_scrap({"id": "note", "text": line}, false, true)
+
+
+## The note up at the bottom now, or "" (for the tests).
+func note_showing() -> String:
+	for scrap in _scraps:
+		if scrap.note and scrap.leaves == INF:
+			return scrap.task.text
+	return ""
+
+
 ## The scraps at the bottom, as the tests see them: each one's task, whether it's the key
 ## task's and whether it's crossed off.
 func scraps() -> Array:
@@ -258,13 +284,17 @@ func _process(delta: float) -> void:
 		if _key_wait <= 0.0 and not key.is_empty() and key_showing() == "" and not _scraps.any(
 				func(s: Scrap) -> bool: return s.task.id == key.id):
 			_add_scrap(key, true)
-	# Gone ones go; the rest settle into their places, the key task's lowest.
+	# Gone ones go; the rest settle into their places, the tutorial's note lowest, then
+	# the key task's.
 	for scrap in _scraps.duplicate():
 		if _clock > scrap.leaves + SCRAP_MOVE:
 			_scraps.erase(scrap)
 			scrap.queue_free()
 	var order := _scraps.duplicate()
-	order.sort_custom(func(a: Scrap, b: Scrap) -> bool: return a.key and not b.key or a.key == b.key and a.born < b.born)
+	order.sort_custom(func(a: Scrap, b: Scrap) -> bool:
+		var ra := 0 if a.note else 1 if a.key else 2
+		var rb := 0 if b.note else 1 if b.key else 2
+		return ra < rb or ra == rb and a.born < b.born)
 	var slot := 0.0
 	for scrap: Scrap in order:
 		scrap.slot = slot
@@ -367,11 +397,14 @@ func _paint_page_chalk(item: CanvasItem) -> void:
 	item.draw_string_outline(_title_font, title_at, TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, TITLE_RIM, CHALK)
 	stroke(item, UNDERLINE, STROKE, CHALK, 1.0, 3)
 
-	var gap := RULE_GAP * minf(1.0, float(RULES) / tasks.list.size())
-	for i in tasks.list.size():
-		var task: Dictionary = tasks.list[i]
+	var shown := tasks.shown()
+	var gap := RULE_GAP * minf(1.0, float(RULES) / shown.size())
+	for i in shown.size():
+		var task: Dictionary = shown[i]
 		var rule := RULE_Y + i * gap
 		var left := lerpf(MARGIN[0].x, MARGIN[1].x, inverse_lerp(MARGIN[0].y, MARGIN[1].y, rule)) + INDENT
+		if task.has("parent"):
+			left += SUB_INDENT
 		var struck: float = _struck.get(task.id, INF)
 		var done := clampf((_clock - struck) / STRIKE_TIME, 0.0, 1.0)
 		var right := write(item, task.text, Vector2(left, rule - ABOVE_RULE), TASK_SIZE,
@@ -390,14 +423,15 @@ func _paint_page_chalk(item: CanvasItem) -> void:
 
 # --- The scraps ------------------------------------------------------------------
 
-func _add_scrap(task: Dictionary, key: bool) -> Scrap:
+func _add_scrap(task: Dictionary, key: bool, note := false) -> Scrap:
 	var scrap := Scrap.new(_paint_scrap)
 	scrap.task = task
 	scrap.key = key
+	scrap.note = note
 	scrap.born = _clock
 	var text := _hand.get_string_size(task.text, HORIZONTAL_ALIGNMENT_LEFT, -1, SCRAP_SIZE).x
-	var paw := SCRAP_SIZE * 1.1 if key else 0.0
-	scrap.width = SCRAP_PAD * 2.0 + paw + text + SCRAP_SIZE * 1.4
+	var paw := SCRAP_SIZE * 1.1 if key or note else 0.0
+	scrap.width = SCRAP_PAD * 2.0 + paw + text + (0.0 if note else SCRAP_SIZE * 1.4)
 	scrap.outline = _scrap_outline(scrap.width, hash(task.id))
 	scrap.facets = facets(scrap.outline, hash(task.id), SCRAP_HEIGHT * 0.9)
 	scrap.at = -SCRAP_HEIGHT * 1.5
@@ -425,7 +459,7 @@ func _scrap_outline(width: float, seed: int) -> PackedVector2Array:
 
 
 ## A scrap at its place along the bottom, sliding up into it as it comes and down out of
-## sight as it goes; and out of the way while the page is up.
+## sight as it goes; and out of the way while the page is up, unless it's the tutorial's.
 func _place_scrap(scrap: Scrap) -> void:
 	var view := get_viewport_rect().size
 	var s := _scale()
@@ -435,7 +469,7 @@ func _place_scrap(scrap: Scrap) -> void:
 	scrap.scale = Vector2(s, s)
 	scrap.position = Vector2(view.x * 0.5, view.y - (SCRAP_BOTTOM + scrap.at - (1.0 - shown) * 30.0) * s)
 	scrap.rotation = deg_to_rad(sin(float(hash(scrap.task.id) % 100)) * 1.2)
-	scrap.modulate.a = shown * (1.0 - _up)
+	scrap.modulate.a = shown * (1.0 if scrap.note else 1.0 - _up)
 
 
 func _paint_scrap(item: CanvasItem) -> void:
@@ -444,15 +478,18 @@ func _paint_scrap(item: CanvasItem) -> void:
 
 
 ## The key task: a chalk paw (rocking, as the title's does), the task and its box; a task
-## done: the task crossed off and stamped.
+## done: the task crossed off and stamped; the tutorial's note: the paw and the note.
 func _paint_scrap_chalk(item: CanvasItem, scrap: Scrap) -> void:
 	var left := -scrap.width * 0.5 + SCRAP_PAD
 	var base := -SCRAP_HEIGHT * 0.5 + SCRAP_SIZE * CAP_HEIGHT * 0.5
-	if scrap.key:
+	if scrap.key or scrap.note:
 		var rock: float = TitleMenu.PAW_ROCK[int(_clock * TitleMenu.ROCK_STEPS) % TitleMenu.PAW_ROCK.size()]
 		TitleMenu.paw(item, Vector2(left + SCRAP_SIZE * 0.4, -SCRAP_HEIGHT * 0.5), SCRAP_SIZE * 0.8,
 			deg_to_rad(rock + 12.0), CHALK)
 		left += SCRAP_SIZE * 1.1
+	if scrap.note:
+		write(item, scrap.task.text, Vector2(left, base), SCRAP_SIZE, CHALK)
+		return
 	var done := clampf((_clock - scrap.struck) / STRIKE_TIME, 0.0, 1.0)
 	var right := write(item, scrap.task.text, Vector2(left, base), SCRAP_SIZE, Color(CHALK, lerpf(1.0, DONE_FADE, done)))
 	var box := Vector2(scrap.width * 0.5 - SCRAP_PAD - SCRAP_SIZE * 0.35, -SCRAP_HEIGHT * 0.5)

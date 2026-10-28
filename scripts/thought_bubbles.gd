@@ -5,16 +5,16 @@ extends Node
 ##   shiny       sparkles over loot he could steal while he's within 5 m of it: anything
 ##               in the "shiny" group he hasn't picked up yet. They sit over the loot,
 ##               once for loot lying together.
-##   hungry      a scribbled thought with a fish skeleton (or an apple core) in it while
+##   hungry      a scribbled thought with a half-eaten apple (or an apple core) in it while
 ##               he faces food or a trash bin up close (the "food" group), and now and
 ##               again while the level wants him to find food (hungry_objective)
-##   alert       a crooked red "!" while an NPC can see him (vision_cone.gd)
+##   alert       a crooked white "!" while an NPC can see him (vision_cone.gd)
 ##   hiding      z's floating up off a hiding spot (hide_spot.gd) he's just slipped into
 ##               with an NPC about; they go after 2 seconds
-##   idea        a yellow bulb when he picks up the very thing a puzzle near him needs
+##   idea        a white bulb when he picks up the very thing a puzzle near him needs
 ##               (the "puzzle" group, whose "needs" meta names a group the thing is in),
 ##               and when a puzzle is solved (its "solved" meta turns true)
-##   frustrated  an angry white spiral with dark scribble clouds when something fails:
+##   frustrated  a red anger mark, throbbing, when something fails:
 ##               he's stuck pushing against something, a locked door, an NPC took his
 ##               loot back. Things in the level show it with ThoughtBubbles.notify(self,
 ##               "frustrated"), as anything that soaks him with water should.
@@ -28,7 +28,8 @@ extends Node
 ## Over his head only one shows at a time, the most urgent; when it ends, one still
 ## wanted shows. The sparkles are over the loot, so they can show alongside.
 ## Other meta it reads: "found" (set once he's picked a thing up), "bubble_range" (a
-## range of a thing's own) and "bubble_icon" (a food's own picture: "fish" or "apple").
+## range of a thing's own) and "bubble_icon" (a food's own picture: "fish", which is now
+## the half-eaten apple, or "apple", the core).
 
 ## The icon over his head changed: its kind, or "" when there's none.
 signal shown(kind: String)

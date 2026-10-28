@@ -355,3 +355,148 @@ Claude's pictures of it, rendered by Godot in a window (`-- --shot=... --view=..
 - whether there were any missing faces or wrong colours.
 
 Claude's pictures from below (03) and close up (04–09) show none, but that's Claude's look, not mine.
+
+## Assignment 5: shaders and materials
+
+`the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
+
+**Status (26 Oct 2026, about 17:35).**
+- **Neither shader exists yet**, and `shaders/` hasn't been made.
+- **CHANGE-BRIEF.md's Assignment 5 section** has the state and the cone's design from my answers. The rules, the uniform table, the colour line and the predictions are still to write.
+- **The cone's behaviour, which my first shader will colour, is built and checked**, and so is the test wrapper (below).
+- **I've played it twice at the camp.** What I saw isn't recorded yet.
+- **Nothing for Assignment 5 is committed yet.**
+
+**What will be tested**
+
+| | |
+|---|---|
+| Source revision | The commit tagged `a5`, once it exists. Everything below ran on `assignment-5` at 3acc103, plus the uncommitted changes listed in FRICTIONAL.md. |
+| Godot | 4.7.2 stable, official build, as for Assignments 2 and 3. Headless runs use `Godot_v4.7.2-stable_win64_console.exe`, which isn't on the PATH. |
+| Renderer | Forward+ (`project.godot`, `config/features`). HDR 2D isn't set. |
+| Machine | Windows 11 Home (10.0.26300), NVIDIA GeForce RTX 4050 Laptop GPU, 16 GB RAM; a 144 Hz display |
+| Test runner | `scripts/run-test.sh`, in Git Bash (its `timeout` is GNU coreutils) |
+
+### The test wrapper
+
+`scripts/run-test.sh` is the course's wrapper, adapted by Claude Code on 25 Oct 2026. Like the course's, it:
+- runs the test under `timeout 120` (exit status 124 means it hung);
+- pins the frame rate with `--fixed-fps`;
+- keeps a log in `logs/<test>_<fps>fps.log`;
+- fails on any `SHADER ERROR` or `SCRIPT ERROR` line, whatever the exit code.
+
+What's different, and why:
+- **`--path .` instead of `--path godot`:** the Godot project is the repository root.
+- **It finds Godot itself:** from `GODOT`, then `godot` on the PATH, then the two places the `.bat` launchers look.
+- **Flag tests:** an argument starting with `--` runs the main scene with that flag (`-- --sound-test`). The earlier checks are built that way, not as scripts in `tests/`.
+
+Run a check with `./scripts/run-test.sh <test.gd | --flag-test> <fps>`.
+
+### Baseline: the earlier checks before Assignment 5 changed anything
+
+Run on 25 Oct 2026, about 19:50, at 3acc103 with nothing changed, at `--fixed-fps 60`. Later runs overwrote these logs, since the wrapper names a log after its check and frame rate; the counts here come from that run's output in the chat transcript. The logs now in `logs/` are from the 26 Oct run below.
+
+| Check | Run with | Result |
+|---|---|---|
+| Assignment 3's assets | `a3_asset_check.gd 60` | Pass, 20 of 20 |
+| Sounds | `--sound-test 60` | Pass, 30 of 30 |
+| Thought icons | `--bubble-test 60` | Pass, 87 of 87 |
+| Campers' reactions | `--camp-test 60` | Pass, 31 of 31 |
+| Camp tasks | `--tasks-test 60` | Pass, 43 of 43 |
+| Sound waves | `--waves-test 60` | **Fail, 12 of 13**: "On the beat: a set every 2 beats (1.31 s): 4 in 5.22 s, give or take one" |
+| THE PLAN | `--plan-test 60` | Pass, 19 of 19 |
+| Title screen | `--title-test 60` | **Fail, 51 of 52**: "In: the party's sound waves are rolling out" |
+
+The two failures come from the wrapper's fixed frame rate, not from anything broken.
+- Run without `--fixed-fps`, both pass: 13 of 13, and all checks.
+- The party's beat follows the music's playback position (`scripts/campsite.gd`, `_keep_the_beat`), which runs in real time.
+- `--fixed-fps` lets a headless run's game time go faster than real time, so fewer beats come in the 5.22 s the waves check counts.
+- The assignment says not to change the earlier tests, so they stay as they are and these two are recorded as known.
+
+### After the cone behaviour and the hop fix
+
+Run on 26 Oct 2026, about 17:25, on the uncommitted work, at `--fixed-fps 60`.
+
+| Check | Result | Changed since the baseline? |
+|---|---|---|
+| Assignment 3's assets | Pass, 20 of 20 | No |
+| Sounds | Pass, 30 of 30 | No |
+| Thought icons | Pass, 87 of 87 | No |
+| Campers' reactions | Pass, 31 of 31 | **One expectation, changed with the design:** "Gone: the men look about, then head back" now allows the new confused state, SEARCH, before they walk back. |
+| Camp tasks | Pass, 43 of 43 | **One expectation, changed with the design:** the to-do list is now "investigate party marshmallows music cooler", with Rock the party as the camp tasks' main task. |
+| Sound waves | Fail, 12 of 13, the same check | No. Passes without `--fixed-fps`. |
+| THE PLAN | Pass, 19 of 19 | No |
+| Title screen | Fail, 51 of 52, the same check | No. Passes without `--fixed-fps`. |
+
+The baseline for the shader work has to be taken again once this behaviour is committed, from that commit.
+
+### The cone's behaviour (`scripts/cones_test.gd`, `--cones-test`)
+
+| Frame rate | Result |
+|---|---|
+| `--fixed-fps 30` | Pass, 43 of 43 |
+| `--fixed-fps 60` | Pass, 43 of 43 |
+| `--fixed-fps 144` | Pass, 43 of 43 |
+
+It puts the raccoon in plain sight at the camp and checks:
+- **Before the tutorial:** no cones, nobody sees him, and only the music's task on the list.
+- **The tutorial:** it pauses the game, with the note to press Tab, and Esc doesn't unpause it. Tab brings up the plan with Rock the party and its three tasks, and the note to sneak. Tab again carries on, with the cones on.
+- **When he's spotted:**
+  - the spotter's cone is red through its 2 s, and the other cones aren't;
+  - every cone shows through the red and its fade, flat on the ground, the red one 7 m long as it was;
+  - then every cone goes, 2.50 s after the spotting.
+- **The chase:** he's chased and shooed as before, with no cones meanwhile.
+- **Once he's got away:** each of the three is confused (SEARCH) for 3.00 s. Each one's cone comes back 5.00 s after they start back. All three end up back at their routines with yellow cones.
+- **The main task:** Rock the party is ticked off with its last task, and not before.
+
+The times are measured on the game's clock, so they come out the same at all three frame rates, within a physics tick and a frame.
+
+**Proof that the ground check catches its bug:** with the cone's old rescale line put back, which stretched it up and down too, "every cone flat on the ground" fails, and the run exits 1.
+
+### Found by looking, not by a test
+
+- **The red cone was missing from Claude's first picture** of the spotting (`design/level1/cones/03_spotted_red.png`, first run), though the test said it was shown.
+  - The rescale stretched the cone up and down as well as across. At an alarmed camper's 14 m it sat 1.5 m under the ground; shorter, while he sneaks, it floated about 0.7 m above it.
+  - The bug was in the game before Assignment 5 but never showed, because alarmed campers had no cone.
+  - Fixed in `scripts/vision_cone.gd`, and the ground check above was added.
+- **Two of the first pictures showed the raccoon far away instead of the campers.** The test now moves the camera to the camp for those two.
+- **A test mistake, not a game bug:** the girl went on cowering because the test moved him while he was still leaping from a shoo, and the leap carried him back into her sight. The test now waits for him to land.
+
+The pictures, from a windowed run of the cones test, are in [design/level1/cones/](design/level1/cones/):
+- 01: the tutorial's "Press Tab" note;
+- 02: the plan in the tutorial;
+- 03: spotted, the red cone;
+- 04: confused, "??";
+- 05: the cones back.
+
+They're Claude's pictures, not my look.
+
+### The hop error from my plays
+
+- **What happened:** I played twice on 26 Oct, at about 16:55 and 17:13. Claude read the game's log after each.
+  - There was nothing from the tutorial or the cones.
+  - There was one older error, 116 and 120 times: "Basis … must be normalized in order to be casted to a Quaternion", from `scripts/player.gd:486`, where a hop turns him.
+- **The cause:** a turn whose flat axes had drifted to about 0.99998 long, against an up axis of 1. Godot won't blend that, and once he carries it, every later hop fails on every frame.
+  - What puts the drift on him in play wasn't found. A scripted start (the title, the wake, the leap out of the hollow, a shoo, climbing, the hollow, a jump) didn't reproduce it.
+- **The fix:** `_hop` tidies both ends into pure turns as each hop starts.
+- **The check:** a scratch probe gave a hop ends like the error's. It logged 18 errors per 0.3 s hop before the fix and none after, with his scale back to exactly 1. Not one of the runs above logged a hop error.
+- **Not done:** a lasting test for it. The probe needs the game started outside title mode, which the wrapper's script runs don't do.
+
+### Assignment 5's checks
+
+| Check | Result so far |
+|---|---|
+| Baseline | Done before any change (above). To be taken again once the cone behaviour is committed. |
+| Shaders parse | Not started: no shader yet. |
+| Driver | Not started: it comes after my shader. The cone's timings are already measured at 30, 60 and 144 fps by the cones test. |
+| Controlled values (HUMAN CHECK) | Not started |
+| In play (HUMAN CHECK) | Played twice at the camp on 26 Oct, with the cone behaviour but before any shader. What I saw: not recorded yet. |
+| Hint experiment (HUMAN CHECK) | Not started |
+| Interface sweep (HUMAN CHECK) | Not started |
+| One shader, two materials (HUMAN CHECK) | Not started |
+| Material wiring | Not started |
+| Texture data | Not started |
+| Import settings | Not started |
+| What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). All logged in FRICTIONAL.md. |
+
+A headless run can show that the behaviour's timings, states and visibility follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks, and the fades come with the shader.

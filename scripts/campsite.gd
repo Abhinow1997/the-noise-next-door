@@ -41,6 +41,7 @@ const LowPoly := preload("res://scripts/lowpoly.gd")
 const Forest := preload("res://scripts/forest.gd")
 const FireShader := preload("res://scripts/fire.gdshader")
 const CampPerson := preload("res://scripts/camp_person.gd")
+const VisionCone := preload("res://scripts/vision_cone.gd")
 const Player := preload("res://scripts/player.gd")
 const CampTasks := preload("res://scripts/camp_tasks.gd")
 const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
@@ -203,6 +204,12 @@ var frightened := -INF
 ## Set when the men have given up shooing him down from a tree: they let him be while
 ## he stays up it.
 var gave_up_on_tree := false
+## Whether the people's cones are on: they see nothing, and show no cones, until the
+## tutorial is done (main.gd, camp_tutorial.gd). And when one of them last spotted him
+## while watching for him: every cone shows until that one's red and its fade are over
+## (vision_cone.gd), then goes until its own person is calm again (camp_person.gd).
+var cones_on := false
+var spotted_at := -INF
 ## The party's music, playing from the speaker, and how many beats into it the party
 ## is (it counts on, and goes back when the music loops).
 var party: AudioStreamPlayer3D
@@ -358,6 +365,18 @@ func in_camp(at: Vector3, margin := 0.0) -> bool:
 ## Someone has just taken fright: the others catch it (camp_person.gd).
 func frighten() -> void:
 	frightened = clock
+
+
+## Someone watching for him has just spotted him: every cone goes once the red's over.
+func spot() -> void:
+	spotted_at = clock
+	for person in people:
+		person.hide_cone()
+
+
+## Until when every cone shows after the last spotting: its red, then its fade.
+func cones_shown_until() -> float:
+	return spotted_at + VisionCone.RED_TIME + VisionCone.FADE_OUT
 
 
 ## A noise at `at` that carries `radius` metres (less while the party's music plays):

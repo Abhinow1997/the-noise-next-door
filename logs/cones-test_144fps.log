@@ -1,0 +1,48 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Tutorial and cones check, 2026-10-26T17:28:13
+  pass  Before the tutorial: no cones                                  expected false false false got false false false
+  pass  Before the tutorial: only the music's task on the list         expected investigate      got investigate
+  pass  Before the tutorial: in plain sight, nobody sees him           expected false false false got false false false
+  pass  Before the tutorial: nobody takes fright                       expected WORK WORK WORK   got WORK WORK WORK
+  pass  At the camp: the music's task is done                          expected true             got true
+  pass  Tutorial: the game pauses                                      expected true             got true
+  pass  Tutorial: a note says to press Tab                             expected Press Tab to see THE PLAN got Press Tab to see THE PLAN
+  pass  Tutorial: the plan isn't up yet                                expected false            got false
+  pass  Tutorial: Esc doesn't unpause it                               expected true             got true
+  pass  Tutorial: Tab brings up the plan                               expected true             got true
+  pass  Tutorial: the plan shows Rock the party and its tasks          expected investigate party marshmallows music cooler got investigate party marshmallows music cooler
+  pass  Tutorial: the note says to sneak                               expected Hold Ctrl to sneak, so they don't see you. Tab to put it away got Hold Ctrl to sneak, so they don't see you. Tab to put it away
+  pass  Tutorial: still paused while he reads                          expected true             got true
+  pass  Tutorial: still no cones                                       expected false false false got false false false
+  pass  Tutorial done: the game carries on                             expected false            got false
+  pass  Tutorial done: the plan goes away                              expected false            got false
+  pass  Tutorial done: the note goes                                   expected                  got 
+  pass  Tutorial done: the cones are on                                expected true             got true
+  pass  Spotted: the camper takes fright                               expected true             got true
+  pass  Spotted: the camp knows when                                   expected true             got true
+  pass  Spotted: the camper's cone red all through its red             expected true             got true
+  pass  Spotted: the other cones not red                               expected false            got false
+  pass  Spotted: every cone shown through the red and its fade         expected true             got true
+  pass  Spotted: every cone flat on the ground (within 8 cm)           expected true             got true
+  pass  Spotted: the red cone as long as when it caught him            expected 7.00             got 7.00
+  pass  Then every cone goes, RED_TIME + FADE_OUT after                expected 2.50             got 2.50
+  pass  Lingering: chased                                              expected true             got true
+  pass  Caught: shooed                                                 expected true             got true
+  pass  While they're after him: no cones                              expected false            got false
+  pass  Gone: the camper is confused (SEARCH) first                    expected true             got true
+  pass  Gone: the camper looks about for SEARCH_TIME                   expected 3.00             got 3.00
+  pass  Gone: the low-poly man is confused (SEARCH) first              expected true             got true
+  pass  Gone: the low-poly man looks about for SEARCH_TIME             expected 3.00             got 3.00
+  pass  Gone: the girl is confused (SEARCH) first                      expected true             got true
+  pass  Gone: the girl looks about for SEARCH_TIME                     expected 3.00             got 3.00
+  pass  While they search: still no cones                              expected false            got false
+  pass  Calm: the camper's cone back BACK_AFTER after starting back    expected 5.00             got 5.00
+  pass  Calm: the low-poly man's cone back BACK_AFTER after starting back expected 5.00             got 5.00
+  pass  Calm: the girl's cone back BACK_AFTER after starting back      expected 5.00             got 5.00
+  pass  Calm again: all three at their routines                        expected WORK WORK WORK   got WORK WORK WORK
+  pass  Calm again: the cones shown, and not red                       expected true true true / false false false got true true true / false false false
+  pass  Two of its tasks done: Rock the party isn't                    expected false            got false
+  pass  All three done: Rock the party is ticked off                   expected true             got true
+RESULT: all checks passed (43 checks)

@@ -14,8 +14,18 @@ const HideSpot := preload("res://scripts/hide_spot.gd")
 @export var angle := 70.0
 ## Which physics layers block its sight.
 @export_flags_3d_physics var blocked_by := 1
-## Draws the cone on the ground: pale while it watches, red while it sees him.
+## Draws the cone on the ground: pale while it watches, red for a while once it spots him.
 @export var show_cone := true
+## Since 26 Oct 2026 (CHANGE-BRIEF.md, Assignment 5): the moment it spots him its cone
+## snaps red and stays so for RED_TIME (the author: "When spotted the color should snape
+## to red for a 2 seconds"); then every cone at the camp fades out over FADE_OUT, and
+## each comes back BACK_AFTER seconds after its NPC starts walking back (the author:
+## "after like 5 seconds bring the vision cone back"). FADE_OUT is Claude Code's choice.
+## When each cone shows is camp_person.gd's; the colour and the fades are the author's
+## shader's, once it's in: until then the cone just turns red, and shows or not.
+const RED_TIME := 2.0
+const FADE_OUT := 0.5
+const BACK_AFTER := 5.0
 ## The heights on him it looks for (his back, his head), in metres: seeing either is enough.
 const LOOK_AT := [0.25, 0.45]
 const WATCHING := Color(1.0, 0.93, 0.62, 0.5)
@@ -25,6 +35,14 @@ const SEEING := Color(1.0, 0.33, 0.27, 0.65)
 var target: Node3D
 ## True while it sees the target.
 var seeing := false
+## While true it sees nothing (at the camp, until the tutorial's done).
+var blind := false
+## When it last spotted him, on its own clock (`clock`).
+var spotted_at := -INF
+var clock := 0.0
+## While above 0, the cone is drawn this long instead of as far as it sees (`reach`):
+## camp_person.gd keeps it at its length from before they took fright.
+var held_length := -1.0
 ## Bodies its sight passes through, such as its own NPC's collider.
 var ignore: Array[RID] = []
 
@@ -39,20 +57,31 @@ func _ready() -> void:
 		_build_cone()
 
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
+	clock += delta
 	if target == null:
 		target = get_tree().get_first_node_in_group("player") as Node3D
-	var now := target != null and can_see(target)
+	var now := not blind and target != null and can_see(target)
 	if now != seeing:
 		seeing = now
 		if now:
+			spotted_at = clock
 			spotted.emit(target)
 		else:
 			lost.emit(target)
 	if _material:
-		_material.albedo_color = SEEING if seeing else WATCHING
-		# Drawn as far as it sees now: the level may change `reach` as it goes.
-		_cone.scale = Vector3.ONE * (reach / _drawn_reach)
+		_material.albedo_color = SEEING if red() else WATCHING
+		# Drawn as far as it sees now (the level may change `reach` as it goes), and
+		# stretched across the ground only: stretched up and down as well, as it was
+		# until 26 Oct 2026, it sank into the ground when longer and rose off it when
+		# shorter, since it hangs below the eyes.
+		var length := held_length if held_length > 0.0 else reach
+		_cone.scale = Vector3(length / _drawn_reach, 1.0, length / _drawn_reach)
+
+
+## True from the moment it spots him until its red and the fade after it are over.
+func red() -> bool:
+	return clock < spotted_at + RED_TIME + FADE_OUT
 
 
 ## True if it can see `body` right now.
@@ -88,6 +117,20 @@ static func hidden(body: Node3D) -> bool:
 func show_on_ground(on: bool) -> void:
 	if _cone:
 		_cone.visible = on
+
+
+## True while the cone's drawn on the ground.
+func showing() -> bool:
+	return _cone != null and _cone.visible
+
+
+## How long the cone's drawn, and where it is in the world (for the tests).
+func drawn_length() -> float:
+	return _cone.scale.x * _drawn_reach if _cone else 0.0
+
+
+func drawn_box() -> AABB:
+	return _cone.global_transform * _cone.get_aabb() if _cone else AABB()
 
 
 ## The cone, as a fan on the ground under the eyes, fading toward its edge.

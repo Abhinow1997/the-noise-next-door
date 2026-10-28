@@ -7,7 +7,8 @@ extends CanvasLayer
 ##   - a chalk E over the nearest thing he can use, and a ring round it filling while he
 ##     holds E at it (and running back while he doesn't);
 ##   - over the campers' heads (camp_person.gd): a "?" while one is wondering about a
-##     noise, and the red "!" when one has just spotted him or is chasing him.
+##     noise, "??" while one is confused after he's got away, and the "!" when one has
+##     just spotted him or is chasing him.
 
 const Scribbles := preload("res://scripts/scribbles.gd")
 const Interactable := preload("res://scripts/interactable.gd")
@@ -109,13 +110,14 @@ func _draw_on(canvas: Control) -> void:
 		if camera.is_position_behind(head):
 			continue
 		var p := camera.unproject_position(head)
-		if person.state == CampPerson.State.INVESTIGATE:
+		if person.state in [CampPerson.State.INVESTIGATE, CampPerson.State.SEARCH]:
+			var mark := "??" if person.state == CampPerson.State.SEARCH else "?"
 			var size := int(unit * MARK * 1.6)
 			var bob := sin(_t * 4.0 + person.get_instance_id()) * unit * 0.004
-			var line := FONT.get_string_size("?", HORIZONTAL_ALIGNMENT_CENTER, -1, size)
+			var line := FONT.get_string_size(mark, HORIZONTAL_ALIGNMENT_CENTER, -1, size)
 			var at := p + Vector2(-line.x * 0.5, bob)
-			canvas.draw_string_outline(FONT, at, "?", HORIZONTAL_ALIGNMENT_LEFT, -1, size, int(size * 0.18),
+			canvas.draw_string_outline(FONT, at, mark, HORIZONTAL_ALIGNMENT_LEFT, -1, size, int(size * 0.18),
 				Scribbles.DARK)
-			canvas.draw_string(FONT, at, "?", HORIZONTAL_ALIGNMENT_LEFT, -1, size, Scribbles.WHITE)
+			canvas.draw_string(FONT, at, mark, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Scribbles.WHITE)
 		elif person.alarmed_for() < ALERT_FOR or person.state == CampPerson.State.CHASE:
 			Scribbles.draw(canvas, Scribbles.strokes("alert", int(_t * 8.0) % 3, 0), p, unit * MARK * 1.6)

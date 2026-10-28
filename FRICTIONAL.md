@@ -1589,3 +1589,172 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - **Done by Claude:** in the "waves" icon (`scribbles.gd`), each of the three arcs is now a wavy line that snakes either side of the same arc (`WAVE_HEIGHT`, 0.045 of his height), in 3, 5 and 7 half waves from the small one to the big one, so each starts and ends on its arc and all three bulge out together in the middle. Their sizes, places, timing and boil are unchanged.
   - **Checked:** waves (13) and bubble (87) pass. Pictures: `design/level1/waves/` 04–05.
 - **Human / Claude / model:** the request, the picture and the choices are mine. The code, the check and this write-up are Claude's. No generative model.
+
+## 2026-10-25 — The moods in white, with a red anger mark and a half-eaten apple
+
+- **Asked** (22:45): "all the moods should be white like the drawn i think the alert one is read update tht to be white also idea and the food one needs to be better i dont like the current fish bones onw"
+  - Asked what the food should be instead, I chose a half-eaten apple.
+  - Then, with a picture of an anime anger mark (four red bent strokes round a middle; shared in chat, not in the repo): "No the range symbols like tht small sizes but white". By then another session had redrawn the frustrated icon as a crooked #.
+  - Then: "have the colur for only rage and food".
+- **Done by Claude**, all in `scripts/scribbles.gd`:
+  - **White:** the alert "!" (was red), the idea bulb (was a yellow bulb with dark lines; now drawn in white outline) and the sparkles (were pale cream).
+  - **Frustrated:** the anger mark from the picture, in its red, 0.55 of his height across: the top stroke measured from the picture and turned a quarter at a time for the other three. It throbs a little, three times a second.
+  - **Hungry:** a red half-eaten apple in the thought loop, a bigger bite out of its right side showing the cream flesh in three tooth marks, with a stem and a green leaf, and bigger than the fish was. The cooler's own picture, the apple core, got the same colours.
+  - The hungry icon is still called "fish" in the code, so `scripts/bubble_test.gd` didn't have to change on the assignment-5 branch; a comment says why.
+- **Checked:** bubble (87) and camp (31) pass. The first try at the apple's flesh crossed its own edge and wouldn't fill; caught by Godot's errors in the bubble run. Pictures: `design/ui/moods/` 01–04.
+- **Not done:** the anger mark's red is the picture's own; on the darkest ground (the shed door) it's a little dark.
+- **Human / Claude / model:** the request, the picture and the choices are mine. The code and this write-up are Claude's. No generative model.
+
+## Assignment 5: shaders and materials
+
+`the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
+
+**How these entries were written**
+- Claude Code wrote them on 25–26 Oct 2026 from my chat messages, the test logs and file dates.
+- My messages are quoted exactly as I typed them, typos included. Times are US Eastern, taken from the chat transcript. Two messages that came in while Claude was working have no exact time and are marked "about".
+- The first entry was written on 26 Oct, the day after; it's put together from that transcript.
+
+**Who's who**
+- **Me:** the choices, the specification in CHANGE-BRIEF.md, both shaders and the hint-experiment shader (none written yet), the language notes, my plays and the human checks.
+- **Claude Code** (2.1.289, with Claude Opus 5.5): the test wrapper, the study notes, the questions for my brief, the game code and checks around the shader, and the wording of these docs.
+- **Generative models:** none so far.
+
+| Date | Entry | Commits |
+|---|---|---|
+| 25 Oct | Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief | not committed yet |
+| 26 Oct | The vision cones: the tutorial at the camp, 2 s of red, the confused search | not committed yet |
+| 26 Oct | My two plays at the camp, and the hop error they logged | not committed yet |
+| 26–28 Oct | My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures | not committed yet |
+
+## 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
+
+**Setting up**
+- **Asked** (19:40): I pasted the Assignment 5 brief. Claude found the repo clean on `feature-update-main-raccoon` at 3acc103. It wrote `scripts/run-test.sh`, the course's wrapper adapted to this repo (see TEST-REPORT.md), and ran the earlier checks through it.
+- **The branch:**
+  - (about 19:45) "create a new repo for this assignement-5". Asked about the name and history, I answered: "What new repo we have the noise-next-door repo we work in that".
+  - Claude made the branch `assignment-5` from 3acc103 instead. Then "name the git branch as", and (19:46) "assignment-5".
+- **The baseline:** six of the eight earlier checks pass under the wrapper. The waves check (12 of 13) and the title check (51 of 52) fail, but only with `--fixed-fps`: the party's beat follows the music's real-time clock. Both pass without it.
+- **My brief file:** Claude suggested moving the Assignment 2 and 3 briefs out of CHANGE-BRIEF.md, since `@CHANGE-BRIEF.md` would bring them into every agent session. (19:57) "Leave CHANGE-BRIEF.md as it is; I'll add the A5 brief to it."
+
+**Working out what to write**
+- (19:58) "What do we need to write for assignment 5 ?" Claude listed what's mine to write and what it may write. (20:25) "i still dont understand wht we are nneded here what do u want me to descibe ?" Claude explained the brief part by part, with examples from a made-up trap game.
+- (20:34) "ok i want to describe the suggestions we are doing to define the raccoons mood what are they can u list them". Claude listed the nine mood icons from `scripts/thought_bubbles.gd`.
+- (20:40) "I want to write abt these and update the status and shaders values for the assignment for all these", then (20:47) "what and where should i do this ?"
+  - Claude said the assignment needs one state fully specified, not nine.
+  - It gave an empty outline for the brief: the assignment's list, as headings and questions. I pasted it into CHANGE-BRIEF.md.
+- (20:53) "can i not edit in ur editor ?" Claude opened the file in the app's Files pane.
+
+**Choosing the cones**
+- (22:10) I picked the NPC vision cones, wrote the first part of the state myself, and asked "I want to work on the shaders for these".
+  - Claude read `scripts/vision_cone.gd` and explained what's there.
+  - It also found that a cone vanishes as soon as its camper is alarmed, so the red barely shows.
+- (22:42) "Add these pointers and make the notes i dont know all these details abt shaders".
+  - Claude wrote `design/a5/shader-notes-by-claude.md`, labelled as its own study notes, instead of editing my brief. The brief must be mine, and I had it open. (I had the notes removed on 28 Oct 2026; see the 26–28 Oct entry.)
+  - The notes explain the words, the cone's code with line links, and how to work out a pixel. They leave out the colour line, the numbers and the answers to the short questions.
+
+**Also asked, outside the shader work**
+- (22:45) "also the frusted one should be # rather than the what we have". Claude redrew the frustrated icon as a crooked white "#" in `scripts/scribbles.gd`. Later that evening another session replaced it with a red anger mark (the entry above).
+
+**Things to know**
+- This session started before my brief was written or committed. Claude's part that day was the branch, the wrapper, the baseline, the study notes and the outline. It wrote no shader and no brief text.
+- **Human / Claude / model:** the choices, my answers and the cones as my state are mine. The wrapper, the outline, the notes, the "#" and this write-up are Claude's. No generative model.
+
+## 2026-10-26 — The vision cones: the tutorial at the camp, 2 s of red, the confused search
+
+- **Asked** (14:39): "lets focus on the vision cone for the assignment". Claude Code asked me about the cone in three rounds. My answers are in CHANGE-BRIEF.md's Assignment 5 section, with the spelling fixed.
+  - (15:01) Spotted, the cone should "snape to red for a 2 seconds". To lose the alert, he has to run away or hide.
+  - (15:53) My first answer was "Vashing after 3 frames so the player understands he has been spoted". Claude pointed out that 3 frames is 0.1 s at 30 fps and 0.02 s at 144 fps, and I picked 2 seconds.
+  - (16:02) "completely fade all the vision cones make the npc confused with the '??' around his head looking around and then walk back and after like 5 seconds bring the vision cone back".
+  - (16:02, same answer) Claude had said a tutorial at the camp was a game-logic change the assignment rules out. I answered: "cones in all is a conecpt for the assignment 5 what are u talking abt ? changing the game logic ? we are figuring the game logic and vision cone is a new mechanic …".
+  - (16:08) A tutorial when he reaches the camp, "prompting him to open tab", with the camp's tasks as sub-tasks of one main task. The confusion comes "afetr he has shooed him away and after the raccoon has evaded the sight", and the tutorial is "a interactive tutorial style".
+  - (16:11) "take liberties with the gaps that feel approriate".
+- **Claude's mistake:** it treated the assignment's "game logic stays unchanged" rule as a reason not to change the cones. That rule only covers the shader's own change. So the behaviour goes in first, written by Claude, and my shader colours it.
+- **Done by Claude**, from my design, with the gaps it filled labelled in the brief (0.5 s fades, what the 5 s count from, the name Rock the party, the tutorial's steps, the cone's length while it's red):
+  - `scripts/camp_tutorial.gd` (new): at the camp, the game pauses with a note to press Tab. THE PLAN opens with Rock the party and its sub-tasks, and a second Tab carries on with the cones on.
+  - `scripts/camp_tasks.gd`: the main task with its sub-tasks, hidden until the tutorial reveals them, and ticked off with its last sub-task.
+  - `scripts/plan_note.gd`: sub-tasks indented, and the tutorial's note on a scrap that stays up over the page.
+  - `scripts/camp_person.gd`: a new SEARCH state, confused with "??" for 3 s before they walk back (except when they give up on him up a tree). Also when each cone shows: none until the tutorial, all of them through the 2 s of red and the fade after it, then each back 5 s after its camper starts walking back.
+  - `scripts/vision_cone.gd`: blind until the tutorial, and red for 2 s (plus the fade) after it spots him. Until my shader is in, it just turns red and shows or doesn't, with no fades.
+  - `scripts/campsite.gd`, `scripts/camp_input.gd` (the "??") and `scripts/main.gd` (the tutorial, Esc ignored during it, and the other tests skipping it).
+  - `scripts/cones_test.gd` (new, `--cones-test`, 43 checks).
+- **Found by looking, not by the test:**
+  - **The red cone was missing from the first picture** (`design/level1/cones/03`), though the test said it was shown. The cone's rescale stretched it up and down as well as across, so at an alarmed camper's 14 m it sat 1.5 m under the ground; shorter, while he sneaks, it floated about 0.7 m above it. That was in the game before today, but it never showed, because alarmed campers had no cone. Now it's stretched across the ground only, and kept at its watching length while it's red. A new check, "every cone flat on the ground", fails with the old line put back.
+  - **Pictures 04 and 05 first showed the raccoon far away**, not the campers. The test now moves the camera to the camp for those two pictures.
+- **A test mistake:** the girl went on cowering because the test moved him while he was still leaping from a shoo. The leap carried him back into her sight. The test now waits for him to land; the game was right.
+- **Checked:**
+  - The cones test passes 43 of 43 at `--fixed-fps` 30, 60 and 144.
+  - At 60: camp 31, tasks 43, bubble 87, plan 19, sound 30, A3 20.
+  - Waves (12/13) and title (51/52) fail only under `--fixed-fps`, as in yesterday's baseline; both pass without it.
+  - Two expectations changed with the design: the tasks test's to-do list now has Rock the party, and the camp test's "Gone" check allows SEARCH.
+  - Pictures: `design/level1/cones/` 01–05.
+- **Not done:** the fades and the colour (my shader); the brief's Rules section, the predictions and the rest of it; nothing committed.
+- **Human / Claude / model:** the design is mine: my answers to Claude's questions. The gap choices are Claude's, at my request. The code, the test, the pictures and this write-up are Claude's. No generative model.
+
+## 2026-10-26 — My two plays at the camp, and the hop error they logged
+
+- **Asked** (16:55): "Open the game so I can walk to the camp and try the tutorial and the cones myself", then (17:13) "let me try again". Claude opened the game in a window both times and read its log once I'd closed it. What I saw in play is still to be written up in my own words (TEST-REPORT.md).
+- **The logs:** nothing from the tutorial or the cones. The first log had 116 copies of one error, the second 120: "Basis ... must be normalized in order to be casted to a Quaternion", all from `scripts/player.gd:486`. That line turns him from start to finish during a hop: the leap away from a shoo, onto or off a tree, into the hollow.
+- **Asked** (17:19): "Yes, fix the hop error in player.gd and rerun the checks."
+- **What Claude found:**
+  - The basis in the error is a pure turn about the vertical, but its two flat axes are about 0.99998 long against its up axis's 1. Godot won't blend a basis whose axes differ in length (an even scale it accepts).
+  - Once he carries a basis like that, every later hop fails on every physics frame, which is how the count got past a hundred.
+  - It was older than today's change: `player.gd` was unchanged since 3acc103, and no test had ever hit it.
+- **Not found:** what puts that drift on him in play. Claude couldn't reproduce it from a scripted start: a title start with the wake and the leap out of the hollow, a shoo, the climb, rest and jump helpers. It's honest to say the cause is unknown.
+- **The fix (Claude):** `_hop` now tidies both ends into pure turns (`orthonormalized()`) as each hop starts, so the blend works whatever drift he has, and the end of the hop leaves him clean.
+- **Checked:**
+  - A scratch probe gives a hop a start, then an end, with flat axes 0.99997 long. Before the fix it logged the same error 18 times per 0.3 s hop; after, none, and his scale ends at exactly 1. The probe isn't kept in the repo.
+  - At 60 fps: A3 20, sound 30, bubble 87, camp 31, tasks 43, plan 19. Cones 43 at 30, 60 and 144.
+  - Waves 12/13 and title 51/52 fail under `--fixed-fps` as in the baseline, and pass without it.
+  - No hop error in any log.
+- **Not done:** a lasting test for the hop. The probe has to start the game outside title mode, which the wrapper's script runs don't do.
+- **Human / Claude / model:** the plays and the request are mine. The diagnosis, the fix, the checks and this write-up are Claude's. No generative model.
+
+## 2026-10-26 to 28 — My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures
+
+**Rounds 3 to 7**
+- **Asked** (26 Oct, 17:40): "ok what is remaning for assignement 5 more ask me", then (19:27) "ask me specifc question in this i'll give u the detals". Claude asked in rounds of clickable options, and I picked:
+  - **Round 3** (19:34), the rules: start the 2 s over when he's re-spotted; finish the 2 s if he's lost early; freeze when paused; always 2 real seconds.
+  - **Round 4** (27 Oct, 00:38): one material per cone, and the knobs `alarm` and `shown`, with the two colours as knobs too.
+  - **Round 5** (18:07): `hint_range(0.0, 1.0)` and `source_color`; `watch_color` and `alarm_color`; defaults `alarm` 0 and `shown` 1; the colours keep their see-through amounts.
+  - **Round 6** (18:08): `shaders/vision_cone.gdshader`; blend smoothly from yellow to red; see-through is all three multiplied; and the values rule, which Claude put together from my design.
+  - **Round 7** (18:14), the boundaries: movement and input, the campers' behaviour, and everything else's look. I didn't tick the earlier tests. Claude pointed out that the assignment lists them, and I answered (18:19): "Yes, add "no earlier test's expectations change" to my boundaries." I chose a headless test for every timing rule, and both a test and my eyes for "only one cone turns red".
+- Claude wrote each answer into the brief, marked as picked from its options. On 28 Oct it found one date wrong (round 4 said 26 Oct) and fixed it.
+
+**My own parts, and Claude's review**
+- (28 Oct, 13:27) I wrote my `shader_type` and `render_mode`, with my reasons. Claude put them in word for word, then reviewed them:
+  - `fog_disabled` and `cull_disabled` are missing; the cone's current material has both;
+  - `blend_mix` doesn't switch transparency on (writing `ALPHA` does);
+  - my reason for `depth_draw_opaque` isn't what it does.
+- (13:41) "Keep it as is."
+- By 28 Oct I had also written the predicted pixels, the hint-experiment predictions, a material plan and three predicted failures. (13:49) "check in the change breif .md". Claude reviewed them and changed nothing:
+  - **Pixels:** the see-through amount leaves out the colour's own amount and `shown`. The arithmetic is on the 0–255 numbers, not on linear values. The grass isn't measured. Two numbers are off by one.
+  - **Hint experiment:** the table gives the values the shader receives, not the 8-bit values on screen; the `encode()` step is missing.
+  - **Material plan:**
+    - it has one texture, one knob and one group, and the two materials don't both use the one shader;
+    - the cone has no UVs, which the cooler has.
+  - **Failures:**
+    - a Tween's pause is set with `set_pause_mode`;
+    - an unset uniform takes the shader's default;
+    - the raccoon isn't see-through.
+- None of those fixes are made yet.
+
+**The grass captures**
+- (13:51) "Yes, take it." Claude wrote `design/a5/captures/make_captures.gd` and ran it in a window. As after the tutorial, with him well away, it pauses the game, hides the overlays and centres the game's own camera on the camper's cone. It saves, in `design/a5/captures/`:
+  - 01, the grass with every cone hidden;
+  - 02, the cone as it's drawn today;
+  - 03, a copy of 02 with my two spots ringed.
+- **What it read:**
+
+  | Spot | Where | The cone's corner alpha | Grass, cones hidden | Today's cone |
+  |---|---|---|---|---|
+  | Base at Camper | 0.5 m from the apex of the 7 m cone, pixel (974, 258), in the orange tent's shadow | 0.519 | (34, 45, 49) | (142, 134, 94) |
+  | Far Edge | 6.5 m from the apex, pixel (249, 480), lit by the fire | 0.151 | (58, 76, 82) | (94, 101, 91) |
+
+  The 5×5 averages round to the same numbers, so both spots are on flat colour.
+- **Checked:** the kept script, run again, read the same values at both spots. The rest of the picture differed, because the fire and its sparks move.
+- **Not done:**
+  - my fixes to the predictions, with the measured grass;
+  - the colour line and the see-through line;
+  - the short answers.
+- **The study notes removed** (28 Oct): "remove the shaders notes by calude". Claude sent `design/a5/shader-notes-by-claude.md` to the Recycle Bin; it was never committed. The record of what the notes held stays here and in SOURCES.md.
+- **Human / Claude / model:** the picks, the render_mode, the predictions and the plan are mine. The questions, the review, the captures, their script and this write-up are Claude's. No generative model.

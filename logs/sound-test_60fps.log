@@ -1,0 +1,39 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Sound check, 2026-10-26T17:27:26
+  pass  Nap: it counts as a nap                              expected 1      got 1
+  pass  Nap: a task done in his sleep is ticked off          expected true   got true
+  pass  Nap: no laugh in his sleep                           expected 0      got 0
+  pass  Nap: the lullaby is playing                          expected true   got true
+  pass  Nap: the lullaby is at full level                    expected true   got true
+  pass  Nap: the forest loop is faded right down             expected true   got true
+  pass  Nap: the camera has eased in close                   expected 1.0    got 1.0
+  pass  Awake: he's out and on the ground                    expected true   got true
+  pass  Awake: the lullaby has stopped                       expected false  got false
+  pass  Awake: the forest loop is back to full               expected true   got true
+  pass  Awake: the camera is back out                        expected 0.0    got 0.0
+  pass  Awake: still no laugh for it                         expected 0      got 0
+  pass  Paused: the game stops                               expected true   got true
+  pass  Paused: the music is muffled                         expected true   got true
+  pass  Paused: the music is 8 dB quieter                    expected -8.0   got -8.0
+  pass  Unpaused: the game runs                              expected false  got false
+  pass  Unpaused: the muffling is off                        expected false  got false
+  pass  Unpaused: the music is back to full                  expected 0.0    got 0.0
+  pass  M and N: both buses muted                            expected true   got true
+  pass  M and N again: both unmuted                          expected false  got false
+  pass  SFX-CHITTER: 5 quick presses + 1 held press          expected 6      got 6
+  pass  SFX-RUN: 2 runs, Shift tapped during the first       expected 2      got 2
+  pass  SFX-CLIMB: 2 climbs, clinging still between          expected 2      got 2
+  pass  SFX-TASK-LAUGH: 2 tasks in a frame, not in his sleep expected 1      got 1
+  pass  Every task done                                      expected true   got true
+  pass  No ending yet: the music carries on                  expected true   got true
+  pass  Loop marker over the whole file: forest-loop.wav     expected true   got true
+  pass  Loop marker over the whole file: run-loop.wav        expected true   got true
+  pass  Loop marker over the whole file: climb-loop.wav      expected true   got true
+  pass  Loop marker from the repeat to the end: lullaby-loop.wav expected true   got true
+RESULT: all checks passed
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

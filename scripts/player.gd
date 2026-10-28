@@ -460,8 +460,11 @@ func _end_startle() -> void:
 
 
 func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done := Callable()) -> void:
-	_hop_from = from
-	_hop_to = to
+	# Tidied into pure turns: one whose axes have drifted a hair apart in length is no
+	# rotation to Basis.slerp (_hop_process), which then fails and logs an error on every
+	# frame of the hop, as it did 116 and 120 times in the author's plays on 26 Oct 2026.
+	_hop_from = from.orthonormalized()
+	_hop_to = to.orthonormalized()
 	_hop_t = 0.0
 	_hop_time = time
 	_hop_height = height
