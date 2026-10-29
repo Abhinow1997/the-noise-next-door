@@ -1649,7 +1649,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 28 Oct | My predicted pixels and contrast ratios, in three tries | fa98066 |
 | 28 Oct | My hint experiment predictions | fa98066 |
 | 28 Oct | My short answers | fa98066 |
-| 28 Oct | Step 1, the CLAUDE.md draft: a run that wasn't signed in, then one that worked | not committed yet |
+| 28 Oct | Step 1, the CLAUDE.md draft: a run that wasn't signed in, then one that worked | 6451725 |
+| 28 Oct | Step 1, my review of CLAUDE.md | not committed yet |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -1921,7 +1922,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Ran** (about 20:22), in Git Bash, the course's command: `claude -p` with read-only git tools, `--max-turns 40`, into `session-1.jsonl`.
 - **What happened:** it stopped at once. Its last event says "Not logged in · Please run /login", after 1 turn and 113 ms, with no permission denials; its first says `apiKeySource` none. The CLI in my terminal wasn't signed in, since the desktop app's sign-in doesn't carry over. No CLAUDE.md was written.
 - **Checked** by Claude, at my run: `git diff --stat -- shaders/ scripts/` printed nothing, and the only new files were `prompt-1.txt` and `session-1.jsonl`.
-- **Then** (about 20:27): I kept the first transcript as `session-1-not-logged-in.jsonl`, signed the CLI in myself (`claude`, then `/login`), and ran the same command again.
+- **Then** (about 20:27): I renamed the first transcript `session-1-not-logged-in.jsonl`, signed the CLI in myself (`claude`, then `/login`), and ran the same command again. After committing it, I deleted that file for good (28 Oct, "Delete it for good"), so it's only in commit 6451725.
 - **What happened:** it finished in 21 turns and 104 s, ending normally (`end_turn`), with no permission denials, and its transcript is 0.47 MB. It read the files and wrote CLAUDE.md, 119 lines, with one Write and one Edit, both to CLAUDE.md.
 - **Checked** by Claude, at my "ok done":
   - `git diff --stat -- shaders/ scripts/` printed nothing;
@@ -1929,3 +1930,25 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the agent also ran read-only commands outside its allow-list (`cat`, `grep`, `sed`, `wc`) with no denial, so the allow-list didn't stop them. That's why the diff is the guarantee.
 - **Next:** commit the draft unedited, then my review.
 - **Human / Claude / model:** the runs and the sign-in are mine. The prompt file, the reading of the transcripts and this write-up are Claude's. The draft is the `claude -p` agent's (Claude Code 2.1.289, Claude Opus 5.5). No other generative model.
+
+### 2026-10-28 — Step 1, my review of CLAUDE.md
+
+- **The draft** is committed unedited, as 6451725.
+- **Claude's check of the draft** (at my "ok done"): about 50 file references, nearly all right.
+  - Two agent mistakes. It says "MSAA 3D is 2x", when `msaa_3d=2` is 4× in Godot's enum (0 off, 1 2×, 2 4×, 3 8×). And it says the asset room's sun energy "wasn't found in `asset_room.tscn`", when it's there, on the `Sun` node.
+  - Two "Unconfirmed" items the repo already answers: `--audio-driver Dummy`, and Godot and `timeout` on the PATH.
+  - No "Headless facts" block, and no non-tests to delete.
+- **My first review decision** (28 Oct), in my words: "remove the reference of hard coded lines from the claude.md to make it better in future things might be diffrent dont wanna hard code lines".
+  - Claude Code did it at my request: it replaced all 63 line numbers with the file and a name that won't move (a function, variable, setting key, node or brief section), so every fact still has a file reference.
+  - Nothing else changed: CLAUDE.md is still 119 lines, and Claude checked that each new name exists.
+- **My edits** (28 Oct), from Claude's list of what to change: MSAA to 4x; the judging light naming the asset room's `Sun` (`light_energy = 0.8`), in my words; the two lines on the cooler's copies in the bubble demo and the A3 check removed; and the three answered "Unconfirmed" items meant to go.
+- **What went wrong:** after my save, CLAUDE.md stopped after the Tests bullets, at 54 lines.
+  - Everything after them was gone: the test commands, the `@CHANGE-BRIEF.md` import, Ownership, Out of scope and all of Unconfirmed.
+  - The line numbers were back, because my editor still held the draft from before Claude's rewrite.
+  - Claude caught it when I said "updated now", before anything was committed.
+- **Rebuilt** at my word ("Yes, rebuild it"): Claude Code rebuilt CLAUDE.md from the committed draft (6451725), with its line-number rewrite and my edits, my sun line in my words. Checked: 113 lines, no line numbers, and every required section present.
+- **The "Headless facts" block** (28 Oct), at my word ("Add it for me"): four bullets in Claude Code's wording, from the facts it had listed for me.
+  - Each was checked: `--headless` picking the dummy audio driver against Godot 4.7.2's own `--help`, the two fixed-fps failures against TEST-REPORT.md, the uniform-list facts against my brief's evidence split, and the physics rate against `project.godot`.
+  - CLAUDE.md is now 119 lines.
+- **Non-tests to delete:** none. Every command it lists is a real check.
+- **Human / Claude / model:** the decisions and my edits are mine. The rewriting of the references, the rebuild, the "Headless facts" wording, the checks and this write-up are Claude's. No generative model.
