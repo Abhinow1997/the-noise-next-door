@@ -1651,7 +1651,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 28 Oct | My short answers | fa98066 |
 | 28 Oct | Step 1, the CLAUDE.md draft: a run that wasn't signed in, then one that worked | 6451725 |
 | 28 Oct | Step 1, my review of CLAUDE.md | b97ac59 |
-| 28 Oct | Step 2, my shader | 53b0087 (the shader); this entry not committed yet |
+| 28 Oct | Step 2, my shader | 53b0087 (the shader); cb4bafd (this entry and the `.uid` files) |
+| 28–29 Oct | Step 2, the plan: a plan-only run, Claude's review, and my picks | the commit after cb4bafd |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -1966,3 +1967,40 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **The `.uid` file:** when I opened the project in the Godot editor, it didn't write `shaders/vision_cone.gdshader.uid`, and the editor's file cache didn't list the shader yet. In a scratch copy, a headless `--import` did write it. So I run that import myself and commit the file, before an agent session's import can create it in `shaders/`.
 - **Not done yet:** the driver and its test.
 - **Human / Claude / model:** the shader and its commit are mine. The refusal to write it, the checks and this write-up are Claude's. No generative model.
+
+### 2026-10-28 to 29 — Step 2, the plan: a plan-only run, Claude's review, and my picks
+
+- **Asked** (28 Oct): "Yes, prompt-2". Claude Code wrote `prompt-2.txt`: the course's Step 2 prompt, adapted to this repository, with a paragraph added to make the run plan-only, because a one-shot `claude -p` run can't wait for my approval. SOURCES.md has a row for it.
+- **Ran** (28 Oct, finished at about 21:32), in Git Bash: `claude -p` with Read, Glob, Grep and read-only git commands, with Edit, Write, NotebookEdit and PowerShell blocked, and `--max-turns 40`, into `session-2.jsonl`.
+- **What happened:** it ended normally (`success`, `end_turn`) in 15 turns and 3 minutes, with no permission denials (Claude Code 2.1.312, Claude Opus 5.5). All 14 of its tool calls were reads (9 Read, 3 Grep, 2 Glob), and it ran no commands. It didn't open CLAUDE.md or the brief with a tool, and didn't need to: Claude Code loads CLAUDE.md at the start, and its `@CHANGE-BRIEF.md` line brings in the brief. The plan quotes my revisions.
+- **Checked** by Claude, at my "done": `git diff --stat -- shaders/ scripts/ tests/` printed nothing, the only new file was `session-2.jsonl`, and a scan of it for key and token patterns found no credentials.
+- **The plan** (the transcript's last event), in four steps:
+  1. each cone makes its own ShaderMaterial from my shader;
+  2. `spot()` records who spotted him, and a new driver sets the uniforms from the camp's clock;
+  3. a new test, `tests/cone_shader_test.gd`, run by a `--cone-shader-test` flag, with 16 assertions, each tied to a rule;
+  4. every test run.
+
+  It asked me five questions. It also raised two things about my shader: it has no `fog_disabled` (my failure 5), and it keeps back-face culling, where the old material drew both sides.
+- **Claude's review** (28 Oct), checking the plan's claims against the code:
+  - the culling: seen from above, each of the cone's triangles runs clockwise, which Godot draws as the front, so back-face culling should keep it. My eyes confirm it.
+  - `main.gd` turns the title screen on when a run has no user arguments, so a `--script` test would start on the title screen.
+  - No existing test reads the cone's material, and the bubble demo makes `VisionCone`s too.
+  - The spotters rule gives all four rows of my restart table, and it fixes the gap of 28 Oct: the guard who turns to face him and goes red.
+- **Two real problems** the plan raised, which Claude confirmed:
+  - At 144 fps the camp's clock moves only on the 60 Hz physics tick, so the first frame where `shown` drops is one tick (16.7 ms) late, against my 6.9 ms.
+  - The re-spots depend on when the other campers catch a fright. Claude found that only a camper at work catches one, 0.25 to 0.6 s later (`CATCH_FRIGHT`, in `_work()`).
+- **My picks** (29 Oct), in my words "Yes, all eight", were Claude's eight recommendations:
+  1. steps 1 to 4;
+  2. the `--cone-shader-test` flag;
+  3. the `cone_back_at()` getter, as a second, read-only addition to the game's code;
+  4. the fallback that keeps the bubble demo's cones turning red;
+  5. the timings at 144 fps read off the fade's slope, with the first changed frame printed and held to one tick;
+  6. the re-spots required, staged as Claude found;
+  7. no fade-in when the tutorial ends;
+  8. my shader as it is, with the fog left to my captures.
+- **Written in** by Claude Code (29 Oct):
+  - the brief's revision of 29 Oct, with picks 3, 5 and 7;
+  - three lines of CLAUDE.md, to match it: the two allowed additions, what the driver reads, and every dated "Revised" part in place of the 28 Oct date, which would have left the new revision out;
+  - `prompt-3.txt`, approving the four steps with all eight picks as conditions. It's run with `--resume`, so the agent carries on in the conversation where it wrote its plan.
+- **Next:** the run with `prompt-3.txt`, which gets its own entry. It was still running when this entry was committed.
+- **Human / Claude / model:** the runs and the picks are mine. The prompt files, the reading of the transcript, the review, the brief's wording and this write-up are Claude's. The plan is the `claude -p` agent's (Claude Code 2.1.312, Claude Opus 5.5). No other generative model.

@@ -81,7 +81,7 @@ its 43 at 30, 60 and 144 (`CHANGE-BRIEF.md`, the evidence split's "The boundarie
 @CHANGE-BRIEF.md
 
 The current change is its "Assignment 5: shaders and materials" section, including every
-dated "Revised 28 Oct 2026" part. Where a revision differs from earlier text, the revision wins.
+dated "Revised" part. Where a revision differs from earlier text, the revision wins.
 
 ## Ownership
 
@@ -94,10 +94,11 @@ them starts as a dated change to the brief, made by the human.
 
 - How the raccoon moves and collides, and which keys do what.
 - The campers' behaviour and its timings: when they see him, guard, chase, shoo, search and walk
-  back, and the existing timing constants. The one allowed addition is a record, made in
-  `spot()`, of which camper spotted him.
-- The direction of data: the driver reads `spotted_at` and that record and writes only the
-  cones' uniforms. Presentation code never writes game state.
+  back, and the existing timing constants. The two allowed additions are a record, made in
+  `spot()`, of which camper spotted him, and a read-only getter, `cone_back_at()` in
+  `scripts/camp_person.gd` (`CHANGE-BRIEF.md`, "three gaps found by Claude Code's plan").
+- The direction of data: the driver reads `spotted_at`, that record and that getter, and writes
+  only the cones' uniforms. Presentation code never writes game state.
 - `Engine.time_scale`: no game script changes it; only a test may.
 - Every other look: trees, fire, icons, sound waves, the other shaders already in `scripts/`
   (`chalk`, `fire`, `see_through`), and the cooler's handle and posts (`Cooler_Grey`). Only the

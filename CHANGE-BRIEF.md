@@ -8,7 +8,7 @@ The plan for each assignment's change, written before the work. Each assignment'
 |---|---|---|
 | [Assignment 2: the asset slice](#assignment-2-the-asset-slice) | 6 Oct 2026, drafts v1 to v3 | tag `a2` |
 | [Assignment 3: three 3D assets from Blender](#assignment-3-three-3d-assets-from-blender) | 13 Oct 2026, revised to v4 on 14 Oct | tag `a3` |
-| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026, revised 28 Oct | branch `assignment-5`, not tagged yet |
+| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026, revised 28 and 29 Oct | branch `assignment-5`, not tagged yet |
 
 ---
 
@@ -823,3 +823,27 @@ These answer the six short questions above, which the 25 Oct text left empty. Th
    - at 144 fps: 120 / 144 ≈ 0.83 seconds (or 5/6 of a second).
 5. **Which resource holds the uniform's default, which holds its current value, and what happens if two objects share the material:** The default value is stored in the `Shader` resource itself, and the current value is stored in the `ShaderMaterial` resource. A material holds uniform values. If two cones share the exact same `ShaderMaterial`, changing a uniform for one will change it for both. This requires the "one material per cone" rule so each cone has its own material to hold its specific uniform values, while the actual alert states and fade timers live in the driver and the game's code.
 6. **Does hint_range clamp a value set from code? My prediction:** No, it does not clamp values set from code. In Godot, `hint_range` is an Editor UI directive that tells the Inspector to display a slider with specific bounds for artists and designers. When you change the uniform's value via a script using `set_shader_parameter()`, the engine bypasses the Inspector interface and passes the raw number directly to the GPU shader. The hint is for the interface, not a strict runtime constraint on the variable itself. (My 2.0 capture checks this; see the evidence split.)
+
+### Revised 29 Oct 2026: three gaps found by Claude Code's plan
+
+Written after Claude Code's plan-only run of 28 Oct 2026 (`prompt-2.txt`), which changed nothing. Claude Code checked the plan against the code, and these are the three changes to my brief that came out of it. Where this section differs from the revisions above, it replaces them.
+
+**A second addition to the game's code: a read-only getter.**
+- The driver times each cone's fade-in from the moment that camper's cone comes back. The game keeps that moment in `_cone_back_at`, in `scripts/camp_person.gd`.
+- So `camp_person.gd` gets a getter, `cone_back_at()`, which returns it and changes nothing.
+- The record of who spotted him needs each of the three calls to `spot()` (in `_startle()`, `_search()` and `_return()`) to say who's calling. That's part of the record: nobody calls it at a different time.
+- So the game's code gets two additions: that record, and this getter. The campers' behaviour and its timings stay exactly as they are, and presentation code still never writes game state.
+
+**The tolerance at 144 fps.**
+- Physics runs at 60 ticks a second at every frame rate, and the camp's clock moves only on a tick. So the uniforms can change only on a frame after a tick: every frame at 60 fps, but only every 2 or 3 frames at 144.
+- So the first frame where a value has changed can come up to one tick (16.7 ms) after the time it should change, or one frame at 30 fps, where a frame is two ticks. At 144 fps, one tick is more than one frame (6.9 ms).
+- The test reads each fade's start and end off its slope, in game time. Those must still come out within one frame at every rate.
+- It also prints the first frame where each value changed, at every rate. Those must come within one frame or one tick, whichever is longer: 33.3 ms at 30 fps, and 16.7 ms at 60 and at 144.
+- The frame counts under time scale (2N ÷ s) hold to the same tick: within 1 frame at 30 and 60 fps, and within 3 frames at 144.
+- The snap is as before: `alarm` goes from 0 to 1 within one frame of the spotting, at every rate.
+
+**No fade-in when the tutorial ends.**
+- "The cones fade in", in the tutorial above, was Claude Code's gap-filling, and no rule times it. Today the cones just appear.
+- They still do: when the tutorial ends, each cone appears with `shown` at 1. The only fade-in in my rules is the one when a cone comes back after its 5 s.
+
+(Picked by me on 29 Oct 2026 from Claude Code's recommendations, in my words "Yes, all eight": the getter, a tolerance of one tick at 144 fps for the first changed frame, and no fade-in when the tutorial ends. The other five of the eight approve the plan's steps, and are in `prompt-3.txt`. The facts from the code and the wording are Claude Code's.)
