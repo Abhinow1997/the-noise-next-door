@@ -12,11 +12,10 @@
 - The mesh is built in code by `_build_cone()` (`scripts/vision_cone.gd`): a fan of 24
   triangles laid 0.03 m above the ground, with vertex colours white, alpha
   0.55 at the camper and 0.12 at the far edge. No UVs are set.
-- Drawn today with a `StandardMaterial3D` made in code, one per cone: unshaded, alpha
-  transparency, vertex colour as albedo, no culling, fog disabled (`_build_cone()` in `scripts/vision_cone.gd`),
-  set as the `MeshInstance3D`'s `material_override`.
-- Its colour is set every physics frame: `SEEING` if `red()` else `WATCHING` (`_physics_process()`); the colours
-  are `WATCHING` (1.0, 0.93, 0.62, 0.5) and `SEEING` (1.0, 0.33, 0.27, 0.65) (constants in `scripts/vision_cone.gd`).
+- Drawn with a `ShaderMaterial` made in code, one per cone, from the author's `shaders/vision_cone.gdshader`
+  (`_build_cone()` in `scripts/vision_cone.gd`), as the `MeshInstance3D`'s `material_override`. Unlike the old
+  `StandardMaterial3D`, it culls back faces and takes fog. At the camp, `scripts/cone_driver.gd` sets each cone's
+  `alarm` and `shown` every frame in `_process()`; a cone nothing drives (the bubble demo's) sets `alarm` from `red()`.
 - Shown or hidden through `show_on_ground()`, called from `_physics_process()` in `scripts/camp_person.gd`.
 - The timing constants are `RED_TIME` 2.0, `FADE_OUT` 0.5 and `BACK_AFTER` 5.0 (`scripts/vision_cone.gd`).
 
@@ -24,10 +23,10 @@
 - Owned by `scripts/campsite.gd`: `clock` (advanced in `_physics_process()`),
   `spotted_at`, set by `spot()`, and `cones_shown_until()` = `spotted_at` +
   `RED_TIME` + `FADE_OUT`. `cones_on` gates the cones until the tutorial is done.
-- `spot()` is called from `scripts/camp_person.gd`, in `_startle()`, `_search()` and `_return()`.
+- `spot(by)` is called with `self` from `scripts/camp_person.gd`, in `_startle()`, `_search()` and `_return()`.
 - Each cone also keeps its own `spotted_at` and `clock` (`scripts/vision_cone.gd`, set in `_physics_process()`);
   `red()` reads them.
-- Nothing records *which* camper spotted him yet (`CHANGE-BRIEF.md`, "the script and variables that hold the state").
+- `spotters` (`scripts/campsite.gd`) holds who has spotted him since the cones last went: `spot(by)` clears it first if they've gone, then adds `by`.
 
 ### The 3D object for the textured shader: the cooler
 - `assets/props/cooler.glb` (`CHANGE-BRIEF.md`, "the material plan, for the cooler"). Copies of it:
@@ -40,6 +39,8 @@
   `Cooler_Grey` (read from the glb's JSON chunk); `Cooler_Blue`'s `baseColorFactor` is
   (0.0437, 0.2051, 0.5210, 1). Tangents are built on import (`cooler.glb.import`,
   `meshes/ensure_tangents=true`).
+- Its textures: Blue Metal Plate in `assets/textures/blue_metal_plate/` (credits in `ATTRIBUTION.md`), with their
+  import settings in the `.import` files; `_nor_dx` is set to Skip, only to calibrate `tests/normal_map_check.gd`.
 - No game code recolours the cooler: `_recolor()` is called only for the second tent (`_ready()` in `scripts/campsite.gd`).
 - Judging light: `asset_room/asset_room.tscn` has a Sun with `light_energy = 0.8`, as well as the
   Environment's `ambient_light_energy = 0.8` and `ssao_enabled = true`. The level's depth fog starts
@@ -58,6 +59,7 @@ bash scripts/run-test.sh a3_asset_check.gd 60   # tests/a3_asset_check.gd (exten
 bash scripts/run-test.sh --cones-test 30        # scripts/cones_test.gd; the brief needs 30, 60 and 144
 bash scripts/run-test.sh --cones-test 60
 bash scripts/run-test.sh --cones-test 144
+bash scripts/run-test.sh --cone-shader-test 60  # tests/cone_shader_test.gd; also at 30 and 144
 bash scripts/run-test.sh --sound-test 60        # scripts/sound_test.gd
 bash scripts/run-test.sh --bubble-test 60       # scripts/bubble_test.gd
 bash scripts/run-test.sh --camp-test 60         # scripts/camp_test.gd
@@ -65,6 +67,7 @@ bash scripts/run-test.sh --tasks-test 60        # scripts/tasks_test.gd
 bash scripts/run-test.sh --waves-test 60        # scripts/waves_test.gd
 bash scripts/run-test.sh --plan-test 60         # scripts/plan_test.gd
 bash scripts/run-test.sh --title-test 60        # scripts/title_test.gd
+bash scripts/run-test.sh normal_map_calibration.gd 60  # tests/normal_map_calibration.gd
 ```
 The flags are parsed in `scripts/main.gd` (and described in its header comment); `--title-test` is parsed
 in `scripts/title_screen.gd`. `cones_test.gd` quits 0 or 1 (`_finish()` in `scripts/cones_test.gd`).
@@ -76,6 +79,7 @@ its 43 at 30, 60 and 144 (`CHANGE-BRIEF.md`, the evidence split's "The boundarie
 - `get_shader_uniform_list()` gives each uniform's name and type, not its default, so defaults are read from the shader's source. A shader that fails to parse gives an empty list, and `set_shader_parameter()` with a name the shader doesn't declare raises no error (`CHANGE-BRIEF.md`, the evidence split).
 - Under `--fixed-fps`, game time follows frames, not the clock, so `--waves-test` (12 of 13) and `--title-test` (51 of 52) fail at 60 fps, as recorded (`TEST-REPORT.md`, the Assignment 5 baseline). Don't "fix" them.
 - Physics runs at 60 ticks a second at every frame rate (`project.godot` sets no other), so at 144 fps a value set in `_physics_process()` changes only every 2 or 3 frames.
+- Imported textures read back headless: `get_image().get_format()` gives BC1 for the diffuse and roughness maps and BC5 (RGTC_RG) for the GL normal map. The course's curl check came out reversed on this pair as given, so `s` is flipped (`CHANGE-BRIEF.md`, "the normal-map check, calibrated, and its threshold").
 
 ## Current change
 @CHANGE-BRIEF.md
@@ -107,13 +111,9 @@ them starts as a dated change to the brief, made by the human.
 
 ## Unconfirmed
 
-- No test was run while writing this file, so the current pass or fail state and the baseline
-  counts (including the cones check's 43) are taken from `CHANGE-BRIEF.md`'s evidence split, not measured.
+- The counts in `TEST-REPORT.md` were measured on 29 Oct 2026 at 2024a76; run the checks again before trusting them later.
 - `run-test.sh` forwards only two arguments, so `a3_asset_check.gd -- --mutate` (`README.md`, its Assignment 3 section)
   and the `--*-shots=` options can't be run through it as it is.
-- `shaders/`, `materials/` and `assets/textures/` don't exist yet. The shader and material paths
-  are the brief's suggestions (`CHANGE-BRIEF.md`, "The effect" and the material plan).
+- `materials/` and the cooler's shader don't exist yet; their paths are the brief's suggestions (`CHANGE-BRIEF.md`, the material plan).
 - The exact `.import` keys for the per-material Use External setting on `cooler.glb` are unconfirmed.
-- The Poly Haven texture set, its licence and its import settings haven't been checked. Nothing
-  is downloaded.
-- `tests/normal_map_check.gd` and the driver's test, named in the brief, don't exist yet.
+- `tests/test_materials.gd`, the audit's material test, doesn't exist yet.

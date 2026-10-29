@@ -1660,6 +1660,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | The capture tool for my controlled values | its own commit, after a4f4a66 |
 | 29 Oct | My controlled-value captures, and my first play with the shader | 2d05a57 |
 | 29 Oct | Step 3, the textures, their import settings, and the normal-map check | df1bc6e and cbc160f, then the threshold after them |
+| 29 Oct | CLAUDE.md brought up to date before the audit | with CLAUDE.md, after c426722 |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2126,3 +2127,16 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the two materials, behind the glb's Use External setting;
   - the audit.
 - **Human / Claude / model:** the licence check and the download are mine. The checks, `ATTRIBUTION.md`, the import settings, the calibration script, the flip and this write-up are Claude's. The check's code is the course's. No generative model.
+
+### 2026-10-29 — CLAUDE.md brought up to date before the audit
+
+- **Asked** (29 Oct): "Yes, refresh it", so that the audit agent reads the facts as they are now.
+- **Changed** by Claude Code, replacing out-of-date lines rather than adding new ones:
+  - the cone: a `ShaderMaterial` from my shader, driven by `cone_driver.gd`, with `red()` used only for cones nothing drives;
+  - the state: `spot(by)`, and the `spotters` record;
+  - the cooler: its textures and their import settings;
+  - the tests: `--cone-shader-test` and the normal-map calibration;
+  - a fifth headless fact: the texture formats read back, and the flipped curl check;
+  - Unconfirmed: three items that are done now are gone, and it says when the counts were measured and what doesn't exist yet.
+- **Checked** by Claude: still 119 lines, under the course's limit, and every file and name it refers to exists.
+- **Human / Claude / model:** the request is mine. The changes and this write-up are Claude's. No generative model.
