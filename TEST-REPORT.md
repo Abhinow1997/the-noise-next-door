@@ -596,6 +596,32 @@ In my words: "I played the game when running the raccons was spoted by the girl 
   - the bubble demo by hand.
 - **A scripted picture, not play:** the bubble test's own picture from a windowed run, `design/a5/captures/bubble-demo-check/03_alert.png` (`--bubble-test` with its pictures, 87 of 87), shows a stand-in's cone red with my shader, through the fallback for cones the camp doesn't drive.
 
+### The textures, their import settings, and the normal-map check
+
+**The textures** (29 Oct 2026): Poly Haven's Blue Metal Plate, by Rob Tuytel, CC0, with the licence checked by me that day. The 1k PNGs are in `assets/textures/blue_metal_plate/`, credited in `ATTRIBUTION.md` there, and their sizes and MD5s match Poly Haven's own file list.
+
+**The import settings,** set explicitly and read back after a reimport:
+
+| Texture | `compress/mode` | `compress/normal_map` | `mipmaps/generate` | `roughness/mode` | `detect_3d/compress_to` | Format read back |
+|---|---|---|---|---|---|---|
+| `blue_metal_plate_diff_1k.png` | 2, VRAM Compressed | 2, Disabled | true | 1, Disabled | 0, off | BC1 (DXT1), with mipmaps |
+| `blue_metal_plate_rough_1k.png` | 2 | 2 | true | 1 | 0 | BC1 (DXT1), with mipmaps |
+| `blue_metal_plate_nor_gl_1k.png` | 2 | 1, Enable | true | 1 | 0 | BC5 (RGTC_RG), with mipmaps |
+| `blue_metal_plate_nor_dx_1k.png` | Skip | | | | | Not imported: only for calibrating the check |
+
+The formats were read with `get_image().get_format()` in a headless run, and they confirm what each integer means. Whether the editor rewrites any of these settings gets checked after my first editor session with them (failure 9).
+
+**The normal-map check** is `tests/normal_map_check.gd`, the course's code. It was calibrated on this set's own pair with `bash scripts/run-test.sh normal_map_calibration.gd 60`:
+
+| Map | As given (df1bc6e), `directx = false` | As given, `directx = true` | `s` flipped, `directx = false` | `s` flipped, `directx = true` |
+|---|---|---|---|---|
+| GL | 1.573 | 0.427 | 0.427 | 1.573 |
+| DX | 0.427 | 1.573 | 1.573 | 0.427 |
+
+- **As given, it came out reversed:** the GL map, the right one for Godot, scored high under `directx = false`. As the course says to, `s` is flipped. Now the GL map is low under `directx = false` and high under `directx = true`, and the DX map is the other way round. The likely reason, in Claude's reading, is that Godot's image rows run downwards.
+- **The pair separates,** 0.43 against 1.57, so it calibrates the check. It doesn't reach the ideal 0 and 2: the plate is nearly flat, and the 16-bit PNGs are decoded to 8 bits, which pulls both values toward 1.
+- **The threshold** the material test will trust is still to decide, from these numbers.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
@@ -609,8 +635,8 @@ In my words: "I played the game when running the raccons was spoted by the girl 
 | Interface sweep (HUMAN CHECK) | Not started |
 | One shader, two materials (HUMAN CHECK) | Not started |
 | Material wiring | Not started |
-| Texture data | Not started |
-| Import settings | Not started |
+| Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The cooler's normal map's curl ratio under both conventions comes with the material test. |
+| Import settings | Set explicitly on 29 Oct and read back after a reimport (above). Any rewrite by the editor gets checked after my first editor session with the textures. |
 | What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. All logged in FRICTIONAL.md. |
 
 A headless run can show that the timings, states, visibility and uniform values follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks.

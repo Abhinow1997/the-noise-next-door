@@ -1,6 +1,8 @@
-# The course's normal-map check (CSYE 7270, Assignment 5, Step 3), committed as given,
-# before the audit. tests/normal_map_calibration.gd calibrates it on Blue Metal Plate's
-# own _nor_gl and _nor_dx pair.
+# The course's normal-map check (CSYE 7270, Assignment 5, Step 3), committed as given
+# before the audit (df1bc6e), then with `s` flipped, as the course says to when the
+# calibration comes out reversed (TEST-REPORT.md, 29 Oct 2026).
+# tests/normal_map_calibration.gd calibrates it on Blue Metal Plate's own _nor_gl and
+# _nor_dx pair.
 
 # ~0: slope field of a real surface in this convention.
 # ~1: no surface behind it.
@@ -9,7 +11,9 @@ static func curl_ratio(source: Image, directx := false, stride := 4) -> float:
 	var img := source.duplicate() as Image
 	if img.is_compressed():
 		img.decompress()
-	var s: float = -1.0 if directx else 1.0
+	# Flipped from the course's `-1.0 if directx else 1.0`, which put the GL map, the right
+	# one for Godot, near 2 on this pair: Godot's image rows run downwards.
+	var s: float = 1.0 if directx else -1.0
 	var curl_sq := 0.0
 	var terms_sq := 0.0
 	for v in range(1, img.get_height() - 1, stride):

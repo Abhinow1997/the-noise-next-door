@@ -1658,7 +1658,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | Step 2, my .uid files | a4f4a66 |
 | 29 Oct | Step 2, my two mutations | with their two logs, after a4f4a66 |
 | 29 Oct | The capture tool for my controlled values | its own commit, after a4f4a66 |
-| 29 Oct | My controlled-value captures, and my first play with the shader | with its captures, after f7a8503 |
+| 29 Oct | My controlled-value captures, and my first play with the shader | 2d05a57 |
+| 29 Oct | Step 3, the textures, their import settings, and the normal-map check | df1bc6e, then the flip after it |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2104,3 +2105,24 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 
   The bubble test's own pictures from a windowed run (`design/a5/captures/bubble-demo-check/`) show a stand-in's cone red with my shader, but they're scripted, not play.
 - **Human / Claude / model:** the captures, the screenshot, the comparisons, the play and what I saw are mine. The checks against the files and this write-up are Claude's.
+
+### 2026-10-29 — Step 3, the textures, their import settings, and the normal-map check
+
+- **The textures** (29 Oct). In my words: "Checked Poly Haven's asset page and license today, 29 Oct 2026: Blue Metal Plate is listed as CC0." I saved the four 1k PNGs to `assets/textures/blue_metal_plate/`, and "All four downloads passed Poly Haven's API size and MD5 checks."
+- **Checked** by Claude:
+  - each file is a 1024 × 1024, 16-bit PNG, and its size and MD5 match Poly Haven's file list;
+  - the author (Rob Tuytel) and the publication date (26 Sep 2024) come from Poly Haven's record.
+  - Claude wrote `ATTRIBUTION.md` from those and my licence check.
+- **The import settings,** by Claude Code, as my material plan says:
+  - all three: VRAM Compressed, mipmaps on, roughness mode Disabled, and 3D detection off;
+  - the normal map setting: Enable for the GL map, Disabled for the other two.
+  - After a reimport, Godot kept every value, and the formats read back were BC1, BC1 and BC5.
+  - Claude set the DX map to Skip, since it's only for calibration.
+- **The normal-map check:** the course's code as given, with a calibration script by Claude Code. On this pair it came out reversed: with `directx = false`, GL scored 1.573 and DX 0.427. The course says to flip `s` in that case and say so in TEST-REPORT.md.
+- **My pick:** "Yes, two commits": first the check as given, with its reversed calibration (df1bc6e), then the flip. After the flip, GL scores 0.427 and DX 1.573 with `directx = false`.
+- **Not done yet:**
+  - the threshold the material test will trust;
+  - my shader for the cooler;
+  - the two materials, behind the glb's Use External setting;
+  - the audit.
+- **Human / Claude / model:** the licence check and the download are mine. The checks, `ATTRIBUTION.md`, the import settings, the calibration script, the flip and this write-up are Claude's. The check's code is the course's. No generative model.

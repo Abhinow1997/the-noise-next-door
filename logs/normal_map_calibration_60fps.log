@@ -1,13 +1,13 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-Normal-map check, calibrated on Blue Metal Plate's pair, 2026-10-29T17:41:57
+Normal-map check, calibrated on Blue Metal Plate's pair, 2026-10-29T17:45:01
 WARNING: Loaded resource as image file, this will not work on export: 'res://assets/textures/blue_metal_plate/blue_metal_plate_nor_gl_1k.png'. Instead, import the image file as an Image resource and load it normally as a resource.
    at: load_from_file (core/io/image.cpp:2780)
    GDScript backtrace (most recent call first):
        [0] _initialize (res://tests/normal_map_calibration.gd:20)
-  GL (blue_metal_plate_nor_gl_1k.png, 1024 x 1024): directx = false 1.573, directx = true 0.427
+  GL (blue_metal_plate_nor_gl_1k.png, 1024 x 1024): directx = false 0.427, directx = true 1.573
 WARNING: Loaded resource as image file, this will not work on export: 'res://assets/textures/blue_metal_plate/blue_metal_plate_nor_dx_1k.png'. Instead, import the image file as an Image resource and load it normally as a resource.
    at: load_from_file (core/io/image.cpp:2780)
    GDScript backtrace (most recent call first):
        [0] _initialize (res://tests/normal_map_calibration.gd:20)
-  DX (blue_metal_plate_nor_dx_1k.png, 1024 x 1024): directx = false 0.427, directx = true 1.573
+  DX (blue_metal_plate_nor_dx_1k.png, 1024 x 1024): directx = false 1.573, directx = true 0.427
