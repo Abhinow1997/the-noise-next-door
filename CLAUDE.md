@@ -67,6 +67,7 @@ bash scripts/run-test.sh --waves-test 60        # scripts/waves_test.gd
 bash scripts/run-test.sh --plan-test 60         # scripts/plan_test.gd
 bash scripts/run-test.sh --title-test 60        # scripts/title_test.gd
 bash scripts/run-test.sh normal_map_calibration.gd 60  # tests/normal_map_calibration.gd
+bash scripts/run-test.sh test_materials.gd 60  # tests/test_materials.gd, the material audit's test (MATERIALS.md)
 ```
 The flags are parsed in `scripts/main.gd` (and described in its header comment); `--title-test` is parsed
 in `scripts/title_screen.gd`. `cones_test.gd` quits 0 or 1 (`_finish()` in `scripts/cones_test.gd`).
@@ -113,4 +114,3 @@ them starts as a dated change to the brief, made by the human.
 - The counts in `TEST-REPORT.md` were last measured on 29 Oct 2026, with the cooler's materials in; run the checks again before trusting them later.
 - `run-test.sh` forwards only two arguments, so `a3_asset_check.gd -- --mutate` (`README.md`, its Assignment 3 section)
   and the `--*-shots=` options can't be run through it as it is.
-- `tests/test_materials.gd`, the audit's material test, doesn't exist yet.

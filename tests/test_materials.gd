@@ -5,7 +5,8 @@ extends SceneTree
 #   "two materials" table gives;
 # - each shader's uniforms (get_shader_uniform_list()), and each uniform's hints, group and
 #   default, read from the shader's source text, since a headless run doesn't report them;
-# - each bound texture's import settings, read from its .import file with ConfigFile;
+# - each bound texture's import settings, read from its .import file with ConfigFile, and the
+#   format it imports as (get_image().get_format(), added in Claude Code's review);
 # - the scenes: the cooler's surfaces in the asset room, the asset room's light and
 #   environment, and the hint experiment's quad and environment;
 # - each bound normal map's curl ratio under both conventions (tests/normal_map_check.gd), and
@@ -63,12 +64,22 @@ const COOLER_BINDINGS := {"albedo_texture": DIFF, "roughness_texture": ROUGH, "n
 const SPLIT_BINDINGS := {"with_source_color": GREYS, "without_source_color": GREYS}
 
 ## Import settings: [compress/mode, compress/normal_map, mipmaps/generate, roughness/mode].
-## compress/mode 0 Lossless, 2 VRAM Compressed; normal_map 1 Enable, 2 Disable; roughness/mode 1 Disabled.
+## compress/mode 0 Lossless, 2 VRAM Compressed; normal_map 0 Detect, 1 Enable, 2 Disabled; roughness/mode 1 Disabled
+## (Godot 4.7.2's own option strings, looked up in Claude Code's review).
 const IMPORTS := {
 	DIFF: [2, 2, true, 1],
 	ROUGH: [2, 2, true, 1],
 	NOR_GL: [2, 1, true, 1],
 	GREYS: [0, 2, false, 1],
+}
+
+## What each imported texture reads back as, headless: [Image format, has mipmaps].
+## Added in Claude Code's review, which measured them (MATERIALS.md, "Review").
+const FORMATS := {
+	DIFF: [Image.FORMAT_DXT1, true],
+	ROUGH: [Image.FORMAT_DXT1, true],
+	NOR_GL: [Image.FORMAT_RGTC_RG, true],
+	GREYS: [Image.FORMAT_RGB8, false],
 }
 
 var _failed := 0
@@ -83,6 +94,7 @@ func _initialize() -> void:
 	_check_cooler_materials()
 	_check_split_material()
 	_check_imports()
+	_check_formats()
 	_check_cooler_surfaces()
 	_check_asset_room()
 	_check_hint_scene()
@@ -242,6 +254,17 @@ func _check_imports() -> void:
 			and m.get("use_external/fallback_path", "") == pair[1],
 			"cooler.glb.import: %s is Use External, %s" % [pair[0], pair[1]])
 	_check(not mats.has("Cooler_Grey"), "cooler.glb.import: Cooler_Grey stays embedded")
+
+
+## The imported textures' formats, from get_image().get_format(), as MATERIALS.md says.
+func _check_formats() -> void:
+	for path: String in FORMATS:
+		var tex := load(path) as Texture2D
+		var img: Image = tex.get_image() if tex else null
+		var want: Array = FORMATS[path]
+		var ok: bool = img != null and img.get_format() == want[0] and img.has_mipmaps() == want[1]
+		_check(ok, "%s imports as format %d, mipmaps %s (is %s, %s)" % [path.get_file(), want[0], want[1],
+			str(img.get_format()) if img else "none", str(img.has_mipmaps()) if img else "-"])
 
 
 # --- Scenes ------------------------------------------------------------------

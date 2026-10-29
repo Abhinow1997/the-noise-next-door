@@ -170,7 +170,7 @@ The reference pictures made or shared after Assignment 3, in the same columns as
 |---|---|---|---|
 | Godot | 4.7.2 stable | The game, the editor, and the headless checks | As for Assignments 2 and 3. The console build runs the checks; it isn't on the PATH. |
 | Git Bash, with GNU coreutils' `timeout` | Git for Windows | Running `scripts/run-test.sh` | The course's macOS note (`brew install coreutils`) doesn't apply here. |
-| Claude Code | 2.1.289, with Claude Opus 5.5 | Everything in the table below | Northeastern access. The `claude -p` runs, from their transcripts: 2.1.289 for Step 1, and 2.1.312 for Step 2's plan. |
+| Claude Code | 2.1.289, with Claude Opus 5.5 | Everything in the table below | Northeastern access. The `claude -p` runs, from their transcripts: 2.1.289 for Step 1, 2.1.312 for Step 2's plan, and 2.1.289 for Step 3's audit. |
 
 | What | Where | Made by | Notes |
 |---|---|---|---|
@@ -200,6 +200,8 @@ The reference pictures made or shared after Assignment 3, in the same columns as
 | My hint capture | [design/a5/captures/hint/](design/a5/captures/hint/): `bands.png` and `bands.txt` | Me, 29 Oct 2026, with the band reader | The game's own frame, with each band's pixel beside my prediction. See TEST-REPORT.md. |
 | My remaining checks, on one page | `design/a5/MY-CHECKS.md` | Claude Code, 29 Oct 2026, at my request ("Yes, go") | From the course's steps and my brief. |
 | Step 3's audit prompt | [prompt-4.txt](prompt-4.txt) | The course's prompt, adapted to this repository by Claude Code on 29 Oct 2026 | `MATERIALS.md` and `tests/` instead of `godot/MATERIALS.md` and `godot/tests/`; `bash scripts/run-test.sh` as the only way to run Godot, since the project is imported already, so the course's import command is left out; my one split material instead of two; and a first paragraph naming CLAUDE.md, the brief and `shaders/`, as in prompt-2.txt. |
+| The material audit and its test | `MATERIALS.md`, `tests/test_materials.gd`, and `logs/test_materials_60fps.log` | The `claude -p` agent (Claude Code 2.1.289, Claude Opus 5.5), 29 Oct 2026, from `prompt-4.txt`, run by Claude Code at my word (406133e) | Committed unedited, then reviewed and corrected by Claude Code in the next commit: the enums looked up, the formats measured and asserted, unmeasured numbers removed (MATERIALS.md, "Review"). |
+| The audit run's transcript | `session-4.jsonl` | The `claude -p` run, 29 Oct 2026 | 316 KB, under the course's 1 MB, so it's committed whole. |
 | Study notes on shaders (removed) | `design/a5/shader-notes-by-claude.md`, never committed; removed at my request on 28 Oct 2026 | Claude Code, 25 Oct 2026, at my request ("make the notes i dont know all these details abt shaders"); updated 26 Oct for the new cone code | Explanations, facts from the code with checked line links, and questions. Not my answers: no colour line, no predicted numbers, no answers to the short questions. |
 | The outline of my brief's Assignment 5 section | CHANGE-BRIEF.md | Claude Code, 25 Oct 2026, from the assignment's list; I pasted it in | The headings and questions only. What's under them is mine, apart from what's labelled. |
 | Fixes to my answers in the brief, and the gaps it filled | CHANGE-BRIEF.md, "What the cone does" and "The gaps" | Claude Code, 26 Oct 2026 | It fixed spelling and typos and added full stops and commas to my answers, and says so there. It filled the gaps because I asked ("take liberties with the gaps that feel approriate"), each labelled as its choice. |

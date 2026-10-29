@@ -1,6 +1,6 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-Material audit test, 2026-10-29T18:58:26
+Material audit test, 2026-10-29T19:03:42
 PASS  cooler_paint.gdshader declares 8 uniforms (tint, detail, uv_scale, albedo_texture, roughness_scale, normal_strength, roughness_texture, normal_texture)
 PASS  cooler_paint.gdshader: tint is vec4 (source: vec4)
 PASS  cooler_paint.gdshader: tint hints are "source_color" (source: "source_color")
@@ -119,6 +119,10 @@ PASS  cooler.glb.import: meshes/ensure_tangents = true
 PASS  cooler.glb.import: Cooler_Blue is Use External, res://materials/cooler_body.tres
 PASS  cooler.glb.import: Cooler_White is Use External, res://materials/cooler_lid.tres
 PASS  cooler.glb.import: Cooler_Grey stays embedded
+PASS  blue_metal_plate_diff_1k.png imports as format 17, mipmaps true (is 17, true)
+PASS  blue_metal_plate_rough_1k.png imports as format 17, mipmaps true (is 17, true)
+PASS  blue_metal_plate_nor_gl_1k.png imports as format 21, mipmaps true (is 21, true)
+PASS  greys_3x1.png imports as format 4, mipmaps false (is 4, false)
 INFO  cooler.glb surfaces: { "res://materials/cooler_body.tres": 1, "embedded Cooler_Grey": 3, "res://materials/cooler_lid.tres": 1 }
 PASS  cooler.glb: a surface draws with cooler_body.tres
 PASS  cooler.glb: a surface draws with cooler_lid.tres

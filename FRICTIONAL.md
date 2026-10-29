@@ -1663,6 +1663,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | CLAUDE.md brought up to date before the audit | d52cb70 |
 | 29 Oct | Step 3, my cooler shader and the two materials | c45c97b, then the materials after it |
 | 29 Oct | Step 3, the hint experiment | 9d782c3, then the scene after it |
+| 29 Oct | Step 3, the material audit and its review | 406133e, then the review after it |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2180,3 +2181,20 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Speeding up:** I asked what was left ("whats taking soooo long man what all still remains for assignemtn 5 ?"). Claude listed it, and said it had been stopping for my OK after each small piece. At my "Yes, go", it now does its pieces back to back, committing as it goes, and stops only for my checks and before any push or tag. It put my remaining checks on one page, `design/a5/MY-CHECKS.md`.
 - **My capture** (18:57), with the band reader: with `source_color`, 64, 128 and 192, the file's values unchanged; without, 137, 188 and 225. My predictions for the second quad were 135, 184 and 225. Claude pointed out that the two misses are the slip my brief already flags for 135 and 184, and that exact sRGB encoding gives 137.2, 187.8 and 225.0.
 - **Human / Claude / model:** the shader, the decision to keep the split, the run of the scene and the capture are mine. The PNG script, the material, the scene, the band reader, the checklist, the checks, the brief's wording and this write-up are Claude's. No generative model.
+
+### 2026-10-29 — Step 3, the material audit and its review
+
+- **The prompt:** Claude Code adapted the course's audit prompt as `prompt-4.txt`. It uses paths without `godot/`, runs Godot only through `bash scripts/run-test.sh`, and names my one split material.
+- **Ran** (18:55 to 19:00): by Claude Code, at my "Yes, go", through `claude -p` (Claude Code 2.1.289, Claude Opus 5.5), into `session-4.jsonl`. The agent could read files, run `bash scripts/run-test.sh` and read-only git commands, and write only `MATERIALS.md` and `tests/test_materials.gd`.
+  - Claude's first launch printed nothing and audited nothing. It had wrapped `claude` in `env -u`, to clear two variables, and the run came back empty. Run directly, it worked.
+  - Those limits refused two of the agent's commands: a shell loop to read files, and its test run with `; echo` after it. It got the same results through its other tools.
+- **What came back:** `MATERIALS.md` and the test, which passed with nothing failing. It changed nothing else. Its report said 132 checks, but the log had 133. Committed unedited as 406133e.
+- **Claude's review,** as the course says, in the next commit:
+  - It looked up every enum in Godot 4.7.2's own option strings and constants. One label was wrong: `compress/normal_map` 2 is "Disabled", not "Disable".
+  - It measured the formats with `get_image().get_format()`, which the audit had only quoted from CLAUDE.md. They matched, and the test now asserts them.
+  - It removed numbers nobody had measured: a camera distance, the cooler's distance from the fire (now 1.9 m, from the code), and a claim about how Godot reads the shared PNG, now backed by my capture instead.
+  - It checked every light and environment value against the code: all right.
+- **The findings left for me,** since they're about my shader: my colour line can take `ALBEDO` above 1 at the diffuse's brightest texels; `DIFFUSE_MEAN_LUMINANCE` fits only this diffuse; and the roughness is read from BC1's 5-bit red channel. SSAO on in the asset room is as committed; I turn it off by hand to judge.
+- **After the review:** 137 of 137 at 60 fps.
+- **Not done yet:** the run after a fresh import, and my `source_color` mutation.
+- **Human / Claude / model:** the go-ahead is mine. The prompt, the launch, the review, its fixes and this write-up are Claude's. The audit and the test are the `claude -p` agent's (Claude Code 2.1.289, Claude Opus 5.5). No other generative model.

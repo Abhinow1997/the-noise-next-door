@@ -374,13 +374,14 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 
 `the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
 
-**Status (29 Oct 2026, about 19:00).**
+**Status (29 Oct 2026, about 19:10).**
 - **The cone's shader is in, and driven:** my `shaders/vision_cone.gdshader` (53b0087), the `claude -p` agent's driver and test (29fd5da), and Claude's fixes from its review of them (2024a76). Its headless test passes 93 of 93 at 30, 60 and 144 fps, and the earlier checks keep their baseline (below).
 - **Two of the three mutations are done,** on the cone's shader, and both runs exit 1 (below).
 - **The cone's controlled-value captures are done,** and the first two spottings in play (below).
 - **The cooler's shader and its two materials are in,** behind the glb's Use External, and every check keeps its baseline (below).
 - **The hint experiment is done:** its scene, with my shader, and my capture of the bands (below).
-- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, and the material test and its mutation.
+- **The material audit and its test are in** (below): 137 of 137 at 60 fps, after Claude's review.
+- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, the material test after a fresh import, and its mutation.
 
 **What will be tested**
 
@@ -685,20 +686,54 @@ No log line has `ERROR`.
 - **The quad without** is brighter, as I predicted. 64 and 128 come out 2 and 4 steps above my predictions, from the known power slip in them (CHANGE-BRIEF.md, "Revised 28 Oct 2026: my hint experiment predictions"). Encoding the raw values to sRGB exactly gives 137.2, 187.8 and 225.0, which round to what I measured.
 - R, G and B are equal in every band.
 
+### The material audit and its test (`tests/test_materials.gd`)
+
+**The audit** (29 Oct 2026, 18:55 to 19:00), on 3603922:
+- It was the course's prompt, adapted as `prompt-4.txt`. Claude Code ran it at my word through `claude -p` (Claude Code 2.1.289, Claude Opus 5.5).
+- It could write only `MATERIALS.md` and `tests/test_materials.gd`, and it changed no shader, material, scene or `.import` file.
+- It was committed unedited as 406133e, with its transcript (`session-4.jsonl`, 316 KB). Its report said 132 checks passed, but its log had 133.
+
+**Claude's review** (the next commit), as the course says:
+- **The enums,** checked against Godot 4.7.2's own option strings and constants: all right, except that `compress/normal_map` 2 is "Disabled", not "Disable".
+- **The formats,** measured with `get_image().get_format()`: BC1 (17) for the diffuse and roughness maps, BC5 (21) for the normal map, and RGB8 (4) for the greys, as the audit said. The test now asserts them, in 4 new checks.
+- **Numbers nobody measured,** removed or replaced:
+  - a camera distance;
+  - the cooler's distance from the fire, now 1.9 m, from `COOLER_AT`;
+  - a claim about how Godot reads the shared PNG, now backed by my capture instead.
+- **The lights and environment,** checked against the code: all right.
+
+**After the review** (29 Oct 2026, 19:03): `bash scripts/run-test.sh test_materials.gd 60` passes 137 of 137 and exits 0, with no `SHADER ERROR` or `SCRIPT ERROR`.
+- **The normal map:** its curl ratio is 0.427 with `directx = false` and 1.573 with `directx = true`, under my 0.7.
+- **The audit's findings, for me to decide on** (MATERIALS.md):
+  - my colour line can take `ALBEDO` to about 1.9 at the diffuse's brightest texel;
+  - `DIFFUSE_MEAN_LUMINANCE` fits only this diffuse;
+  - the roughness is read from BC1's 5-bit red channel.
+- SSAO is on in the asset room as committed. I turn it off by hand to judge.
+
+**What it can't establish headlessly** (the audit's list):
+- how anything looks;
+- what the GPU samples from the compressed copies;
+- that `.godot/imported` matches the `.import` files;
+- defaults and hints, except from the source text;
+- that the normal map is the right surface;
+- the cooler at the camp, which it covers only through the same glb scene.
+
+**Still to do:** the run after a fresh import, and my `source_color` mutation.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
 |---|---|
 | Baseline | Done before any change, again after the cone's shader and its driver, and again after the cooler's materials (above): every earlier check at its baseline count. |
-| Shaders parse | The cone's shader: the uniform-list assertions pass, there's no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's: it parses, with every uniform listed (above). Its uniform-list test and the `source_color` mutation come with the material test. |
+| Shaders parse | The cone's shader: the uniform-list assertions pass, there's no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's and the hint experiment's: the material test's uniform-list assertions pass (above). The `source_color` mutation is still to come. |
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
 | In play (HUMAN CHECK) | Two spottings with the shader on 29 Oct (above), of the five the brief asks for; the rest isn't done yet. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
 | Hint experiment (HUMAN CHECK) | Done on 29 Oct (above). With `source_color`: 64, 128 and 192, unchanged. Without: 137, 188 and 225, against my 135, 184 and 225, from the known slip in my predictions. |
 | Interface sweep (HUMAN CHECK) | Not started. The materials it sweeps are ready (above). |
 | One shader, two materials (HUMAN CHECK) | Not started. The two materials from one shader exist (above); my side-by-side captures and the shader-edit and material-edit checks are still to do. |
-| Material wiring | The materials are behind the glb's Use External, probed headless (above). The material test after a fresh import, and the `source_color` mutation, come with the audit. |
-| Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The cooler's normal map's curl ratio under both conventions comes with the material test. |
+| Material wiring | The material test passes 137 of 137 (above). The run after a fresh import, and my `source_color` mutation, are still to come. |
+| Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The material test prints the cooler's normal map's under both conventions: 0.427 and 1.573 (above). |
 | Import settings | Set explicitly on 29 Oct and read back after a reimport (above). Any rewrite by the editor gets checked after my first editor session with the textures. |
 | What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. All logged in FRICTIONAL.md. |
 
