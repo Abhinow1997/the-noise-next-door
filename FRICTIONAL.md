@@ -2196,5 +2196,9 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - It checked every light and environment value against the code: all right.
 - **The findings left for me,** since they're about my shader: my colour line can take `ALBEDO` above 1 at the diffuse's brightest texels; `DIFFUSE_MEAN_LUMINANCE` fits only this diffuse; and the roughness is read from BC1's 5-bit red channel. SSAO on in the asset room is as committed; I turn it off by hand to judge.
 - **After the review:** 137 of 137 at 60 fps.
-- **Not done yet:** the run after a fresh import, and my `source_color` mutation.
+- **From an empty cache** (19:05 to 19:08):
+  - Claude checked no Godot was running, and moved `.godot/` aside into its scratch folder rather than deleting it, so my editor state can be recovered.
+  - The reimport had no errors and rewrote no `.import` file. The material test passed 137 of 137 again.
+  - Every earlier check stayed at its baseline, with waves and title failing the same single check as before.
+- **Not done yet:** my `source_color` mutation.
 - **Human / Claude / model:** the go-ahead is mine. The prompt, the launch, the review, its fixes and this write-up are Claude's. The audit and the test are the `claude -p` agent's (Claude Code 2.1.289, Claude Opus 5.5). No other generative model.

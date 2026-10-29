@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Thought-icon check, 2026-10-29T18:10:13
+Thought-icon check, 2026-10-29T19:06:48
   pass  Nothing near: nothing over his head                            expected none             got none
   pass  Nothing near: no sparkles                                      expected 0                got 0
   pass  Shiny: the pile of coins, keys and foil glints once            expected true             got true
@@ -90,7 +90,7 @@ Thought-icon check, 2026-10-29T18:10:13
   pass  Boil: the same drawing comes back the same                     expected true             got true
   pass  Pop: starts small, overshoots, settles                         expected true             got true
 RESULT: all checks passed (87 checks)
-WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 1 resources still in use at exit (run with --verbose for details).
+ERROR: 3 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)

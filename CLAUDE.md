@@ -111,6 +111,6 @@ them starts as a dated change to the brief, made by the human.
 
 ## Unconfirmed
 
-- The counts in `TEST-REPORT.md` were last measured on 29 Oct 2026, with the cooler's materials in; run the checks again before trusting them later.
+- The counts in `TEST-REPORT.md` were last measured on 29 Oct 2026, from an empty cache after the material audit; run the checks again before trusting them later.
 - `run-test.sh` forwards only two arguments, so `a3_asset_check.gd -- --mutate` (`README.md`, its Assignment 3 section)
   and the `--*-shots=` options can't be run through it as it is.

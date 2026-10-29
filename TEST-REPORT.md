@@ -380,8 +380,8 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 - **The cone's controlled-value captures are done,** and the first two spottings in play (below).
 - **The cooler's shader and its two materials are in,** behind the glb's Use External, and every check keeps its baseline (below).
 - **The hint experiment is done:** its scene, with my shader, and my capture of the bands (below).
-- **The material audit and its test are in** (below): 137 of 137 at 60 fps, after Claude's review.
-- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, the material test after a fresh import, and its mutation.
+- **The material audit and its test are in** (below): 137 of 137 at 60 fps after Claude's review, and again from an empty cache, with every earlier check at its baseline.
+- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, and the material test's `source_color` mutation.
 
 **What will be tested**
 
@@ -718,13 +718,26 @@ No log line has `ERROR`.
 - that the normal map is the right surface;
 - the cooler at the camp, which it covers only through the same glb scene.
 
-**Still to do:** the run after a fresh import, and my `source_color` mutation.
+**From an empty cache** (29 Oct 2026, 19:05):
+- `.godot/` was moved aside, and `--import` run once. `logs/fresh-import.log` shows exit 0 and no `ERROR`. No `.import` file was rewritten; the only new file was `tests/test_materials.gd.uid`.
+- Then the test: 137 of 137, exit 0.
+
+**Then every check, from that cache** (19:06 to 19:08):
+- the cones check, 43 at 30, 60 and 144 fps, and the cone's shader test, 93 of 93 at all three;
+- the A3 assets (the log is identical to the committed one), sounds, bubble 87, camp 31, tasks 43 and plan 19, all passing;
+- waves and title, each failing the same single check as before;
+- the calibration's output, unchanged;
+- the material test, 137 of 137.
+
+No log has a `SHADER ERROR` or `SCRIPT ERROR`.
+
+**Still to do:** my `source_color` mutation.
 
 ### Assignment 5's checks
 
 | Check | Result so far |
 |---|---|
-| Baseline | Done before any change, again after the cone's shader and its driver, and again after the cooler's materials (above): every earlier check at its baseline count. |
+| Baseline | Done before any change, again after the cone's shader and its driver, again after the cooler's materials, and from an empty cache after the material audit (above): every earlier check at its baseline count. |
 | Shaders parse | The cone's shader: the uniform-list assertions pass, there's no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's and the hint experiment's: the material test's uniform-list assertions pass (above). The `source_color` mutation is still to come. |
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
@@ -732,9 +745,9 @@ No log line has `ERROR`.
 | Hint experiment (HUMAN CHECK) | Done on 29 Oct (above). With `source_color`: 64, 128 and 192, unchanged. Without: 137, 188 and 225, against my 135, 184 and 225, from the known slip in my predictions. |
 | Interface sweep (HUMAN CHECK) | Not started. The materials it sweeps are ready (above). |
 | One shader, two materials (HUMAN CHECK) | Not started. The two materials from one shader exist (above); my side-by-side captures and the shader-edit and material-edit checks are still to do. |
-| Material wiring | The material test passes 137 of 137 (above). The run after a fresh import, and my `source_color` mutation, are still to come. |
+| Material wiring | The material test passes 137 of 137, and again after a fresh import (above). My `source_color` mutation is still to come. |
 | Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The material test prints the cooler's normal map's under both conventions: 0.427 and 1.573 (above). |
-| Import settings | Set explicitly on 29 Oct and read back after a reimport (above). Any rewrite by the editor gets checked after my first editor session with the textures. |
+| Import settings | Set explicitly on 29 Oct and read back after a reimport (above). The import from an empty cache rewrote none. Any rewrite by the editor gets checked after my first editor session with the textures. |
 | What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. All logged in FRICTIONAL.md. |
 
 A headless run can show that the timings, states, visibility and uniform values follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks.

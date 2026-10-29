@@ -82,16 +82,40 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 
 *Shaders, Materials, and the Godot Shading Language*, on the branch `assignment-5`. It isn't tagged yet.
 
-- **The plan:** two shaders I write by hand, and the materials that use them:
-  - one from code alone, with no textures, for the campers' vision cones: pale yellow while they watch, and red for 2 seconds once one spots him, before every cone fades out;
-  - one that reads textures, on a 3D object, with two materials made from it.
-- **On the branch so far:** the tutorial at the camp and the campers' cones that the first shader will colour (see [Run it](#run-it)), and their check, `scripts/cones_test.gd`. Claude Code wrote them from my design, and adapted the course's test wrapper, `scripts/run-test.sh`.
-- **The docs:** each of these has an Assignment 5 section:
-  - the plan: [CHANGE-BRIEF.md](CHANGE-BRIEF.md#assignment-5-shaders-and-materials);
-  - the log: [FRICTIONAL.md](FRICTIONAL.md#assignment-5-shaders-and-materials);
-  - the checks: [TEST-REPORT.md](TEST-REPORT.md#assignment-5-shaders-and-materials);
-  - the tools and provenance: [SOURCES.md](SOURCES.md#assignment-5-tools-and-provenance).
-- **Still to come:** both shaders and their materials, the language notes, the known limitations and the film.
+### What this assignment added
+
+- **The campers' vision cones, coloured by my shader** ([shaders/vision_cone.gdshader](shaders/vision_cone.gdshader)):
+  - pale yellow while a camper watches;
+  - red for 2 seconds on the cone of whoever spots him, starting over if he's spotted again;
+  - then every cone fades out over 0.5 s, and each comes back, yellow, about 5 s after its camper calms down.
+
+  Each cone has its own `ShaderMaterial` (`scripts/vision_cone.gd`). [scripts/cone_driver.gd](scripts/cone_driver.gd) sets each one's `alarm` and `shown` every frame from the camp's `spotted_at` and `spotters` (`scripts/campsite.gd`), and writes nothing else.
+- **The cooler, with my textured shader** ([shaders/cooler_paint.gdshader](shaders/cooler_paint.gdshader)):
+  - two materials from it, [materials/cooler_body.tres](materials/cooler_body.tres) (scuffed blue metal) and [materials/cooler_lid.tres](materials/cooler_lid.tres) (smoother white);
+  - both behind the glb's per-material Use External, so every cooler gets them;
+  - the textures are Poly Haven's Blue Metal Plate, by Rob Tuytel, CC0 ([credits](assets/textures/blue_metal_plate/ATTRIBUTION.md)): a colour texture read with `source_color`, and a roughness map and a GL normal map read as data.
+- **The hint experiment** ([hint_experiment/hint_experiment.tscn](hint_experiment/hint_experiment.tscn)): a 3×1 PNG of greys 64, 128 and 192, sampled with and without `source_color` on one quad split in two.
+- **The checks:**
+  - `--cone-shader-test`, which drives the cones through real spottings at 30, 60 and 144 fps;
+  - [tests/test_materials.gd](tests/test_materials.gd), the material audit's test, with the audit itself in [MATERIALS.md](MATERIALS.md);
+  - [tests/normal_map_check.gd](tests/normal_map_check.gd), calibrated on the texture set's own GL and DX pair.
+- **Still to come:** the generated StandardMaterial3D shader, annotated, my language notes, and the film.
+
+### For the grader: seeing it
+
+- **The cones:** start a New Game, follow the music east to the camp, read THE PLAN and close it with Tab, then let a camper see him.
+- **The cooler:** by the camp's fire, or in the asset room (`Look at the A3 assets.bat`, then key 2).
+- **The hint experiment:** `godot --path . res://hint_experiment/hint_experiment.tscn`.
+- **The checks,** from this folder in Git Bash, after `godot --headless --path . --import` once: `bash scripts/run-test.sh --cone-shader-test 60` (also at 30 and 144) and `bash scripts/run-test.sh test_materials.gd 60`. The earlier checks and their counts are in [TEST-REPORT.md](TEST-REPORT.md#assignment-5-shaders-and-materials).
+
+### Known limitations (Assignment 5)
+
+- **The hint experiment** is one quad split in two, not the course's bool uniform with two materials on two quads. That was my decision ([CHANGE-BRIEF.md](CHANGE-BRIEF.md), "Revised 29 Oct 2026: the hint experiment, on one quad split in two").
+- **No headless run can show the look.** The colours, the fades and the cooler's surface are checked only by my eyes.
+- **The cooler's colour line can take `ALBEDO` above 1** at the diffuse's brightest texels, and its `DIFFUSE_MEAN_LUMINANCE` fits only this diffuse ([MATERIALS.md](MATERIALS.md), findings).
+- **Two earlier checks fail under `--fixed-fps`,** as recorded before this assignment: waves (12 of 13) and title (51 of 52).
+
+The docs, each with an Assignment 5 section: the plan, [CHANGE-BRIEF.md](CHANGE-BRIEF.md#assignment-5-shaders-and-materials); the log, [FRICTIONAL.md](FRICTIONAL.md#assignment-5-shaders-and-materials); the checks, [TEST-REPORT.md](TEST-REPORT.md#assignment-5-shaders-and-materials); the tools and provenance, [SOURCES.md](SOURCES.md#assignment-5-tools-and-provenance).
 
 ## Assignment 3: the three Blender assets
 
