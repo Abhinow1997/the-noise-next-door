@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Tutorial and cones check, 2026-10-26T17:28:13
+Tutorial and cones check, 2026-10-29T15:24:23
   pass  Before the tutorial: no cones                                  expected false false false got false false false
   pass  Before the tutorial: only the music's task on the list         expected investigate      got investigate
   pass  Before the tutorial: in plain sight, nobody sees him           expected false false false got false false false
@@ -46,3 +46,7 @@ Tutorial and cones check, 2026-10-26T17:28:13
   pass  Two of its tasks done: Rock the party isn't                    expected false            got false
   pass  All three done: Rock the party is ticked off                   expected true             got true
 RESULT: all checks passed (43 checks)
+WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

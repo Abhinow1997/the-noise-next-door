@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Camp tasks check, 2026-10-26T17:27:47
+Camp tasks check, 2026-10-29T15:24:46
   pass  The to-do list: the music, then Rock the party and its three       expected investigate party marshmallows music cooler got investigate party marshmallows music cooler
   pass  Routines: the camper starts pegging out his tent                   expected peg              got peg
   pass  Routines: the low-poly man starts dancing                          expected dance            got dance
@@ -46,7 +46,3 @@ Camp tasks check, 2026-10-26T17:27:47
   pass  Cooler: dropped in his stash, the task's done                      expected true             got true
   pass  All four tasks done                                                expected true             got true
 RESULT: all checks passed (43 checks)
-WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 1 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)

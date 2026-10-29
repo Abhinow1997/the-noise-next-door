@@ -27,7 +27,8 @@ extends Node3D
 ## `-- --cones-test` checks the tutorial at the camp and the campers' cones and search
 ## (scripts/cones_test.gd), with `--cones-shots=<folder>` for pictures. The other tests
 ## skip the tutorial: for them the camp's tasks are on the list and the cones on from
-## the start.
+## the start. `-- --cone-shader-test` checks the cones' shader and what drives it
+## (tests/cone_shader_test.gd, cone_driver.gd), through the tutorial as --cones-test.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -49,6 +50,7 @@ const TasksTest := preload("res://scripts/tasks_test.gd")
 const WavesTest := preload("res://scripts/waves_test.gd")
 const PlanTest := preload("res://scripts/plan_test.gd")
 const ConesTest := preload("res://scripts/cones_test.gd")
+const ConeShaderTest := preload("res://tests/cone_shader_test.gd")
 ## His laughing face while he chitters.
 const RaccoonFace := preload("res://scripts/raccoon_face.gd")
 ## The moonlight (night.gd), and the title screen's chalk writing (title_menu.gd) for the
@@ -311,6 +313,7 @@ func _ready() -> void:
 	var plan_shots := ""
 	var cones_test := false
 	var cones_shots := ""
+	var cone_shader_test := false
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -366,6 +369,8 @@ func _ready() -> void:
 			cones_test = true
 		elif arg.begins_with("--cones-shots="):
 			cones_shots = arg.get_slice("=", 1)
+		elif arg == "--cone-shader-test":
+			cone_shader_test = true
 	_rng.seed = 7
 
 	_build_environment()
@@ -497,6 +502,10 @@ func _ready() -> void:
 		cones_check.level = self
 		cones_check.shots = cones_shots
 		add_child(cones_check)
+	if cone_shader_test and campsite:
+		var shader_check := ConeShaderTest.new()
+		shader_check.level = self
+		add_child(shader_check)
 	if bubble_demo:
 		var demo := BubbleDemo.new()
 		demo.level = self

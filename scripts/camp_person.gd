@@ -217,6 +217,11 @@ func hide_cone() -> void:
 	_cone_back_at = INF
 
 
+## When their cone may show again (read only, for cone_driver.gd's fade-in).
+func cone_back_at() -> float:
+	return _cone_back_at
+
+
 func _physics_process(delta: float) -> void:
 	if player == null:
 		player = get_tree().get_first_node_in_group("player") as Player
@@ -382,7 +387,7 @@ func _startle(spotted := false) -> void:
 	_alarmed_at = camp.clock
 	camp.frighten()
 	if spotted:
-		camp.spot()
+		camp.spot(self)
 	_to_state(State.STARTLED)
 
 
@@ -524,7 +529,7 @@ func _fix(delta: float) -> void:
 ## seeing him there sets them guarding (or her hiding) again, with no flinch.
 func _search(delta: float) -> void:
 	if eyes.seeing and camp.in_camp(camp.last_seen_at) and not camp.let_be():
-		camp.spot()
+		camp.spot(self)
 		_to_state(State.FLEE if role == "girl" else State.GUARD)
 		return
 	_play(_stand())
@@ -539,7 +544,7 @@ func _return(delta: float) -> void:
 	if _t > 0.5 and camp.seen_within(0.3) and camp.in_camp(camp.last_seen_at) and not camp.let_be():
 		# He's back while they're still wary: no flinch this time.
 		if eyes.seeing:
-			camp.spot()
+			camp.spot(self)
 		_to_state(State.FLEE if role == "girl" else State.GUARD)
 		return
 	var spot := activity_spot()

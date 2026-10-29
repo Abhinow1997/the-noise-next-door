@@ -22,7 +22,8 @@ const HideSpot := preload("res://scripts/hide_spot.gd")
 ## each comes back BACK_AFTER seconds after its NPC starts walking back (the author:
 ## "after like 5 seconds bring the vision cone back"). FADE_OUT is Claude Code's choice.
 ## When each cone shows is camp_person.gd's; the colour and the fades are the author's
-## shader's, once it's in: until then the cone just turns red, and shows or not.
+## shader's (shaders/vision_cone.gdshader), its `alarm` and `shown` set at the camp by
+## cone_driver.gd. A cone nothing drives (the bubble demo's) just turns red from red().
 const RED_TIME := 2.0
 const FADE_OUT := 0.5
 const BACK_AFTER := 5.0
@@ -30,6 +31,7 @@ const BACK_AFTER := 5.0
 const LOOK_AT := [0.25, 0.45]
 const WATCHING := Color(1.0, 0.93, 0.62, 0.5)
 const SEEING := Color(1.0, 0.33, 0.27, 0.65)
+const SHADER := preload("res://shaders/vision_cone.gdshader")
 
 ## Who it looks for: the node in the "player" group, unless the level sets it.
 var target: Node3D
@@ -45,8 +47,10 @@ var clock := 0.0
 var held_length := -1.0
 ## Bodies its sight passes through, such as its own NPC's collider.
 var ignore: Array[RID] = []
+## True once something else (cone_driver.gd) sets its look: then it doesn't from red().
+var driven := false
 
-var _material: StandardMaterial3D
+var _material: ShaderMaterial
 var _cone: MeshInstance3D
 var _drawn_reach := 1.0
 
@@ -70,7 +74,8 @@ func _physics_process(delta: float) -> void:
 		else:
 			lost.emit(target)
 	if _material:
-		_material.albedo_color = SEEING if red() else WATCHING
+		if not driven:
+			_material.set_shader_parameter("alarm", 1.0 if red() else 0.0)
 		# Drawn as far as it sees now (the level may change `reach` as it goes), and
 		# stretched across the ground only: stretched up and down as well, as it was
 		# until 26 Oct 2026, it sank into the ground when longer and rose off it when
@@ -119,6 +124,18 @@ func show_on_ground(on: bool) -> void:
 		_cone.visible = on
 
 
+## Sets the shader's `alarm` (0 the yellow, 1 the red) and `shown` (0 gone, 1 shown).
+func set_look(alarm: float, shown: float) -> void:
+	if _material:
+		_material.set_shader_parameter("alarm", alarm)
+		_material.set_shader_parameter("shown", shown)
+
+
+## The cone's own material (for the tests).
+func material() -> ShaderMaterial:
+	return _material
+
+
 ## True while the cone's drawn on the ground.
 func showing() -> bool:
 	return _cone != null and _cone.visible
@@ -149,13 +166,9 @@ func _build_cone() -> void:
 		st.add_vertex(ground + Vector3(-sin(a1), 0.0, -cos(a1)) * reach)
 		st.set_color(Color(1, 1, 1, 0.12))
 		st.add_vertex(ground + Vector3(-sin(a0), 0.0, -cos(a0)) * reach)
-	_material = StandardMaterial3D.new()
-	_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_material.vertex_color_use_as_albedo = true
-	_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	_material.disable_fog = true
-	_material.albedo_color = WATCHING
+	# One material per cone, so each has its own values (CHANGE-BRIEF.md, Assignment 5).
+	_material = ShaderMaterial.new()
+	_material.shader = SHADER
 	_cone = MeshInstance3D.new()
 	_cone.mesh = st.commit()
 	_cone.material_override = _material

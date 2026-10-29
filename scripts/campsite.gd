@@ -47,6 +47,7 @@ const CampTasks := preload("res://scripts/camp_tasks.gd")
 const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
 const CampInput := preload("res://scripts/camp_input.gd")
 const SoundWaves := preload("res://scripts/sound_waves.gd")
+const ConeDriver := preload("res://scripts/cone_driver.gd")
 
 const TENT := "res://assets/props/tent.glb"
 const TABLE_WITH_LAPTOP := "res://assets/props/table_with_laptop.glb"
@@ -210,6 +211,9 @@ var gave_up_on_tree := false
 ## (vision_cone.gd), then goes until its own person is calm again (camp_person.gd).
 var cones_on := false
 var spotted_at := -INF
+## Who has spotted him since the cones last went (CHANGE-BRIEF.md, "the script and
+## variables that hold the state"): cone_driver.gd turns their cones red.
+var spotters: Array[CampPerson] = []
 ## The party's music, playing from the speaker, and how many beats into it the party
 ## is (it counts on, and goes back when the music loops).
 var party: AudioStreamPlayer3D
@@ -284,6 +288,10 @@ func _ready() -> void:
 	puzzles.speaker = speaker
 	puzzles.table = table
 	add_child(puzzles)
+	# Sets the people's cones' shader from the above (cone_driver.gd).
+	var driver := ConeDriver.new()
+	driver.camp = self
+	add_child(driver)
 	_bake_walkways()
 	# After the raccoon in the level, so an E next to something he can use goes to it first.
 	_input = CampInput.new()
@@ -367,8 +375,13 @@ func frighten() -> void:
 	frightened = clock
 
 
-## Someone watching for him has just spotted him: every cone goes once the red's over.
-func spot() -> void:
+## Someone watching for him (`by`) has just spotted him: every cone goes once the red's
+## over. Once the cones have gone, the next spotting starts a new list of who did.
+func spot(by: CampPerson = null) -> void:
+	if clock >= cones_shown_until():
+		spotters.clear()
+	if by and not by in spotters:
+		spotters.append(by)
 	spotted_at = clock
 	for person in people:
 		person.hide_cone()

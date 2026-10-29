@@ -1,0 +1,134 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Cone shader check at 144 fps, 2026-10-29T15:24:06
+  pass  Uniform list: not empty (the shader parses)                                    expected true                 got true
+  pass  Uniform list: exactly alarm, shown, watch_color, alarm_color                   expected alarm alarm_color shown watch_color got alarm alarm_color shown watch_color
+  pass  Uniform list: alarm is a float                                                 expected float                got float
+  pass  Uniform list: shown is a float                                                 expected float                got float
+  pass  Uniform list: watch_color is a colour (vec4, source_color)                     expected Color                got Color
+  pass  Uniform list: alarm_color is a colour (vec4, source_color)                     expected Color                got Color
+  pass  Driver's names declared: alarm and shown                                       expected true                 got true
+  pass  Source: alarm is float, hint_range(0.0, 1.0), default 0.0                      expected float|hint_range(0.0, 1.0)|0.0 got float|hint_range(0.0, 1.0)|0.0
+  pass  Source: shown is float, hint_range(0.0, 1.0), default 1.0                      expected float|hint_range(0.0, 1.0)|1.0 got float|hint_range(0.0, 1.0)|1.0
+  pass  Source: watch_color is vec4, source_color                                      expected vec4|source_color    got vec4|source_color
+  pass  Source: alarm_color is vec4, source_color                                      expected vec4|source_color    got vec4|source_color
+  pass  Source: watch_color's default is the game's WATCHING                           expected (1.00, 0.93, 0.62, 0.50) got (1.00, 0.93, 0.62, 0.50)
+  pass  Source: alarm_color's default is the game's SEEING                             expected (1.00, 0.33, 0.27, 0.65) got (1.00, 0.33, 0.27, 0.65)
+  pass  Source: render_mode blend_mix, unshaded, depth_draw_opaque                     expected true                 got true
+  pass  Source: the brief's colour line, word for word                                 expected true                 got true
+  pass  Source: the brief's see-through line, word for word                            expected true                 got true
+  pass  Each cone: a ShaderMaterial with the shader, as its override, driven           expected true                 got true
+  pass  Each cone: a material of its own (3 cones, 3 materials)                        expected 3                    got 3
+  pass  alarm is only ever 0 or 1 (it snaps, nothing in between)                       expected true                 got true
+  pass  Tutorial over: the cones appear at once, shown 1, yellow but for a spotter (no fade-in) expected [1.0, 1.0, 1.0] [0.0, 0.0, 0.0] got [1.0, 1.0, 1.0] [0.0, 0.0, 0.0]
+  pass  Spottings seen: the five staged, and no others                                 expected spot 1: the camper | spot 2: the low-poly man, during the red | spot 3: the camper, confused, while the cones are hidden, at time_scale 0.5 | spot 4: the low-poly man (SEARCH), during the fade, at time_scale 0.5 | spot 5: the camper, at work, at time_scale 2.0 got spot 1: the camper | spot 2: the low-poly man, during the red | spot 3: the camper, confused, while the cones are hidden, at time_scale 0.5 | spot 4: the low-poly man (SEARCH), during the fade, at time_scale 0.5 | spot 5: the camper, at work, at time_scale 2.0
+  pass  spot 1: the snap, the frame it happens: alarm on the spotters' cones only      expected [1.0, 0.0, 0.0]      got [1.0, 0.0, 0.0]
+  pass  spot 1: the spotter's cone went 0 to 1 within one frame                        expected 0.0 -> 1.0           got 0.0 -> 1.0
+  pass  spot 1: shown 1 on every cone, the frame it happens                            expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
+  pass  spot 1: every cone drawn, first changed frame within a frame or a tick         expected ok                   got ok
+  pass  spot 1: re-spotted during its red: shown stayed at 1 until then                expected true                 got true
+  pass  spot 1: re-spotted during its red: both spotters' cones red                    expected 2 red                got 2 red
+  pass  spot 2: the snap, the frame it happens: alarm on the spotters' cones only      expected [1.0, 1.0, 0.0]      got [1.0, 1.0, 0.0]
+  pass  spot 2: the spotter's cone went 0 to 1 within one frame                        expected 0.0 -> 1.0           got 0.0 -> 1.0
+  pass  spot 2: shown 1 on every cone, the frame it happens                            expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
+  pass  spot 2: every cone drawn, first changed frame within a frame or a tick         expected ok                   got ok
+  pass  spot 2: the spotters' cones red, the rest yellow, through the red and the fade expected true                 got true
+  pass  spot 2: shown 1 all through the 2 s of red                                     expected true                 got true
+  pass  spot 2: fade start, off the slope, within one frame                            expected ok                   got ok
+  pass  spot 2: fade end, off the slope, within one frame                              expected ok                   got ok
+  pass  spot 2: fade start, first changed frame within a frame or a tick               expected ok                   got ok
+  pass  spot 2: the red lasts 2N/s frames at time_scale 1.0, within 3                  expected 288                  got 288
+  pass  spot 2: gone (shown 0), first changed frame within a frame or a tick           expected ok                   got ok
+  pass  spot 2: once gone: every cone hidden, shown 0, alarm 0                         expected [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0] got [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0]
+  pass  spot 3: then spotted while hidden: the frame before, every cone hidden         expected [false, false, false] got [false, false, false]
+  pass  spot 3: the snap, the frame it happens: alarm on the spotters' cones only      expected [1.0, 0.0, 0.0]      got [1.0, 0.0, 0.0]
+  pass  spot 3: the spotter's cone went 0 to 1 within one frame                        expected 0.0 -> 1.0           got 0.0 -> 1.0
+  pass  spot 3: shown 1 on every cone, the frame it happens                            expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
+  pass  spot 3: every cone drawn, first changed frame within a frame or a tick         expected ok                   got ok
+  pass  spot 3: re-spotted during its fade: shown was fading, then snapped back to 1   expected fading, then [1.0, 1.0, 1.0] got fading, then [1.0, 1.0, 1.0]
+  pass  spot 3: the spotters' cones red, the rest yellow, through the red and the fade expected true                 got true
+  pass  spot 3: shown 1 all through the 2 s of red                                     expected true                 got true
+  pass  spot 3: fade start, off the slope, within one frame                            expected ok                   got ok
+  pass  spot 3: fade start, first changed frame within a frame or a tick               expected ok                   got ok
+  pass  spot 4: the snap, the frame it happens: alarm on the spotters' cones only      expected [1.0, 1.0, 0.0]      got [1.0, 1.0, 0.0]
+  pass  spot 4: the spotter's cone went 0 to 1 within one frame                        expected 0.0 -> 1.0           got 0.0 -> 1.0
+  pass  spot 4: shown 1 on every cone, the frame it happens                            expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
+  pass  spot 4: every cone drawn, first changed frame within a frame or a tick         expected ok                   got ok
+  pass  spot 4: the spotters' cones red, the rest yellow, through the red and the fade expected true                 got true
+  pass  spot 4: shown 1 all through the 2 s of red                                     expected true                 got true
+  pass  spot 4: fade start, off the slope, within one frame                            expected ok                   got ok
+  pass  spot 4: fade end, off the slope, within one frame                              expected ok                   got ok
+  pass  spot 4: fade start, first changed frame within a frame or a tick               expected ok                   got ok
+  pass  spot 4: the red lasts 2N/s frames at time_scale 0.5, within 3                  expected 576                  got 576
+  pass  spot 4: gone (shown 0), first changed frame within a frame or a tick           expected ok                   got ok
+  pass  spot 4: once gone: every cone hidden, shown 0, alarm 0                         expected [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0] got [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0]
+  pass  spot 5: the snap, the frame it happens: alarm on the spotters' cones only      expected [1.0, 0.0, 0.0]      got [1.0, 0.0, 0.0]
+  pass  spot 5: the spotter's cone went 0 to 1 within one frame                        expected 0.0 -> 1.0           got 0.0 -> 1.0
+  pass  spot 5: shown 1 on every cone, the frame it happens                            expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
+  pass  spot 5: every cone drawn, first changed frame within a frame or a tick         expected ok                   got ok
+  pass  spot 5: the spotters' cones red, the rest yellow, through the red and the fade expected true                 got true
+  pass  spot 5: shown 1 all through the 2 s of red                                     expected true                 got true
+  pass  spot 5: fade start, off the slope, within one frame                            expected ok                   got ok
+  pass  spot 5: fade end, off the slope, within one frame                              expected ok                   got ok
+  pass  spot 5: fade start, first changed frame within a frame or a tick               expected ok                   got ok
+  pass  spot 5: the red lasts 2N/s frames at time_scale 2.0, within 3                  expected 144                  got 144
+  pass  spot 5: gone (shown 0), first changed frame within a frame or a tick           expected ok                   got ok
+  pass  spot 5: once gone: every cone hidden, shown 0, alarm 0                         expected [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0] got [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0]
+  pass  Paused mid-fade: it was mid-fade when Esc paused it                            expected true                 got true
+  pass  Paused mid-fade: clock, shown and alarm held through 46 paused frames          expected true                 got true
+  pass  Seen by an alarmed camper during the red, 60 frames: no spotting, nothing changes expected true                 got true
+  pass    ... and during the red, his sighting kept everything as it was: red, shown 1 expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
+  pass  Seen by an alarmed camper while the cones are hidden, 60 frames: no spotting, nothing changes expected true                 got true
+  pass    ... and the hidden cones stayed hidden                                       expected [false, false, false] [0.0, 0.0, 0.0] got [false, false, false] [0.0, 0.0, 0.0]
+  pass  the camper's cone back: yellow (alarm 0)                                       expected 0.0                  got 0.0
+  pass  the camper's cone back: shown 0 on the frame the game shows it again           expected 0.0                  got 0.0
+  pass  the camper's cone back: fade-in start, off the slope, within one frame         expected ok                   got ok
+  pass  the camper's cone back: fade-in end (shown 1), first changed frame within a frame or a tick expected ok                   got ok
+  pass  the low-poly man's cone back: yellow (alarm 0)                                 expected 0.0                  got 0.0
+  pass  the low-poly man's cone back: shown 0 on the frame the game shows it again     expected 0.0                  got 0.0
+  pass  the low-poly man's cone back: fade-in start, off the slope, within one frame   expected ok                   got ok
+  pass  the low-poly man's cone back: fade-in end (shown 1), first changed frame within a frame or a tick expected ok                   got ok
+  pass  the girl's cone back: yellow (alarm 0)                                         expected 0.0                  got 0.0
+  pass  the girl's cone back: shown 0 on the frame the game shows it again             expected 0.0                  got 0.0
+  pass  the girl's cone back: fade-in start, off the slope, within one frame           expected ok                   got ok
+  pass  the girl's cone back: fade-in end (shown 1), first changed frame within a frame or a tick expected ok                   got ok
+  pass  Cones coming back after their 5 s: all three seen                              expected 3                    got 3
+
+Timings (game time; one frame is the frame period times time_scale):
+  spot 1   every cone drawn                 want   1.8167  first frame   1.8167  off   +0.00 ms (allowed 0 to 16.67 ms)
+  spot 2   every cone drawn                 want   1.8500  first frame   1.8500  off   +0.00 ms (allowed 0 to 16.67 ms)
+  spot 2   fade start, off the slope        want   3.8500  got   3.8500  off   -0.00 ms (one frame 6.94 ms)
+  spot 2   fade end, off the slope          want   4.3500  got   4.3500  off   +0.00 ms (one frame 6.94 ms)
+  spot 2   fade start                       want   3.8500  first frame   3.8667  off  +16.67 ms (allowed 0 to 16.67 ms)
+  spot 2   red, in frames at 144 fps and time_scale 1.0: 291 (2N/s = 288, within 3)
+  spot 2   gone (shown 0)                   want   4.3500  first frame   4.3667  off  +16.67 ms (allowed 0 to 16.67 ms)
+  spot 3   every cone drawn                 want   6.4167  first frame   6.4250  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 3   fade start, off the slope        want   8.4167  got   8.4167  off   +0.00 ms (one frame 3.47 ms)
+  spot 3   fade start                       want   8.4167  first frame   8.4250  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 4   every cone drawn                 want   8.5333  first frame   8.5333  off   +0.00 ms (allowed 0 to 8.33 ms)
+  spot 4   fade start, off the slope        want  10.5333  got  10.5333  off   +0.00 ms (one frame 3.47 ms)
+  spot 4   fade end, off the slope          want  11.0333  got  11.0333  off   +0.00 ms (one frame 3.47 ms)
+  spot 4   fade start                       want  10.5333  first frame  10.5417  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 4   red, in frames at 144 fps and time_scale 0.5: 579 (2N/s = 576, within 3)
+  spot 4   gone (shown 0)                   want  11.0333  first frame  11.0417  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 5   every cone drawn                 want  18.7667  first frame  18.7667  off   +0.00 ms (allowed 0 to 33.33 ms)
+  spot 5   fade start, off the slope        want  20.7667  got  20.7667  off   +0.00 ms (one frame 13.89 ms)
+  spot 5   fade end, off the slope          want  21.2667  got  21.2667  off   +0.00 ms (one frame 13.89 ms)
+  spot 5   fade start                       want  20.7667  first frame  20.8000  off  +33.33 ms (allowed 0 to 33.33 ms)
+  spot 5   red, in frames at 144 fps and time_scale 2.0: 147 (2N/s = 144, within 3)
+  spot 5   gone (shown 0)                   want  21.2667  first frame  21.2667  off   +0.00 ms (allowed 0 to 33.33 ms)
+  the camper's cone back shown again at  16.0500, +16.67 ms from 5 s after walking back ( 16.0333): the game's timing
+  the camper's cone back fade-in start, off the slope     want  16.0500  got  16.0500  off   +0.00 ms (one frame 3.47 ms)
+  the camper's cone back fade-in end (shown 1)            want  16.5500  first frame  16.5583  off   +8.33 ms (allowed 0 to 8.33 ms)
+  the low-poly man's cone back shown again at  18.1750, +16.67 ms from 5 s after walking back ( 18.1583): the game's timing
+  the low-poly man's cone back fade-in start, off the slope     want  18.1750  got  18.1750  off   +0.00 ms (one frame 3.47 ms)
+  the low-poly man's cone back fade-in end (shown 1)            want  18.6750  first frame  18.6833  off   +8.33 ms (allowed 0 to 8.33 ms)
+  the girl's cone back shown again at  16.0500, +1641.67 ms from 5 s after walking back ( 14.4083): the game's timing
+  the girl's cone back fade-in start, off the slope     want  16.0500  got  16.0500  off   +0.00 ms (one frame 3.47 ms)
+  the girl's cone back fade-in end (shown 1)            want  16.5500  first frame  16.5583  off   +8.33 ms (allowed 0 to 8.33 ms)
+RESULT: all checks passed (92 of 92 checks passed)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
