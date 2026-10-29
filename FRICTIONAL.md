@@ -1636,19 +1636,20 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 
 | Date | Entry | Commits |
 |---|---|---|
-| 25 Oct | Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief | not committed yet |
-| 26 Oct | The vision cones: the tutorial at the camp, 2 s of red, the confused search | not committed yet |
-| 26 Oct | My two plays at the camp, and the hop error they logged | not committed yet |
-| 26–28 Oct | My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures | not committed yet |
-| 28 Oct | The grading review, and my timing and restart rules made exact | not committed yet |
-| 28 Oct | The evidence split, made complete | not committed yet |
-| 28 Oct | The material plan, for the cooler | not committed yet |
-| 28 Oct | The predicted failures, tied to my rules | not committed yet |
-| 28 Oct | The state's script and variables, and a gap in Claude's cone code | not committed yet |
-| 28 Oct | My colour line and see-through line | not committed yet |
-| 28 Oct | My predicted pixels and contrast ratios, in three tries | not committed yet |
-| 28 Oct | My hint experiment predictions | not committed yet |
-| 28 Oct | My short answers | not committed yet |
+| 25 Oct | Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief | 4e92a5f |
+| 26 Oct | The vision cones: the tutorial at the camp, 2 s of red, the confused search | 4e92a5f |
+| 26 Oct | My two plays at the camp, and the hop error they logged | 4e92a5f |
+| 26–28 Oct | My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures | 4e92a5f |
+| 28 Oct | The grading review, and my timing and restart rules made exact | fa98066 |
+| 28 Oct | The evidence split, made complete | fa98066 |
+| 28 Oct | The material plan, for the cooler | fa98066 |
+| 28 Oct | The predicted failures, tied to my rules | fa98066 |
+| 28 Oct | The state's script and variables, and a gap in Claude's cone code | fa98066 |
+| 28 Oct | My colour line and see-through line | fa98066 |
+| 28 Oct | My predicted pixels and contrast ratios, in three tries | fa98066 |
+| 28 Oct | My hint experiment predictions | fa98066 |
+| 28 Oct | My short answers | fa98066 |
+| 28 Oct | Step 1, the CLAUDE.md draft: a run that wasn't signed in, then one that worked | not committed yet |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -1912,3 +1913,19 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Written in** by Claude Code as a ninth dated revision at the end of the brief's Assignment 5 section.
 - **Still open, and optional:** rewriting my two render_mode reasons, and the empty heading on the other moods.
 - **Human / Claude / model:** the validation and the fixes are mine; the first wording is Gemini's or ChatGPT's. Claude's part is the check, the notes the fixes used, and this write-up.
+
+### 2026-10-28 — Step 1, the CLAUDE.md draft: a run that wasn't signed in, then one that worked
+
+- **Committed and pushed first** (28 Oct, at my word "Yes, two commits", then "Push them"): Claude's restructure of the docs on its own (3a76a94), then my brief's nine revisions and their logs (fa98066).
+- **Asked:** "Yes, prompt file". Claude Code wrote `prompt-1.txt`: the course's Step 1 prompt, adapted to this repository (the project at the root, the tests in `tests/` and by flag, `shaders/`, and the Assignment 5 section named as the current change). SOURCES.md has a row for it.
+- **Ran** (about 20:22), in Git Bash, the course's command: `claude -p` with read-only git tools, `--max-turns 40`, into `session-1.jsonl`.
+- **What happened:** it stopped at once. Its last event says "Not logged in · Please run /login", after 1 turn and 113 ms, with no permission denials; its first says `apiKeySource` none. The CLI in my terminal wasn't signed in, since the desktop app's sign-in doesn't carry over. No CLAUDE.md was written.
+- **Checked** by Claude, at my run: `git diff --stat -- shaders/ scripts/` printed nothing, and the only new files were `prompt-1.txt` and `session-1.jsonl`.
+- **Then** (about 20:27): I kept the first transcript as `session-1-not-logged-in.jsonl`, signed the CLI in myself (`claude`, then `/login`), and ran the same command again.
+- **What happened:** it finished in 21 turns and 104 s, ending normally (`end_turn`), with no permission denials, and its transcript is 0.47 MB. It read the files and wrote CLAUDE.md, 119 lines, with one Write and one Edit, both to CLAUDE.md.
+- **Checked** by Claude, at my "ok done":
+  - `git diff --stat -- shaders/ scripts/` printed nothing;
+  - the only new files are CLAUDE.md, `prompt-1.txt` and the two transcripts;
+  - the agent also ran read-only commands outside its allow-list (`cat`, `grep`, `sed`, `wc`) with no denial, so the allow-list didn't stop them. That's why the diff is the guarantee.
+- **Next:** commit the draft unedited, then my review.
+- **Human / Claude / model:** the runs and the sign-in are mine. The prompt file, the reading of the transcripts and this write-up are Claude's. The draft is the `claude -p` agent's (Claude Code 2.1.289, Claude Opus 5.5). No other generative model.
