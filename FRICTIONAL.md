@@ -1652,7 +1652,12 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 28 Oct | Step 1, the CLAUDE.md draft: a run that wasn't signed in, then one that worked | 6451725 |
 | 28 Oct | Step 1, my review of CLAUDE.md | b97ac59 |
 | 28 Oct | Step 2, my shader | 53b0087 (the shader); cb4bafd (this entry and the `.uid` files) |
-| 28–29 Oct | Step 2, the plan: a plan-only run, Claude's review, and my picks | the commit after cb4bafd |
+| 28–29 Oct | Step 2, the plan: a plan-only run, Claude's review, and my picks | cefb6a7 |
+| 29 Oct | Step 2, the driver: the agent's run with prompt-3.txt | 29fd5da |
+| 29 Oct | Step 2, Claude's review of the driver, and its four fixes | 2024a76 |
+| 29 Oct | Step 2, my .uid files | a4f4a66 |
+| 29 Oct | Step 2, my two mutations | with their two logs, after a4f4a66 |
+| 29 Oct | The capture tool for my controlled values | its own commit, after a4f4a66 |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2004,3 +2009,66 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - `prompt-3.txt`, approving the four steps with all eight picks as conditions. It's run with `--resume`, so the agent carries on in the conversation where it wrote its plan.
 - **Next:** the run with `prompt-3.txt`, which gets its own entry. It was still running when this entry was committed.
 - **Human / Claude / model:** the runs and the picks are mine. The prompt files, the reading of the transcript, the review, the brief's wording and this write-up are Claude's. The plan is the `claude -p` agent's (Claude Code 2.1.312, Claude Opus 5.5). No other generative model.
+
+### 2026-10-29 — Step 2, the driver: the agent's run with `prompt-3.txt`
+
+- **Ran** (29 Oct, about 15:08 to 15:26), in Git Bash: `claude -p` with `prompt-3.txt`, resuming the plan's session (`--resume`).
+  - Edit and Write were allowed everywhere but `shaders/`, the existing tests, `run-test.sh` and `project.godot`. Bash could only run `run-test.sh` and read-only git commands. `--max-turns 150`, into `session-3.jsonl`.
+  - I started it before the plan step was committed, so it was still running when Claude committed the plan files (cefb6a7).
+- **What happened:** it ended normally (`success`, `end_turn`) in 114 turns and 17.5 minutes (Claude Code 2.1.312, Claude Opus 5.5). It did the four steps it had planned, reran every test, and reported 92 of 92 at 30, 60 and 144 fps, with every earlier check at its baseline.
+  - It changed three things from its plan: the fade-in ramps from the first frame the game draws a cone again; a confused spotter's own cone is drawn a tick after the others (the game's order, left alone); and the girl's cone came back 1.64 s late (the game's timing, printed, not asserted).
+  - Its 5 permission denials were all commands outside the allow-list: two timed test runs, a listing of Godot's folders, and two runs of Godot itself with `--verbose`, to look into the exit-time leak lines.
+- **Checked** by Claude, from the code and the logs rather than the agent's summary:
+  - the diff stays inside the boundaries;
+  - the test never calls `spot()`, the driver or `set_look()`, and writes no game state; its uniform types come from `get_shader_uniform_list()`; a case it can't stage fails the run;
+  - every log matched its table, with no `SHADER ERROR` or `SCRIPT ERROR`;
+  - `shaders/`, the existing tests, `run-test.sh` and `project.godot` were unchanged, and the transcript held no credentials.
+- **Committed** unedited at my word ("Yes, commit it") as 29fd5da, with a labelled 448 KB excerpt of its 2.7 MB transcript (`session-3-excerpt.jsonl`). The full transcript isn't committed.
+- **Human / Claude / model:** the run and the decision to commit are mine. The code, the test and the run's report are the `claude -p` agent's (Claude Code 2.1.312, Claude Opus 5.5). The review, the excerpt and this write-up are Claude's. No other generative model.
+
+### 2026-10-29 — Step 2, Claude's review of the driver, and its four fixes
+
+- **What the review found** (29 Oct, at my "Yes, review it"):
+  1. After the agent's fade-in change, the `cone_back_at()` getter only told the driver whether anyone had spotted him yet, which `camp.spotted_at` already says. Behind it was Claude's own mistake: its 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, but the game can draw the cone a tick later.
+  2. The game counts a camper's 5 s from when they're calm again or the cones have gone, whichever is later, not from when they start walking back, as my rules said. That's why the girl's cone came back late.
+  3. The re-spot during the red came only 2 ticks (33 ms) after the first spotting, so at 30 fps a red that didn't restart would have passed that check too.
+  4. `main.gd` loaded the test on every run of the game.
+  - Claude also found its own slip: its 29 Oct edit had made CLAUDE.md 120 lines, and the course asks for under 120.
+- **My pick** (29 Oct): "All four".
+- **The fixes,** by Claude Code:
+  - the getter dropped, and the driver reading `spotted_at` instead;
+  - the re-spot staged 0.12 s on, with a check that it comes more than a frame after the first spotting;
+  - the test loaded only under its flag;
+  - a dated brief section, "no getter, and the 5 s as the game counts them", and the 5 s in `vision_cone.gd`'s header;
+  - CLAUDE.md's two boundary lines back to their reviewed wording, which took it back to 119 lines.
+- **Rerun:** the new test 93 of 93 at 30, 60 and 144 fps; every earlier check at its baseline.
+- **Committed** at my word ("Yes, commit them") as 2024a76, apart from the agent's commit.
+- **Human / Claude / model:** the picks are mine. The review, the fixes and this write-up are Claude's. No other generative model.
+
+### 2026-10-29 — Step 2, my `.uid` files
+
+- **First try:** `godot --headless --editor --quit` failed with "bash: godot: command not found". Godot isn't on my Git Bash PATH.
+- **Then,** with the console build's full path and `--import`, as Claude suggested, it wrote `scripts/cone_driver.gd.uid` and `tests/cone_shader_test.gd.uid` and changed nothing else. I committed them on their own as a4f4a66.
+- **Checked** by Claude: that commit holds only those two files, and every tracked script and shader now has its `.uid`.
+- **Human / Claude / model:** the import and the commit are mine. The command and the check are Claude's. No generative model.
+
+### 2026-10-29 — Step 2, my two mutations
+
+- **The parse mutation** (16:28): I deleted the `;` at the end of the colour line. The run exited 1, with "SHADER ERROR: Expected a ';'." and 85 of 93: the uniform list came back empty. Log: `logs/mutation-semicolon_60fps.log`.
+- **The rename mutation** (16:53): I renamed the uniform `alarm` to `alert` in its three places in the shader. The run exited 1, with no `SHADER ERROR` and 87 of 93. The uniform-list, driver's-names and source checks caught it, and the checks on the values over time still passed. Log: `logs/mutation-rename_60fps.log`.
+- **What went wrong on the way,** each caught by Claude checking the files rather than my report:
+  - My first mutation run (16:23) tested an unchanged shader: the edit wasn't on disk, and 93 of 93 passed. Claude saw that the shader file was still dated 28 Oct 21:19, and that every source check had passed.
+  - For the rename, the result I first sent was a prediction ("once you run that command, your results will be…"), not a run's output, and the log I'd kept was a copy of an earlier passing run (16:11, 93 of 93). Claude said it couldn't be recorded.
+  - My first real rename run gave 87 of 93, but `git checkout` restored the log before I'd copied it, so I ran it once more to keep it.
+- **Human / Claude / model:** the mutations, the runs and what I saw are mine. The commands, the checks of the logs and this write-up are Claude's. Where the predicted text for the rename came from isn't recorded yet.
+
+### 2026-10-29 — The capture tool for my controlled values
+
+- **Asked:** "Yes, build it".
+- **Built** by Claude Code: `design/a5/captures/capture_values.gd`, run in a window.
+  - It sets the game up and frames the camera as `make_captures.gd` did for my grass captures, and pauses it there.
+  - Then F9 holds the driver off and saves the camper's cone at `alarm` 0, 0.5, 1 and 2.0, each with a frame of the cones hidden, plus a pair with the fog off, and the pixels at both spots in `values.txt`. Then it holds the `alarm` 1 frame for my OS screenshot.
+  - It stops if the shader on disk doesn't declare `alarm` and `shown`, as it didn't while my rename was in place.
+- **Tested** by Claude twice in a scratch copy of HEAD, outside the repository, with a copy of the tool that pressed F9 by itself. The spots landed on (974, 258) and (249, 480), and the hidden-cone frames gave my table's grass, (34, 45, 49) and (58, 76, 82), so the framing matches. Claude deleted the test pictures and didn't give me their cone values: those captures are mine to take and compare.
+- **Not done yet:** my captures with it.
+- **Human / Claude / model:** the request is mine. The tool, its test and this write-up are Claude's. No generative model.

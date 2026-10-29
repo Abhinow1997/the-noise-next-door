@@ -374,18 +374,16 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 
 `the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
 
-**Status (26 Oct 2026, about 17:35).**
-- **Neither shader exists yet**, and `shaders/` hasn't been made.
-- **CHANGE-BRIEF.md's Assignment 5 section** has the state and the cone's design from my answers. The rules, the uniform table, the colour line and the predictions are still to write.
-- **The cone's behaviour, which my first shader will colour, is built and checked**, and so is the test wrapper (below).
-- **I've played it twice at the camp.** What I saw isn't recorded yet.
-- **Nothing for Assignment 5 is committed yet.**
+**Status (29 Oct 2026, about 17:00).**
+- **The cone's shader is in, and driven:** my `shaders/vision_cone.gdshader` (53b0087), the `claude -p` agent's driver and test (29fd5da), and Claude's fixes from its review of them (2024a76). Its headless test passes 93 of 93 at 30, 60 and 144 fps, and the earlier checks keep their baseline (below).
+- **Two of the three mutations are done,** on the cone's shader, and both runs exit 1 (below).
+- **Not done yet:** the cone's human checks (the captures, play and the look), the cooler's textured shader and its materials, the hint experiment, and the material test and its mutation.
 
 **What will be tested**
 
 | | |
 |---|---|
-| Source revision | The commit tagged `a5`, once it exists. Everything below ran on `assignment-5` at 3acc103, plus the uncommitted changes listed in FRICTIONAL.md. |
+| Source revision | The commit tagged `a5`, once it exists. Each section below says the revision it ran on. |
 | Godot | 4.7.2 stable, official build, as for Assignments 2 and 3. Headless runs use `Godot_v4.7.2-stable_win64_console.exe`, which isn't on the PATH. |
 | Renderer | Forward+ (`project.godot`, `config/features`). HDR 2D isn't set. |
 | Machine | Windows 11 Home (10.0.26300), NVIDIA GeForce RTX 4050 Laptop GPU, 16 GB RAM; a 144 Hz display |
@@ -496,14 +494,78 @@ They're Claude's pictures, not my look.
 - **The check:** a scratch probe gave a hop ends like the error's. It logged 18 errors per 0.3 s hop before the fix and none after, with his scale back to exactly 1. Not one of the runs above logged a hop error.
 - **Not done:** a lasting test for it. The probe needs the game started outside title mode, which the wrapper's script runs don't do.
 
+### The cone's shader and its driver (`tests/cone_shader_test.gd`, `--cone-shader-test`)
+
+Run on 29 Oct 2026, about 16:10, on the code committed as 2024a76: my shader (53b0087), driven by `scripts/cone_driver.gd`. The driver and the test are the `claude -p` agent's, from `prompt-3.txt` (29fd5da), with Claude's fixes from its review (2024a76).
+
+| Frame rate | Result |
+|---|---|
+| `--fixed-fps 30` | Pass, 93 of 93 |
+| `--fixed-fps 60` | Pass, 93 of 93 |
+| `--fixed-fps 144` | Pass, 93 of 93 |
+
+It checks:
+- **The shader's contract:** the four uniforms' names and types, from `get_shader_uniform_list()`; their hints and defaults, the render_mode and my two lines, read from the source text.
+- **One material per cone:** three cones, three materials, each with my shader.
+- **Through play,** with Tab and Esc as key events and him put in a camper's view with `player.place()`. It never calls `spot()` or the driver. Over five spottings:
+  - the snap, on the spotters' cones only;
+  - the red, and the fade read off its slope;
+  - lost early;
+  - re-spotted during the red (0.12 s on) and during the fade, and spotted while the cones are hidden;
+  - seen by an alarmed camper, during the red and while the cones are hidden: nothing changes;
+  - paused mid-fade with Esc: held through 45 frames;
+  - time scale 0.5 and 2.0;
+  - the cones coming back yellow and fading in, and no fade-in when the tutorial ends.
+
+**The timings** (game time, in the logs):
+- Every time read off a fade's slope came out exact, 0.00 ms off, at every rate.
+- Every first changed frame came no more than one physics tick late, the limit in the brief's 29 Oct revision: up to 16.67 ms at time scale 1, 8.33 ms at 0.5 and 33.33 ms at 2.0.
+- The red lasted 2N/s frames plus one at 30 and 60 fps, and plus three at 144 (291 against 288), within the same revision's limits.
+- When each cone comes back is the game's timing, so the test prints it and doesn't assert it. The girl's came back about 1.6 s later than 5 s after she started back, because the game counts her 5 s from when the cones went (the brief's second 29 Oct revision).
+
+**What it can't show:** anything on screen (the colours, the blending, fog, sorting or culling), or that the GPU compiles the shader. Those are the human checks.
+
+### The earlier checks after the shader and its driver
+
+Run on 29 Oct 2026, about 16:10, on the code committed as 2024a76, at `--fixed-fps 60`; the cones check also at 30 and 144.
+
+| Check | Result | Changed since 26 Oct? |
+|---|---|---|
+| Assignment 3's assets | Pass, 20 of 20 | No |
+| Sounds | Pass, 30 of 30 | No |
+| Thought icons | Pass, 87 of 87 | No |
+| Campers' reactions | Pass, 31 of 31 | No |
+| Camp tasks | Pass, 43 of 43 | No |
+| Sound waves | Fail, 12 of 13, the same check | No |
+| THE PLAN | Pass, 19 of 19 | No |
+| Title screen | Fail, 51 of 52, the same check | No |
+| The cones (`--cones-test`) | Pass, 43 of 43 at 30, 60 and 144 | No |
+
+No earlier check's expectations changed for the shader work. Some logs end with "ObjectDB instances were leaked at exit" and "resources still in use at exit". Those lines come and go between runs of unchanged code (the 26 Oct logs had them too), and they don't fail a run.
+
+### The two shader mutations
+
+Done by me on 29 Oct 2026 on my cone shader, one at a time. Each was run with `bash scripts/run-test.sh --cone-shader-test 60`, then undone with `git checkout`.
+
+| Mutation | What I changed | Exit | `SHADER ERROR` | Result | Log |
+|---|---|---|---|---|---|
+| Parse | Deleted the `;` at the end of the colour line | 1 | Yes: "Expected a ';'." | 85 of 93. The uniform list came back empty, so its six checks failed, and so did "Driver's names declared" and the colour-line check. | `logs/mutation-semicolon_60fps.log`, run at 16:28 |
+| Rename | Renamed the uniform `alarm` to `alert` in the shader only: its declaration and both lines | 1 | No: it still parses | 87 of 93. The uniform list showed `alarm_color alert shown watch_color`, and "alarm is a float", "Driver's names declared", the source check on `alarm` and both line checks failed. | `logs/mutation-rename_60fps.log`, run at 16:53 |
+
+- **What the rename shows:** every check on `alarm`'s values over time still passed. The driver sets `alarm` with no error, and reading it back gives the value set, though the shader no longer has it. Only the uniform-list and source checks caught it.
+- **On the way** (FRICTIONAL.md, 29 Oct), each caught by Claude checking the files:
+  - my first mutation run tested an unchanged shader, because the edit wasn't saved;
+  - a result I first pasted for the rename was a prediction, not a run's output;
+  - the first real rename run's log was undone before I kept it, so I ran it again.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
 |---|---|
-| Baseline | Done before any change (above). To be taken again once the cone behaviour is committed. |
-| Shaders parse | Not started: no shader yet. |
-| Driver | Not started: it comes after my shader. The cone's timings are already measured at 30, 60 and 144 fps by the cones test. |
-| Controlled values (HUMAN CHECK) | Not started |
+| Baseline | Done before any change, and again after the shader and its driver (above): every earlier check at its baseline count. |
+| Shaders parse | The cone's shader: the uniform-list assertions pass, no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's: not started. |
+| Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
+| Controlled values (HUMAN CHECK) | Not started. The capture tool is ready: `design/a5/captures/capture_values.gd`, with F9. |
 | In play (HUMAN CHECK) | Played twice at the camp on 26 Oct, with the cone behaviour but before any shader. What I saw: not recorded yet. |
 | Hint experiment (HUMAN CHECK) | Not started |
 | Interface sweep (HUMAN CHECK) | Not started |
@@ -511,6 +573,6 @@ They're Claude's pictures, not my look.
 | Material wiring | Not started |
 | Texture data | Not started |
 | Import settings | Not started |
-| What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, comes with the driver (CHANGE-BRIEF.md, 28 Oct). All logged in FRICTIONAL.md. |
+| What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. All logged in FRICTIONAL.md. |
 
-A headless run can show that the behaviour's timings, states and visibility follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks, and the fades come with the shader.
+A headless run can show that the timings, states, visibility and uniform values follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks.
