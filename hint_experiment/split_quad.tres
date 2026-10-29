@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/hint_experiment.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://hint_experiment/greys_3x1.png" id="2_greys"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/with_source_color = ExtResource("2_greys")
+shader_parameter/without_source_color = ExtResource("2_greys")

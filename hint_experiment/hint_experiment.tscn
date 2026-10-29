@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="ShaderMaterial" path="res://hint_experiment/split_quad.tres" id="1_split"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_greys"]
+size = Vector2(3, 0.6)
+
+[sub_resource type="Environment" id="Environment_linear"]
+background_mode = 1
+background_color = Color(0, 0, 0, 1)
+tonemap_mode = 0
+tonemap_exposure = 1.0
+glow_enabled = false
+fog_enabled = false
+adjustment_enabled = false
+
+[node name="HintExperiment" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_linear")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+projection = 1
+current = true
+size = 2.0
+
+[node name="Greys" type="MeshInstance3D" parent="."]
+mesh = SubResource("QuadMesh_greys")
+material_override = ExtResource("1_split")
+
+[node name="WithSourceColor" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.45, 0)
+text = "with source_color"
+font_size = 24
+
+[node name="WithoutSourceColor" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.45, 0)
+text = "without source_color"
+font_size = 24

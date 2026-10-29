@@ -374,12 +374,13 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 
 `the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
 
-**Status (29 Oct 2026, about 18:15).**
+**Status (29 Oct 2026, about 18:55).**
 - **The cone's shader is in, and driven:** my `shaders/vision_cone.gdshader` (53b0087), the `claude -p` agent's driver and test (29fd5da), and Claude's fixes from its review of them (2024a76). Its headless test passes 93 of 93 at 30, 60 and 144 fps, and the earlier checks keep their baseline (below).
 - **Two of the three mutations are done,** on the cone's shader, and both runs exit 1 (below).
 - **The cone's controlled-value captures are done,** and the first two spottings in play (below).
 - **The cooler's shader and its two materials are in,** behind the glb's Use External, and every check keeps its baseline (below).
-- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, the hint experiment, and the material test and its mutation.
+- **The hint experiment's scene is in** (below), with my shader.
+- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, my capture of the hint experiment's bands, and the material test and its mutation.
 
 **What will be tested**
 
@@ -656,6 +657,24 @@ No log has a new `SHADER ERROR` or `SCRIPT ERROR`.
 
 **Not checked yet:** how it looks. That means my look in the asset room with SSAO off, and at the camp at night; the interface sweep; and the two materials side by side, with the shader-edit and material-edit checks.
 
+### The hint experiment
+
+**My shader** (`shaders/hint_experiment.gdshader`, 9d782c3) splits one quad down the middle by `UV.x`. The left half samples `with_source_color` (`source_color, filter_nearest`), and the right half `without_source_color` (`filter_nearest` only), and each half shows all three greys. The course's design has a bool picking the sampler, with two materials on two quads. I kept the split (CHANGE-BRIEF.md, "Revised 29 Oct 2026: the hint experiment, on one quad split in two").
+
+**The PNG and the scene,** by Claude Code:
+- `hint_experiment/greys_3x1.png`, written by `hint_experiment/make_greys_png.gd`, and imported lossless with no mipmaps (`compress/mode=0`, `mipmaps/generate=false`).
+- `hint_experiment/split_quad.tres` binds it to both samplers. `hint_experiment/hint_experiment.tscn` puts that on one 3 × 0.6 m quad, facing an orthographic camera 2 m tall. Its WorldEnvironment has a black background, a Linear tonemap at exposure 1.0, and glow, fog and adjustments off.
+
+**Probed headless** (29 Oct 2026, about 18:53, in the repo after my import):
+- the imported texture is 3 × 1, RGB8, with no mipmaps, and reads back as exactly (64, 64, 64), (128, 128, 128) and (192, 192, 192);
+- `get_shader_uniform_list()` lists both samplers, so my shader parses;
+- the material binds the PNG to both samplers;
+- the environment reads back with tonemap 0 (Linear), exposure 1.0, and glow, fog, volumetric fog, adjustments and SSAO all off.
+
+No log line has `ERROR`.
+
+**My capture (HUMAN CHECK):** not taken yet. `design/a5/captures/read_bands.gd` saves the game's frame and prints the pixel at each band's centre beside my prediction. My screenshot of the running scene shows the six bands, but no values were sampled from it.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
@@ -665,7 +684,7 @@ No log has a new `SHADER ERROR` or `SCRIPT ERROR`.
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
 | In play (HUMAN CHECK) | Two spottings with the shader on 29 Oct (above), of the five the brief asks for; the rest isn't done yet. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
-| Hint experiment (HUMAN CHECK) | Not started |
+| Hint experiment (HUMAN CHECK) | The scene is ready, and probed headless (above). My capture of the bands isn't taken yet. |
 | Interface sweep (HUMAN CHECK) | Not started. The materials it sweeps are ready (above). |
 | One shader, two materials (HUMAN CHECK) | Not started. The two materials from one shader exist (above); my side-by-side captures and the shader-edit and material-edit checks are still to do. |
 | Material wiring | The materials are behind the glb's Use External, probed headless (above). The material test after a fresh import, and the `source_color` mutation, come with the audit. |

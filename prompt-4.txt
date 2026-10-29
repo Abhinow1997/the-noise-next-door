@@ -1,0 +1,50 @@
+Read CLAUDE.md first. The specification in CHANGE-BRIEF.md is the
+contract for this change; the Headless facts in CLAUDE.md describe what a
+test on this machine can observe. Every file in shaders/ is hand-written
+by me and is not yours to edit.
+
+The project is the repository root, not godot/, so the paths below say
+MATERIALS.md and tests/ where the course says godot/MATERIALS.md and
+godot/tests/. The project has been imported already, so run Godot only
+through bash scripts/run-test.sh.
+
+Inspect before editing. Always run Godot through bash scripts/run-test.sh;
+never add --rendering-driver. A headless run uses a dummy renderer: it
+draws nothing.
+
+Task: audit the materials named in CHANGE-BRIEF.md, then write a
+headless test that pins what you found. Do not change any .gdshader
+file, material, scene or .import file in this task.
+
+1. Read the textured shader, both ShaderMaterial resources that use it,
+   the hint-experiment shader and its material (one material, on one
+   quad split in two: CHANGE-BRIEF.md, "Revised 29 Oct 2026: the hint
+   experiment, on one quad split in two"), the .import file of every
+   texture they use, and the lights and environment of the scenes they
+   appear in.
+2. Write MATERIALS.md with:
+   - one row per material: resource path, shader path, every uniform
+     value it sets, and every texture it binds;
+   - one row per sampler in each shader: name, hints as written in the
+     source, the texture each material binds to it, and that texture's
+     import settings (compress/mode, compress/normal_map,
+     mipmaps/generate);
+   - the lights and environment settings that change the look,
+     including tonemap and exposure;
+   - findings: anything that looks wrong, wasteful, unused or
+     inconsistent with CHANGE-BRIEF.md, each with the evidence line;
+   - attribution, using exactly the facts in CHANGE-BRIEF.md, which I
+     checked myself.
+3. Write tests/test_materials.gd (extends SceneTree) that loads the
+   scenes headlessly and asserts the tables: both materials for the
+   textured shader reference the same shader path; each sampler's hints,
+   read from the source text; each material's uniform values and texture
+   paths; the import settings read from the .import files with
+   ConfigFile; and the uniform list from get_shader_uniform_list(). For
+   each normal map, preload tests/normal_map_check.gd, decode the
+   source file with Image.load_from_file, and print curl_ratio under
+   both conventions. Print one PASS/FAIL line per check and exit 1 on
+   any failure.
+4. Run it with bash scripts/run-test.sh test_materials.gd 60 and show the
+   real output. Say what the test cannot establish headlessly.
+Do not commit.

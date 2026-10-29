@@ -874,3 +874,15 @@ Written after the check was calibrated on this texture set's own pair (TEST-REPO
 - **What it can't tell:** a map that passes has a real surface behind it, in Godot's convention, but not necessarily the right surface (the course's note on the check).
 
 (Picked by me on 29 Oct 2026 from Claude Code's recommendation, in my words "Below 0.7". The numbers are from `tests/normal_map_calibration.gd`; the reasoning and the wording are Claude Code's.)
+
+### Revised 29 Oct 2026: the hint experiment, on one quad split in two
+
+Written after Claude Code checked my hint shader against the course's design. It adds to my hint experiment predictions above.
+
+- **The course's design:** a bool uniform picks which sampler writes `ALBEDO`, and two materials from the shader, one per bool value, go on two quads.
+- **Mine** (`shaders/hint_experiment.gdshader`): one quad, split down the middle by `UV.x`. The left half samples `with_source_color` (`source_color, filter_nearest`) and the right half `without_source_color` (`filter_nearest` only), and each half shows all three greys. There's no bool, so it's one material on one quad.
+- **Why my predictions still hold:** each half reads the same PNG through one sampler, as each of the course's quads would. The "two unshaded quads" they assume are the two halves.
+- **Unchanged:** the 3×1 PNG of greys 64, 128 and 192, imported lossless with no mipmaps; the Linear tonemap at exposure 1; Forward+.
+- **The scene:** `hint_experiment/hint_experiment.tscn`, with its material `hint_experiment/split_quad.tres`, both Claude Code's.
+
+(My decision on 29 Oct 2026, in my words "Keep the split", from Claude Code's two options: adding the bool, or keeping the split. The facts and the wording are Claude Code's.)

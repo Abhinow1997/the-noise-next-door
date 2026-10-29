@@ -1662,6 +1662,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | Step 3, the textures, their import settings, and the normal-map check | df1bc6e and cbc160f, then the threshold after them |
 | 29 Oct | CLAUDE.md brought up to date before the audit | d52cb70 |
 | 29 Oct | Step 3, my cooler shader and the two materials | c45c97b, then the materials after it |
+| 29 Oct | Step 3, the hint experiment | 9d782c3, then the scene after it |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2164,3 +2165,18 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the hint experiment;
   - the audit.
 - **Human / Claude / model:** the shader, its commit and the decisions are mine. The checks, the materials, the import settings, the probe and this write-up are Claude's. No generative model.
+
+### 2026-10-29 — Step 3, the hint experiment
+
+- **The PNG** (at my "Yes, write it"): Claude Code wrote `hint_experiment/make_greys_png.gd`, which writes the 3×1 PNG of greys 64, 128 and 192, and set its import to lossless with no mipmaps.
+- **My shader** ("Shader's ready"): Claude checked it against the course's design before making anything.
+  - Its two samplers are right: one with `source_color, filter_nearest`, one with `filter_nearest` only.
+  - It has no bool uniform. It splits one quad down the middle instead, so the course's two materials on two quads can't be made from it.
+  - The import hadn't run: my shader had no `.uid`, and the PNG's `.import` hadn't been filled in.
+- **My decision:** "Keep the split". Claude wrote it into the brief as "Revised 29 Oct 2026: the hint experiment, on one quad split in two". The values on screen are the same either way, because each half reads the PNG through one sampler.
+- **The import:** I ran it, and my shader got its `.uid`. At my word ("Commit it for me"), Claude committed the shader and the `.uid` as 9d782c3, without its co-author line, since every line of the shader is mine.
+- **The scene,** by Claude Code: `hint_experiment/split_quad.tres` binds the PNG to both samplers, on one quad in `hint_experiment/hint_experiment.tscn`, with an orthographic camera and a Linear tonemap at exposure 1, with glow, fog and adjustments off. Probed headless, first in a scratch copy and then in the repo after my import: the PNG reads back as exactly 64, 128 and 192, both samplers are bound, and the environment is as set.
+- **I ran the scene** and sent a screenshot of the six bands. The numbers will come from `design/a5/captures/read_bands.gd`, which saves the game's frame and prints each band beside my prediction. Claude ran it once to check it works, and deleted what it saved without reading the values.
+- **Speeding up:** I asked what was left ("whats taking soooo long man what all still remains for assignemtn 5 ?"). Claude listed it, and said it had been stopping for my OK after each small piece. At my "Yes, go", it now does its pieces back to back, committing as it goes, and stops only for my checks and before any push or tag. It put my remaining checks on one page, `design/a5/MY-CHECKS.md`.
+- **Not done yet:** my capture of the bands.
+- **Human / Claude / model:** the shader, the decision to keep the split and the run of the scene are mine. The PNG script, the material, the scene, the band reader, the checklist, the checks, the brief's wording and this write-up are Claude's. No generative model.
