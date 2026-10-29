@@ -1650,7 +1650,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 28 Oct | My hint experiment predictions | fa98066 |
 | 28 Oct | My short answers | fa98066 |
 | 28 Oct | Step 1, the CLAUDE.md draft: a run that wasn't signed in, then one that worked | 6451725 |
-| 28 Oct | Step 1, my review of CLAUDE.md | not committed yet |
+| 28 Oct | Step 1, my review of CLAUDE.md | b97ac59 |
+| 28 Oct | Step 2, my shader | 53b0087 (the shader); this entry not committed yet |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -1952,3 +1953,16 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - CLAUDE.md is now 119 lines.
 - **Non-tests to delete:** none. Every command it lists is a real check.
 - **Human / Claude / model:** the decisions and my edits are mine. The rewriting of the references, the rebuild, the "Headless facts" wording, the checks and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — Step 2, my shader
+
+- **Asked** (about 21:15): I pasted my shader into the chat and asked Claude to "write in the shaders/vision_cone.gdshader". Claude said no, because of the Ownership rule in my CLAUDE.md (agents never create or edit files in `shaders/`) and the assignment's "no agent session changed godot/shaders/". It checked my code against my brief and told me how to make the file myself.
+- **Wrote** (about 21:18): I made `shaders/vision_cone.gdshader` myself and committed it on its own as 53b0087. It's `shader_type spatial`, my render_mode, my four uniforms with their types, hints and defaults, and my two lines inside `fragment()`.
+- **Checked** by Claude (at my "added"), without touching `shaders/`:
+  - my two lines are character for character the ones in my brief;
+  - Godot 4.7.2 parses it with no `SHADER ERROR`, in a scratch copy of the project, and `get_shader_uniform_list()` sees four uniforms: `alarm` and `shown` as floats with their `hint_range`, and `watch_color` and `alarm_color` as `Color`;
+  - nothing in the repository changed.
+- **Learned from that check:** `get_shader_uniform_list()` reports a `source_color` `vec4` as type `Color` and shows no hint for it, so the driver's test reads `source_color` from the shader's text.
+- **The `.uid` file:** when I opened the project in the Godot editor, it didn't write `shaders/vision_cone.gdshader.uid`, and the editor's file cache didn't list the shader yet. In a scratch copy, a headless `--import` did write it. So I run that import myself and commit the file, before an agent session's import can create it in `shaders/`.
+- **Not done yet:** the driver and its test.
+- **Human / Claude / model:** the shader and its commit are mine. The refusal to write it, the checks and this write-up are Claude's. No generative model.
