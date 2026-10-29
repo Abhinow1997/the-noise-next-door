@@ -377,7 +377,8 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 **Status (29 Oct 2026, about 17:00).**
 - **The cone's shader is in, and driven:** my `shaders/vision_cone.gdshader` (53b0087), the `claude -p` agent's driver and test (29fd5da), and Claude's fixes from its review of them (2024a76). Its headless test passes 93 of 93 at 30, 60 and 144 fps, and the earlier checks keep their baseline (below).
 - **Two of the three mutations are done,** on the cone's shader, and both runs exit 1 (below).
-- **Not done yet:** the cone's human checks (the captures, play and the look), the cooler's textured shader and its materials, the hint experiment, and the material test and its mutation.
+- **The cone's controlled-value captures are done,** and the first two spottings in play (below).
+- **Not done yet:** the rest of the cone's in-play check, the cooler's textured shader and its materials, the hint experiment, and the material test and its mutation.
 
 **What will be tested**
 
@@ -558,6 +559,43 @@ Done by me on 29 Oct 2026 on my cone shader, one at a time. Each was run with `b
   - a result I first pasted for the rename was a prediction, not a run's output;
   - the first real rename run's log was undone before I kept it, so I ran it again.
 
+### The controlled-value captures (HUMAN CHECK)
+
+Taken by me on 29 Oct 2026, about 17:05, on the code at f7a8503, with `design/a5/captures/capture_values.gd` and F9. The window was 1280 × 720, the game paused, the driver held off, and the camera framed as for my grass captures. The captures, `values.txt` and my OS screenshot are in [design/a5/captures/values/](design/a5/captures/values/); the run's console output is in `logs/capture-window.stdout.log`.
+
+| Pixel | `alarm` | Predicted | Captured | Off by (R, G, B) |
+|---|---|---|---|---|
+| Base at Camper (974, 258) | 0 | (139, 132, 93) | (142, 134, 94) | +3, +2, +1 |
+| Base at Camper | 0.5 | (148, 109, 79) | (151, 111, 81) | +3, +2, +2 |
+| Base at Camper | 1 | (156, 61, 56) | (159, 61, 57) | +3, 0, +1 |
+| Far Edge (249, 480) | 0 | (94, 100, 89) | (94, 101, 91) | 0, +1, +2 |
+| Far Edge | 0.5 | (98, 91, 85) | (99, 91, 87) | +1, 0, +2 |
+| Far Edge | 1 | (102, 76, 80) | (102, 76, 81) | 0, 0, +1 |
+
+- **The grass:** every frame with the cones hidden gives my table's grass, (34, 45, 49) and (58, 76, 82).
+- **The match:** Far Edge is within 2 on every channel. At Base at Camper, R is 3 high at all three values, past my 2-step match, and G and B are within 2. That fits the known low bias in my predictions (my brief: "Base at Camper's R is 3 low in every cell"), so it's the arithmetic, not the shader.
+- **`hint_range`:** with `alarm` set to 2.0 from code, Base at Camper is (174, 0, 0) and Far Edge (110, 0, 62), against (159, 61, 57) and (102, 76, 81) at 1.0. So `hint_range` doesn't clamp a value set from code, as I predicted.
+- **Fog (failure 5):** fog on and fog off give the same values at both spots, at `alarm` 0, though the fog-off frames differ elsewhere. So the fog doesn't reach my two spots, and failure 5 didn't appear there.
+- **The OS screenshot,** of the held `alarm` 1 frame: at the corresponding place it reads (159, 61, 57), matching the in-engine Base at Camper pixel. Display scaling and the window's position shift the screen coordinates, so I trust the in-engine sample for the pixel I mean; the screenshot confirms it once mapped. (Claude measured the mapping: the frame sits in the 1536 × 864 screenshot unscaled, at +320, +150, and both spots read the same there as in the capture.)
+
+### In play with the shader (HUMAN CHECK)
+
+Played by me on 29 Oct 2026, on the code at f7a8503. The game's own log has two windowed sessions then, from 17:08:45 and 17:10:27, about a minute and a half each, with no errors.
+
+In my words: "I played the game when running the raccons was spoted by the girl and the boy turning their cones red and fading away the red inicator is good sign to let the player know that he has been spoted after invading the chuuby guy saw and spotted similar flow feels good in the game"
+
+- **Spotting 1:** while he was running, the girl and the low-poly man ("the boy") spotted him. Both their cones turned red, then faded away.
+- **Spotting 2:** after he got away, the camper ("the chubby guy") spotted him: the same red, then the fade.
+- **What I judged:** the red tells the player he's been spotted, and the flow feels good.
+- **Not done yet:**
+  - three more spottings, since the brief asks for at least five;
+  - whether the cones came back yellow and faded in;
+  - an overlap during a red (failure 7), since a still picture can't show flicker;
+  - the boundaries in play;
+  - all three cones at the tutorial's end;
+  - the bubble demo by hand.
+- **A scripted picture, not play:** the bubble test's own picture from a windowed run, `design/a5/captures/bubble-demo-check/03_alert.png` (`--bubble-test` with its pictures, 87 of 87), shows a stand-in's cone red with my shader, through the fallback for cones the camp doesn't drive.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
@@ -565,8 +603,8 @@ Done by me on 29 Oct 2026 on my cone shader, one at a time. Each was run with `b
 | Baseline | Done before any change, and again after the shader and its driver (above): every earlier check at its baseline count. |
 | Shaders parse | The cone's shader: the uniform-list assertions pass, no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's: not started. |
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
-| Controlled values (HUMAN CHECK) | Not started. The capture tool is ready: `design/a5/captures/capture_values.gd`, with F9. |
-| In play (HUMAN CHECK) | Played twice at the camp on 26 Oct, with the cone behaviour but before any shader. What I saw: not recorded yet. |
+| Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
+| In play (HUMAN CHECK) | Two spottings with the shader on 29 Oct (above), of the five the brief asks for; the rest isn't done yet. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
 | Hint experiment (HUMAN CHECK) | Not started |
 | Interface sweep (HUMAN CHECK) | Not started |
 | One shader, two materials (HUMAN CHECK) | Not started |

@@ -1658,6 +1658,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | Step 2, my .uid files | a4f4a66 |
 | 29 Oct | Step 2, my two mutations | with their two logs, after a4f4a66 |
 | 29 Oct | The capture tool for my controlled values | its own commit, after a4f4a66 |
+| 29 Oct | My controlled-value captures, and my first play with the shader | with its captures, after f7a8503 |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2072,3 +2073,34 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Tested** by Claude twice in a scratch copy of HEAD, outside the repository, with a copy of the tool that pressed F9 by itself. The spots landed on (974, 258) and (249, 480), and the hidden-cone frames gave my table's grass, (34, 45, 49) and (58, 76, 82), so the framing matches. Claude deleted the test pictures and didn't give me their cone values: those captures are mine to take and compare.
 - **Not done yet:** my captures with it.
 - **Human / Claude / model:** the request is mine. The tool, its test and this write-up are Claude's. No generative model.
+
+### 2026-10-29 — My controlled-value captures, and my first play with the shader
+
+- **The captures** (about 17:05, on the code at f7a8503): with the capture tool and F9, and an OS screenshot of the held `alarm` 1 frame. They're in `design/a5/captures/values/`, with the run's console output in `logs/capture-window.stdout.log`.
+- **What I found:**
+  - the frames with the cones hidden match my grass;
+  - Far Edge is within 2 of my prediction on every channel. At Base at Camper, red is 3 higher at `alarm` 0, 0.5 and 1, and the other channels are within 2. That fits the known low bias in my predictions;
+  - `alarm` 2.0 differs substantially from 1.0, so a value set from code isn't clamped to the hint range;
+  - fog on and fog off match at both spots, so the fog I predicted (failure 5) didn't appear there;
+  - the screenshot reads (159, 61, 57) at the corresponding place, matching the in-engine pixel. Display scaling and the window's position shift the screen coordinates, so I trust the in-engine sample; the screenshot confirms it once mapped.
+- **Checked** by Claude against the files:
+  - `values.txt` agrees with every comparison above;
+  - the fog-off frames differ from the fog-on ones elsewhere, so the fog switch worked;
+  - the screenshot is 1536 × 864, with the game's frame in it unscaled at (+320, +150), and there both spots read the same as in the capture, 5×5 means included.
+- **Who took them:** Claude asked whether another tool had, because the screenshot was saved in the same second as the last capture and the launch's output went to log files. I said: "Record as me i did it".
+- **Claude's mistakes along the way:**
+  - it first said a screenshot couldn't be taken by hand that fast, which was too strong;
+  - it then explained the screenshot's size as the window at 120% scaling, which was wrong;
+  - reading the screenshot at that ×1.2 scale, it got a wrong pixel, (116, 90, 53), until it found the window's offset.
+- **My first play with the shader:** the game's own log has two windowed sessions, from 17:08:45 and 17:10:27, about a minute and a half each, with no errors. In my words: "I played the game when running the raccons was spoted by the girl and the boy turning their cones red and fading away the red inicator is good sign to let the player know that he has been spoted after invading the chuuby guy saw and spotted similar flow feels good in the game".
+  - Asked whether to play three more spottings first, I chose "Record the two now". So the in-play check has two of the five spottings the brief asks for.
+- **Not done yet:**
+  - three more spottings;
+  - the cones coming back;
+  - an overlap during a red;
+  - the boundaries in play;
+  - all three cones at the tutorial's end;
+  - the bubble demo by hand.
+
+  The bubble test's own pictures from a windowed run (`design/a5/captures/bubble-demo-check/`) show a stand-in's cone red with my shader, but they're scripted, not play.
+- **Human / Claude / model:** the captures, the screenshot, the comparisons, the play and what I saw are mine. The checks against the files and this write-up are Claude's.
