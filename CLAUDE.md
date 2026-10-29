@@ -33,12 +33,11 @@
   - at the camp, by `campsite.gd`: `COOLER` (`scripts/campsite.gd`), placed in `_ready()` through
     `_prop()`, which instances the scene with `_model()`;
   - in the asset room, node `Cooler` in `asset_room/asset_room.tscn`;
-- **Where its material comes from:** the materials are embedded in the `.glb` and imported
-  with it. `assets/props/cooler.glb.import` has `materials/extract=0` and `_subresources={}`,
-  so nothing is external yet. The glb names three materials: `Cooler_Blue`, `Cooler_White`,
-  `Cooler_Grey` (read from the glb's JSON chunk); `Cooler_Blue`'s `baseColorFactor` is
-  (0.0437, 0.2051, 0.5210, 1). Tangents are built on import (`cooler.glb.import`,
-  `meshes/ensure_tangents=true`).
+- **Where its materials come from:** the glb names three, `Cooler_Blue`, `Cooler_White` and `Cooler_Grey` (its
+  JSON chunk). `_subresources` in `assets/props/cooler.glb.import` sets the first two to Use External:
+  `materials/cooler_body.tres` and `materials/cooler_lid.tres`, both the author's `shaders/cooler_paint.gdshader`.
+  Its keys are `use_external/enabled`, `use_external/path` and `use_external/fallback_path` (added by Godot's
+  reimport). `Cooler_Grey` stays embedded. Tangents are built on import (`meshes/ensure_tangents=true`).
 - Its textures: Blue Metal Plate in `assets/textures/blue_metal_plate/` (credits in `ATTRIBUTION.md`), with their
   import settings in the `.import` files; `_nor_dx` is set to Skip, only to calibrate `tests/normal_map_check.gd`.
 - No game code recolours the cooler: `_recolor()` is called only for the second tent (`_ready()` in `scripts/campsite.gd`).
@@ -111,9 +110,7 @@ them starts as a dated change to the brief, made by the human.
 
 ## Unconfirmed
 
-- The counts in `TEST-REPORT.md` were measured on 29 Oct 2026 at 2024a76; run the checks again before trusting them later.
+- The counts in `TEST-REPORT.md` were last measured on 29 Oct 2026, with the cooler's materials in; run the checks again before trusting them later.
 - `run-test.sh` forwards only two arguments, so `a3_asset_check.gd -- --mutate` (`README.md`, its Assignment 3 section)
   and the `--*-shots=` options can't be run through it as it is.
-- `materials/` and the cooler's shader don't exist yet; their paths are the brief's suggestions (`CHANGE-BRIEF.md`, the material plan).
-- The exact `.import` keys for the per-material Use External setting on `cooler.glb` are unconfirmed.
 - `tests/test_materials.gd`, the audit's material test, doesn't exist yet.
