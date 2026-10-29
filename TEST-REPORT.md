@@ -1,8 +1,20 @@
 # Test report: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · 6 Oct 2026
+`the-noise-next-door` · CSYE 7270
 
-**Assignment 3's report is [its own section at the end](#assignment-3-the-three-blender-assets).** Everything before it is the Assignment 2 report, kept as it was.
+What each assignment's work was tested for, how, and what actually happened. Each assignment's report is its own section.
+
+| Section | Tested | Submitted as |
+|---|---|---|
+| [Assignment 2: the asset slice](#assignment-2-the-asset-slice) | 6 Oct 2026, at `81d696f` | tag `a2` |
+| [Assignment 3: the three Blender assets](#assignment-3-the-three-blender-assets) | 14 Oct 2026 | tag `a3` |
+| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026 on | branch `assignment-5`, not tagged yet |
+
+---
+
+## Assignment 2: the asset slice
+
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · 6 Oct 2026
 
 What the slice was tested for, how, and what actually happened.
 
@@ -15,7 +27,7 @@ What the slice was tested for, how, and what actually happened.
 | Machine | Windows 11 Home (10.0.26300), NVIDIA GeForce RTX 4050 Laptop GPU, 16 GB RAM |
 | Who tested | The author played the slice; that's the human playtest, in section 7. Claude Code ran the automated check, the fresh-copy run and the screenshots. No one else played or listened. |
 
-## Summary
+### Summary
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -28,7 +40,7 @@ What the slice was tested for, how, and what actually happened.
 | Muted play | Partly readable | Section 6 |
 | Automated check | 17 of 17 pass, and it fails when a rule is broken | Section 8 |
 
-## 1. Startup and controls
+### 1. Startup and controls
 
 **From a fresh copy.** `git clone` of `81d696f` into an empty folder, with no `.godot` import cache:
 - `godot --headless --path . --import` finished with no errors in 8.7 s.
@@ -52,7 +64,7 @@ What the slice was tested for, how, and what actually happened.
 
 The idle, run, sneak, bored and asleep screenshots show the state itself, with `--pose=<state>`. The nap, the climb, the grab and the ticked-off task use the real game code, driven by `--rest-test`, `--climb-test`, `--grab-test` and `--tick-test` (see `scripts/main.gd`).
 
-## 2. Character against the sheet
+### 2. Character against the sheet
 
 ![The character sheet against the game](design/test-report/character-vs-sheet.png)
 
@@ -70,7 +82,7 @@ The idle, run, sneak, bored and asleep screenshots show the state itself, with `
 
 The capsule (cyan) covers his legs and lower body. His head, back and most of his tail reach past it, as the character sheet's overlay shows ([design/character/collision.png](design/character/collision.png)). That's fair, because nothing in the slice hits those parts: he never jumps or ducks.
 
-## 3. Storyboard against the slice
+### 3. Storyboard against the slice
 
 ![The storyboard against the slice](design/test-report/storyboard-vs-slice.png)
 
@@ -84,7 +96,7 @@ The capsule (cyan) covers his legs and lower body. His head, back and most of hi
 
 The storyboard's gameplay thumbnails were drawn for a camera about 50° down. The game uses the 27° camera the author picked; see the storyboard's legend, v6.
 
-## 4. Sound events
+### 4. Sound events
 
 | Sound | Event | Automated: scripted input | Expected | Counted |
 |---|---|---|---|---|
@@ -97,7 +109,7 @@ The storyboard's gameplay thumbnails were drawn for a camera about 50° down. Th
 
 **Sound never decides what happens.** Every sound plays after the game's state has already changed, and muting touches only the audio buses (`toggle_mute()` in `scripts/main.gd`). The automated check mutes and unmutes both buses mid-run, and the game carries on.
 
-## 5. Music
+### 5. Music
 
 | Behaviour | Planned (CHANGE-BRIEF.md) | Result |
 |---|---|---|
@@ -107,7 +119,7 @@ The storyboard's gameplay thumbnails were drawn for a camera about 50° down. Th
 | End: all tasks done | The music fades out over 3 s and stops | **Automated:** after the last task, the music has stopped. |
 | Failure | Not in this slice | There are no humans, so no failure state. |
 
-## 6. Muted play
+### 6. Muted play
 
 With both buses muted (M and N), the author found the slice **partly** readable (22:59, 6 Oct). Which moments got lost wasn't noted.
 
@@ -118,7 +130,7 @@ Each sound has a visual partner in the slice:
 - a ticked-off task: the struck-through line;
 - the end: the "Mischief managed!" banner.
 
-## 7. The author's playtest
+### 7. The author's playtest
 
 The author played the slice on 6 Oct 2026, with sound on and then muted. These are their notes, quoted as they typed them (22:57):
 > "need to make the animations smother and the gameplay feels a bit blovcky need to work on the same"
@@ -136,7 +148,7 @@ Their answers to Claude's follow-up questions (22:59):
 | How loud were the sound effects against the music? | "Effects too quiet" |
 | Should Claude smooth the animation now, as the documented fix? | "No, record it as a next step" |
 
-## 8. The automated check
+### 8. The automated check
 
 ```bash
 godot --headless --path . -- --sound-test
@@ -173,7 +185,7 @@ RESULT: all checks passed
 
 **It can fail.** To prove the check isn't hollow, the loops' hold time (`LOOP_HOLD` in `scripts/player.gd`) was set to 0 for one run. That's the rule that stops a quick Shift tap restarting the running loop. The check then reported `SFX-RUN expected 2 got 12` and exited with code 1. The setting was put back to 0.12 s. No check has been removed or weakened to get a green result.
 
-## 9. Changes made because of what was seen or heard
+### 9. Changes made because of what was seen or heard
 
 | What was observed | By whom | What changed | Commit |
 |---|---|---|---|
@@ -184,7 +196,7 @@ RESULT: all checks passed
 | Green gaps between the legs in two cut-outs, and the capsule drawn too far toward his head | Claude, from the sheets | The gap filling now keeps background-coloured gaps, and the capsule sits between his paws | `7296e08` |
 | His fur measured as bright as the generated ground (1.0:1) | Claude's palette check | Recorded in CHARACTER-SHEET.md v5. The ground was then rejected for its look. Against the plain grass (`#7D9D76`, measured from start.png at `81d696f`), his three fur tones measure 1.3 to 2.0:1 and his charcoal markings 4.8:1. | `d89c0bb` |
 
-## 10. Limitations
+### 10. Limitations
 
 - **Static images:** one image per state, so a change of state snaps from one picture to the next. The author found the animation "a bit blovcky".
 - **No back views:** walking away from the camera still shows his front.
@@ -196,7 +208,7 @@ RESULT: all checks passed
 - **Muted play** was only partly readable, and which moments were lost wasn't noted.
 - **The new sound levels** haven't been re-checked by ear.
 
-## 11. Next steps toward the full game
+### 11. Next steps toward the full game
 
 From the author's notes:
 1. **Smoother animation and less blocky play.** For example, motion between his images, such as a bob while he moves, a softer turn than an instant mirror, and a little squash when his state changes.
@@ -355,6 +367,8 @@ Claude's pictures of it, rendered by Godot in a window (`-- --shot=... --view=..
 - whether there were any missing faces or wrong colours.
 
 Claude's pictures from below (03) and close up (04–09) show none, but that's Claude's look, not mine.
+
+---
 
 ## Assignment 5: shaders and materials
 

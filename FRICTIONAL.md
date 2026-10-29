@@ -1,8 +1,21 @@
 # Frictional log: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2
+`the-noise-next-door` · CSYE 7270
 
-**Assignment 3's log is [its own section](#assignment-3-the-three-blender-assets), and the work after it is [at the end](#after-assignment-3-the-title-screen-and-the-night).** Everything before them is the Assignment 2 log, kept as it was.
+A dated log of the work as it happened: what I wanted, what I asked for, what came back, and what I decided. Each assignment's entries are in its own section, with a note on how they were written and who did what.
+
+| Section | Dates | Submitted as |
+|---|---|---|
+| [Assignment 2: the asset slice](#assignment-2-the-asset-slice) | 4 to 6 Oct 2026 | tag `a2` |
+| [Assignment 3: the three Blender assets](#assignment-3-the-three-blender-assets) | 13 and 14 Oct 2026, with the Blender MCP's setup from 3 to 5 Oct | tag `a3` |
+| [After Assignment 3: the title screen, the night and level 1's camp](#after-assignment-3-the-title-screen-the-night-and-level-1s-camp) | 21 to 25 Oct 2026 | — |
+| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026 on | branch `assignment-5`, not tagged yet |
+
+---
+
+## Assignment 2: the asset slice
+
+`the-noise-next-door` · CSYE 7270 · Assignment 2
 
 A dated log of the design as it happened: what I wanted the player to see or hear, what I asked for, what came back, and what I decided. This first part covers the storyboard, from the first draft to the check against the brief. Entries for the generated assets (Gemini images, music, sound effects) are added as their rows in the [SOURCES.md](SOURCES.md) asset log are filled in.
 
@@ -36,7 +49,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 
 ---
 
-## 2026-10-04 — How to draw the storyboard, and from which camera
+### 2026-10-04 — How to draw the storyboard, and from which camera
 
 - **Wanted:** a basic storyboard built from my CONCEPT.md.
 - **Asked** (18:49, with CONCEPT.md attached): "looking at the we want to create a basic storyboard using this how can we proceed ahead with this ?"
@@ -48,7 +61,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 - **Human / Claude / model:** the choices are mine. The options, and the recommendation for the 3/4 view, were Claude's. The Gemini image is a model output from before this log (REF-STYLE).
 - **Still unresolved:** CONCEPT.md's art direction still says flat shapes, while the style target and the character sheet are clay-like.
 
-## 2026-10-04 to 05 — Storyboard v1: the whole story in 12 panels
+### 2026-10-04 to 05 — Storyboard v1: the whole story in 12 panels
 
 - **Wanted:** a base story for the whole game, told without words.
 - **Asked:**
@@ -69,7 +82,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 - **Trace:** not committed, since it was a chat draft. Its decisions are listed in STORYBOARD.md's provenance.
 - **Still unresolved:** CONCEPT.md's opening still has campers arriving with car doors slamming, not a party already in full swing.
 
-## 2026-10-05 — Storyboard v2: music off before Busted, the beanie straight after
+### 2026-10-05 — Storyboard v2: music off before Busted, the beanie straight after
 
 - **Asked** (01:11): "update the story board from busted next should be the steal of red benie we cam add music off to the todo listing and before the busted" and "remove shoo off and add a new one in the city level"
 - **Got:**
@@ -84,7 +97,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 - **Human / Claude / model:** the new order, the cut and the slot for a town panel are mine. What happens in the trap, and the two knock-on changes, are Claude's.
 - **Still unresolved:** does any bust end level 1, or only one after he's done enough tasks? Claude suggested 3 of the 5.
 
-## 2026-10-05 — Storyboard v3: three more town panels, and the first commit
+### 2026-10-05 — Storyboard v3: three more town panels, and the first commit
 
 - **Asked** (01:42): "no we need to add 3 more panels for city before the raccon is caught the story is really light on the city levels"
 - **Got:** three panels staged from Act 2 of CONCEPT.md: Edge of town, The group chat and The barbecue heist. The town also got its own to-do cards, taken from the concept's three town jobs. That made 15 panels.
@@ -92,7 +105,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 - **Human / Claude / model:** the extra town panels and the reason for them are mine. Their staging and the town cards are Claude's, built from my concept.
 - **Still unresolved:** is the town one level, or should the block party (panels 12 and 13) be a level of its own?
 
-## 2026-10-05 — Storyboard v4: the camper becomes the other main character
+### 2026-10-05 — Storyboard v4: the camper becomes the other main character
 
 - **Asked** (16:42): "the red benie camper is the sorta the other main charater of the story where it revloves around eventually him being the one who releases the raccon at his home again so describe him also in the charter"
 - **Got:**
@@ -102,7 +115,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 - **Decided:** kept, and committed as 3f2499f (16:49).
 - **Human / Claude / model:** his role in the story is mine. His look and poses are Claude's suggestions.
 
-## 2026-10-05 — Storyboard v5: the dogs replace the group chat
+### 2026-10-05 — Storyboard v5: the dogs replace the group chat
 
 - **Asked** (16:50): "Also in the city we can add a charater of dogs which potentially we can add to chase our raccon around so that can be added as a imp charater in the game"
 - **Got:** three dogs in CHARACTER-SHEET.md (20fc810, 16:53): the sausage dog that was already in panel 12, a big shaggy dog and a tiny yappy dog. The trio, their looks and their chase styles are Claude's suggestion. Claude offered to put the big dog in the alley in panel 10.
@@ -115,7 +128,7 @@ A dated log of the design as it happened: what I wanted the player to see or hea
 - **Human / Claude / model:** the dogs as an important character, cutting the group chat and putting the chase in panel 11 are mine. The trio, the false-trail gag and the two reconnected links are Claude's.
 - **Still unresolved:** CONCEPT.md's Act 2 still mentions the group chat.
 
-## 2026-10-06 — The gameplay camera, tuned in the game
+### 2026-10-06 — The gameplay camera, tuned in the game
 
 The storyboard's gameplay panels depend on this camera, so it belongs in this log.
 
@@ -127,7 +140,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude / model:** the final angle is mine, set by eye in the running game. The camera code and the Tab panel are Claude's. No generative model.
 - **Still unresolved:** there's no camper in the game yet, so the lean toward him hasn't been seen in play.
 
-## 2026-10-06 — Storyboard v6: checked against the brief
+### 2026-10-06 — Storyboard v6: checked against the brief
 
 - **Wanted:** a storyboard that meets every storyboard requirement in the brief, ready to submit.
 - **Asked** (19:48): "ok now lets focus on the assignement and lets deliver the repo for it lets pick one which is the story board have we covered everthing required for it ?"
@@ -153,7 +166,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - CHARACTER-SHEET.md's facing section still describes the 50° camera.
   - CHANGE-BRIEF.md isn't written yet, and generating started on 5 Oct, so it can't count as committed before the first generation.
 
-## 2026-10-06 — Planning the slice: CHANGE-BRIEF.md
+### 2026-10-06 — Planning the slice: CHANGE-BRIEF.md
 
 - **Wanted:** a plan for the asset slice that meets the brief and that I can still build by 7 Oct.
 - **Asked** (20:18): "what else from the assignment is remaining ?" Claude's answer showed that no generated art or sound effects are in the game yet. The raccoon on screen is Claude's Blender model and the forest is Claude's code, and neither counts. Then, at 20:24: "yes lets create the change-brief.md"
@@ -178,7 +191,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Still unresolved:**
   - CHANGE-BRIEF.md was written after generating began, so it doesn't count as committed before the first generation. It does come before the ground texture and three of the four sounds are generated.
 
-## 2026-10-06 — Character sheet v5: the low-poly look, measured
+### 2026-10-06 — Character sheet v5: the low-poly look, measured
 
 - **Wanted:** a character sheet that matches the poses I generated, so each one can be judged against it.
 - **Asked** (20:58), giving my reason for the switch: "the switch was a decision based on the astetics of the game and how the prototype looked"
@@ -193,7 +206,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the ground's brightness;
   - the asset-log rows for the ten poses and the ground texture.
 
-## 2026-10-06 — Character sheet v6: the silhouette, pose sheet and collision overlay
+### 2026-10-06 — Character sheet v6: the silhouette, pose sheet and collision overlay
 
 - **Wanted:** the character-sheet images the brief requires: a silhouette test at game size, at least ten labelled poses, and the collision shape over each pose. Claude's status check had found none of them.
 - **Asked** (21:18): "Update the charate sheet now"
@@ -208,7 +221,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Edits to generated images,** to record in the asset log: background removed by a colour key, cropped, and scaled so the faces match.
 - **Still unresolved:** the asset-log rows for the ten poses.
 
-## 2026-10-06 — The four sounds: using what I generated
+### 2026-10-06 — The four sounds: using what I generated
 
 - **Wanted:** four sounds that fire on real events in the slice.
 - **Asked:**
@@ -229,7 +242,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the laughs are MP3s and need converting to WAV;
   - the chitter and the task laugh are takes of the same laugh, so they may be hard to tell apart (failure 10 in CHANGE-BRIEF.md).
 
-## 2026-10-06 — The ground texture, rejected in the game
+### 2026-10-06 — The ground texture, rejected in the game
 
 - **Wanted:** a generated ground for the clearing, as the slice's environment asset, with the raccoon still readable against it.
 - **Tried:** while building the slice, Claude put my ENV-GROUND texture on the forest floor, repeated every 2.5 m. In the game camera it showed as dense light and dark patches with scattered leaves, repeating across the clearing.
@@ -241,7 +254,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude / model:** the texture is a Gemini output. Putting it in the game, and the four options, are Claude's. Rejecting it and choosing the stump are mine.
 - **Still unresolved:** the stump isn't generated yet.
 
-## 2026-10-06 — The stump, and a second forest reference
+### 2026-10-06 — The stump, and a second forest reference
 
 - **Wanted:** a stump that matches the raccoon's low-poly look and survives the colour key, so it can stand in the clearing as the slice's environment asset.
 - **Asked:** Gemini, with the ENV-STUMP prompt that Claude wrote into CHANGE-BRIEF.md v3, which was committed at 22:26, and `idle.jpg` as the style reference. Whether I changed the prompt before running it wasn't recorded.
@@ -252,7 +265,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the stump isn't in the game yet;
   - what the second forest reference is for, which I didn't state.
 
-## 2026-10-06 — Playtesting the slice
+### 2026-10-06 — Playtesting the slice
 
 - **Wanted:** to see whether the slice works for a player: how it looks and moves, whether the sounds fire on the right events, and whether it still reads with the sound off.
 - **Played:** the slice, with sound on and then muted. My notes, at 22:57:
@@ -306,7 +319,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 14 Oct | Building the cooler through the MCP | not committed yet |
 | 14 Oct | Export, Godot, the check and the asset room | not committed yet |
 
-## 2026-10-03 to 05 — Setting up the Blender MCP, before this assignment (retrospective)
+### 2026-10-03 to 05 — Setting up the Blender MCP, before this assignment (retrospective)
 
 - **Wanted:** Claude driving my open Blender, for the Assignment 2 raccoon model.
 - **What the record shows:**
@@ -326,7 +339,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - no telemetry setting (fixed on 13 Oct, below).
 - **Still unresolved:** which server version ran on 5 Oct. uv's cache holds 2.1.8 and 2.1.9, and today uvx runs 2.1.9.
 
-## 2026-10-13 — Starting Assignment 3: the same repo, a new branch
+### 2026-10-13 — Starting Assignment 3: the same repo, a new branch
 
 - **Asked** (18:25): "but But what about the repo? Uh, I don't understand if we should create a new repo or work on the same repo because we submitted this for assignment two. So I want to understand if we should create like a new repo or just continue to work in this particular one."
 - **Got:**
@@ -341,7 +354,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - It didn't add `a3` yet. The tag has to mark the commit I finally submit, and the assignment says not to move it after submitting, so it goes on last.
 - **Human / Claude:** the decisions are mine; the git commands are Claude's.
 
-## 2026-10-13 — Choosing the three assets
+### 2026-10-13 — Choosing the three assets
 
 - **Wanted:** three simple assets the game actually needs.
 - **Got:** Claude suggested the props on the game's to-do list: the bin, a can and the gnome.
@@ -355,7 +368,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the sizes. At the game camera a life-size s'more (about 6.5 cm) is only about 14 px across, so I still have to choose between life-size and exaggerated.
   - where the pizza slice and the cooler appear.
 
-## 2026-10-13 — Turning off the MCP's telemetry: the course's command failed
+### 2026-10-13 — Turning off the MCP's telemetry: the course's command failed
 
 - **Wanted:** the course's setup, which turns the server's anonymous usage record off with `DISABLE_TELEMETRY=true`. Mine was registered without it.
 - **Asked:** at 18:18 I chose to let Claude re-register the server.
@@ -376,7 +389,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - This session's server was started before the re-registration, so before building, Claude called the MCP's `disable_telemetry` tool (14 Oct, about 00:20). It answered: "Data collection is now OFF. Prompts, code, screenshots and scene data are no longer collected. Minimal anonymous usage counts (tool name, success, duration) still apply".
   - Whether `DISABLE_TELEMETRY=true` also stops those counts in a new session wasn't checked.
 
-## 2026-10-13 — Learn the window: my first session in Blender
+### 2026-10-13 — Learn the window: my first session in Blender
 
 - **Wanted:** to get used to Blender's window before choosing sizes. It's the assignment's first step.
 - **Did:**
@@ -396,7 +409,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - checking the counts with Blender's Scene Statistics;
   - moving the practice file out of `assets/characters/`. It was still open in Blender with unsaved changes, so Claude left it alone.
 
-## 2026-10-13 — The practice file moved, and five interface descriptions written by Claude
+### 2026-10-13 — The practice file moved, and five interface descriptions written by Claude
 
 - **Asked** (22:16): "ok update the donot and cup to for me now basic stuff and update the details on belnder.md"
 - **Got:**
@@ -411,7 +424,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude:** the 3D viewport notes, the session and the screenshot are mine. The five other descriptions, the file move and the counts are Claude's.
 - **Still unresolved:** those five aren't in my own words, which is what the assignment asks for. Writing my own versions is still open.
 
-## 2026-10-14 — Building the s'more through the MCP
+### 2026-10-14 — Building the s'more through the MCP
 
 - **Asked** (14:36): "ok lets work and create assetplan.md ssaving the plan for each elemet u will do and then start also stop in the between wehere u need or screenshots can u take them and save it in repo or do u want me to do it ?"
 - **Got:**
@@ -440,7 +453,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude:** the plan's approval is mine; the plan, the build and the checks are Claude's.
 - **Still unresolved:** my own look at it in Blender, my screenshot, and whether to change the chocolate. That could be my hand edit.
 
-## 2026-10-14 — My look at the s'more, and v2
+### 2026-10-14 — My look at the s'more, and v2
 
 - **Looked:** at the finished v1 s'more in my Blender. My screenshot is from 14:45.
 - **Said** (14:56): "the smores doesn't feel like more does it"
@@ -470,7 +483,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Scene Statistics;
   - my hand edit. I asked Claude to make this change, so it isn't my hand edit; that still has to come from me.
 
-## 2026-10-14 — The crackers' groove and dots (v3)
+### 2026-10-14 — The crackers' groove and dots (v3)
 
 - **Asked** (15:49): "add some indentations and textures to the biscuits"
 - **Got:**
@@ -494,7 +507,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - At 16:07 I chose "Keep it as it is".
   - My 15:39 screenshot of v2 is filed as `v2_07_v2-in-my-blender-material-tab_by-me.png`.
 
-## 2026-10-14 — Building the pizza slice through the MCP
+### 2026-10-14 — Building the pizza slice through the MCP
 
 - **Asked** (16:09): "ok lets do it", approving ASSET-PLAN.md section 2.
 - **Got:** Claude built the slice in my Blender through the MCP, 16:09 to 16:12:
@@ -515,7 +528,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude:** the approval is mine; the build and the checks are Claude's.
 - **Still unresolved:** my look, my screenshot, Scene Statistics, and my hand edit. The cheese colour or the underside colour could be that edit.
 
-## 2026-10-14 — My first try at a hand edit: the pizza's colours
+### 2026-10-14 — My first try at a hand edit: the pizza's colours
 
 - **Tried:** changing the pizza slice's colours myself in Blender's window, for my hand edit.
 - **Said** (16:25), with a screenshot of my Blender: "I am tryin to add the update the colour but its not chainging"
@@ -531,7 +544,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude:** the attempt and the screenshot are mine. The diagnosis and the one colour reset are Claude's.
 - **Still unresolved:** my hand edit isn't done yet, and what this taught me is for me to write in BLENDER-NOTES.md.
 
-## 2026-10-14 — My hand edit on the pizza slice
+### 2026-10-14 — My hand edit on the pizza slice
 
 - **Did:** by hand in Blender's window, saved at 16:33:
   - I changed the cheese's Base Color to a stronger golden yellow, `#F2CF0A` (it was `#F2C14E`);
@@ -559,7 +572,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Claude's check: all three pepperoni sit exactly on the cheese, within the wedge; the slice is 0.15 × 0.20 × 0.02 m with 144 triangles.
   - This is my inspect-and-revise: a failure I'd predicted (float or sink), caused by my own edit, found by measuring and fixed by hand.
 
-## 2026-10-14 — Building the cooler through the MCP
+### 2026-10-14 — Building the cooler through the MCP
 
 - **Decided** (about 17:25): the body colour, blue `#3B7DBF`, from Claude's four options. That's CHANGE-BRIEF.md "Revised in v4".
 - **Asked:** "fixed the pepperoni heights, now lets do the cooler". The cooler waited until the pizza fix was saved (17:27).
@@ -579,7 +592,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude:** the colour choice and the approval are mine; the build and the checks are Claude's.
 - **Still unresolved:** my look, my screenshot, and Scene Statistics.
 
-## 2026-10-14 — Export, Godot, the check and the asset room
+### 2026-10-14 — Export, Godot, the check and the asset room
 
 - **Asked:** "go export".
 - **Got,** all Claude's work, from about 17:45 to 18:05:
@@ -622,7 +635,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - I chose "5 of 8 slices left": five copies of the one slice asset in the asset room, turned 45° apart, as if the raccoon has had the rest. It's on key 6.
   - The asset is unchanged, and the check still passes. Each crust is straight, so the rim is a polygon, not a smooth circle.
 
-## 2026-10-14 — My look in the asset room (the human check)
+### 2026-10-14 — My look in the asset room (the human check)
 
 - **Looked:** in the running asset room, from my own orbit. My screenshot is `design/a3/build/godot/10_my-look-in-the-asset-room_by-me.png`.
 - **Said** (18:16): "this looks good to me the smores are fine size wise it'll work"
@@ -630,7 +643,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude:** the look and the judgement are mine. Claude recorded them in TEST-REPORT.md, word for word.
 - **Still unresolved:** I didn't say whether I looked from behind and below, or whether I saw any missing faces or wrong colours.
 
-## 2026-10-14 — The camper and his dropped beanie
+### 2026-10-14 — The camper and his dropped beanie
 
 - **Asked** (18:28): "we also have the reference of the man from the previous assignment make his model for me no animations but jus the man with benie model and add it in along with the crumppled down on the ground benie model"
 - **How Claude matched him:**
@@ -659,7 +672,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - my look at them;
   - whether CHARACTER-SHEET.md should be revised to the reference's look (brown jacket, no beard).
 
-## 2026-10-14 — The camper, rebuilt in the raccoon's style (v2)
+### 2026-10-14 — The camper, rebuilt in the raccoon's style (v2)
 
 - **Asked** (18:46), after looking at v1: "I dont like the human model at all doesnt look anything like the refernece img it looks bocky and like a minecraft tree take the efernece of the raaccoon and recreate it to simialr style"
 - **What Claude did:**
@@ -704,7 +717,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - whether the dropped beanie (still built the v1 way) should be restyled to match;
   - whether CHARACTER-SHEET.md should be revised to the reference's look.
 
-## 2026-10-14 — The camper's head turned, and his dropped beanie in the same style
+### 2026-10-14 — The camper's head turned, and his dropped beanie in the same style
 
 - **Asked** (19:25): "yes turn the head like the reference / yes the beanie as well should het he same style"
 - **The head turn:**
@@ -726,7 +739,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Human / Claude:** the requests are mine. The solve, the models and the scripts are Claude's.
 - **Still unresolved:** my look at both in the asset room.
 
-## 2026-10-14 — The camper's chin and neck
+### 2026-10-14 — The camper's chin and neck
 
 - **My look** (19:37), at the turned head: "no look at the heads still it looks diffrent from the reference image it the model lacks chin no neck like in the reference"
 - **What was wrong:**
@@ -745,7 +758,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Godot reimported him. Pictures 01 and 11 and the comparisons `v2_01`–`v2_03` are re-rendered.
 - **Still unresolved:** my look at the new head.
 
-## 2026-10-14 — How to create a evnironment to check and opens the asset room
+### 2026-10-14 — How to create a evnironment to check and opens the asset room
 
 - **Asked:** "update the repo to have the details abt the godot launching to showcase the sizes of the assests somewhere like how am can we easily launch to showcase the same ?"
 - **What Claude did:**
@@ -760,7 +773,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not tested:** the shell script on a real Mac or Linux machine, and a real clone (the work isn't committed yet).
 - **Human / Claude:** the request is mine. The docs, the launchers and the test are Claude's. looking at the Human model I still dont exact love how it has came out even afetr editing and working with claude on the same will need to reserach a bit more on the same if the asset works fine and if it would be useable and turn out how i have it envisioned in my head of how it should be in the game.
 
-## 2026-10-14 — The README's Assignment 3 sections, drafted by Claude
+### 2026-10-14 — The README's Assignment 3 sections, drafted by Claude
 
 - **Asked:** "yes draft the readme sections", after Claude listed what the brief still needs. The README must have what this assignment added, its known limitations and the film link.
 - **What Claude did:**
@@ -777,7 +790,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 
 ---
 
-## After Assignment 3: the title screen and the night
+## After Assignment 3: the title screen, the night and level 1's camp
 
 `the-noise-next-door` · branch `feature-update-main-raccoon` · 21 Oct 2026
 
@@ -819,7 +832,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 23 Oct | The simple girl, made game-ready the same way, with her own walk, run, bend and take away | not committed yet |
 | 23 Oct | The people's arms kept out of their bodies when they run | not committed yet |
 
-## 2026-10-21 — A description of the title screen, then a prompt for it
+### 2026-10-21 — A description of the title screen, then a prompt for it
 
 - **Asked** (12:57): "Lets start to create the game we have been planning now intially lets work on the title screen can u look at the game we are doin the sratting point of it and think of a creative descroption of the title screen we can start with initally just give me the description"
 - **Got:** Claude read the GDD and the storyboard and described "The Last Quiet Night":
@@ -829,7 +842,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Asked** (12:59): "no dont build just give me the prompt"
 - **Got:** a Gemini prompt for one 16:9 picture of that screen, with the advice to attach the-raccon.jpg, resting-place.jpg and the-forest.jpg, and to keep red out of it. The prompt is in SOURCES.md (REF-TITLE).
 
-## 2026-10-21 — The picture, built as the title screen
+### 2026-10-21 — The picture, built as the title screen
 
 - **Asked** (13:06): "ok this is the inspiration for the title page for the start of the game lets work on creation of the same", with the picture, now [design/reference/title-screen.webp](design/reference/title-screen.webp).
 - **Decided** (13:09): the lettering. No font on my PC matched the picture's, and from Claude's three options (download Patrick Hand, draw letters in code, use Comic Sans) I picked "Download Patrick Hand (Recommended)". It's an OFL font and ships with the game.
@@ -841,7 +854,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Then:** Claude listed what was still different (the skirt taller and boxier, smaller birch crowns, the stump and rock a little small, three z's rather than four, more trunks in the far woods) and offered to close it.
 - **Decided** (13:59): "It looks good as it is, leave it."
 
-## 2026-10-21 — The game at night, and New Game straight into his nap
+### 2026-10-21 — The game at night, and New Game straight into his nap
 
 - **Asked** (14:06): "even in the game it should be night also when user selects new game we need to transtion to the real game semlessly without a black screen and the pahse we have when the raccoon if goes in the tree tht animation close camera and let the user start the game"
 - **Done by Claude:**
@@ -850,7 +863,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - **The way in:** New Game pushed the title's camera in to the nap close-up, and the level took over under the title's last frame, which dissolved away. The lullaby was handed over still playing. Claude checked first that a playing sound keeps going when it's moved.
 - **Found:** the level's home pine was wider than the title's, with a smaller diamond-shaped hollow, so in the dissolve the hollow changed shape.
 
-## 2026-10-21 — One home pine for the title and the game
+### 2026-10-21 — One home pine for the title and the game
 
 - **Decided** (14:42): "Yes, give the level the title's home pine so the handover matches exactly."
 - **Done by Claude:**
@@ -858,7 +871,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - For the handover to match, the title's raccoon went from 1.1 to the game's size, 0.8, and the title's z's were placed by the game's own rule.
 - **Then:** the tree, the hollow, the raccoon and his z's matched across the handover, but the woods behind him still changed in the dissolve.
 
-## 2026-10-21 — One world: the title becomes the game's opening shot
+### 2026-10-21 — One world: the title becomes the game's opening shot
 
 - **Asked** (16:51): "when the game starts on the wsad the background and changes i understand the starting point of the actaul world is different but i want you u to align it such it feels the same no tractions in the real game play feels smooth"
 - **Got:** Claude explained that the title's world and the game's were laid out differently round the pine, so one had to become the other, and asked which.
@@ -872,14 +885,14 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Found on the way:** my own settings file (music 5, effects 9, full screen on). The title check now starts in a window at full volume and puts the file back as it was.
 - **Still different from the picture:** its stream, path and stump in front of the pine, and its two corner trees, aren't in the game, because that's where I play.
 
-## 2026-10-21 — Committed and pushed
+### 2026-10-21 — Committed and pushed
 
 - **Asked** (17:18): "ok commit and push all the work done it looks perfrect", then "good job".
 - **Done by Claude:** commit 5c8ae39 on `feature-update-main-raccoon`, pushed to GitHub. It also carries the thought-icon work from 20–21 Oct, which hadn't been committed.
 - **Not built yet:** the three bass thumps (they need a bass-thump sound), a way back to the title from play, and save states, so Continue stays faint. The GDD still lists the title screen as planned; it wasn't edited, since it has its own change log.
 - **Human / Claude:** the requests, the picture and the choices are mine; the code, the measuring and this write-up are Claude's.
 
-## 2026-10-21 — Downloaded assets: a campfire and the Blendkit add-on, checked and cleared away
+### 2026-10-21 — Downloaded assets: a campfire and the Blendkit add-on, checked and cleared away
 
 - **Asked** (17:38): "in the assest room i have downloaded some free assests and updated the rar in the same can u check and see if we can use them ?"
 - **Got:** Claude unpacked them in a scratch folder outside the repo and ran nothing from them.
@@ -890,7 +903,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Decided** (18:00): "no clean these all up delete these assests"
 - **Done by Claude:** both files moved to the Recycle Bin rather than deleted outright, and its scratch copies removed. The asset room was back to its Assignment 3 files.
 
-## 2026-10-21 — The tent: checked, then made game-ready
+### 2026-10-21 — The tent: checked, then made game-ready
 
 - **Asked** (18:03): "ok i have updated a new tent can u see if it works ?" (`asset_room/Tent.zip`)
 - **Got:**
@@ -909,7 +922,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** it isn't in the level yet (that's level 1's campsite), and the "Collapse the tent" task will need a collapsed version.
 - **Human / Claude:** the download and the requests are mine. The script, the colours and the measurements are Claude's.
 
-## 2026-10-21 — The table with a laptop: fan art, made game-ready without its pictures
+### 2026-10-21 — The table with a laptop: fan art, made game-ready without its pictures
 
 - **Asked** (18:27): "one more zip free of free assest add them in as well like the tent" (`asset_room/the-noise-next-door-a3.zip`)
 - **Got:**
@@ -925,7 +938,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** it isn't in the level yet.
 - **Human / Claude:** the download, the request and the choice are mine. The script, the colours and where the papers go are Claude's.
 
-## 2026-10-21 — The humans, and clearing away the downloads
+### 2026-10-21 — The humans, and clearing away the downloads
 
 - **Asked** (18:42): "now added humans as well remove all the rar and unecessary files for these assests after u have got them" (`asset_room/Human Basic Shapes- male and female basemesh.zip`)
 - **Got:**
@@ -941,7 +954,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** they aren't in the level yet. They're plain figures for the game's people, which will need clothes, colours and animations.
 - **Human / Claude:** the downloads and the requests are mine. The script and the choices in it (heights, colour, which figures to keep) are Claude's.
 
-## 2026-10-21 — The male human, dressed as the camper and rigged
+### 2026-10-21 — The male human, dressed as the camper and rigged
 
 - **Asked** (19:37): "we have a model named human in our assest i want you to work with the man's model and make it like the camper with beanie we have using blender"
 - **Done by Claude**, in my Blender through the MCP (libraries and generators all off). The result is `assets/characters/human_camper.blend` and `.glb`:
@@ -958,7 +971,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** he isn't in the level, and he has no animations yet.
 - **Human / Claude / model:** the request is mine. The fit, the measurements, the script and this write-up are Claude's. The camper he's dressed as is Claude's model of REF-CAMPER, a Gemini picture. No generative model made him.
 
-## 2026-10-21 — The rigged camper chosen for the game, and his hips and jacket fixed
+### 2026-10-21 — The rigged camper chosen for the game, and his hips and jacket fixed
 
 - **Asked** (20:03): "do this feel better of a model from the original one we had looking at it looks similar but i want to know from ur aspect as well will this better not just visually but to animate and work with in the game ?"
 - **Got:** Claude tested him in hard poses in Blender, then answered:
@@ -983,7 +996,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** the animations I asked for next: walk, run (the chase), bend, and take away. They're being done in a session of their own.
 - **Human / Claude / model:** the question, the decision and the request are mine. The answer, the bug and its fix, the weights and this write-up are Claude's. No generative model.
 
-## 2026-10-21 — The Rigify mannequin, checked; Rigify for our camper instead
+### 2026-10-21 — The Rigify mannequin, checked; Rigify for our camper instead
 
 - **Asked** (20:26): "checkout one more model i got analyze this and see if this is better for animations ?"
 - **Got:**
@@ -1001,7 +1014,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** the mannequin's download is still untracked where the add-on saved it. It isn't used, and it mustn't be committed while the repo is public.
 - **Human / Claude / model:** the download, the question and the decision are mine. The checks, the comparison and this write-up are Claude's. No generative model.
 
-## 2026-10-21 — The camper's first four animations: walk, run, bend and take away
+### 2026-10-21 — The camper's first four animations: walk, run, bend and take away
 
 - **Asked** (20:09): "this human needs to walk, run(chase), bend and take away these are the main one others will comin as we go"
 - **Decided** (about 20:35): Claude asked what "take away" and "bend" should show, with options it wrote.
@@ -1031,7 +1044,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** he isn't in the level, and no game code drives him yet. A Rigify control rig, for posing and animating him by hand in Blender, is for later. Bend is one clip, so the game can't hold the peering pose for longer yet.
 - **Human / Claude / model:** the request and the choices are mine. The options, the animations, the script, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-21 — The camper's jacket, sleeves and hood made again for him
+### 2026-10-21 — The camper's jacket, sleeves and hood made again for him
 
 - **Asked** (about 22:30): "ok the animations look good but the clothes damnnn its bad the way it looks"
 - **Decided** (about 22:35): Claude rendered his clothes up close in the hardest frames and asked which parts, from a list it wrote. I picked "Jacket is a stiff box", "Hood and hoodie" and "Shoulders and sleeves" (not "Neck and collar"), and "Both" for whether it was how they look standing or how they move.
@@ -1053,7 +1066,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** he isn't in the level yet. He's nearly twice the triangles he was; Claude judged that fine for one main NPC, but it could be trimmed. The neck (not picked) is unchanged. A Rigify control rig is still for later.
 - **Human / Claude / model:** the complaint and the choices are mine. The list of problems, the new clothes, the weights, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-21 — Still boxy; the Rigify mannequin tried with the run, then left
+### 2026-10-21 — Still boxy; the Rigify mannequin tried with the run, then left
 
 - **Asked** (about 23:25): "The clothes still look off", then: "the clothes feel boxy I want you to try the lastest model i gave u other one along with tht model we can get some clothes as well assest and u can try running on it"
 - **Done by Claude:** on a scratch copy of the Rigify mannequin's download, outside the repo (the download itself untouched), it drove the camper's run through the mannequin's own controls: its IK feet on the run's foot paths, scaled to its shorter legs, its torso, hips and chest for the bob and lean, and its arms by angle. The legs ran cleanly, with the feet planted and the heels kicking up; its hands came up too high. Claude reminded me that its licence only allows games when users can't easily extract it, which the public repo breaks.
@@ -1062,7 +1075,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Still open:** the clothes still feel boxy to me. Where better ones come from (downloaded clothes fitted to him, or softer ones made by Claude) isn't decided.
 - **Human / Claude / model:** the request and the decision are mine. The test and this write-up are Claude's. No generative model.
 
-## 2026-10-22 — Two Blendkit humans: the hoodie scan tried and dropped, Arnold not tried
+### 2026-10-22 — Two Blendkit humans: the hoodie scan tried and dropped, Arnold not tried
 
 - **Asked** (about 23:50): I picked clothes in Blendkit myself (CC0 only), then: "ok i have added a free asset in the blender try to simpliy him give the colurs of the reference to clothes face needs to clean nothing on the face but the nose", and later "i have added 2 humans try both of them".
 - **Got:** Claude read both from my open Blender without changing it:
@@ -1084,7 +1097,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Still open:** the camper keeps the clothes made for him on 21 Oct, which I still find boxy.
 - **Human / Claude / model:** the downloads, the requests and the decisions are mine. The tests, the licence checks and this write-up are Claude's. No generative model.
 
-## 2026-10-22 — The chubby man, made game-ready with his walk
+### 2026-10-22 — The chubby man, made game-ready with his walk
 
 - **Asked** (00:48): "chubby boy a new assest rar has been added can u open it in belnder" (`asset_room/chubby boy.zip`)
 - **Got:**
@@ -1112,7 +1125,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Done by Claude:** it checked that every file in the zip is in `design/downloads/chubby/` at the same size, then moved the zip to the Recycle Bin, so it can be restored.
 - **Human / Claude / model:** the download and the requests are mine. The script, the height and this write-up are Claude's. No generative model.
 
-## 2026-10-22 — The chubby man's skin in the game's style, his face smoothed, no nose, cartoon eyebrows
+### 2026-10-22 — The chubby man's skin in the game's style, his face smoothed, no nose, cartoon eyebrows
 
 - **Asked** (01:02): "Can u update the model to match the man's skin to the game's style also remove the face features only keep or create nose just the skin nothing to clothes"
 - **Found by Claude:**
@@ -1146,7 +1159,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Checked:** close-ups in Blender (pictures 07 and 08), and in Godot he walks with them beside the campers (picture 09).
 - **Human / Claude / model:** the requests and the decisions are mine. Claude's: finding the skin, the moustache and the nose; the faceted-or-smooth choice; the smoothing; the nose and its removal; the eyebrows' shape; and this write-up. No generative model.
 
-## 2026-10-22 — The chubby man becomes the camper, the main NPC
+### 2026-10-22 — The chubby man becomes the camper, the main NPC
 
 - **Decided** (01:21): "ok i like how this one looks this is our camper now we will work with this as the main npc log the model in and work on creating the animations for this model"
 - **What that means:**
@@ -1160,7 +1173,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** the animations, which are being made in that session. The GDD wasn't changed: it's the submitted 1.0, and it changes only through its own change log.
 - **Human / Claude / model:** the decision is mine; the relabelling and this write-up are Claude's. No generative model.
 
-## 2026-10-22 — The camper's red beanie on the chubby man
+### 2026-10-22 — The camper's red beanie on the chubby man
 
 - **Asked** (01:28), when Claude asked whether he should wear it: "Yes, give the chubby man the camper's red beanie with its pompom, on his head bone, so he can lose it like in the story."
 - **Done by Claude,** as a new step in `tools/blender/prepare_chubby.py`:
@@ -1176,7 +1189,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done yet:** the beanie in the repo's `.glb` and in Godot, through the animation session's next build. That session was asked to check that it stays on his head through every clip.
 - **Human / Claude / model:** the request is mine. The fit, the check and this write-up are Claude's. The beanie is from Claude's camper model. No generative model.
 
-## 2026-10-22 — The chubby man's animations: walk, run, bend and take away
+### 2026-10-22 — The chubby man's animations: walk, run, bend and take away
 
 - **Asked** (01:21, passed on by the session that logged him): "ok i like how this one looks this is our camper now we will work with this as the main npc log the model in and work on creating the animations for this model". The clips, and what bend and take away show, are the ones I asked for the last camper on 21 Oct ("Snatch it back", "Look down at the raccoon").
 - **Done by Claude:**
@@ -1199,7 +1212,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** he isn't in the level, and no game code drives him yet. The rigged camper's import still thins its keys (up to 2.2 mm off); it's left as it was.
 - **Human / Claude / model:** the request and the earlier choices are mine. The animations, the script, the checks and this write-up are Claude's. TiZeta made the model, his rig and his weights. No generative model.
 
-## 2026-10-23 — The low-poly man, made game-ready like the chubby man, with his own walk, run, bend and take away
+### 2026-10-23 — The low-poly man, made game-ready like the chubby man, with his own walk, run, bend and take away
 
 - **Asked** (about 00:20): "ok lets create the same like we have done for the chubby guy for this guy as well and add him in the assets and charaters" (`asset_room/Lowpoly man.zip`)
 - **Got:**
@@ -1243,7 +1256,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Asked** (after that): "Yes, move asset_room/Lowpoly man.zip to the Recycle Bin; the download is kept in design/downloads/lowpoly_man."
 - **Done by Claude:** it checked that both files in the zip are byte-for-byte the same as the ones in `design/downloads/lowpoly_man/`, then moved the zip to the Recycle Bin, so it can be restored.
 
-## 2026-10-23 — The simple girl, made game-ready the same way, with her own walk, run, bend and take away
+### 2026-10-23 — The simple girl, made game-ready the same way, with her own walk, run, bend and take away
 
 - **Asked** (00:40): "added one more its a girl now do the same for her model" (`asset_room/Simple girl.zip`)
 - **Got:**
@@ -1285,7 +1298,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Asked** (after that): "Yes, move asset_room/Simple girl.zip to the Recycle Bin; the download is kept in design/downloads/simple_girl."
 - **Done by Claude:** it checked that both files in the zip are byte-for-byte the same as the ones in `design/downloads/simple_girl/`, then moved the zip to the Recycle Bin, so it can be restored.
 
-## 2026-10-23 — Level 1's campsite: the fire pit, the tents, the camper pegging out his tent and two people dancing
+### 2026-10-23 — Level 1's campsite: the fire pit, the tents, the camper pegging out his tent and two people dancing
 
 - **Asked** (01:11): "lets work on creating the 1st level initial campsite from the assests we have humans a place for fire pit they are setting tents and partying"
 - **Done by Claude** (nothing asked of the author on the way; the layout follows STORYBOARD.md's "The party layout never changes" list):
@@ -1317,7 +1330,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - The GDD's asset tables still list the tent, the campfire and the string lights as planned.
 - **Human / Claude / model:** the request is mine. The layout, the code, the animations, the checks and this write-up are Claude's. The tent is SSimpossible's, the table's maker isn't named, and the three people are TiZeta's. No generative model.
 
-## 2026-10-23 — The campsite moved 20 seconds' walk east of his tree, with a trail to it
+### 2026-10-23 — The campsite moved 20 seconds' walk east of his tree, with a trail to it
 
 - **Asked** (15:22): "move the party away like 25seconds walk away from the house tree", then (15:23) "20seconds*"
 - **Done by Claude:**
@@ -1336,7 +1349,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** as in the last entry: no party music, nobody reacts to him, the level 1 tasks aren't built, and the tents aren't see-through. He can't hear the party from his tree yet: no sound comes from the camp.
 - **Human / Claude / model:** the request and the distance are mine. The place, the trail, the code, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-23 — The party's music from the speaker, loud at the camp and faint at his tree
+### 2026-10-23 — The party's music from the speaker, loud at the camp and faint at his tree
 
 - **Asked** (15:39): "Yes, make the speaker play the party's music as a sound in the world, loud near the camp and faint at his tree." (Claude had offered it.)
 - **Got:** there was no party music to play: every track so far is the score, and the storyboard's MUS-PARTY hasn't been made.
@@ -1353,7 +1366,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** it's a stand-in. The author's own party track (Suno, like the rest of the music) can take its place. The level music doesn't dip when he's at the party. Nobody has listened to it yet.
 - **Human / Claude / model:** the request is mine. The beat, the code, the measurements and this write-up are Claude's. No generative model.
 
-## 2026-10-23 — The campers react to the raccoon: frightened, then the men chase him off while the girl hides
+### 2026-10-23 — The campers react to the raccoon: frightened, then the men chase him off while the girl hides
 
 - **Asked** (16:58): "ok we need to add mechanics for the human when the raccoon comes close and is visiable to them they should be scraed initially but then if it lingers around the camp the guys start to chasing it away and girl is always scared guys trying to protect them"
 - **Done by Claude** (the rules below are Claude's reading of the request; nothing was asked on the way):
@@ -1395,7 +1408,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - The numbers (how far they see, 4 s to chase, their speeds) are first guesses for the author to play and tune.
 - **Human / Claude / model:** the request is mine. The rules, the code, the animations, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-23 — The invisible walls taken out
+### 2026-10-23 — The invisible walls taken out
 
 - **Asked** (20:05): "remove the barriers u have in the game in the invisible barriers those are killing the game we are unable to play correctly"
 - **Found:** the level had invisible walls in three places:
@@ -1417,7 +1430,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** the forest beyond the old play area wasn't laid out for the camera, so out there the tree tops often stand between the camera and him; the see-through window keeps him visible. Nobody has played it yet.
 - **Human / Claude / model:** the request is mine. The changes, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-23 — The people's arms kept out of their bodies when they run
+### 2026-10-23 — The people's arms kept out of their bodies when they run
 
 - **Asked** (20:20): "while running the arms are goin inside the humans"
 - **Found** (measured on the chubby man, the low-poly man and the girl):
@@ -1444,7 +1457,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Asked whether to fix those too, I said: "Leave bend, take away and hammer as they are for now."
 - **Human / Claude / model:** the request is mine. The fix, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-24 — Level 1's first tasks: the campers' routines and three puzzles
+### 2026-10-24 — Level 1's first tasks: the campers' routines and three puzzles
 
 - **Asked** (23 Oct, 20:39): "now I need you to plan a smother working and rotuines and tasks we can work in the game puzzle like working them in so it add gameplay along with it being fun"
 - **Decided by me** (Claude asked; I picked each of its recommendations):
@@ -1510,7 +1523,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Cocoa, the sock swap and the tent are next, on the same machinery.
 - **Human / Claude / model:** the request and the choices are mine. The plan, the code, the props, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-24 — THE PLAN: the task list as a torn notebook page on Tab
+### 2026-10-24 — THE PLAN: the task list as a torn notebook page on Tab
 
 - **Asked** (24 Oct, 20:21), with a picture (REF-PLAN, `design/reference/the-plan.webp`): "now loos at this inspiration of the tasks collections in the game i want a similar UI for tasks listing in the game and as we proceed ahead and pass and get it done the tasks get crossed off so update a menu to be like this in the game using tab the panel comes up and goes away if user selects to see them
   * if user completes a tasks from the listing let it come up in the bottom to suggest it was completed
@@ -1541,7 +1554,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - A small detail: the apostrophe in Patrick Hand is so thin that the chalk can rub it out ("human's" in the side-by-side). None of level 1's tasks has one yet.
 - **Human / Claude / model:** the request and the picture are mine. The build, the measurements, the check and this write-up are Claude's. No generative model.
 
-## 2026-10-25 — New Game starts the party next door, and its sound waves show the way
+### 2026-10-25 — New Game starts the party next door, and its sound waves show the way
 
 - **Asked** (00:00), with a picture of a man shouting at a raccoon, his shouts rolling out in curved strokes (now [design/reference/noise-waves.webp](design/reference/noise-waves.webp), REF-WAVES): "ok when user selects new game start a loud music from the party can u use the noise waves from this img as reference distrubing the raccoon and keep giving these waves that help player to understand where to go make it minialistic for the waves in the gameplay let these flow from the speaker"
 - **Done by Claude** (the rules and numbers are Claude's):
@@ -1590,7 +1603,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - **Checked:** waves (13) and bubble (87) pass. Pictures: `design/level1/waves/` 04–05.
 - **Human / Claude / model:** the request, the picture and the choices are mine. The code, the check and this write-up are Claude's. No generative model.
 
-## 2026-10-25 — The moods in white, with a red anger mark and a half-eaten apple
+### 2026-10-25 — The moods in white, with a red anger mark and a half-eaten apple
 
 - **Asked** (22:45): "all the moods should be white like the drawn i think the alert one is read update tht to be white also idea and the food one needs to be better i dont like the current fish bones onw"
   - Asked what the food should be instead, I chose a half-eaten apple.
@@ -1604,6 +1617,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Checked:** bubble (87) and camp (31) pass. The first try at the apple's flesh crossed its own edge and wouldn't fill; caught by Godot's errors in the bubble run. Pictures: `design/ui/moods/` 01–04.
 - **Not done:** the anger mark's red is the picture's own; on the darkest ground (the shed door) it's a little dark.
 - **Human / Claude / model:** the request, the picture and the choices are mine. The code and this write-up are Claude's. No generative model.
+
+---
 
 ## Assignment 5: shaders and materials
 
@@ -1626,7 +1641,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 26 Oct | My two plays at the camp, and the hop error they logged | not committed yet |
 | 26–28 Oct | My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures | not committed yet |
 
-## 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
+### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
 **Setting up**
 - **Asked** (19:40): I pasted the Assignment 5 brief. Claude found the repo clean on `feature-update-main-raccoon` at 3acc103. It wrote `scripts/run-test.sh`, the course's wrapper adapted to this repo (see TEST-REPORT.md), and ran the earlier checks through it.
@@ -1659,7 +1674,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - This session started before my brief was written or committed. Claude's part that day was the branch, the wrapper, the baseline, the study notes and the outline. It wrote no shader and no brief text.
 - **Human / Claude / model:** the choices, my answers and the cones as my state are mine. The wrapper, the outline, the notes, the "#" and this write-up are Claude's. No generative model.
 
-## 2026-10-26 — The vision cones: the tutorial at the camp, 2 s of red, the confused search
+### 2026-10-26 — The vision cones: the tutorial at the camp, 2 s of red, the confused search
 
 - **Asked** (14:39): "lets focus on the vision cone for the assignment". Claude Code asked me about the cone in three rounds. My answers are in CHANGE-BRIEF.md's Assignment 5 section, with the spelling fixed.
   - (15:01) Spotted, the cone should "snape to red for a 2 seconds". To lose the alert, he has to run away or hide.
@@ -1690,7 +1705,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** the fades and the colour (my shader); the brief's Rules section, the predictions and the rest of it; nothing committed.
 - **Human / Claude / model:** the design is mine: my answers to Claude's questions. The gap choices are Claude's, at my request. The code, the test, the pictures and this write-up are Claude's. No generative model.
 
-## 2026-10-26 — My two plays at the camp, and the hop error they logged
+### 2026-10-26 — My two plays at the camp, and the hop error they logged
 
 - **Asked** (16:55): "Open the game so I can walk to the camp and try the tutorial and the cones myself", then (17:13) "let me try again". Claude opened the game in a window both times and read its log once I'd closed it. What I saw in play is still to be written up in my own words (TEST-REPORT.md).
 - **The logs:** nothing from the tutorial or the cones. The first log had 116 copies of one error, the second 120: "Basis ... must be normalized in order to be casted to a Quaternion", all from `scripts/player.gd:486`. That line turns him from start to finish during a hop: the leap away from a shoo, onto or off a tree, into the hollow.
@@ -1709,7 +1724,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Not done:** a lasting test for the hop. The probe has to start the game outside title mode, which the wrapper's script runs don't do.
 - **Human / Claude / model:** the plays and the request are mine. The diagnosis, the fix, the checks and this write-up are Claude's. No generative model.
 
-## 2026-10-26 to 28 — My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures
+### 2026-10-26 to 28 — My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures
 
 **Rounds 3 to 7**
 - **Asked** (26 Oct, 17:40): "ok what is remaning for assignement 5 more ask me", then (19:27) "ask me specifc question in this i'll give u the detals". Claude asked in rounds of clickable options, and I picked:

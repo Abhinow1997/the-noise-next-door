@@ -1,8 +1,20 @@
 # Change brief: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3, 6 Oct 2026
+`the-noise-next-door` · CSYE 7270
 
-**Assignment 3's brief is [its own section at the end](#assignment-3-three-3d-assets-from-blender).** Everything before it is the Assignment 2 brief, kept as it was.
+The plan for each assignment's change, written before the work. Each assignment's brief is its own section; later changes are dated revisions inside it, and the original text stays.
+
+| Section | Written | Submitted as |
+|---|---|---|
+| [Assignment 2: the asset slice](#assignment-2-the-asset-slice) | 6 Oct 2026, drafts v1 to v3 | tag `a2` |
+| [Assignment 3: three 3D assets from Blender](#assignment-3-three-3d-assets-from-blender) | 13 Oct 2026, revised to v4 on 14 Oct | tag `a3` |
+| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026, revised 28 Oct | branch `assignment-5`, not tagged yet |
+
+---
+
+## Assignment 2: the asset slice
+
+`the-noise-next-door` · CSYE 7270 · Assignment 2 · Draft v3, 6 Oct 2026
 
 The plan for the asset slice: what goes into it, which sound plays on which event, how the music behaves, and what I expect to go wrong.
 
@@ -21,7 +33,7 @@ Each changed section keeps its v1 text, marked as the earlier plan.
 
 **Revised in v3 (6 Oct 2026): a stump instead of the ground.** I tried my ground texture on the forest floor in the game and didn't like it ("i dont like the ground", 22:20), so the slice keeps the plain grass. Its environment asset is now a generated tree stump (22:24), cut out like the raccoon and placed in the clearing with collision.
 
-## The slice
+### The slice
 
 The forest clearing already in the game, around the raccoon's home pine, with its five to-do tasks: knock over the trash bin, steal the bin lid, stash 3 cans in the den, kidnap the garden gnome, and sneak into the den for a nap. The player moves the raccoon with the keyboard. His look swaps between generated images as his state changes, the four sounds fire on real events, and the music loops.
 
@@ -37,9 +49,9 @@ This is smaller than the slice in CONCEPT.md, which has the campsite, a camper w
 
 *Revised in v2:* in panel 6's payoff, my laugh (SFX-TASK-LAUGH) replaces the piano flourish.
 
-## Asset list
+### Asset list
 
-### Revised in v2 (6 Oct 2026): the sounds and the ground
+#### Revised in v2 (6 Oct 2026): the sounds and the ground
 
 | ID | What | In the slice | Panels | Status |
 |---|---|---|---|---|
@@ -52,7 +64,7 @@ This is smaller than the slice in CONCEPT.md, which has the campsite, a camper w
 
 The v1 table below still holds for the raccoon's images and the music. For the sounds and the ground, the table above replaces it.
 
-### Revised in v3 (6 Oct 2026): the environment asset
+#### Revised in v3 (6 Oct 2026): the environment asset
 
 | ID | What | In the slice | Panels | Status |
 |---|---|---|---|---|
@@ -61,7 +73,7 @@ The v1 table below still holds for the raccoon's images and the music. For the s
 
 *Update, 6 Oct, 22:28:* I generated ENV-STUMP (`design/reference/stump.jpg`), two minutes after v3 was committed.
 
-### Generated (these count for the brief)
+#### Generated (these count for the brief)
 
 | ID | What | In the slice | Panels | Status |
 |---|---|---|---|---|
@@ -78,14 +90,14 @@ The v1 table below still holds for the raccoon's images and the music. For the s
 | SFX-ALL-DONE | A short piano "ta-da" | The last task done | Stands in for panel 8's sting, since the slice has no getaway | To generate |
 | MUS-PIANO-LOOP | `assets/audio/music/forest-loop.wav` | The level's music | 3–6 | Done, and playing in the game |
 
-### Not generated (listed so the slice is complete; they don't count)
+#### Not generated (listed so the slice is complete; they don't count)
 
 - **The forest, its trees, bench, bin, cans and gnome:** Claude's code, in `scripts/forest.gd`.
 - **The to-do list and the "all done" banner:** code, in `scripts/main.gd`.
 - **The Blender raccoon (`raccoon.glb`):** Claude's model. It stays in the project, but the slice shows the generated images instead.
 - **The code-made chitter tone:** replaced by SFX-CHITTER.
 
-## The raccoon's images in the game
+### The raccoon's images in the game
 
 - **One image per state.** When more than one state applies, the first in this order wins: asleep, climbing, sneaking, moving, bored, idle. While he carries something, he keeps his current state's image, and the object is drawn at his mouth. The hop up into the hollow uses CHAR-RUN.
 - **Facing:** every image faces front-right, and the game mirrors it when he moves left on screen. Moving straight up or down the screen keeps his last facing. There are no back views, so walking away from the camera still shows his front.
@@ -94,7 +106,7 @@ The v1 table below still holds for the raccoon's images and the music. For the s
   - Each image is placed so his paws stand on the capsule's bottom, at the size the camera and level were tuned for.
   - His head, ears and tail reach past the capsule. That's fair, as the sheet says, because nothing in the game needs to hit them.
 
-## Event-to-sound map
+### Event-to-sound map
 
 **Revised in v2 (6 Oct 2026):**
 
@@ -116,7 +128,7 @@ The v1 table below still holds for the raccoon's images and the music. For the s
 
 **Sound never decides what happens.** Each sound plays after the code has already changed the game's state, and nothing reads a sound back. Music and effects play on separate audio buses, so muting one doesn't touch the game.
 
-## Music behaviour
+### Music behaviour
 
 | Moment | What the music does |
 |---|---|
@@ -131,7 +143,7 @@ The v1 table below still holds for the raccoon's images and the music. For the s
 - When a task is ticked off, my laugh plays over the loop instead of the flourish, and the loop still dips about 4 dB under it.
 - At the end there's no "ta-da": the last task's laugh plays, and the loop fades out over 3 seconds.
 
-## Predicted failures, and how I'll check each
+### Predicted failures, and how I'll check each
 
 1. **The poses don't match.** The five images may differ in size, proportions or colour, so he visibly pops when his state changes.
    - *Check:* scale the cut-outs to the same body length and compare them side by side against the sheet's consistency rules. Then screenshot every state at the same spot in the game.
@@ -157,7 +169,7 @@ The v1 table below still holds for the raccoon's images and the music. For the s
 11. *(Added in v3)* **The stump looks pasted on.** A flat image standing in a 3D clearing may float without a shadow, sit at the wrong size next to him, or let him walk through it.
     - *Check:* a screenshot from the game camera with him beside it, and walking into it from several sides.
 
-## Prompts for what's still to generate
+### Prompts for what's still to generate
 
 Every prompt avoids brands, named artists, copyrighted characters and existing recordings. Each prompt, setting and take goes in the asset log.
 
@@ -183,7 +195,7 @@ For each sound: trim the silence at the front so it starts at once, and save it 
 **ENV-STUMP** (Gemini, added in v3). Attach `design/reference/raccoon/idle.jpg` as the style reference:
 > Use the attached raccoon only as the style reference, and don't include him. Make a single low-poly tree stump for a cozy cartoon forest game, in exactly his style: chunky faceted shapes with flat-shaded facets and crisp edges, no outlines, no fine texture. A short, wide stump about knee height, with a flat cut top showing pale wood rings, warm brown bark in a few large facets, and two or three thick roots flaring out at the base. No moss, no leaves and nothing green on it. Seen from the same high three-quarter angle as the raccoon, as if the camera is above and in front, looking down. Soft light from the upper left. The whole stump in frame and centred, with space around it. No cast shadow. Plain, flat, solid bright green background (#22C55E), no floor, no grass, no gradient. Square image. No text, no watermark.
 
-## Order of work
+### Order of work
 
 1. Cut out the five poses, scale them, and put them in the game in place of the model, with the state swaps and mirroring.
 2. Generate ENV-GROUND, make it tile, put it on the ground, and check the contrast.
@@ -401,6 +413,8 @@ Claude's design:
 ### Revised in v4 (14 Oct 2026): the cooler's body colour
 
 v1 left the cooler's body colour for me to confirm, with Claude's suggestion of blue `#3B7DBF`. On 14 Oct (about 17:25), picking from Claude's four options (blue, red, green, orange), **I chose blue `#3B7DBF`**. Claude's reason for it: it stands out best against the green forest ground. Everything else about the cooler is as in v1.
+
+---
 
 ## Assignment 5: shaders and materials
 

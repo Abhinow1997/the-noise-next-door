@@ -4,9 +4,96 @@ A raccoon just wants a quiet night in his tree. Then a party starts right undern
 
 He sneaks down to prank the partiers, gets chased into town wearing a camper's red beanie, becomes the neighbourhood's masked bandit, and is finally driven home by that same camper, just in time for the next party. It's slapstick with no dialogue: the story is told through what the player does and how people react.
 
-Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for Your Game.
+Made for CSYE 7270 (Fall 2026): one game, built up one assignment at a time.
 
-## Assignment 3 (in progress)
+| Assignment | What it added | Submitted as |
+|---|---|---|
+| [Assignment 5: Shaders, Materials, and the Godot Shading Language](#assignment-5-shaders-and-materials-in-progress) | In progress: hand-written shaders and materials, for the campers' vision cones and a textured 3D object | branch `assignment-5`, not tagged yet |
+| [Assignment 3: Your First 3D Game Assets with Claude, the Blender MCP, and Blender](#assignment-3-the-three-blender-assets) | Three props built in Blender through the Blender MCP, a Godot asset room and a headless check | tag `a3` |
+| [Assignment 2: Generate Art, Sound, and Music for Your Game](#assignment-2-the-asset-slice) | The asset slice: the forest clearing with the generated poses, sounds and music | tag `a2` |
+
+After Assignment 3, the game also got its title screen, the night, the humans, level 1's camp, THE PLAN and the party's sound waves. [Run it](#run-it) covers them.
+
+![The storyboard](design/storyboard/storyboard-sheet.svg)
+
+## Run it
+
+You need Godot 4.7.2. The project uses the Forward+ renderer.
+
+- **Windows:** double-click `Play The Noise Next Door.bat`, or `Edit in Godot.bat` to open the editor. They look for Godot in the `GODOT` environment variable, then in `%LOCALAPPDATA%\Programs\Godot`, then in your Downloads folder. The first run takes a few seconds longer while Godot imports the raccoon model.
+- **Anywhere:** run `godot --path .` from this folder. On a fresh clone, first run `godot --headless --path . --import` once (or open the project in the editor), so the raccoon model is imported.
+
+**The title screen:** Up and Down (or W and S, or the mouse) pick a line, and Enter, Space, E or a click chooses it. Continue stays faint until there are save states to continue from. Settings has the music and effects volumes (Left and Right) and full screen, and Esc goes back. The title is the game's own world at night, seen from where your title picture was taken, so New Game changes nothing but the camera: it glides in to the close-up of the raccoon asleep in his hollow, the lullaby playing on, and W, A, S or D wakes him to start. Any `--` argument other than the title's own skips the title, so the checks below still work as before.
+
+**Level 1's campsite** (23 Oct 2026, `scripts/campsite.gd`): the party is set up about 20 seconds' walk east of his tree, at the end of a trodden trail along the edge of the trees: a fire pit, two tents, logs, the cooler, a table with the laptop, pizza and a donut, a speaker and string lights. The camper is pegging out his tent with a mallet, and the low-poly man and the simple girl dance by the fire on the music's beat. The speaker plays a party beat; since 25 Oct 2026 you don't hear it, you see it, as its sound waves (below). The people react to him: seen (sneak to get closer), all three take fright; the girl hides behind the low-poly man and cowers, the men stand guard, and if he hangs about they chase him off, shooing him away when they catch him. Pictures are in [design/level1/campsite/](design/level1/campsite/).
+
+**Level 1's tasks** (24 Oct 2026, `scripts/camp_puzzles.gd`): the to-do list is now the camp's three tasks; the bin, lid, cans and gnome by his tree are still there to play with, and he still naps in his hollow, but they aren't tasks any more. The people keep to looping routines, which tell you when each one is busy: the camper pegs out his tent, then sits roasting marshmallows by the fire with his back to his backpack, then goes to the table for pizza; the low-poly man dances, then fetches a drink from the cooler; the girl dances, then warms her hands at the fire. Next to something he can use, a chalk E shows; hold E for slow jobs, and a ring fills as he works. Jobs make noise, and the people hear it and come to look ("?" over their heads), but the music drowns a lot of it out, and while they dance they're lost in the music and see less. The tasks:
+- **Steal the marshmallows:** while the camper roasts with his back to it, hold E at his backpack to unzip it; the bag tumbles out. Carry it home to his stash under his tree. Running with it, it crinkles.
+- **Turn the music off:** hold E at the plug under the table to tug it out with his teeth. The music stops, which ticks it off, and the dancers stop dead for two seconds: get away then. Then everyone wonders where the music went, and the low-poly man finds the plug wherever he left it and plugs it back in. Without the music, every noise carries further.
+- **Raid the cooler:** hold E to nose its lid open (a clunk the camper hears if he's by the fire), or wait for the low-poly man, who sometimes leaves it open after his drink. Take the sausages home.
+- **Caught carrying their things,** a man snatches them back and the puzzle resets: the bag zipped back in, the sausages back in the shut cooler.
+
+There's no ending yet. Pictures are in [design/level1/tasks/](design/level1/tasks/).
+
+**The tutorial at the camp and the campers' cones** (26 Oct 2026, `scripts/camp_tutorial.gd`, `scripts/camp_person.gd`, `scripts/vision_cone.gd`): on the way there, the only task is to investigate the music. When he reaches the camp, the game pauses and a note at the bottom says to press Tab. THE PLAN opens with the camp's three tasks on it, under one main task, Rock the party, and the note says to sneak past them; Tab again, and the game carries on. Only then can the campers see him, and their cones show on the ground: pale yellow while they watch, shorter while he sneaks. The moment one spots him, that one's cone turns red for 2 seconds, and then all the cones go while they guard, chase and shoo as before. Once he's got away, they look about, confused, with "??" over their heads, then walk back; each one's cone comes back 5 seconds after they start back. The fades on the cones are still to come, with the cone shader for Assignment 5.
+
+**The party next door** (25 Oct 2026, `scripts/sound_waves.gd`): under the title the night is quiet; New Game starts the party up. You don't hear it (his lullaby plays on); you see it, as its sound waves. They are drawn like the thought icons, three hand-scribbled wavy white lines. On the beat, while the speaker's off the screen, a set pulses on the edge of the screen the music's coming from, so you can always tell which way to go; once the speaker's on the screen, the sets come out of the speaker itself. Asleep in his hollow, he sleeps on through it, untroubled. Pictures are in [design/level1/waves/](design/level1/waves/).
+
+**Controls:** WASD or the arrow keys to move, Shift to run, Ctrl or C to sneak, F to jump (tap it for a small hop, hold it for a full jump), E or a click to grab or drop, Space to chitter, and the mouse wheel to zoom. Walk into a tree to climb it. Then W and S climb up and down, A and D go round the trunk, and E or F lets go. Climb to the top of the home pine to get into the hollow. Esc pauses. M turns the music on and off, and N does the same for the sound effects. Tab brings up THE PLAN, the level's tasks on a torn notebook page, crossed off as they're done (the camp's tasks appear on it with the tutorial at the camp); the task to follow now waits at the bottom of the screen, and a task just done comes up there crossed off. V opens a panel for trying out camera views live; its "Copy numbers" button copies the settings.
+
+**The automated sound check:** run `godot --headless --path . -- --sound-test`. It plays a scripted input sequence, counts how often each sound effect starts, and checks the music's pause, mute, loop and end behaviour. It prints a table, and its exit code is 0 only if every check passes (`scripts/sound_test.gd`).
+
+**The campsite check:** run `godot --headless --path . --audio-driver Dummy -- --camp-test`. It puts the raccoon near the camp sneaking, in plain sight, lingering, up a tree, gone and chittering out of sight, and checks how each of the three takes it (`scripts/camp_test.gd`). Add `--camp-shots=<folder>` in a window for pictures.
+
+**The tasks check:** run `godot --headless --path . --audio-driver Dummy -- --tasks-test`. It walks the three through their routines, then plays each task with E as you would: the marshmallows caught and snatched back, then stolen cleanly and taken home; the music off, the dancers frozen, and the plug found and put back; a noise drowned by the music but heard without it; and the cooler raided. It checks the to-do list ticks each one off (`scripts/tasks_test.gd`). Add `--tasks-shots=<folder>` in a window for pictures.
+
+**The sound waves check:** run `godot --headless --path . --audio-driver Dummy -- --waves-test`. It checks a set of waves goes out on the party's beat and fades after its time; that by his tree and along the trail they're on the edge of the screen the music comes from, and at the camp they come out of the speaker; and that with the music stopped no more come (`scripts/waves_test.gd`). Add `--waves-shots=<folder>` in a window for pictures.
+
+**THE PLAN check:** run `godot --headless --path . --audio-driver Dummy -- --plan-test`. It brings the plan up with Tab and puts it away, checks V has the camera panel, then ticks tasks off and checks what comes up at the bottom of the screen: a task just done, crossed off, and gone again; the key task waiting there until he reaches the camp; and the page crossing off what's been done (`scripts/plan_test.gd`). Add `--plan-shots=<folder>` in a window for pictures.
+
+**The tutorial and cones check:** run `godot --headless --path . -- --cones-test`. It puts the raccoon in plain sight at the camp and checks that nobody sees him before the tutorial; that the tutorial pauses the game, ignores Esc, shows Rock the party and its tasks on Tab and carries on after a second Tab; that the spotter's cone is red, every cone shows through the red, and every cone goes 2.5 s after the spotting; that after the chase each of them is confused for 3 s and their cone comes back 5 s after they start back; and that Rock the party is ticked off with its last task (`scripts/cones_test.gd`). It measures the times on the game's clock, so it passes the same at `--fixed-fps 30`, `60` and `144`. Add `--cones-shots=<folder>` in a window for pictures. The other checks skip the tutorial.
+
+**The title screen check:** run `godot --headless --path . -- --title-test`. It moves through the menu with the keys and the mouse, changes the volumes and checks they reach the buses and the settings file, checks the menu's keys leave him asleep, then chooses New Game and checks the way in: the same scene throughout with nothing laid over it, the camera ending in the nap close-up, the lullaby carrying on, the party next door quiet under the title and starting with New Game, silent, with the lullaby playing on and his nap going on untroubled by it, that first nap not counting as one of his naps, and a move key waking him and bringing in the forest music and the key task at the bottom of the screen. It puts your settings file back afterwards (`scripts/title_test.gd`). Run in a window with `--title-shots=<folder>` as well, it saves pictures of the way in. `godot --path . -- --title-shot=out.png` saves a picture of the title screen.
+
+To redraw the storyboard after editing it, run `python design/storyboard/make_thumbnails.py`. To remake the character-sheet images and the raccoon's cut-outs, run `godot --path . --script res://design/character/make_character_sheet.gd`, then copy the five cut-outs the slice uses into `assets/characters/raccoon/`. For the stump, run `godot --headless --path . --script res://design/environment/make_props.gd`. For the sound loops, run `python design/sfx/make_sfx_loops.py`. To update the game's raccoon after editing `raccoon.blend`, run `blender -b assets/characters/raccoon.blend --python assets/characters/export_raccoon.py`.
+
+## What's here
+
+| Path | What it is |
+|---|---|
+| [CONCEPT.md](CONCEPT.md) | The one-page concept: story, core loop, pillars, art and audio direction |
+| [STORYBOARD.md](STORYBOARD.md) | The whole story in 15 panels, with each panel's shot, sounds and assets |
+| [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The cast: the raccoon and the camper (the two main characters) and the town's dogs, with looks, palettes, poses and the Gemini prompts |
+| [CHANGE-BRIEF.md](CHANGE-BRIEF.md) | The plan for each assignment's change, written before the work, one section per assignment |
+| [SOURCES.md](SOURCES.md) | The generative models, every generation, other people's assets and the tools, one section per assignment |
+| [TEST-REPORT.md](TEST-REPORT.md) | How each assignment's work was tested and what happened, one section per assignment |
+| [FRICTIONAL.md](FRICTIONAL.md) | The dated log: what was asked for, what came back and what was decided, one section per assignment |
+| [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
+| [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
+| [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
+| [design/reference/](design/reference/) | The generated reference images: the raccoon's style target and poses, the camper, the dogs, the forest, the den, the rejected ground texture and the stump |
+| [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend. For Assignment 3, also the camper (`camper.blend` and `camper.glb`) |
+| [assets/props/](assets/props/) | Assignment 3's props: the s'more, the pizza slice and the cooler, and the camper's dropped beanie. Each has its `.blend` source and the `.glb` Godot loads. |
+| [asset_room/](asset_room/), `Look at the A3 assets.bat`, `look_at_a3_assets.sh` | Assignment 3's asset room, with every asset at game size and its measured size, and the launchers for Windows and for macOS or Linux. See [For the grader](#for-the-grader-the-assets-in-godot-with-their-sizes). |
+| [tests/a3_asset_check.gd](tests/a3_asset_check.gd) | Assignment 3's headless check of the three assets against the brief |
+| `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project. It opens on the title screen, shown over the level itself (`main.tscn`), and New Game starts play in the same scene. |
+
+## Assignment 5: shaders and materials (in progress)
+
+*Shaders, Materials, and the Godot Shading Language*, on the branch `assignment-5`. It isn't tagged yet.
+
+- **The plan:** two shaders I write by hand, and the materials that use them:
+  - one from code alone, with no textures, for the campers' vision cones: pale yellow while they watch, and red for 2 seconds once one spots him, before every cone fades out;
+  - one that reads textures, on a 3D object, with two materials made from it.
+- **On the branch so far:** the tutorial at the camp and the campers' cones that the first shader will colour (see [Run it](#run-it)), and their check, `scripts/cones_test.gd`. Claude Code wrote them from my design, and adapted the course's test wrapper, `scripts/run-test.sh`.
+- **The docs:** each of these has an Assignment 5 section:
+  - the plan: [CHANGE-BRIEF.md](CHANGE-BRIEF.md#assignment-5-shaders-and-materials);
+  - the log: [FRICTIONAL.md](FRICTIONAL.md#assignment-5-shaders-and-materials);
+  - the checks: [TEST-REPORT.md](TEST-REPORT.md#assignment-5-shaders-and-materials);
+  - the tools and provenance: [SOURCES.md](SOURCES.md#assignment-5-tools-and-provenance).
+- **Still to come:** both shaders and their materials, the language notes, the known limitations and the film.
+
+## Assignment 3: the three Blender assets
 
 *Your First 3D Game Assets with Claude, the Blender MCP, and Blender*, on the branch `assignment-3`. The Assignment 2 submission is tagged `a2`.
 
@@ -14,7 +101,7 @@ Made for CSYE 7270 (Fall 2026), Assignment 2: Generate Art, Sound, and Music for
 
 - **The three assets:** a s'more, a pizza slice and a cooler, for the raccoon to steal and raid at the campsite. Each is built in Blender through the Blender MCP, exported as a `.glb`, and shown in a small Godot 3D scene beside the raccoon.
 - **Versions:** Godot 4.7.2 stable, Blender 5.2.2 LTS, the mcp-for-blender server 2.1.9 with the MCP for Blender add-on 1.8, on Windows 11.
-- **The docs:** each of these has an Assignment 3 section at the end:
+- **The docs:** each of these has an Assignment 3 section:
   - the plan: [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
   - the log: [FRICTIONAL.md](FRICTIONAL.md);
   - the checks: [TEST-REPORT.md](TEST-REPORT.md);
@@ -156,35 +243,11 @@ timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --f
 ### The Assignment 3 film
 [Watch Assignment 3 explainer](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQC3xt_YqEIIRKm1kHmIXIVgAUVl3dB4lVUKLrHAG-6cByo?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=uhHctc)
 
+## Assignment 2: the asset slice
 
-![The storyboard](design/storyboard/storyboard-sheet.svg)
+*Generate Art, Sound, and Music for Your Game*. Submitted as the tag `a2`.
 
-## The Assignment 2 film
-
-[Watch the explainer film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDAxd9bCxK_S6b1LqkoG0c7AeyrrSNWzPpb9ba5uei4V4Q?e=itjuN3&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D).
-
-## What's here
-
-| Path | What it is |
-|---|---|
-| [CONCEPT.md](CONCEPT.md) | The one-page concept: story, core loop, pillars, art and audio direction |
-| [STORYBOARD.md](STORYBOARD.md) | The whole story in 15 panels, with each panel's shot, sounds and assets |
-| [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The cast: the raccoon and the camper (the two main characters) and the town's dogs, with looks, palettes, poses and the Gemini prompts |
-| [CHANGE-BRIEF.md](CHANGE-BRIEF.md) | The plan for the asset slice: its assets, which sound plays on which event, the music's behaviour, and predicted failures |
-| [SOURCES.md](SOURCES.md) | The generative models used, and the asset log |
-| [TEST-REPORT.md](TEST-REPORT.md) | How the slice was tested and what happened: the fresh-copy run, the character sheet and storyboard against the game, the sounds, music and muted play, the author's playtest and the automated check |
-| [FRICTIONAL.md](FRICTIONAL.md) | The dated design log: what was asked for, what came back and what was decided, starting with the storyboard |
-| [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
-| [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
-| [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
-| [design/reference/](design/reference/) | The generated reference images: the raccoon's style target and poses, the camper, the dogs, the forest, the den, the rejected ground texture and the stump |
-| [assets/characters/](assets/characters/) | The raccoon model: `raccoon.blend`, the `raccoon.glb` the game loads, and `export_raccoon.py`, which makes the .glb from the .blend. For Assignment 3, also the camper (`camper.blend` and `camper.glb`) |
-| [assets/props/](assets/props/) | Assignment 3's props: the s'more, the pizza slice and the cooler, and the camper's dropped beanie. Each has its `.blend` source and the `.glb` Godot loads. |
-| [asset_room/](asset_room/), `Look at the A3 assets.bat`, `look_at_a3_assets.sh` | Assignment 3's asset room, with every asset at game size and its measured size, and the launchers for Windows and for macOS or Linux. See [For the grader](#for-the-grader-the-assets-in-godot-with-their-sizes). |
-| [tests/a3_asset_check.gd](tests/a3_asset_check.gd) | Assignment 3's headless check of the three assets against the brief |
-| `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project. It opens on the title screen, shown over the level itself (`main.tscn`), and New Game starts play in the same scene. |
-
-## What the slice demonstrates
+### What the slice demonstrates
 
 The slice is the prototype's forest clearing, with its five-task to-do list, dressed with the generated assets:
 - **The raccoon, drawn with his generated poses:** idle, running, sneaking, bored (after 5 s of standing still), asleep in the hollow, and climbing. He's mirrored when he faces left.
@@ -194,48 +257,7 @@ The slice is the prototype's forest clearing, with its five-task to-do list, dre
 
 [TEST-REPORT.md](TEST-REPORT.md) shows each of these in the game, and [SOURCES.md](SOURCES.md) logs how each asset was made.
 
-## Run it
-
-You need Godot 4.7.2. The project uses the Forward+ renderer.
-
-- **Windows:** double-click `Play The Noise Next Door.bat`, or `Edit in Godot.bat` to open the editor. They look for Godot in the `GODOT` environment variable, then in `%LOCALAPPDATA%\Programs\Godot`, then in your Downloads folder. The first run takes a few seconds longer while Godot imports the raccoon model.
-- **Anywhere:** run `godot --path .` from this folder. On a fresh clone, first run `godot --headless --path . --import` once (or open the project in the editor), so the raccoon model is imported.
-
-**The title screen:** Up and Down (or W and S, or the mouse) pick a line, and Enter, Space, E or a click chooses it. Continue stays faint until there are save states to continue from. Settings has the music and effects volumes (Left and Right) and full screen, and Esc goes back. The title is the game's own world at night, seen from where your title picture was taken, so New Game changes nothing but the camera: it glides in to the close-up of the raccoon asleep in his hollow, the lullaby playing on, and W, A, S or D wakes him to start. Any `--` argument other than the title's own skips the title, so the checks below still work as before.
-
-**Level 1's campsite** (23 Oct 2026, `scripts/campsite.gd`): the party is set up about 20 seconds' walk east of his tree, at the end of a trodden trail along the edge of the trees: a fire pit, two tents, logs, the cooler, a table with the laptop, pizza and a donut, a speaker and string lights. The camper is pegging out his tent with a mallet, and the low-poly man and the simple girl dance by the fire on the music's beat. The speaker plays a party beat; since 25 Oct 2026 you don't hear it, you see it, as its sound waves (below). The people react to him: seen (sneak to get closer), all three take fright; the girl hides behind the low-poly man and cowers, the men stand guard, and if he hangs about they chase him off, shooing him away when they catch him. Pictures are in [design/level1/campsite/](design/level1/campsite/).
-
-**Level 1's tasks** (24 Oct 2026, `scripts/camp_puzzles.gd`): the to-do list is now the camp's three tasks; the bin, lid, cans and gnome by his tree are still there to play with, and he still naps in his hollow, but they aren't tasks any more. The people keep to looping routines, which tell you when each one is busy: the camper pegs out his tent, then sits roasting marshmallows by the fire with his back to his backpack, then goes to the table for pizza; the low-poly man dances, then fetches a drink from the cooler; the girl dances, then warms her hands at the fire. Next to something he can use, a chalk E shows; hold E for slow jobs, and a ring fills as he works. Jobs make noise, and the people hear it and come to look ("?" over their heads), but the music drowns a lot of it out, and while they dance they're lost in the music and see less. The tasks:
-- **Steal the marshmallows:** while the camper roasts with his back to it, hold E at his backpack to unzip it; the bag tumbles out. Carry it home to his stash under his tree. Running with it, it crinkles.
-- **Turn the music off:** hold E at the plug under the table to tug it out with his teeth. The music stops, which ticks it off, and the dancers stop dead for two seconds: get away then. Then everyone wonders where the music went, and the low-poly man finds the plug wherever he left it and plugs it back in. Without the music, every noise carries further.
-- **Raid the cooler:** hold E to nose its lid open (a clunk the camper hears if he's by the fire), or wait for the low-poly man, who sometimes leaves it open after his drink. Take the sausages home.
-- **Caught carrying their things,** a man snatches them back and the puzzle resets: the bag zipped back in, the sausages back in the shut cooler.
-
-There's no ending yet. Pictures are in [design/level1/tasks/](design/level1/tasks/).
-
-**The tutorial at the camp and the campers' cones** (26 Oct 2026, `scripts/camp_tutorial.gd`, `scripts/camp_person.gd`, `scripts/vision_cone.gd`): on the way there, the only task is to investigate the music. When he reaches the camp, the game pauses and a note at the bottom says to press Tab. THE PLAN opens with the camp's three tasks on it, under one main task, Rock the party, and the note says to sneak past them; Tab again, and the game carries on. Only then can the campers see him, and their cones show on the ground: pale yellow while they watch, shorter while he sneaks. The moment one spots him, that one's cone turns red for 2 seconds, and then all the cones go while they guard, chase and shoo as before. Once he's got away, they look about, confused, with "??" over their heads, then walk back; each one's cone comes back 5 seconds after they start back. The fades on the cones are still to come, with the cone shader for Assignment 5.
-
-**The party next door** (25 Oct 2026, `scripts/sound_waves.gd`): under the title the night is quiet; New Game starts the party up. You don't hear it (his lullaby plays on); you see it, as its sound waves. They are drawn like the thought icons, three hand-scribbled wavy white lines. On the beat, while the speaker's off the screen, a set pulses on the edge of the screen the music's coming from, so you can always tell which way to go; once the speaker's on the screen, the sets come out of the speaker itself. Asleep in his hollow, he sleeps on through it, untroubled. Pictures are in [design/level1/waves/](design/level1/waves/).
-
-**Controls:** WASD or the arrow keys to move, Shift to run, Ctrl or C to sneak, F to jump (tap it for a small hop, hold it for a full jump), E or a click to grab or drop, Space to chitter, and the mouse wheel to zoom. Walk into a tree to climb it. Then W and S climb up and down, A and D go round the trunk, and E or F lets go. Climb to the top of the home pine to get into the hollow. Esc pauses. M turns the music on and off, and N does the same for the sound effects. Tab brings up THE PLAN, the level's tasks on a torn notebook page, crossed off as they're done (the camp's tasks appear on it with the tutorial at the camp); the task to follow now waits at the bottom of the screen, and a task just done comes up there crossed off. V opens a panel for trying out camera views live; its "Copy numbers" button copies the settings.
-
-**The automated sound check:** run `godot --headless --path . -- --sound-test`. It plays a scripted input sequence, counts how often each sound effect starts, and checks the music's pause, mute, loop and end behaviour. It prints a table, and its exit code is 0 only if every check passes (`scripts/sound_test.gd`).
-
-**The campsite check:** run `godot --headless --path . --audio-driver Dummy -- --camp-test`. It puts the raccoon near the camp sneaking, in plain sight, lingering, up a tree, gone and chittering out of sight, and checks how each of the three takes it (`scripts/camp_test.gd`). Add `--camp-shots=<folder>` in a window for pictures.
-
-**The tasks check:** run `godot --headless --path . --audio-driver Dummy -- --tasks-test`. It walks the three through their routines, then plays each task with E as you would: the marshmallows caught and snatched back, then stolen cleanly and taken home; the music off, the dancers frozen, and the plug found and put back; a noise drowned by the music but heard without it; and the cooler raided. It checks the to-do list ticks each one off (`scripts/tasks_test.gd`). Add `--tasks-shots=<folder>` in a window for pictures.
-
-**The sound waves check:** run `godot --headless --path . --audio-driver Dummy -- --waves-test`. It checks a set of waves goes out on the party's beat and fades after its time; that by his tree and along the trail they're on the edge of the screen the music comes from, and at the camp they come out of the speaker; and that with the music stopped no more come (`scripts/waves_test.gd`). Add `--waves-shots=<folder>` in a window for pictures.
-
-**THE PLAN check:** run `godot --headless --path . --audio-driver Dummy -- --plan-test`. It brings the plan up with Tab and puts it away, checks V has the camera panel, then ticks tasks off and checks what comes up at the bottom of the screen: a task just done, crossed off, and gone again; the key task waiting there until he reaches the camp; and the page crossing off what's been done (`scripts/plan_test.gd`). Add `--plan-shots=<folder>` in a window for pictures.
-
-**The tutorial and cones check:** run `godot --headless --path . -- --cones-test`. It puts the raccoon in plain sight at the camp and checks that nobody sees him before the tutorial; that the tutorial pauses the game, ignores Esc, shows Rock the party and its tasks on Tab and carries on after a second Tab; that the spotter's cone is red, every cone shows through the red, and every cone goes 2.5 s after the spotting; that after the chase each of them is confused for 3 s and their cone comes back 5 s after they start back; and that Rock the party is ticked off with its last task (`scripts/cones_test.gd`). It measures the times on the game's clock, so it passes the same at `--fixed-fps 30`, `60` and `144`. Add `--cones-shots=<folder>` in a window for pictures. The other checks skip the tutorial.
-
-**The title screen check:** run `godot --headless --path . -- --title-test`. It moves through the menu with the keys and the mouse, changes the volumes and checks they reach the buses and the settings file, checks the menu's keys leave him asleep, then chooses New Game and checks the way in: the same scene throughout with nothing laid over it, the camera ending in the nap close-up, the lullaby carrying on, the party next door quiet under the title and starting with New Game, silent, with the lullaby playing on and his nap going on untroubled by it, that first nap not counting as one of his naps, and a move key waking him and bringing in the forest music and the key task at the bottom of the screen. It puts your settings file back afterwards (`scripts/title_test.gd`). Run in a window with `--title-shots=<folder>` as well, it saves pictures of the way in. `godot --path . -- --title-shot=out.png` saves a picture of the title screen.
-
-To redraw the storyboard after editing it, run `python design/storyboard/make_thumbnails.py`. To remake the character-sheet images and the raccoon's cut-outs, run `godot --path . --script res://design/character/make_character_sheet.gd`, then copy the five cut-outs the slice uses into `assets/characters/raccoon/`. For the stump, run `godot --headless --path . --script res://design/environment/make_props.gd`. For the sound loops, run `python design/sfx/make_sfx_loops.py`. To update the game's raccoon after editing `raccoon.blend`, run `blender -b assets/characters/raccoon.blend --python assets/characters/export_raccoon.py`.
-
-## Known limitations (Assignment 2)
+### Known limitations (Assignment 2)
 
 - **Static images:** each state is one picture, so his changes of state snap. The author found the animation "a bit blovcky".
 - **No back views:** walking away from the camera still shows his front.
@@ -250,6 +272,10 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - The game doesn't load any of them: it plays the cut loops in `assets/audio/`. The source ZIP leaves them out.
 
 [TEST-REPORT.md](TEST-REPORT.md) has the details and the next steps.
+
+### The Assignment 2 film
+
+[Watch the explainer film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDAxd9bCxK_S6b1LqkoG0c7AeyrrSNWzPpb9ba5uei4V4Q?e=itjuN3&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D).
 
 ## Started from
 
