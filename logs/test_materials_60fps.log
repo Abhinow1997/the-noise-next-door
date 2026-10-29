@@ -1,0 +1,147 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Material audit test, 2026-10-29T18:58:26
+PASS  cooler_paint.gdshader declares 8 uniforms (tint, detail, uv_scale, albedo_texture, roughness_scale, normal_strength, roughness_texture, normal_texture)
+PASS  cooler_paint.gdshader: tint is vec4 (source: vec4)
+PASS  cooler_paint.gdshader: tint hints are "source_color" (source: "source_color")
+PASS  cooler_paint.gdshader: tint defaults to vec4(1.0) (source: vec4(1.0))
+PASS  cooler_paint.gdshader: tint is in group "colour" (source: "colour")
+PASS  cooler_paint.gdshader: detail is float (source: float)
+PASS  cooler_paint.gdshader: detail hints are "hint_range(0.0, 1.0)" (source: "hint_range(0.0, 1.0)")
+PASS  cooler_paint.gdshader: detail defaults to 0.5 (source: 0.5)
+PASS  cooler_paint.gdshader: detail is in group "colour" (source: "colour")
+PASS  cooler_paint.gdshader: uv_scale is float (source: float)
+PASS  cooler_paint.gdshader: uv_scale hints are "hint_range(0.25, 4.0)" (source: "hint_range(0.25, 4.0)")
+PASS  cooler_paint.gdshader: uv_scale defaults to 1.0 (source: 1.0)
+PASS  cooler_paint.gdshader: uv_scale is in group "colour" (source: "colour")
+PASS  cooler_paint.gdshader: albedo_texture is sampler2D (source: sampler2D)
+PASS  cooler_paint.gdshader: albedo_texture hints are "source_color, filter_linear_mipmap, repeat_enable" (source: "source_color, filter_linear_mipmap, repeat_enable")
+PASS  cooler_paint.gdshader: albedo_texture is in group "colour" (source: "colour")
+PASS  cooler_paint.gdshader: roughness_scale is float (source: float)
+PASS  cooler_paint.gdshader: roughness_scale hints are "hint_range(0.0, 1.0)" (source: "hint_range(0.0, 1.0)")
+PASS  cooler_paint.gdshader: roughness_scale defaults to 1.0 (source: 1.0)
+PASS  cooler_paint.gdshader: roughness_scale is in group "surface" (source: "surface")
+PASS  cooler_paint.gdshader: normal_strength is float (source: float)
+PASS  cooler_paint.gdshader: normal_strength hints are "hint_range(0.0, 2.0)" (source: "hint_range(0.0, 2.0)")
+PASS  cooler_paint.gdshader: normal_strength defaults to 1.0 (source: 1.0)
+PASS  cooler_paint.gdshader: normal_strength is in group "surface" (source: "surface")
+PASS  cooler_paint.gdshader: roughness_texture is sampler2D (source: sampler2D)
+PASS  cooler_paint.gdshader: roughness_texture hints are "hint_default_white, filter_linear_mipmap, repeat_enable" (source: "hint_default_white, filter_linear_mipmap, repeat_enable")
+PASS  cooler_paint.gdshader: roughness_texture is in group "surface" (source: "surface")
+PASS  cooler_paint.gdshader: roughness_texture, a data texture, has no source_color
+PASS  cooler_paint.gdshader: normal_texture is sampler2D (source: sampler2D)
+PASS  cooler_paint.gdshader: normal_texture hints are "hint_normal, filter_linear_mipmap, repeat_enable" (source: "hint_normal, filter_linear_mipmap, repeat_enable")
+PASS  cooler_paint.gdshader: normal_texture is in group "surface" (source: "surface")
+PASS  cooler_paint.gdshader: normal_texture, a data texture, has no source_color
+PASS  hint_experiment.gdshader declares 2 uniforms (with_source_color, without_source_color)
+PASS  hint_experiment.gdshader: with_source_color is sampler2D (source: sampler2D)
+PASS  hint_experiment.gdshader: with_source_color hints are "source_color, filter_nearest" (source: "source_color, filter_nearest")
+PASS  hint_experiment.gdshader: with_source_color is in group "" (source: "")
+PASS  hint_experiment.gdshader: without_source_color is sampler2D (source: sampler2D)
+PASS  hint_experiment.gdshader: without_source_color hints are "filter_nearest" (source: "filter_nearest")
+PASS  hint_experiment.gdshader: without_source_color is in group "" (source: "")
+PASS  res://shaders/cooler_paint.gdshader loads as a Shader
+INFO  cooler_paint.gdshader get_shader_uniform_list(): tint Color , detail float 0.0,1.0,0.0010000000475, uv_scale float 0.25,4.0,0.0010000000475, albedo_texture Object Texture2D, roughness_scale float 0.0,1.0,0.0010000000475, normal_strength float 0.0,2.0,0.0010000000475, roughness_texture Object Texture2D, normal_texture Object Texture2D
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has 8 uniforms (has 8)
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has tint as vec4
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has detail as float
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has uv_scale as float
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has albedo_texture as sampler2D
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has roughness_scale as float
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has normal_strength as float
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has roughness_texture as sampler2D
+PASS  cooler_paint.gdshader: get_shader_uniform_list() has normal_texture as sampler2D
+PASS  res://shaders/hint_experiment.gdshader loads as a Shader
+INFO  hint_experiment.gdshader get_shader_uniform_list(): with_source_color Object Texture2D, without_source_color Object Texture2D
+PASS  hint_experiment.gdshader: get_shader_uniform_list() has 2 uniforms (has 2)
+PASS  hint_experiment.gdshader: get_shader_uniform_list() has with_source_color as sampler2D
+PASS  hint_experiment.gdshader: get_shader_uniform_list() has without_source_color as sampler2D
+PASS  res://materials/cooler_body.tres loads as a ShaderMaterial
+PASS  cooler_body.tres uses res://shaders/cooler_paint.gdshader (uses res://shaders/cooler_paint.gdshader)
+PASS  cooler_body.tres: tint is #3b7dbf (is 3b7dbf)
+PASS  cooler_body.tres: detail is 0.6 (is 0.6)
+PASS  cooler_body.tres: roughness_scale is 1.0 (is 1.0)
+PASS  cooler_body.tres: normal_strength is 1.0 (is 1.0)
+PASS  cooler_body.tres: uv_scale is 1.0 (is 1.0)
+PASS  cooler_body.tres: albedo_texture binds blue_metal_plate_diff_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_diff_1k.png)
+PASS  cooler_body.tres: roughness_texture binds blue_metal_plate_rough_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_rough_1k.png)
+PASS  cooler_body.tres: normal_texture binds blue_metal_plate_nor_gl_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_nor_gl_1k.png)
+PASS  cooler_body.tres: render_priority 0, no next pass
+PASS  res://materials/cooler_lid.tres loads as a ShaderMaterial
+PASS  cooler_lid.tres uses res://shaders/cooler_paint.gdshader (uses res://shaders/cooler_paint.gdshader)
+PASS  cooler_lid.tres: tint is #f2f2ee (is f2f2ee)
+PASS  cooler_lid.tres: detail is 0.25 (is 0.25)
+PASS  cooler_lid.tres: roughness_scale is 0.6 (is 0.6)
+PASS  cooler_lid.tres: normal_strength is 0.5 (is 0.5)
+PASS  cooler_lid.tres: uv_scale is 1.0 (is 1.0)
+PASS  cooler_lid.tres: albedo_texture binds blue_metal_plate_diff_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_diff_1k.png)
+PASS  cooler_lid.tres: roughness_texture binds blue_metal_plate_rough_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_rough_1k.png)
+PASS  cooler_lid.tres: normal_texture binds blue_metal_plate_nor_gl_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_nor_gl_1k.png)
+PASS  cooler_lid.tres: render_priority 0, no next pass
+PASS  both cooler materials reference the same shader path
+PASS  the body and the lid are two separate material resources
+PASS  res://hint_experiment/split_quad.tres loads as a ShaderMaterial
+PASS  split_quad.tres uses res://shaders/hint_experiment.gdshader (uses res://shaders/hint_experiment.gdshader)
+PASS  split_quad.tres: with_source_color binds greys_3x1.png (binds res://hint_experiment/greys_3x1.png)
+PASS  split_quad.tres: without_source_color binds greys_3x1.png (binds res://hint_experiment/greys_3x1.png)
+PASS  greys_3x1.png is 3 x 1 with greys 64, 128, 192 (has [64, 128, 192])
+PASS  blue_metal_plate_diff_1k.png.import reads with ConfigFile
+PASS  blue_metal_plate_diff_1k.png: importer is texture
+PASS  blue_metal_plate_diff_1k.png: compress/mode = 2 (is 2)
+PASS  blue_metal_plate_diff_1k.png: compress/normal_map = 2 (is 2)
+PASS  blue_metal_plate_diff_1k.png: mipmaps/generate = true (is true)
+PASS  blue_metal_plate_diff_1k.png: roughness/mode = 1, Disabled (is 1)
+PASS  blue_metal_plate_diff_1k.png: process/normal_map_invert_y = false
+PASS  blue_metal_plate_rough_1k.png.import reads with ConfigFile
+PASS  blue_metal_plate_rough_1k.png: importer is texture
+PASS  blue_metal_plate_rough_1k.png: compress/mode = 2 (is 2)
+PASS  blue_metal_plate_rough_1k.png: compress/normal_map = 2 (is 2)
+PASS  blue_metal_plate_rough_1k.png: mipmaps/generate = true (is true)
+PASS  blue_metal_plate_rough_1k.png: roughness/mode = 1, Disabled (is 1)
+PASS  blue_metal_plate_rough_1k.png: process/normal_map_invert_y = false
+PASS  blue_metal_plate_nor_gl_1k.png.import reads with ConfigFile
+PASS  blue_metal_plate_nor_gl_1k.png: importer is texture
+PASS  blue_metal_plate_nor_gl_1k.png: compress/mode = 2 (is 2)
+PASS  blue_metal_plate_nor_gl_1k.png: compress/normal_map = 1 (is 1)
+PASS  blue_metal_plate_nor_gl_1k.png: mipmaps/generate = true (is true)
+PASS  blue_metal_plate_nor_gl_1k.png: roughness/mode = 1, Disabled (is 1)
+PASS  blue_metal_plate_nor_gl_1k.png: process/normal_map_invert_y = false
+PASS  greys_3x1.png.import reads with ConfigFile
+PASS  greys_3x1.png: importer is texture
+PASS  greys_3x1.png: compress/mode = 0 (is 0)
+PASS  greys_3x1.png: compress/normal_map = 2 (is 2)
+PASS  greys_3x1.png: mipmaps/generate = false (is false)
+PASS  greys_3x1.png: roughness/mode = 1, Disabled (is 1)
+PASS  greys_3x1.png: process/normal_map_invert_y = false
+PASS  blue_metal_plate_nor_dx_1k.png.import: importer is skip, so the game never loads it
+PASS  cooler.glb.import reads with ConfigFile
+PASS  cooler.glb.import: meshes/ensure_tangents = true
+PASS  cooler.glb.import: Cooler_Blue is Use External, res://materials/cooler_body.tres
+PASS  cooler.glb.import: Cooler_White is Use External, res://materials/cooler_lid.tres
+PASS  cooler.glb.import: Cooler_Grey stays embedded
+INFO  cooler.glb surfaces: { "res://materials/cooler_body.tres": 1, "embedded Cooler_Grey": 3, "res://materials/cooler_lid.tres": 1 }
+PASS  cooler.glb: a surface draws with cooler_body.tres
+PASS  cooler.glb: a surface draws with cooler_lid.tres
+PASS  cooler.glb: the handle and posts keep the embedded Cooler_Grey
+PASS  asset_room.tscn has the node Cooler
+PASS  asset_room.tscn: Cooler draws with both cooler materials
+PASS  asset_room.tscn: no override on the Cooler's surfaces
+PASS  asset_room.tscn: Sun light_energy 0.8
+INFO  asset room Sun: colour #fffaf0, energy 0.80, rotation (-52.0, 35.0, 0.0) deg, shadows true
+PASS  asset_room.tscn: ambient_light_energy 0.8
+PASS  asset_room.tscn: tonemap Linear, exposure 1.0 (defaults; the scene doesn't set them)
+INFO  asset room environment: ambient #e8eef0 x 0.80 (source 2), SSAO true, fog true (depth 18 to 60 m), glow false
+PASS  asset_room.tscn: ssao_enabled is true as committed (switched off only by hand to judge)
+PASS  hint_experiment.tscn: Greys draws with split_quad.tres (with res://hint_experiment/split_quad.tres)
+PASS  hint_experiment.tscn: one quad (has 1)
+PASS  hint_experiment.tscn: tonemap Linear, exposure 1.0
+PASS  hint_experiment.tscn: no glow, fog or adjustments
+INFO  hint experiment: 0 light(s); the shader is unshaded
+PASS  blue_metal_plate_nor_gl_1k.png decodes from the source file
+INFO  blue_metal_plate_nor_gl_1k.png curl_ratio: directx = false 0.427, directx = true 1.573
+PASS  blue_metal_plate_nor_gl_1k.png: curl_ratio 0.427 < 0.7 with directx = false (Godot's convention)
+INFO  blue_metal_plate_diff_1k.png: linear mean luminance 0.0456, max 0.2532 (max / constant 5.6)
+PASS  cooler_paint.gdshader: DIFFUSE_MEAN_LUMINANCE 0.0452 is the diffuse's linear mean within 2% (0.0456)
+INFO  cooler_body.tres: brightest texel gives ALBEDO (0.16, 0.77, 1.96) in linear
+INFO  cooler_lid.tres: brightest texel gives ALBEDO (1.91, 1.91, 1.84) in linear
+PASS: 0 check(s) failed
