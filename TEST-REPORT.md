@@ -374,11 +374,12 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 
 `the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
 
-**Status (29 Oct 2026, about 17:00).**
+**Status (29 Oct 2026, about 18:15).**
 - **The cone's shader is in, and driven:** my `shaders/vision_cone.gdshader` (53b0087), the `claude -p` agent's driver and test (29fd5da), and Claude's fixes from its review of them (2024a76). Its headless test passes 93 of 93 at 30, 60 and 144 fps, and the earlier checks keep their baseline (below).
 - **Two of the three mutations are done,** on the cone's shader, and both runs exit 1 (below).
 - **The cone's controlled-value captures are done,** and the first two spottings in play (below).
-- **Not done yet:** the rest of the cone's in-play check, the cooler's textured shader and its materials, the hint experiment, and the material test and its mutation.
+- **The cooler's shader and its two materials are in,** behind the glb's Use External, and every check keeps its baseline (below).
+- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, the hint experiment, and the material test and its mutation.
 
 **What will be tested**
 
@@ -622,19 +623,52 @@ The formats were read with `get_image().get_format()` in a headless run, and the
 - **The pair separates,** 0.43 against 1.57, so it calibrates the check. It doesn't reach the ideal 0 and 2: the plate is nearly flat, and the 16-bit PNGs are decoded to 8 bits, which pulls both values toward 1.
 - **The threshold** the material test will trust: below 0.7 with `directx = false`. That's about halfway between this known-good map's 0.43 and the score of about 1 that a map with no surface behind it gets. It's my pick, in the brief's 29 Oct revision on the check.
 
+### The cooler's shader and its two materials
+
+**My shader** (`shaders/cooler_paint.gdshader`, c45c97b), written by me from my material plan. Claude checked it against the plan, and checked in a scratch copy of the project that it parses: `get_shader_uniform_list()` lists my two groups and all eight uniforms, with their types and ranges, and there's no `SHADER ERROR`.
+- Its tint line is `tint.rgb * mix(1.0, diffuse_luminance / DIFFUSE_MEAN_LUMINANCE, detail)`: the flat tint at `detail` 0, and at 1 the diffuse's brightness around its average.
+- `DIFFUSE_MEAN_LUMINANCE` is 0.0452. Claude measured the diffuse's mean linear luminance as 0.0456 in the source PNG and 0.0438 in the imported BC1 texture the GPU samples. So at `detail` 1 the cooler comes out about 3% darker on average than its tint. I kept 0.0452.
+
+**The two materials,** written by Claude Code with Godot's `ResourceSaver`, with my plan's values:
+
+| Material | `tint` | `detail` | `roughness_scale` | `normal_strength` | `uv_scale` | Textures |
+|---|---|---|---|---|---|---|
+| `materials/cooler_body.tres` | `#3B7DBF` | 0.6 | 1.0 | 1.0 | 1.0 | The diffuse, roughness and GL normal maps |
+| `materials/cooler_lid.tres` | `#F2F2EE` | 0.25 | 0.6 | 0.5 | 1.0 | The same three |
+
+**Behind the importer's Use External:** `_subresources` in `assets/props/cooler.glb.import` points `Cooler_Blue` at the body material and `Cooler_White` at the lid. Godot's reimport kept `use_external/enabled` and `use_external/path`, and added `use_external/fallback_path`, which confirms the keys. A headless probe of the imported cooler found:
+
+| Mesh | Material |
+|---|---|
+| `Cooler_Body` | `materials/cooler_body.tres`, with my shader |
+| `Cooler_Lid` | `materials/cooler_lid.tres`, with my shader |
+| `Cooler_Handle`, `Cooler_PostL`, `Cooler_PostR` | The embedded `Cooler_Grey`, `#8a8f94`, unchanged |
+
+The camp and the asset room both instance the glb, so every cooler gets the new materials.
+
+**After it, every check is at its baseline** (29 Oct 2026, about 18:10):
+- the cone's shader test, 93 of 93 at 30, 60 and 144 fps, and the cones check, 43 at all three;
+- the A3 assets 20, sounds 30, bubble 87, camp 31, tasks 43 and plan 19;
+- waves 12 of 13 and title 51 of 52, failing the same checks as before;
+- the normal-map calibration, unchanged.
+
+No log has a new `SHADER ERROR` or `SCRIPT ERROR`.
+
+**Not checked yet:** how it looks. That means my look in the asset room with SSAO off, and at the camp at night; the interface sweep; and the two materials side by side, with the shader-edit and material-edit checks.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
 |---|---|
-| Baseline | Done before any change, and again after the shader and its driver (above): every earlier check at its baseline count. |
-| Shaders parse | The cone's shader: the uniform-list assertions pass, no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's: not started. |
+| Baseline | Done before any change, again after the cone's shader and its driver, and again after the cooler's materials (above): every earlier check at its baseline count. |
+| Shaders parse | The cone's shader: the uniform-list assertions pass, there's no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's: it parses, with every uniform listed (above). Its uniform-list test and the `source_color` mutation come with the material test. |
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
 | In play (HUMAN CHECK) | Two spottings with the shader on 29 Oct (above), of the five the brief asks for; the rest isn't done yet. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
 | Hint experiment (HUMAN CHECK) | Not started |
-| Interface sweep (HUMAN CHECK) | Not started |
-| One shader, two materials (HUMAN CHECK) | Not started |
-| Material wiring | Not started |
+| Interface sweep (HUMAN CHECK) | Not started. The materials it sweeps are ready (above). |
+| One shader, two materials (HUMAN CHECK) | Not started. The two materials from one shader exist (above); my side-by-side captures and the shader-edit and material-edit checks are still to do. |
+| Material wiring | The materials are behind the glb's Use External, probed headless (above). The material test after a fresh import, and the `source_color` mutation, come with the audit. |
 | Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The cooler's normal map's curl ratio under both conventions comes with the material test. |
 | Import settings | Set explicitly on 29 Oct and read back after a reimport (above). Any rewrite by the editor gets checked after my first editor session with the textures. |
 | What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. All logged in FRICTIONAL.md. |

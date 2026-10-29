@@ -1660,7 +1660,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | The capture tool for my controlled values | its own commit, after a4f4a66 |
 | 29 Oct | My controlled-value captures, and my first play with the shader | 2d05a57 |
 | 29 Oct | Step 3, the textures, their import settings, and the normal-map check | df1bc6e and cbc160f, then the threshold after them |
-| 29 Oct | CLAUDE.md brought up to date before the audit | with CLAUDE.md, after c426722 |
+| 29 Oct | CLAUDE.md brought up to date before the audit | d52cb70 |
+| 29 Oct | Step 3, my cooler shader and the two materials | c45c97b, then the materials after it |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2140,3 +2141,26 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Unconfirmed: three items that are done now are gone, and it says when the counts were measured and what doesn't exist yet.
 - **Checked** by Claude: still 119 lines, under the course's limit, and every file and name it refers to exists.
 - **Human / Claude / model:** the request is mine. The changes and this write-up are Claude's. No generative model.
+
+### 2026-10-29 — Step 3, my cooler shader and the two materials
+
+- **My shader** (29 Oct): "updated the shaders/cooler_paint.gdshader", from my material plan. I committed it with its `.uid`, from my headless import, as c45c97b.
+- **Checked** by Claude before I committed it:
+  - it matches my plan: the five uniforms and three samplers, with their types, hints, defaults and groups, and the tint line shading the tint around the diffuse's average;
+  - it parses. Claude checked that in a scratch copy of the project, so that no `.uid` was made in `shaders/`;
+  - my `DIFFUSE_MEAN_LUMINANCE` of 0.0452 is close to the texture's real average: 0.0456 in the PNG, and 0.0438 in the imported BC1 texture. So the cooler comes out about 3% darker than its tint at `detail` 1. I kept it.
+- **An extra commit, undone:** along with my shader, I also committed `session-3.jsonl` (the full 2.7 MB transcript) and the two empty `stderr` logs, as 1a1d9f0, "Refactor code structure for improved readability and maintainability".
+  - Claude pointed out that it held no code, that the transcript is over the course's 1 MB, and that the message didn't match what was in it.
+  - It wasn't pushed, so at my word ("Yes, undo it") Claude undid it with a soft reset. The files are still on disk, untracked.
+- **The materials** (at my "Yes, it's committed"), by Claude Code:
+  - `materials/cooler_body.tres` and `materials/cooler_lid.tres`, written with Godot's `ResourceSaver`, with my plan's values;
+  - put behind `cooler.glb`'s per-material Use External, for `Cooler_Blue` and `Cooler_White`. Godot's reimport added `use_external/fallback_path`, which confirmed the keys.
+  - A headless probe showed the body and the lid with my shader, and the handle and posts still `Cooler_Grey`.
+- **Rerun:** every check at its baseline, and the calibration unchanged.
+- **Not done yet:**
+  - my look at the cooler;
+  - the interface sweep;
+  - the two materials side by side, with the edit checks;
+  - the hint experiment;
+  - the audit.
+- **Human / Claude / model:** the shader, its commit and the decisions are mine. The checks, the materials, the import settings, the probe and this write-up are Claude's. No generative model.

@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Cone shader check at 144 fps, 2026-10-29T16:11:17
+Cone shader check at 144 fps, 2026-10-29T18:09:46
   pass  Uniform list: not empty (the shader parses)                                    expected true                 got true
   pass  Uniform list: exactly alarm, shown, watch_color, alarm_color                   expected alarm alarm_color shown watch_color got alarm alarm_color shown watch_color
   pass  Uniform list: alarm is a float                                                 expected float                got float

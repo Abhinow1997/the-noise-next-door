@@ -162,7 +162,7 @@ The reference pictures made or shared after Assignment 3, in the same columns as
 ## Assignment 5: tools and provenance
 
 **Who writes what.**
-- **Mine:** the specification (CHANGE-BRIEF.md's Assignment 5 section), every line of both shaders and the hint-experiment shader, and the answers in LANGUAGE-NOTES.md. My cone shader is written (53b0087); the cooler's and the hint experiment's aren't yet.
+- **Mine:** the specification (CHANGE-BRIEF.md's Assignment 5 section), every line of both shaders and the hint-experiment shader, and the answers in LANGUAGE-NOTES.md. My cone shader (53b0087) and cooler shader (c45c97b) are written; the hint experiment's isn't yet.
 - **Claude Code's:** everything else, labelled where it appears. That covers the test wrapper, the study notes, the questions it asks for my brief, the game code and checks around the shader, and the wording of the docs.
 - If I take one of Claude's suggestions into my brief or a shader, I type it in myself and log it here and in FRICTIONAL.md.
 
@@ -190,6 +190,9 @@ The reference pictures made or shared after Assignment 3, in the same columns as
 | The texture credits | `assets/textures/blue_metal_plate/ATTRIBUTION.md` | Claude Code, 29 Oct 2026, from my licence check | The author and the date come from Poly Haven's API, and the sizes and MD5s were checked against its file list. |
 | The normal-map check | `tests/normal_map_check.gd` | The course's code (Assignment 5, Step 3), committed as given (df1bc6e). Claude Code flipped `s` after the calibration came out reversed, as the course says to. | See TEST-REPORT.md. |
 | Its calibration | `tests/normal_map_calibration.gd`, with `logs/normal_map_calibration_60fps.log` | Claude Code, 29 Oct 2026 | Runs the check on Blue Metal Plate's GL and DX pair. |
+| My cooler shader | `shaders/cooler_paint.gdshader` | Me, 29 Oct 2026 (c45c97b) | Hand-written from my material plan. Claude Code checked it against the plan, and that it parses, in a scratch copy. |
+| The cooler's two materials | `materials/cooler_body.tres`, `materials/cooler_lid.tres` | Claude Code, 29 Oct 2026, with Godot's `ResourceSaver`, from my material plan's values | See TEST-REPORT.md. |
+| The cooler's Use External settings | `_subresources` in `assets/props/cooler.glb.import` | Claude Code, 29 Oct 2026 | Godot's reimport added `use_external/fallback_path`. |
 | Study notes on shaders (removed) | `design/a5/shader-notes-by-claude.md`, never committed; removed at my request on 28 Oct 2026 | Claude Code, 25 Oct 2026, at my request ("make the notes i dont know all these details abt shaders"); updated 26 Oct for the new cone code | Explanations, facts from the code with checked line links, and questions. Not my answers: no colour line, no predicted numbers, no answers to the short questions. |
 | The outline of my brief's Assignment 5 section | CHANGE-BRIEF.md | Claude Code, 25 Oct 2026, from the assignment's list; I pasted it in | The headings and questions only. What's under them is mine, apart from what's labelled. |
 | Fixes to my answers in the brief, and the gaps it filled | CHANGE-BRIEF.md, "What the cone does" and "The gaps" | Claude Code, 26 Oct 2026 | It fixed spelling and typos and added full stops and commas to my answers, and says so there. It filled the gaps because I asked ("take liberties with the gaps that feel approriate"), each labelled as its choice. |

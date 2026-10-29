@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Thought-icon check, 2026-10-29T16:11:42
+Thought-icon check, 2026-10-29T18:10:13
   pass  Nothing near: nothing over his head                            expected none             got none
   pass  Nothing near: no sparkles                                      expected 0                got 0
   pass  Shiny: the pile of coins, keys and foil glints once            expected true             got true
