@@ -374,13 +374,13 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 
 `the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
 
-**Status (29 Oct 2026, about 18:55).**
+**Status (29 Oct 2026, about 19:00).**
 - **The cone's shader is in, and driven:** my `shaders/vision_cone.gdshader` (53b0087), the `claude -p` agent's driver and test (29fd5da), and Claude's fixes from its review of them (2024a76). Its headless test passes 93 of 93 at 30, 60 and 144 fps, and the earlier checks keep their baseline (below).
 - **Two of the three mutations are done,** on the cone's shader, and both runs exit 1 (below).
 - **The cone's controlled-value captures are done,** and the first two spottings in play (below).
 - **The cooler's shader and its two materials are in,** behind the glb's Use External, and every check keeps its baseline (below).
-- **The hint experiment's scene is in** (below), with my shader.
-- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, my capture of the hint experiment's bands, and the material test and its mutation.
+- **The hint experiment is done:** its scene, with my shader, and my capture of the bands (below).
+- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, and the material test and its mutation.
 
 **What will be tested**
 
@@ -673,7 +673,17 @@ No log has a new `SHADER ERROR` or `SCRIPT ERROR`.
 
 No log line has `ERROR`.
 
-**My capture (HUMAN CHECK):** not taken yet. `design/a5/captures/read_bands.gd` saves the game's frame and prints the pixel at each band's centre beside my prediction. My screenshot of the running scene shows the six bands, but no values were sampled from it.
+**My capture (HUMAN CHECK)** (29 Oct 2026, 18:57): taken from the game's own 1280 × 720 frame with `design/a5/captures/read_bands.gd`, which prints the pixel at each band's centre. The image and the values are in [design/a5/captures/hint/](design/a5/captures/hint/) (`bands.png`, `bands.txt`).
+
+| Grey in the file | With `source_color`: measured (predicted) | Without: measured (predicted) |
+|---|---|---|
+| 64 | 64 (64) | 137 (135) |
+| 128 | 128 (128) | 188 (184) |
+| 192 | 192 (192) | 225 (225) |
+
+- **The quad with `source_color`** shows the file's values unchanged, as I predicted: the decode on read and the encode on display cancel out.
+- **The quad without** is brighter, as I predicted. 64 and 128 come out 2 and 4 steps above my predictions, from the known power slip in them (CHANGE-BRIEF.md, "Revised 28 Oct 2026: my hint experiment predictions"). Encoding the raw values to sRGB exactly gives 137.2, 187.8 and 225.0, which round to what I measured.
+- R, G and B are equal in every band.
 
 ### Assignment 5's checks
 
@@ -684,7 +694,7 @@ No log line has `ERROR`.
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
 | In play (HUMAN CHECK) | Two spottings with the shader on 29 Oct (above), of the five the brief asks for; the rest isn't done yet. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
-| Hint experiment (HUMAN CHECK) | The scene is ready, and probed headless (above). My capture of the bands isn't taken yet. |
+| Hint experiment (HUMAN CHECK) | Done on 29 Oct (above). With `source_color`: 64, 128 and 192, unchanged. Without: 137, 188 and 225, against my 135, 184 and 225, from the known slip in my predictions. |
 | Interface sweep (HUMAN CHECK) | Not started. The materials it sweeps are ready (above). |
 | One shader, two materials (HUMAN CHECK) | Not started. The two materials from one shader exist (above); my side-by-side captures and the shader-edit and material-edit checks are still to do. |
 | Material wiring | The materials are behind the glb's Use External, probed headless (above). The material test after a fresh import, and the `source_color` mutation, come with the audit. |

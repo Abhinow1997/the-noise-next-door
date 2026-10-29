@@ -10,8 +10,8 @@ GODOT="/c/Users/dotbix/AppData/Local/Programs/Godot/Godot_v4.7.2-stable_win64_co
 
 ## 1. Now
 
-- [ ] **Commit my hint shader** (unless I've asked Claude Code to): `git add shaders/hint_experiment.gdshader shaders/hint_experiment.gdshader.uid && git commit -m "Add hint experiment shader"`
-- [ ] **Hint experiment (HUMAN CHECK):** `"$GODOT" --path . --script "$(pwd)/design/a5/captures/read_bands.gd"`. It saves `design/a5/captures/hint/bands.png` and `bands.txt`, with each band's pixel beside my prediction. Record: does each band match, within 2 steps? If not, check my known power slip first (the brief's hint predictions).
+- [x] **Commit my hint shader** (unless I've asked Claude Code to): `git add shaders/hint_experiment.gdshader shaders/hint_experiment.gdshader.uid && git commit -m "Add hint experiment shader"`
+- [x] **Hint experiment (HUMAN CHECK):** `"$GODOT" --path . --script "$(pwd)/design/a5/captures/read_bands.gd"`. It saves `design/a5/captures/hint/bands.png` and `bands.txt`, with each band's pixel beside my prediction. Record: does each band match, within 2 steps? If not, check my known power slip first (the brief's hint predictions).
 
 ## 2. Any time, even while Claude Code's runs go (nothing to save)
 

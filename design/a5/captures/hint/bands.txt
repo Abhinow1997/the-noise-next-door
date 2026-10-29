@@ -1,0 +1,7 @@
+Hint experiment, 2026-10-29T18:57:38, frame 1280x720
+with source_color    file  64: pixel (190, 360) = (64, 64, 64); predicted 64
+with source_color    file 128: pixel (370, 360) = (128, 128, 128); predicted 128
+with source_color    file 192: pixel (550, 360) = (192, 192, 192); predicted 192
+without source_color file  64: pixel (730, 360) = (137, 137, 137); predicted 135
+without source_color file 128: pixel (910, 360) = (188, 188, 188); predicted 184
+without source_color file 192: pixel (1090, 360) = (225, 225, 225); predicted 225
