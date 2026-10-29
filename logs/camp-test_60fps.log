@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Camp reactions check, 2026-10-29T15:24:38
+Camp reactions check, 2026-10-29T16:11:51
   pass  At first: the camper hammers                               expected hammer           got hammer
   pass  At first: the two dance                                    expected dance dance      got dance dance
   pass  At first: the mallet is in his hand                        expected true             got true

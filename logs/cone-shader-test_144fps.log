@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Cone shader check at 144 fps, 2026-10-29T15:24:06
+Cone shader check at 144 fps, 2026-10-29T16:11:17
   pass  Uniform list: not empty (the shader parses)                                    expected true                 got true
   pass  Uniform list: exactly alarm, shown, watch_color, alarm_color                   expected alarm alarm_color shown watch_color got alarm alarm_color shown watch_color
   pass  Uniform list: alarm is a float                                                 expected float                got float
@@ -27,6 +27,7 @@ Cone shader check at 144 fps, 2026-10-29T15:24:06
   pass  spot 1: the spotter's cone went 0 to 1 within one frame                        expected 0.0 -> 1.0           got 0.0 -> 1.0
   pass  spot 1: shown 1 on every cone, the frame it happens                            expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
   pass  spot 1: every cone drawn, first changed frame within a frame or a tick         expected ok                   got ok
+  pass  spot 1: re-spotted during its red more than a frame later                      expected true                 got true
   pass  spot 1: re-spotted during its red: shown stayed at 1 until then                expected true                 got true
   pass  spot 1: re-spotted during its red: both spotters' cones red                    expected 2 red                got 2 red
   pass  spot 2: the snap, the frame it happens: alarm on the spotters' cones only      expected [1.0, 1.0, 0.0]      got [1.0, 1.0, 0.0]
@@ -76,7 +77,7 @@ Cone shader check at 144 fps, 2026-10-29T15:24:06
   pass  spot 5: gone (shown 0), first changed frame within a frame or a tick           expected ok                   got ok
   pass  spot 5: once gone: every cone hidden, shown 0, alarm 0                         expected [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0] got [false, false, false] [0.0, 0.0, 0.0] [0.0, 0.0, 0.0]
   pass  Paused mid-fade: it was mid-fade when Esc paused it                            expected true                 got true
-  pass  Paused mid-fade: clock, shown and alarm held through 46 paused frames          expected true                 got true
+  pass  Paused mid-fade: clock, shown and alarm held through 45 paused frames          expected true                 got true
   pass  Seen by an alarmed camper during the red, 60 frames: no spotting, nothing changes expected true                 got true
   pass    ... and during the red, his sighting kept everything as it was: red, shown 1 expected [1.0, 1.0, 1.0]      got [1.0, 1.0, 1.0]
   pass  Seen by an alarmed camper while the cones are hidden, 60 frames: no spotting, nothing changes expected true                 got true
@@ -97,38 +98,34 @@ Cone shader check at 144 fps, 2026-10-29T15:24:06
 
 Timings (game time; one frame is the frame period times time_scale):
   spot 1   every cone drawn                 want   1.8167  first frame   1.8167  off   +0.00 ms (allowed 0 to 16.67 ms)
-  spot 2   every cone drawn                 want   1.8500  first frame   1.8500  off   +0.00 ms (allowed 0 to 16.67 ms)
-  spot 2   fade start, off the slope        want   3.8500  got   3.8500  off   -0.00 ms (one frame 6.94 ms)
-  spot 2   fade end, off the slope          want   4.3500  got   4.3500  off   +0.00 ms (one frame 6.94 ms)
-  spot 2   fade start                       want   3.8500  first frame   3.8667  off  +16.67 ms (allowed 0 to 16.67 ms)
+  spot 2   every cone drawn                 want   1.9833  first frame   1.9833  off   +0.00 ms (allowed 0 to 16.67 ms)
+  spot 2   fade start, off the slope        want   3.9833  got   3.9833  off   -0.00 ms (one frame 6.94 ms)
+  spot 2   fade end, off the slope          want   4.4833  got   4.4833  off   +0.00 ms (one frame 6.94 ms)
+  spot 2   fade start                       want   3.9833  first frame   4.0000  off  +16.67 ms (allowed 0 to 16.67 ms)
   spot 2   red, in frames at 144 fps and time_scale 1.0: 291 (2N/s = 288, within 3)
-  spot 2   gone (shown 0)                   want   4.3500  first frame   4.3667  off  +16.67 ms (allowed 0 to 16.67 ms)
-  spot 3   every cone drawn                 want   6.4167  first frame   6.4250  off   +8.33 ms (allowed 0 to 8.33 ms)
-  spot 3   fade start, off the slope        want   8.4167  got   8.4167  off   +0.00 ms (one frame 3.47 ms)
-  spot 3   fade start                       want   8.4167  first frame   8.4250  off   +8.33 ms (allowed 0 to 8.33 ms)
-  spot 4   every cone drawn                 want   8.5333  first frame   8.5333  off   +0.00 ms (allowed 0 to 8.33 ms)
-  spot 4   fade start, off the slope        want  10.5333  got  10.5333  off   +0.00 ms (one frame 3.47 ms)
-  spot 4   fade end, off the slope          want  11.0333  got  11.0333  off   +0.00 ms (one frame 3.47 ms)
-  spot 4   fade start                       want  10.5333  first frame  10.5417  off   +8.33 ms (allowed 0 to 8.33 ms)
-  spot 4   red, in frames at 144 fps and time_scale 0.5: 579 (2N/s = 576, within 3)
-  spot 4   gone (shown 0)                   want  11.0333  first frame  11.0417  off   +8.33 ms (allowed 0 to 8.33 ms)
-  spot 5   every cone drawn                 want  18.7667  first frame  18.7667  off   +0.00 ms (allowed 0 to 33.33 ms)
-  spot 5   fade start, off the slope        want  20.7667  got  20.7667  off   +0.00 ms (one frame 13.89 ms)
-  spot 5   fade end, off the slope          want  21.2667  got  21.2667  off   +0.00 ms (one frame 13.89 ms)
-  spot 5   fade start                       want  20.7667  first frame  20.8000  off  +33.33 ms (allowed 0 to 33.33 ms)
+  spot 2   gone (shown 0)                   want   4.4833  first frame   4.5000  off  +16.67 ms (allowed 0 to 16.67 ms)
+  spot 3   every cone drawn                 want   6.5500  first frame   6.5583  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 3   fade start, off the slope        want   8.5500  got   8.5500  off   +0.00 ms (one frame 3.47 ms)
+  spot 3   fade start                       want   8.5500  first frame   8.5583  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 4   every cone drawn                 want   8.6667  first frame   8.6667  off   +0.00 ms (allowed 0 to 8.33 ms)
+  spot 4   fade start, off the slope        want  10.6667  got  10.6667  off   +0.00 ms (one frame 3.47 ms)
+  spot 4   fade end, off the slope          want  11.1667  got  11.1667  off   +0.00 ms (one frame 3.47 ms)
+  spot 4   fade start                       want  10.6667  first frame  10.6750  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 4   red, in frames at 144 fps and time_scale 0.5: 578 (2N/s = 576, within 3)
+  spot 4   gone (shown 0)                   want  11.1667  first frame  11.1750  off   +8.33 ms (allowed 0 to 8.33 ms)
+  spot 5   every cone drawn                 want  18.9000  first frame  18.9000  off   +0.00 ms (allowed 0 to 33.33 ms)
+  spot 5   fade start, off the slope        want  20.9000  got  20.9000  off   +0.00 ms (one frame 13.89 ms)
+  spot 5   fade end, off the slope          want  21.4000  got  21.4000  off   +0.00 ms (one frame 13.89 ms)
+  spot 5   fade start                       want  20.9000  first frame  20.9333  off  +33.33 ms (allowed 0 to 33.33 ms)
   spot 5   red, in frames at 144 fps and time_scale 2.0: 147 (2N/s = 144, within 3)
-  spot 5   gone (shown 0)                   want  21.2667  first frame  21.2667  off   +0.00 ms (allowed 0 to 33.33 ms)
-  the camper's cone back shown again at  16.0500, +16.67 ms from 5 s after walking back ( 16.0333): the game's timing
-  the camper's cone back fade-in start, off the slope     want  16.0500  got  16.0500  off   +0.00 ms (one frame 3.47 ms)
-  the camper's cone back fade-in end (shown 1)            want  16.5500  first frame  16.5583  off   +8.33 ms (allowed 0 to 8.33 ms)
-  the low-poly man's cone back shown again at  18.1750, +16.67 ms from 5 s after walking back ( 18.1583): the game's timing
-  the low-poly man's cone back fade-in start, off the slope     want  18.1750  got  18.1750  off   +0.00 ms (one frame 3.47 ms)
-  the low-poly man's cone back fade-in end (shown 1)            want  18.6750  first frame  18.6833  off   +8.33 ms (allowed 0 to 8.33 ms)
-  the girl's cone back shown again at  16.0500, +1641.67 ms from 5 s after walking back ( 14.4083): the game's timing
-  the girl's cone back fade-in start, off the slope     want  16.0500  got  16.0500  off   +0.00 ms (one frame 3.47 ms)
-  the girl's cone back fade-in end (shown 1)            want  16.5500  first frame  16.5583  off   +8.33 ms (allowed 0 to 8.33 ms)
-RESULT: all checks passed (92 of 92 checks passed)
-WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
-   at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
-   at: clear (core/io/resource.cpp:822)
+  spot 5   gone (shown 0)                   want  21.4000  first frame  21.4000  off   +0.00 ms (allowed 0 to 33.33 ms)
+  the camper's cone back shown again at  16.1833, +16.67 ms from 5 s after walking back ( 16.1667): the game's timing
+  the camper's cone back fade-in start, off the slope     want  16.1833  got  16.1833  off   +0.00 ms (one frame 3.47 ms)
+  the camper's cone back fade-in end (shown 1)            want  16.6833  first frame  16.6917  off   +8.33 ms (allowed 0 to 8.33 ms)
+  the low-poly man's cone back shown again at  18.3083, +16.67 ms from 5 s after walking back ( 18.2917): the game's timing
+  the low-poly man's cone back fade-in start, off the slope     want  18.3083  got  18.3083  off   +0.00 ms (one frame 3.47 ms)
+  the low-poly man's cone back fade-in end (shown 1)            want  18.8083  first frame  18.8167  off   +8.33 ms (allowed 0 to 8.33 ms)
+  the girl's cone back shown again at  16.1833, +1641.67 ms from 5 s after walking back ( 14.5417): the game's timing
+  the girl's cone back fade-in start, off the slope     want  16.1833  got  16.1833  off   +0.00 ms (one frame 3.47 ms)
+  the girl's cone back fade-in end (shown 1)            want  16.6833  first frame  16.6917  off   +8.33 ms (allowed 0 to 8.33 ms)
+RESULT: all checks passed (93 of 93 checks passed)

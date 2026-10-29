@@ -19,8 +19,10 @@ const HideSpot := preload("res://scripts/hide_spot.gd")
 ## Since 26 Oct 2026 (CHANGE-BRIEF.md, Assignment 5): the moment it spots him its cone
 ## snaps red and stays so for RED_TIME (the author: "When spotted the color should snape
 ## to red for a 2 seconds"); then every cone at the camp fades out over FADE_OUT, and
-## each comes back BACK_AFTER seconds after its NPC starts walking back (the author:
-## "after like 5 seconds bring the vision cone back"). FADE_OUT is Claude Code's choice.
+## each comes back BACK_AFTER seconds after its NPC is calm again and the cones have gone,
+## whichever is later (the author: "after like 5 seconds bring the vision cone back";
+## CHANGE-BRIEF.md, "no getter, and the 5 s as the game counts them"). FADE_OUT is
+## Claude Code's choice.
 ## When each cone shows is camp_person.gd's; the colour and the fades are the author's
 ## shader's (shaders/vision_cone.gdshader), its `alarm` and `shown` set at the camp by
 ## cone_driver.gd. A cone nothing drives (the bubble demo's) just turns red from red().

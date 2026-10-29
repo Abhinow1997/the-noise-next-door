@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Sound check, 2026-10-29T15:24:26
+Sound check, 2026-10-29T16:11:39
   pass  Nap: it counts as a nap                              expected 1      got 1
   pass  Nap: a task done in his sleep is ticked off          expected true   got true
   pass  Nap: no laugh in his sleep                           expected 0      got 0

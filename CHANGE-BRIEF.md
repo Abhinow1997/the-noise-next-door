@@ -847,3 +847,20 @@ Written after Claude Code's plan-only run of 28 Oct 2026 (`prompt-2.txt`), which
 - They still do: when the tutorial ends, each cone appears with `shown` at 1. The only fade-in in my rules is the one when a cone comes back after its 5 s.
 
 (Picked by me on 29 Oct 2026 from Claude Code's recommendations, in my words "Yes, all eight": the getter, a tolerance of one tick at 144 fps for the first changed frame, and no fade-in when the tutorial ends. The other five of the eight approve the plan's steps, and are in `prompt-3.txt`. The facts from the code and the wording are Claude Code's.)
+
+### Revised 29 Oct 2026: no getter, and the 5 s as the game counts them
+
+Written after Claude Code's review of the driver and its test, the `claude -p` agent's work from `prompt-3.txt` (commit 29fd5da). Where this section differs from the revisions above, it replaces them.
+
+**No getter after all.**
+- The revision above, "three gaps found by Claude Code's plan", says the game keeps the moment a cone comes back in `_cone_back_at`. That was wrong. The game can draw the cone again a tick after `_cone_back_at`, because the clock, a sum of ticks, can come out a hair under it. A fade-in timed from `_cone_back_at` was then already above 0 on the first frame the cone was drawn. The agent found this in its first run of the test.
+- So the driver times each fade-in from the first frame the game draws the cone again, as my 28 Oct rule says: "from the moment the game shows a cone again".
+- That left the getter one job: telling a cone that comes back after a spotting from the cones that appear when the tutorial ends. `spotted_at` already tells them apart, because only `spot()` hides the cones.
+- So the getter is gone, and the game's code keeps the one addition of my 28 Oct revision: the record of who spotted him.
+
+**The 5 s, as the game counts them.**
+- My rules say a cone comes back "5 s after its camper starts walking back". The game, which my boundaries keep as it is, starts a camper's 5 s once they're calm again (at work, walking back, fixing or wondering about a noise) and the cones have gone, whichever comes later. Then it shows their cone again, if they're still calm.
+- So a camper who starts walking back while the cones still show gets their cone back later than that. In the driver's test, the girl's came back about 1.6 s later.
+- The driver's test prints when each cone comes back, and doesn't assert it, because when is the game's timing. It asserts the fade-in from that moment.
+
+(Picked by me on 29 Oct 2026 from Claude Code's recommendations after its review, in my words "All four": dropping the getter, and writing down how the game counts the 5 s. The other two of the four change the test, not the brief. The facts from the code and the test, and the wording, are Claude Code's.)

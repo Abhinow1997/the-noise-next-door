@@ -50,7 +50,6 @@ const TasksTest := preload("res://scripts/tasks_test.gd")
 const WavesTest := preload("res://scripts/waves_test.gd")
 const PlanTest := preload("res://scripts/plan_test.gd")
 const ConesTest := preload("res://scripts/cones_test.gd")
-const ConeShaderTest := preload("res://tests/cone_shader_test.gd")
 ## His laughing face while he chitters.
 const RaccoonFace := preload("res://scripts/raccoon_face.gd")
 ## The moonlight (night.gd), and the title screen's chalk writing (title_menu.gd) for the
@@ -503,7 +502,8 @@ func _ready() -> void:
 		cones_check.shots = cones_shots
 		add_child(cones_check)
 	if cone_shader_test and campsite:
-		var shader_check := ConeShaderTest.new()
+		# Loaded only under its flag, so normal play doesn't load a file from tests/.
+		var shader_check = load("res://tests/cone_shader_test.gd").new()
 		shader_check.level = self
 		add_child(shader_check)
 	if bubble_demo:

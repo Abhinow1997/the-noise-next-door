@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Thought-icon check, 2026-10-29T15:24:30
+Thought-icon check, 2026-10-29T16:11:42
   pass  Nothing near: nothing over his head                            expected none             got none
   pass  Nothing near: no sparkles                                      expected 0                got 0
   pass  Shiny: the pile of coins, keys and foil glints once            expected true             got true
@@ -36,7 +36,7 @@ Thought-icon check, 2026-10-29T15:24:30
   pass  Alert: seen again                                              expected alert            got alert
   pass  Alert: stays up a moment after he's out of sight               expected alert            got alert
   pass  Alert: then it goes                                            expected none             got none
-  pass  Hose: in his mouth                                             expected @RigidBody3D@1056:<RigidBody3D#92392132267> got @RigidBody3D@1056:<RigidBody3D#92392132267>
+  pass  Hose: in his mouth                                             expected @RigidBody3D@1056:<RigidBody3D#91838484137> got @RigidBody3D@1056:<RigidBody3D#91838484137>
   pass  Idea: the hose, near the bucket                                expected idea             got idea
   pass  Idea: the bulb                                                 expected bulb             got bulb
   pass  Bucket: filled by the hose                                     expected true             got true
@@ -46,15 +46,15 @@ Thought-icon check, 2026-10-29T15:24:30
   pass  Frustrated: the angry scribble                                 expected scribble         got scribble
   pass  Shed: still shut                                               expected false            got false
   pass  Shed: E went to the door, not to picking anything up           expected <null>           got <null>
-  pass  Keys: in his mouth                                             expected @RigidBody3D@1050:<RigidBody3D#92174028449> got @RigidBody3D@1050:<RigidBody3D#92174028449>
+  pass  Keys: in his mouth                                             expected @RigidBody3D@1050:<RigidBody3D#91620380319> got @RigidBody3D@1050:<RigidBody3D#91620380319>
   pass  Idea: the keys, near the shed                                  expected idea             got idea
   pass  Shed: the keys open it                                         expected true             got true
-  pass  Shed: the keys are in the lock                                 expected @Node3D@1070:<Node3D#92929003204> got @Node3D@1070:<Node3D#92929003204>
+  pass  Shed: the keys are in the lock                                 expected @Node3D@1070:<Node3D#92375355074> got @Node3D@1070:<Node3D#92375355074>
   pass  Shed: opened, an idea and not frustrated                       expected idea             got idea
   pass  Frustrated: stuck pushing against the shed                     expected frustrated       got frustrated
   pass  Stuck: once a push, not again while he keeps pushing           expected none             got none
   pass  Walking in the open: not frustrated                            expected none             got none
-  pass  Coins: in his mouth                                            expected @RigidBody3D@1045:<RigidBody3D#91922370200> got @RigidBody3D@1045:<RigidBody3D#91922370200>
+  pass  Coins: in his mouth                                            expected @RigidBody3D@1045:<RigidBody3D#91368722070> got @RigidBody3D@1045:<RigidBody3D#91368722070>
   pass  Camper: took the coins back                                    expected <null>           got <null>
   pass  Coins: back where they were                                    expected true             got true
   pass  Frustrated: an NPC took his loot (over the alert)              expected frustrated       got frustrated
@@ -90,3 +90,7 @@ Thought-icon check, 2026-10-29T15:24:30
   pass  Boil: the same drawing comes back the same                     expected true             got true
   pass  Pop: starts small, overshoots, settles                         expected true             got true
 RESULT: all checks passed (87 checks)
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

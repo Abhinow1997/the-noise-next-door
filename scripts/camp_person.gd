@@ -217,11 +217,6 @@ func hide_cone() -> void:
 	_cone_back_at = INF
 
 
-## When their cone may show again (read only, for cone_driver.gd's fade-in).
-func cone_back_at() -> float:
-	return _cone_back_at
-
-
 func _physics_process(delta: float) -> void:
 	if player == null:
 		player = get_tree().get_first_node_in_group("player") as Player

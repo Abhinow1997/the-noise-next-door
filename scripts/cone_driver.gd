@@ -1,15 +1,15 @@
 extends Node
 ## Sets the camp's cones' shader (shaders/vision_cone.gdshader, the author's) every frame
 ## from the game's state, as CHANGE-BRIEF.md's Assignment 5 rules say (with their 28 and
-## 29 Oct revisions). It only reads the camp's `clock`, `spotted_at` and `spotters` and
-## each person's `cone_back_at()`, and only writes each cone's `alarm` and `shown`:
+## 29 Oct revisions). It only reads the camp's `clock`, `spotted_at` and `spotters`, and
+## whether each cone is drawn, and only writes each cone's `alarm` and `shown`:
 ##   - `alarm` 1 on the cones of whoever has spotted him, from that moment until the
 ##     cones have gone (the red, then its fade); 0 on every other cone;
 ##   - `shown` 1 through the red, then down to 0 over FADE_OUT, from RED_TIME after the
 ##     latest spotting; when a cone comes back after its BACK_AFTER, up from 0 to 1 over
 ##     FADE_OUT, from the moment the game shows it again (camp_person.gd). A spotting
 ##     snaps it back to 1 at once, faded or gone. The cones that show once the tutorial
-##     is done (before anyone's spotted him, so no `cone_back_at()`) just appear.
+##     is done (before anyone's spotted him) just appear.
 ## Everything is worked out on the camp's clock, which runs on game time: so it holds
 ## still while paused and follows Engine.time_scale, with no timer of its own. Added by
 ## campsite.gd; it runs in _process, after the frame's physics ticks.
@@ -42,8 +42,10 @@ func _process(_delta: float) -> void:
 		elif not person.eyes.showing():
 			shown = 0.0
 			_back_since[person] = INF
-		elif person.cone_back_at() > -INF:
+		elif camp.spotted_at > -INF:
 			# Back after its BACK_AFTER: the fade-in, from the moment the game showed it.
+			# Only a spotting hides the cones, so before any, a cone that shows is the
+			# tutorial's, and just appears.
 			if _back_since[person] == INF:
 				_back_since[person] = now
 			shown = clampf((now - _back_since[person]) / VisionCone.FADE_OUT, 0.0, 1.0)

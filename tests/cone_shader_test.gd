@@ -10,9 +10,10 @@ extends Node
 ## high process_priority reads every cone's `alarm` and `shown` once a frame, after every
 ## other _process(); the checks run on that record at the end.
 ## The staged spottings, in order:
-##   1. the camper spots him (as --cones-test);
-##   2. within 0.25 s, before he can catch the camper's fright, the low-poly man spots
-##      him too: a re-spotting during the red. Then he's gone ("lost early");
+##   1. the camper spots him (as --cones-test), and he's sent out of sight;
+##   2. RESPOT_AFTER on, still before he can catch the camper's fright, the low-poly man
+##      spots him too: a re-spotting during the red, late enough to move the fade by more
+##      than a frame at every rate. Then he's gone ("lost early");
 ##   3. in front of a camper who's alarmed, during the red: nothing may change;
 ##   4. Esc mid-fade, then Esc again;
 ##   5. in front of someone still alarmed, the cones hidden: they stay hidden;
@@ -38,6 +39,10 @@ const AWAY := Vector3(20.0, 0.02, 6.5)
 const EPS := 1e-4
 const PHYSICS_RATE := 60.0
 const CALM := [S.WORK, S.RETURN, S.FIX, S.INVESTIGATE, S.SEARCH]
+## How long after the first spotting he's put in the low-poly man's view: before the man
+## can catch the camper's fright (CATCH_FRIGHT, 0.25 s at the soonest), and more than a
+## frame at 30 fps, so a red that didn't restart would show in the fade's timing.
+const RESPOT_AFTER := 0.12
 
 ## Set by the level (main.gd).
 var level: Node
@@ -173,8 +178,12 @@ func _physics_process(delta: float) -> void:
 			# Spotted by the camper's own sight, once the cones are on.
 			if not get_tree().paused and _camp.spotted_at > -INF:
 				_spotted("spot 1: the camper", _camp.spotters[0])
-				# Re-spotted during the red: the low-poly man, at work, before he catches
-				# the camper's fright (CATCH_FRIGHT, 0.25 s at the soonest).
+				_send_away()
+				_go("red_respot_wait")
+		"red_respot_wait":
+			# Re-spotted during the red: the low-poly man, at work, RESPOT_AFTER on, before
+			# he catches the camper's fright (CATCH_FRIGHT, 0.25 s at the soonest).
+			if now >= _last_spot + RESPOT_AFTER:
 				var man = _people[1]
 				_who = man
 				var at = _view_point(man, _calm_except(man))
@@ -561,7 +570,9 @@ func _analyse() -> void:
 		var red_end: float = T + VisionCone.RED_TIME
 		var gone: float = red_end + VisionCone.FADE_OUT
 		if next_T < red_end:
-			# Re-spotted during the red: shown stays at 1, and both spotters are red.
+			# Re-spotted during the red: shown stays at 1, and both spotters are red. It has
+			# to come more than a frame on, or a red that didn't restart would pass too.
+			_check("%s: re-spotted during its red more than a frame later" % name, true, next_T - T > fp + EPS)
 			var held := true
 			for j in range(i, next_i):
 				held = held and _frames[j].shown == [1.0, 1.0, 1.0]
