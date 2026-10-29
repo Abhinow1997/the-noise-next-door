@@ -511,6 +511,6 @@ They're Claude's pictures, not my look.
 | Material wiring | Not started |
 | Texture data | Not started |
 | Import settings | Not started |
-| What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). All logged in FRICTIONAL.md. |
+| What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, comes with the driver (CHANGE-BRIEF.md, 28 Oct). All logged in FRICTIONAL.md. |
 
 A headless run can show that the behaviour's timings, states and visibility follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks, and the fades come with the shader.

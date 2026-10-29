@@ -564,3 +564,262 @@ The untextured version relies solely on the CPU-generated vertex colors (alpha 0
 4. How long a frame-counting version would last at 30, 60 and 144 fps:
 5. Which resource holds the uniform's default, which holds its current value, and what happens if two objects share the material:
 6. Does hint_range clamp a value set from code? My prediction:
+
+### Revised 28 Oct 2026: the timings, the tolerance and the restarts, made exact
+
+Written after a grading review with Claude Code on 28 Oct 2026. The rules above stay as they were. Where this section differs from them, it replaces them.
+
+**What "spotted" means** (facts from the code, written in by Claude Code). My boundaries keep the campers' behaviour as it is, so the rules below fit it.
+- He's spotted the moment `spot()` in `scripts/campsite.gd` runs. It sets the camp's `spotted_at` to the camp's `clock`, and the game then shows every cone until 2.5 s after it (`cones_shown_until()`).
+- `spot()` runs when a camper who isn't alarmed sees him: at work, wondering about a noise, fixing the plug, confused, or walking back (`scripts/camp_person.gd`: `_work`, `_investigate` and `_fix` through `_startle`, line 385; `_search`, line 527; `_return`, line 542).
+- A camper who's already alarmed (startled, guarding, chasing, shooing, fleeing, cowering, or taking something back) can see him without it counting. So "the same one sees him again", in my restart rule above, can only restart the red once that camper is calm again.
+
+**How long each change takes, and the tolerance** (replaces "give or take one frame"):
+- `alarm` goes from 0 to 1 within one frame of the spotting, with nothing in between.
+- `shown` goes from 1 to 0 over 0.5 s, starting 2.0 s after the latest spotting, so it's 0 at 2.5 s. It goes from 0 to 1 over 0.5 s from the moment the game shows a cone again after its 5 s.
+- The tolerance is one frame period at the rate it runs at: 33.3 ms at 30 fps, 16.7 ms at 60 fps and 6.9 ms at 144 fps.
+- Every time is measured in game time, by a node that reads the uniforms once a frame after every other `_process()` (a high `process_priority`). Each must come out the same at all three rates, within that tolerance.
+
+**Time scale and pause** (replaces "Unscaled: always 2 real seconds"; picked by me from Claude Code's options, 28 Oct 2026):
+- Game time, which `Engine.time_scale` scales: the clock the campers run on (`clock += delta` in `scripts/vision_cone.gd` and `scripts/campsite.gd`).
+  - At `time_scale` 0.5, the red lasts 4 real seconds and its fade 1 s. At 2.0, they last 1 s and 0.25 s.
+  - Why I changed it: the game hides the cones on that scaled clock, and my boundaries keep it. A real-time clock of the shader's own would drift out of step: at `time_scale` 2 the game hides the cones after 1.25 real seconds, before the fade has started.
+  - No script in the game changes `time_scale`; only the test does.
+- Paused: the red and the fades freeze where they are and carry on afterwards, as before.
+
+**When he's spotted again** (replaces my restart rule above; picked by me from Claude Code's options, 28 Oct 2026):
+
+| When the new spotting comes | What the game does (unchanged) | `alarm` | `shown` |
+|---|---|---|---|
+| During the 2 s of red | Shows every cone until 2.5 s after the new spotting | The new spotter's cone snaps to 1. A cone that's red already stays at 1. | Stays at 1. The fade starts 2 s after the new spotting. |
+| During the 0.5 s fade | The same | As above | Snaps back to 1. The fade starts again 2 s after the new spotting. |
+| While the cones are hidden, by a camper who isn't alarmed (confused, walking back, or back at work before their cone's come back) | Shows every cone again, until 2.5 s after the spotting | The spotter's cone snaps to 1. Every other cone is at 0. | Snaps from 0 to 1 at once. Then the usual 2 s of red and the 0.5 s fade. |
+| Seen by a camper who's alarmed, at any time | Nothing: it doesn't count as a spotting | No change | No change: hidden cones stay hidden |
+
+- **Which cones are red:** every camper whose spotting starts or restarts the red has a red cone, until the cones fade. The rest stay yellow. So if a second camper spots him while the first one's cone is red, both cones are red.
+- **Back to yellow:** a cone that shows again, after its 5 s or because someone has spotted him, starts at `alarm` 0, unless its own camper has just spotted him. This is Claude Code's reading of my rule "It's back at 0 when the cone comes back", as it put it in the question I answered.
+
+**The tests for these** (added to the evidence split). Each is a headless assertion at 30, 60 and 144 fps, on the uniforms read once a frame:
+- the snap: `alarm` goes from 0 to 1 within one frame of the spotting, on the spotter's cone only;
+- the fade: `shown` starts falling 2.0 s after the latest spotting and is 0 at 2.5 s. When the cone comes back, it goes from 0 to 1 over 0.5 s;
+- spotted again during the red, and again during the fade: the fade starts over from the new spotting, and both spotters' cones are red;
+- spotted while the cones are hidden: `shown` goes from 0 to 1 in one frame, with the spotter's cone red and the others yellow;
+- seen by a camper who's alarmed: no change;
+- time scale: the red lasts 2 s of game time at any `time_scale`. At 60 fps that's 120 frames at 1.0, 240 at 0.5 and 60 at 2.0;
+- paused mid-fade: `shown` keeps its value through the pause, and the fade finishes after it.
+
+(Picked by me from Claude Code's options on 28 Oct 2026: game time, snapping back during the fade, snapping in while hidden, and both spotters' cones red. All four were its recommendations. The facts from the code, the table, the tests and the wording are Claude Code's. The tolerance is one frame at each rate.)
+
+### Revised 28 Oct 2026: the evidence split, made complete
+
+Written after the same grading review. This table replaces the evidence split above, which covered only the timing rules. The assertions under "The tests for these", in the revision before this one, still apply. Every rule in my brief now has a check.
+
+| Rule | Checked by | How |
+|---|---|---|
+| The uniforms: `alarm`, `shown`, `watch_color` and `alarm_color`, with the types in my table | A headless test | `get_shader_uniform_list()` gives each uniform's name and type. Their hints and defaults are read from the shader's source text, because a headless run doesn't report them. |
+| The shader parses | A headless test | A shader that fails to parse has an empty uniform list, so the check above fails, and `scripts/run-test.sh` fails on any `SHADER ERROR` line too. Proved by deleting one semicolon from the shader: the run must exit 1. |
+| The driver sets the names the shader declares | A headless test | Proved by renaming `alarm` in the shader only: the uniform-list check must fail, and the run exit 1. Setting a name the shader doesn't declare raises no error, so nothing else would catch it. |
+| Spotted: `alarm` snaps to 1 and the red lasts 2 s, even if he's lost early; and each restart in the revision before this one | A headless test | Through the real game at the camp, reading the uniforms once a frame at 30, 60 and 144 fps |
+| The fades: `shown` 1 to 0 over 0.5 s after the red, and 0 to 1 over 0.5 s when a cone comes back | A headless test | The same test, in game time |
+| Paused: the red and the fades freeze. Slowed down or sped up: 2 s of game time | A headless test | The test pauses the game and sets `Engine.time_scale`. It counts frames, not real seconds: a run with `--fixed-fps` doesn't keep to the wall clock. At N fps and `time_scale` s, 2 s of game time is 2N ÷ s frames: 120 at 60 fps and 1.0, 240 at 0.5, 60 at 2.0. |
+| Each cone has its own value: only the spotters' cones go red | Both | The test checks each cone's `alarm` and `shown`. In play, I check that only the spotters' cones turn red. |
+| The colour at `alarm` 0, 0.5 and 1, with `shown` at 1 | My eyes | A capture at each value, read from the game's own frame, not an OS screenshot, against my predicted pixels. How, below. |
+| Whether `hint_range` clamps a value set from code | My eyes | A capture with `alarm` set to 2.0 from code, compared with the capture at 1.0. How, below. |
+| In play | My eyes | At least five spottings in normal play. How, below. |
+| The boundaries hold | Both | The earlier checks keep their baseline counts at 60 fps, and the cones check its 43 at 30, 60 and 144. In play, I check that he moves and the campers behave as before, and that nothing but the cones looks different. |
+
+**How I take the captures:**
+- In a windowed run, with a debug key, from the game's rendered frame. The game is paused and the driver held off, so nothing overwrites the value I set.
+- The same framing and the same two pixels as my grass captures: Base at Camper (974, 258) and Far Edge (249, 480).
+- The pause also stops the fire's flicker (`scripts/campsite.gd:425`), which lights Far Edge. With each capture goes one of the same paused frame with the cones hidden, so the grass under both pixels is measured every time, not assumed.
+- A match is within 2 of my prediction on each of R, G and B. A bigger difference is a finding: I record it with the capture, then find out why.
+- Once, I compare a capture with an OS screenshot of the same frame, and record which I trust and why.
+
+**The `hint_range` check:** with the driver held off, I set `alarm` to 2.0 and take a capture as above. If both pixels match the capture at 1.0 within 2 steps, `hint_range` clamped the value. If not, it didn't. My prediction is in the short answers.
+
+**In play:** at least five spottings at the camp from a normal start, with nothing scripted. For each, I write down which cones turned red, how the fade looked and when the cones came back, and any re-spotting along the way. The rarer restarts are the headless test's to check.
+
+(Picked by me from Claude Code's options on 28 Oct 2026: a match within 2 steps, each capture paused with a bare frame beside it, and five spottings in normal play. All three were its recommendations. The table, the frame counts and the wording are Claude Code's, and so is using `alarm` for the 2.0 capture, since it's the uniform that moves the colour from yellow to red. The checks in the table follow the assignment.)
+
+### Revised 28 Oct 2026: the material plan, for the cooler
+
+Written after the same grading review. It replaces the material plan above, which put one texture on the vision cone. The cone has no UVs, and my shader from code may have no samplers of its own, so the textured shader goes on another object.
+
+**The object and the light:**
+- **The object:** the cooler, my Assignment 3 asset (`assets/props/cooler.glb`). It's at the camp by the fire, and in the asset room under key 2. It has UVs, and Godot builds its tangents on import (`meshes/ensure_tangents=true`), which the normal map needs. No game code recolours it.
+- **Where the materials go:** behind the importer's per-material Use External setting in `cooler.glb`'s import, so a reimport keeps them and every copy of the cooler gets them, at the camp and in the asset room. The body (`Cooler_Blue`) gets one material and the lid (`Cooler_White`) the other. The handle and its posts (`Cooler_Grey`) stay as they are.
+- **The light I judge under:** the asset room's sun (energy 0.8) and ambient light (energy 0.8). Its SSAO (`asset_room/asset_room.tscn`, line 26) is switched off while I judge, so SSAO's shading isn't mistaken for the roughness or normal map. Then one look at the camp at night, in play.
+
+**The textures:** Blue Metal Plate, by Rob Tuytel (all roles), from Poly Haven (https://polyhaven.com/a/blue_metal_plate), published 26 Sep 2024. Poly Haven's textures are CC0; I check its licence on the day I download them, and the source, authors, licence and that date go in an `ATTRIBUTION.md` beside the files. All three at 1k, since the cooler is only about 124 × 77 px on screen, and as PNG, so nothing lossy sits under the import.
+
+| Texture | Role | What its numbers mean | Sampled as | compress/mode | compress/normal_map | mipmaps/generate |
+|---|---|---|---|---|---|---|
+| `blue_metal_plate_diff_1k.png` | The colour: the plate's paint, its scratches and scuffs | Colour, stored in sRGB as a photo is | Colour, with `source_color`, so it's decoded to linear before any arithmetic | VRAM Compressed | Disabled | On |
+| `blue_metal_plate_rough_1k.png` | How rough each point of the surface is | 0 (black) is smooth and shiny, 1 (white) rough and matte. Data, not a colour | Data, without `source_color` | VRAM Compressed | Disabled | On |
+| `blue_metal_plate_nor_gl_1k.png` | Which way each point of the surface faces: the slopes of the scratches | Each texel is a direction. R and G are its X and Y, stored as 0 to 1 for −1 to 1, with green pointing up (OpenGL), as Godot expects. Godot works out Z from them | Data, with `hint_normal` | VRAM Compressed | Enable | On |
+
+- All three also get `roughness/mode` Disabled, so the editor's detection has nothing left to change. The audit looks up each setting's integer in the `.import` files.
+- It's the OpenGL normal map, `_nor_gl`, not `_nor_dx`. Because it's a normal map, `tests/normal_map_check.gd` is committed before the audit. It's calibrated on this set's own `_nor_gl` and `_nor_dx` pair: the GL file should come out low, and near 2 under the other convention. A scratched plate is nearly flat, so if the pair doesn't separate (both drift toward 1), a bumpier Poly Haven pair calibrates the check instead, and TEST-REPORT.md says so.
+
+**The uniforms:**
+
+| Uniform | Type | Hint | Range | Default | Group | What I expect across its range |
+|---|---|---|---|---|---|---|
+| `tint` | vec4 | `source_color` | a colour | white | colour | The part's colour, with the texture's scratches showing in it |
+| `detail` | float | `hint_range(0.0, 1.0)` | 0 to 1 | 0.5 | colour | 0: the flat colour the cooler has today. 1: the plate's full scratches and scuffs. Near 1 the photo's detail may clash with the game's flat low-poly look. |
+| `uv_scale` | float | `hint_range(0.25, 4.0)` | 0.25 to 4 | 1.0 | colour | How many times the texture repeats on each face. At 0.25 the scratches are 4 times bigger; at 4 they're 4 times smaller, and may turn into a fine pattern. |
+| `roughness_scale` | float | `hint_range(0.0, 1.0)` | 0 to 1 | 1.0 | surface | 0: shiny as a mirror everywhere, catching the sun. 1: the map's own roughness, shiny paint with matte scratches. |
+| `normal_strength` | float | `hint_range(0.0, 2.0)` | 0 to 2 | 1.0 | surface | 0: flat, lit as it is today. 1: the scratches catch the light as the map says. 2: twice as deep, which may look wrong on a cooler. |
+
+| Sampler | Hints | Group | Bound to |
+|---|---|---|---|
+| `albedo_texture` | `source_color, filter_linear_mipmap, repeat_enable` | colour | the diffuse |
+| `roughness_texture` | `hint_default_white, filter_linear_mipmap, repeat_enable` | surface | the roughness map |
+| `normal_texture` | `hint_normal, filter_linear_mipmap, repeat_enable` | surface | the `_nor_gl` normal map |
+
+**How the colour texture meets the tint:** the diffuse, decoded with `source_color`, darkens and lightens the tint by its brightness around its own average, as far as `detail` says. So one blue texture gives a scuffed blue body and a scuffed white lid: a tint multiplying a blue texture could only make it darker. The line that does it is mine to write in the shader.
+
+**The two materials:**
+
+| Material | `tint` | `detail` | `roughness_scale` | `normal_strength` | `uv_scale` |
+|---|---|---|---|---|---|
+| The body (`Cooler_Blue`) | `#3B7DBF` | 0.6 | 1.0 | 1.0 | 1.0 |
+| The lid (`Cooler_White`) | `#F2F2EE` | 0.25 | 0.6 | 0.5 | 1.0 |
+
+- **Why:** the lid should read as smoother, shinier white plastic, and the body as scuffed painted metal.
+- Both bind the same three textures, so they differ in four values, not in a texture.
+
+**Suggested paths** (Claude Code's, mine to change): the shader `shaders/cooler_paint.gdshader`; the materials `materials/cooler_body.tres` and `materials/cooler_lid.tres`; the textures in `assets/textures/blue_metal_plate/`, with its `ATTRIBUTION.md`.
+
+**A change to my boundaries:** "only the cones change" now has a second exception: the cooler's body and lid, which this shader is for. Everything else stays as in my boundaries above.
+
+(Picked by me from Claude Code's options on 28 Oct 2026: the cooler; the diffuse, roughness and normal maps; the body and the lid; the asset room with SSAO off; the texture shading the tint; the five uniforms; VRAM compression with mipmaps; and the two materials' values. All eight were its recommendations. The facts from the code and from Poly Haven, the tables, the paths and the wording are Claude Code's.)
+
+### Revised 28 Oct 2026: the predicted failures, tied to my rules
+
+Written after the same grading review. It replaces my predicted failures above: two are corrected here, and one is dropped. Each failure has the check that would catch it.
+
+| # | What could go wrong | Why it would happen | The check that would catch it |
+|---|---|---|---|
+| 1 | Every cone turns red at once | The cones share one ShaderMaterial, so setting `alarm` on the spotter's cone sets it on every cone | The headless test reads each cone's `alarm`, and checks that each cone has a material of its own. In play, only the spotters' cones turn red. |
+| 2 | The red doesn't restart | A second spotting during the red or the fade leaves the fade on the first spotting's clock, so the cones go too early | The test's re-spottings during the red and during the fade: the fade must start 2 s after the latest spotting |
+| 3 | The red lasts the wrong time under time scale | The driver times the red on the wall clock, or with a Tween that ignores time scale. At `time_scale` 2 the game hides the cones before the fade starts. | The test's frame counts at `time_scale` 0.5 and 2.0: 240 and 60 frames at 60 fps |
+| 4 | The fade carries on through a pause (my first prediction, corrected) | The driver runs while the game is paused, through its `process_mode`, or through a Tween's pause mode, which is set with `set_pause_mode`, not a process mode | The test pauses the game mid-fade: `shown` must hold its value |
+| 5 | Fog on the cone | My render_mode has no `fog_disabled`. The level's depth fog starts at 18 m (`scripts/main.gd:894`) and the camera is 19.2 m away (`scripts/main.gd:116`), so the cone's colour drifts toward the haze. | The controlled captures: off by more than 2 steps, toward the haze. One capture with the fog off confirms it. |
+| 6 | The tip-to-edge fade is lost | The shader ignores the cone's vertex alpha (0.55 at the camper, 0.12 at the edge), so the whole cone is equally see-through | The controlled captures: Base at Camper and Far Edge must differ as my predictions say |
+| 7 | Overlapping cones flicker (my third prediction, corrected) | Where two cones overlap, which is drawn on top depends on their order, sorted by distance, and with `depth_draw_opaque` neither hides the other. As the campers move the order flips, so a red cone over a yellow one flickers. | My eyes in play, watching an overlap during a red. The raccoon is opaque, so the depth buffer, not sorting, already puts him in front or behind. |
+| 8 | A data texture read as colour | The roughness or normal map sampled with `source_color`, so its numbers are decoded as if they were sRGB: the plate shines in the wrong places, and the scratches light wrongly | The material test reads each sampler's hints from the shader's source |
+| 9 | The editor rewrites an import setting | A setting left on Detect, so the editor rewrites the `.import` file the first time it draws the texture | `git status` after my first editor session, and the material test's import checks |
+
+**Dropped:** my second prediction, the cone flashing white or black when it first appears because its colours weren't set. A uniform that no material sets takes the shader's default, so the cone starts in my default yellow and can't flash.
+
+(Picked by me from Claude Code's options on 28 Oct 2026: three failures in the cone's timing, two in its look and two in the cooler, and correcting my first and third predictions. Seven of the nine came from its recommendations. The lost tip-to-edge fade and the rewritten import were my own picks, and I left out its recommended DirectX normal map. The causes, the checks and the wording are Claude Code's.)
+
+### Revised 28 Oct 2026: the script and variables that hold the state
+
+This fills in "The script and variable that hold it", which the 25 Oct text left empty. The facts are from Claude Code's code of 26 Oct, written in by Claude Code. The choice of how to record the spotter is mine.
+
+- **When he was spotted:** `spotted_at` in `scripts/campsite.gd` (line 212). It's the camp's `clock` (line 200) at the latest spotting, set by `spot()` (line 371), and `cones_shown_until()` (line 378) is 2.5 s after it. The red and the fade are timed from it.
+- **Who spotted him:** nothing records this yet.
+  - `spot()` stores only when.
+  - Each cone's own `spotted_at` (`scripts/vision_cone.gd`, line 41) changes whenever its camper starts seeing him, even a camper who's already guarding. So today a guard who turns to face him goes red as well (`red()`, line 83), against my rule that the other cones stay yellow.
+  - The cones check passes only because, in its setup, the other campers don't see him (`scripts/cones_test.gd`, line 176).
+  - Claude Code found this in its own code on 28 Oct 2026, when I asked why the state wasn't named.
+- **The fix** (picked by me from Claude Code's options, 28 Oct 2026; its recommendation): when the driver is built, `spot()` also records which camper spotted him. Nothing anyone does, or when, changes.
+- **So the state is** `spotted_at` for when, and that record for who.
+
+**Two additions to my boundaries:**
+- The campers' behaviour and its timings still stay exactly as they are. The one addition to the game's code is that record of who spotted him.
+- Presentation code may read game state, but it never writes it: the driver reads `spotted_at` and the record, and writes only the cones' uniforms. (This is the assignment's rule, added at Claude Code's suggestion.)
+
+### Revised 28 Oct 2026: my colour line and see-through line
+
+Written by me on 28 Oct 2026, and put in word for word by Claude Code. My shader uses these two lines exactly, inside `fragment()`. If either has to change, this brief changes first, with a date.
+
+```glsl
+ALBEDO = mix(watch_color.rgb, alarm_color.rgb, alarm);
+ALPHA = COLOR.a * mix(watch_color.a, alarm_color.a, alarm) * shown;
+```
+
+- **The colour line** is the first. As `alarm` goes from 0 to 1, the colour blends from `watch_color` to `alarm_color`, halfway at 0.5.
+- **The see-through line** is the second: the cone's tip-to-edge fade (`COLOR.a`) × the colour's own amount × `shown`. The colour's own amount blends with `alarm` too, from 0.5 to 0.65.
+- **Checked by Claude Code against my rules** (28 Oct 2026): the names match my uniform table, the types fit, and both lines do what my rules say. It suggested no change.
+
+### Revised 28 Oct 2026: my predicted pixels and contrast ratios
+
+These replace the predicted pixels above. The table and the working are mine, worked out with the help of Gemini and ChatGPT and cross-checked by me by hand. In my words: "Cross checked and validated the calculation along with the AI tools like gemeni and chatgpt for calculations but eventually i cross validated the calculations on my end as well manually". Claude Code put them in, with the layout tidied; the numbers are as I sent them in my third table of 28 Oct (FRICTIONAL.md has all three).
+
+**What they assume:**
+- my two lines, from the revision above, with `shown` at 1;
+- the colours decoded from sRGB (`source_color`), with their `.a` used as written: 0.5 and 0.65;
+- the cone's vertex alpha as measured at each pixel, and my measured grass;
+- a Linear tonemap at exposure 1, and no fog on the cone.
+
+| Pixel | `alarm` 0.0 | `alarm` 0.5 | `alarm` 1.0 |
+|---|---|---|---|
+| Base at Camper, (974, 258): vertex alpha 0.519, grass (34, 45, 49) | (139, 132, 93) | (148, 109, 79) | (156, 61, 56) |
+| Far Edge, (249, 480): vertex alpha 0.151, grass (58, 76, 82) | (94, 100, 89) | (98, 91, 85) | (102, 76, 80) |
+
+**Contrast, Base at Camper against its grass:**
+- the grass's luminance: 0.0242;
+- at `alarm` 0: luminance 0.2366, a contrast ratio of 3.86:1;
+- at `alarm` 1: luminance 0.1105, a contrast ratio of 2.16:1.
+
+**My working for Far Edge at `alarm` 0:**
+1. **Decode to linear.**
+   - `watch_color` (255, 237, 158): R 1.0. G 237 ÷ 255 = 0.92941, and ((0.92941 + 0.055) ÷ 1.055)^2.4 = 0.84687. B 158 ÷ 255 = 0.61961, and ((0.61961 + 0.055) ÷ 1.055)^2.4 = 0.34047.
+   - Far Edge grass (58, 76, 82): R 58 ÷ 255 = 0.22745 → 0.04192. G 76 ÷ 255 = 0.29804 → 0.07324. B 82 ÷ 255 = 0.32157 → 0.08438.
+2. **The colour line:** at `alarm` 0 the mix is just `watch_color`.
+3. **The see-through line:** 0.151 × 0.5 × 1.0 = 0.0755.
+4. **Blend over the grass,** whose weight is 1 − 0.0755 = 0.9245: R 0.0755 + 0.03876 = 0.11426. G 0.06394 + 0.06771 = 0.13165. B 0.02571 + 0.07801 = 0.10372.
+5. **Encode,** 1.055 × linear^(1/2.4) − 0.055, then × 255: R 0.3674 × 255 = 93.69 → 94. G 0.3926 × 255 = 100.11 → 100. B 0.3509 × 255 = 89.48 → 89.
+
+**My working for Base at Camper at `alarm` 1:**
+1. **Decode to linear.**
+   - `alarm_color` (255, 84, 69): R 1.0. G 84 ÷ 255 = 0.32941, and ((0.32941 + 0.055) ÷ 1.055)^2.4 = 0.08865. B 69 ÷ 255 = 0.27059, and ((0.27059 + 0.055) ÷ 1.055)^2.4 = 0.05780.
+   - Base at Camper grass (34, 45, 49): R 34 ÷ 255 = 0.13333 → 0.01500. G 45 ÷ 255 = 0.17647 → 0.02620. B 49 ÷ 255 = 0.19216 → 0.03150.
+2. **The colour line:** at `alarm` 1 the mix is just `alarm_color`.
+3. **The see-through line:** 0.519 × 0.65 × 1.0 = 0.33735.
+4. **Blend over the grass,** whose weight is 1 − 0.33735 = 0.66265: R 0.33735 + 0.00994 = 0.34729. G 0.02990 + 0.01736 = 0.04726. B 0.01950 + 0.02087 = 0.04037.
+5. **Encode:** R 1.055 × 0.63259 − 0.055 = 0.61238, × 255 = 156.16 → 156. G 1.055 × 0.27958 − 0.055 = 0.23996, × 255 = 61.19 → 61. B 1.055 × 0.26182 − 0.055 = 0.22122, × 255 = 56.41 → 56.
+
+**A known slip** (found by Claude Code's checks, 28 Oct 2026):
+- In step 5 the powers come out 1 to 2% low. Raised back to 2.4, 0.4004 gives 0.1112, not 0.11426, and 0.63259 gives 0.3332, not 0.34729.
+- Two decodes don't come back to where they started: 0.01500 for 34 comes back as about 32.7, and 0.05780 for 69 as about 68.0. A few others are a fraction off.
+- So most channels come out 1 to 3 steps lower than my two lines give, and none higher. Base at Camper's R is 3 low in every cell, past my 2-step match.
+- I chose to write the table in as it is (28 Oct 2026). When I compare the captures with it, I check this slip first.
+
+### Revised 28 Oct 2026: my hint experiment predictions
+
+These replace my hint experiment predictions above. Those gave the value each quad's shader receives, not the displayed 8-bit value, and they named the other quad. The numbers here are as I sent them on 28 Oct, worked out with Gemini and ChatGPT and validated by me. In my words: "Its a combination of the AI tools and me validating them". The "why" was written or polished by Gemini or ChatGPT, and checked by me. Claude Code put them in.
+
+**What they assume:** the course's 3×1 PNG of greys 64, 128 and 192, on two unshaded quads, one sampling it with `source_color` and one without, under a Linear tonemap at exposure 1, in Forward+.
+
+| Grey in the file | Quad with `source_color` | Quad without |
+|---|---|---|
+| 64 | 64 | 135 |
+| 128 | 128 | 184 |
+| 192 | 192 | 225 |
+
+**Which quad shows the file's values unchanged:** the quad with `source_color`.
+
+**Why** (a tool's wording, checked by me): "Godot’s 3D rendering pipeline always encodes the final spatial shader output to sRGB before displaying it on the screen. When you use `source_color`, Godot decodes the texture from sRGB to linear space when reading it. That decode on read and the encode on display perfectly cancel each other out, returning the original numbers. On the quad without `source_color`, the shader passes the raw data directly to the pipeline, which means the final screen encode applies gamma correction to values that were never decoded, brightening them heavily."
+
+- **On the wording** (Claude Code's note): "always" holds for Forward+, the renderer this project uses, and for Mobile. The assignment says Compatibility may differ.
+- **A known slip** (Claude Code's check, 28 Oct 2026): 135 and 184 come out a few steps low, from the same power slip as my pixels. The `source_color` column and 225 are right. When I measure the bands, I check this first.
+
+### Revised 28 Oct 2026: my short answers
+
+These answer the six short questions above, which the 25 Oct text left empty. The wording is Gemini's or ChatGPT's, validated by me. I revised answers 1, 2 and 5 after Claude Code's review, using its notes. Claude Code put them in, with the layout tidied.
+
+1. **The renderer project.godot names, and what it rules out:** Line 15 names the Forward Plus (Forward+) renderer. Regarding the features listed in the assignment's note, Forward+ rules out none of them; decals, compute shaders, VoxelGI, SDFGI, and SSIL are all available in Forward+. Furthermore, Forward+ does not rely on Vulkan alone; it runs on Vulkan, Direct3D 12, or Metal. Choosing this renderer does rule out exporting to the Web.
+2. **The colour that arrives in fragment() before I change it, and what the tempting alternative would give:** The color arrives in the `COLOR` built-in, which holds the vertex colors built by Claude Code in `vision_cone.gd`'s `_build_cone`. The tempting alternative is trying to read from `ALBEDO`. However, reading `ALBEDO` before you assign anything to it will simply give you its starting value of solid white, meaning you would completely lose the tip-to-edge fade data stored in the vertices.
+3. **Spatial: what ALBEDO holds if I never write it, and what COLOR holds:**
+   - `ALBEDO`: If you never write to it, it defaults to solid white (`vec3(1.0, 1.0, 1.0)`).
+   - `COLOR`: It holds the `vec4` vertex color passed from the mesh's vertex data or the `vertex()` function, containing both the RGB color and the alpha channel.
+4. **How long a frame-counting version would last at 30, 60 and 144 fps:** To find the duration in seconds, divide the total number of frames (120) by the frame rate:
+   - at 30 fps: 120 / 30 = 4 seconds;
+   - at 60 fps: 120 / 60 = 2 seconds;
+   - at 144 fps: 120 / 144 ≈ 0.83 seconds (or 5/6 of a second).
+5. **Which resource holds the uniform's default, which holds its current value, and what happens if two objects share the material:** The default value is stored in the `Shader` resource itself, and the current value is stored in the `ShaderMaterial` resource. A material holds uniform values. If two cones share the exact same `ShaderMaterial`, changing a uniform for one will change it for both. This requires the "one material per cone" rule so each cone has its own material to hold its specific uniform values, while the actual alert states and fade timers live in the driver and the game's code.
+6. **Does hint_range clamp a value set from code? My prediction:** No, it does not clamp values set from code. In Godot, `hint_range` is an Editor UI directive that tells the Inspector to display a slider with specific bounds for artists and designers. When you change the uniform's value via a script using `set_shader_parameter()`, the engine bypasses the Inspector interface and passes the raw number directly to the GPU shader. The hint is for the interface, not a strict runtime constraint on the variable itself. (My 2.0 capture checks this; see the evidence split.)

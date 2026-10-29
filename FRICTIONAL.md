@@ -1632,7 +1632,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 **Who's who**
 - **Me:** the choices, the specification in CHANGE-BRIEF.md, both shaders and the hint-experiment shader (none written yet), the language notes, my plays and the human checks.
 - **Claude Code** (2.1.289, with Claude Opus 5.5): the test wrapper, the study notes, the questions for my brief, the game code and checks around the shader, and the wording of these docs.
-- **Generative models:** none so far.
+- **Generative models:** none until 28 Oct 2026. Then Gemini and ChatGPT, to help with the arithmetic of my predicted pixels, which I cross-checked by hand, and for my hint experiment's numbers and the wording of its explanation and of my short answers, which I validated (see 28 Oct).
 
 | Date | Entry | Commits |
 |---|---|---|
@@ -1640,6 +1640,15 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 26 Oct | The vision cones: the tutorial at the camp, 2 s of red, the confused search | not committed yet |
 | 26 Oct | My two plays at the camp, and the hop error they logged | not committed yet |
 | 26–28 Oct | My brief: the rules, the knobs and the boundaries; my render_mode and predictions; the grass captures | not committed yet |
+| 28 Oct | The grading review, and my timing and restart rules made exact | not committed yet |
+| 28 Oct | The evidence split, made complete | not committed yet |
+| 28 Oct | The material plan, for the cooler | not committed yet |
+| 28 Oct | The predicted failures, tied to my rules | not committed yet |
+| 28 Oct | The state's script and variables, and a gap in Claude's cone code | not committed yet |
+| 28 Oct | My colour line and see-through line | not committed yet |
+| 28 Oct | My predicted pixels and contrast ratios, in three tries | not committed yet |
+| 28 Oct | My hint experiment predictions | not committed yet |
+| 28 Oct | My short answers | not committed yet |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -1773,3 +1782,133 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - the short answers.
 - **The study notes removed** (28 Oct): "remove the shaders notes by calude". Claude sent `design/a5/shader-notes-by-claude.md` to the Recycle Bin; it was never committed. The record of what the notes held stays here and in SOURCES.md.
 - **Human / Claude / model:** the picks, the render_mode, the predictions and the plan are mine. The questions, the review, the captures, their script and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — The grading review, and my timing and restart rules made exact
+
+- **Asked:** after committing 4e92a5f, I asked Claude Code to act as a grader for my Assignment 5 ("acting as grader check the assignement for the student and help me grade the assignement submission"), then for more detail ("can we we work on detailed feednback on the each part again whats missing"). Its review is in the chat, not the repo.
+- **Then** "can you work with me to fix these ?", about four rows of that review:
+  - "give or take one frame" had no number;
+  - my restart rule didn't cover a spotting during the fade, a spotting while the cones are hidden, or a second camper spotting him;
+  - my "unscaled" rule disagreed with the code, whose clock is scaled (`scripts/vision_cone.gd:61`), and my boundaries keep that clock.
+- **What Claude found in the code first:** only a camper who isn't alarmed can spot him (`spot()` in `scripts/campsite.gd`, reached from five places in `scripts/camp_person.gd`). One who's guarding or chasing him can see him without it counting. So my "the same one sees him again" can't restart the red until that camper calms down.
+- **Picked** (28 Oct, from Claude Code's options, all four of them its recommendations): game time, not real time; snapping back to full during the fade; snapping in at once while hidden; both spotters' cones red.
+- **Written in** by Claude Code as a dated revision at the end of the brief's Assignment 5 section: what "spotted" means, the tolerance in milliseconds, my four choices, and a test for each rule. The 25–27 Oct text stays as it was.
+- **Not done yet:** the colour line, the script and variable that hold the state, my fixes to the predictions, the material plan and the short answers.
+- **Human / Claude / model:** the requests and the four choices are mine. The review, the questions, the facts from the code, the table, the tests and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — The evidence split, made complete
+
+- **Asked:** "can we cover this now ?", about the review's row on my evidence split. It covered only the timing rules, and it had to say how a test checks "always 2 real seconds" under `--fixed-fps`.
+- **What Claude checked first:** that the fire's light flickers (`scripts/campsite.gd:425`) and stops while the game is paused, and how `design/a5/captures/make_captures.gd` holds the frame. My earlier revision had already made the time rule game time, so the last point became: the test counts frames.
+- **Picked** (28 Oct, from Claude Code's options, all three of them its recommendations): a match is within 2 steps on each channel; each capture is paused, with a bare frame of the cones hidden beside it; at least five spottings in normal play.
+- **Written in** by Claude Code as a second dated revision at the end of the brief's Assignment 5 section: a full evidence split, how the captures are taken, the `hint_range` check, and the in-play check. The earlier text stays.
+- **Not done yet:** as before, the colour line, the script and variable that hold the state, my fixes to the predictions, the material plan and the short answers.
+- **Human / Claude / model:** the request and the three choices are mine. The questions, the checks of the code, the table and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — The material plan, for the cooler
+
+- **Asked:** "Yes, material plan", to fix the review's row on it. My plan put one texture on the vision cone, which has no UVs and whose shader may have no samplers of its own, and it had one uniform in one group and no second material.
+- **What Claude checked first:**
+  - which props have UVs: all of them, read from their `.glb` files;
+  - that only the second tent is recoloured in code (`scripts/campsite.gd:244`), by code that skips a ShaderMaterial;
+  - the asset room's light, which has SSAO on (`asset_room/asset_room.tscn:26`);
+  - the import keys this Godot writes, from a texture's `.import` file;
+  - Poly Haven's metal textures, through its API. It found Blue Metal Plate, by Rob Tuytel, published 26 Sep 2024, with a diffuse, a roughness map and both normal-map conventions.
+- **Picked** (28 Oct, from Claude Code's options, all eight of them its recommendations): the cooler; the diffuse, roughness and `_nor_gl` maps at 1k; the body and the lid as the two materials; the asset room with SSAO off; the texture shading each part's tint; five uniforms in two groups; VRAM compression with mipmaps; and the two materials' values.
+- **Written in** by Claude Code as a third dated revision at the end of the brief's Assignment 5 section, with a change to my boundaries: the cooler's body and lid now change too. The earlier text stays.
+- **Not downloaded yet:** the textures. Their credits file, and the date I check the licence, come when I download them.
+- **Not done yet:** the colour line, the script and variable that hold the state, my fixes to the predictions and the predicted failures, and the short answers.
+- **Human / Claude / model:** the request and the eight choices are mine. The questions, the checks of the code, the Poly Haven search, the tables and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — The predicted failures, tied to my rules
+
+- **Asked:** "Yes, failures", to fix the review's row on my three predicted failures. One named the wrong Tween setting, one couldn't happen, and one was about the raccoon, which isn't see-through.
+- **What Claude checked first:** that the raccoon's scripts make nothing see-through; that the see-through trees cut pixels away (`discard` in `scripts/see_through.gdshader`) rather than blending them, so they can't sort wrongly against the cone; that the only other blended things at the camp are the fire's sparks, which add their light; and the fog's start (`scripts/main.gd:894`) against the camera's distance (`scripts/main.gd:116`).
+- **Picked** (28 Oct, from Claude Code's options): every cone red at once, no restart and drift under time scale, for the cone's timing; fog on the cone and the tip-to-edge fade lost, for its look; a data texture read as colour and an import rewritten, for the cooler; and correcting my first and third predictions while dropping the second. Seven of the nine came from its recommendations. The lost fade and the rewritten import were my own picks, and I left out its recommended DirectX normal map.
+- **Written in** by Claude Code as a fourth dated revision at the end of the brief's Assignment 5 section, each failure with the check that would catch it. The earlier text stays.
+- **Not done yet:** the colour line, the script and variable that hold the state, my fixes to the predictions, and the short answers.
+- **Human / Claude / model:** the request and the choices are mine. The options, the checks of the code, the table and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — The state's script and variables, and a gap in Claude's cone code
+
+- **Asked:** Claude gave me a worksheet for the parts of my brief that are mine to write. Its first part asked for the script and variable that hold the state, and I asked: "Didnt u build them ?"
+- **Claude's answer:** yes. Claude Code wrote that code on 26 Oct, from my design, so the variables exist. What my brief lacked was the line saying which of them holds the state my effect shows, which the assignment counts as part of my specification. Since the code is Claude's, it wrote the facts in, labelled as its own.
+- **What Claude found when it checked:** nothing records which camper spotted him.
+  - `spot()` in `scripts/campsite.gd` stores only when, in `spotted_at`.
+  - Each cone turns red whenever its own camper starts seeing him (`red()` in `scripts/vision_cone.gd`), even a camper who's already guarding. So in real play a guard who turns to face him goes red too, against my rule that the others stay yellow.
+  - The cones check's "other cones not red" passes only because, in its setup, the other campers don't see him (`scripts/cones_test.gd`, line 176).
+  - It's a mistake in Claude's own code from 26 Oct, which its own test didn't catch.
+- **Picked** (28 Oct, from Claude Code's two options; its recommendation): record the spotter. When the driver is built, `spot()` also records which camper spotted him, and nothing anyone does, or when, changes. The other option was to change my rule to "every camper who sees him during the red is red".
+- **Written in** by Claude Code as a fifth dated revision at the end of the brief's Assignment 5 section: the state is `spotted_at` for when and the new record for who. My boundaries now allow that one addition to the game's code, and say, as the assignment does, that presentation code reads game state and never writes it. TEST-REPORT.md lists the mistake under what Claude got wrong.
+- **Not done yet:** the record itself, and a check that a guard who sees him stays yellow. Both come with the driver.
+- **Human / Claude / model:** the question and the choice are mine. The answer, the finding, the options and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — My colour line and see-through line
+
+- **Asked:** when the worksheet asked me for the colour line, I asked: "What didnt u built this as well ??"
+- **Claude's answer:** no, on purpose. The assignment reserves every line of my shaders for me, and the colour line is what the shader is graded on. Instead, Claude explained the pieces without writing the lines:
+  - what `mix(a, b, t)` does;
+  - that `.rgb` and `.a` take a `vec4`'s colour and its fourth number;
+  - that `ALBEDO` takes a `vec3` and `ALPHA` a float, and that writing `ALPHA` is what makes the material see-through;
+  - that the cone's fade lives in its vertex colours' alpha, with the built-in that carries it left for me to look up.
+- **Wrote** (28 Oct), in my own words, in chat:
+  - `ALBEDO = mix(watch_color.rgb, alarm_color.rgb, alarm);`
+  - `ALPHA = COLOR.a * mix(watch_color.a, alarm_color.a, alarm) * shown;`
+- **My alpha decision,** shown by the second line: the colour's own amount blends from 0.5 to 0.65 along with the colour.
+- **Claude's review:** the names match my uniform table, the types fit (`ALBEDO` gets a `vec3` and `ALPHA` a float), both lines belong inside `fragment()`, and they do what my rules say. It suggested no change.
+- **Written in** by Claude Code, word for word, as a sixth dated revision at the end of the brief's Assignment 5 section.
+- **Not done yet:** typing the lines into `shaders/vision_cone.gdshader`, which comes after the brief is committed; my predicted pixels from these lines; the hint experiment's numbers; and the short answers.
+- **Human / Claude / model:** both lines and the alpha decision are mine. The explanation of the pieces, the review and this write-up are Claude's. No generative model.
+
+### 2026-10-28 — My predicted pixels and contrast ratios, in three tries
+
+- **First table** (28 Oct), with my working for Base at Camper at `alarm` 0:
+  - Base at Camper: (145, 137, 94), (150, 108, 86), (154, 80, 75), at `alarm` 0, 0.5 and 1;
+  - Far Edge: (77, 93, 91), (78, 87, 89), (80, 81, 87);
+  - contrast ratios 3.89:1 at 0 and 2.04:1 at 1.
+- **Claude's first check:** the method was right, but the arithmetic had slips. The encode of 0.2706 was off, so were two decodes, and so were Base at 1.0's G and B. Worst, the whole Far Edge row had R far too low in every cell. My own self-check caught that: at `alarm` 0 my cone matches today's, which I'd measured at (94, 101, 91) at Far Edge. Claude said where to look, not what the numbers should be.
+- **Second table** (28 Oct), with my working for Far Edge at `alarm` 0:
+  - Base at Camper: (139, 132, 92), (148, 109, 80), (156, 61, 56);
+  - Far Edge: (94, 100, 89), (98, 91, 85), (102, 76, 80);
+  - contrast ratios 3.87:1 and 2.17:1.
+- **Claude's second check:** much closer, and the Far Edge row now passes the self-check. One slip was left: the step-5 powers each come out about 1% low (raised back to 2.4, 0.4004 gives 0.1112, not 0.11426). So every cell is 1 to 3 steps low, and Base at Camper's R misses by 3, past my 2-step match.
+- **How I worked them out,** in my words: "Cross checked and validated the calculation along with the AI tools like gemeni and chatgpt for calculations but eventually i cross validated the calculations on my end as well manually".
+- **Decided** (28 Oct): write the second table in as it is, with a note on the slip, rather than fix it first. Claude Code put it in as a seventh dated revision at the end of the brief's Assignment 5 section, and recorded Gemini and ChatGPT in SOURCES.md.
+- **Third table** (28 Oct), with my working for Base at Camper at `alarm` 1:
+  - two blue values changed: Base at Camper is (139, 132, 93) at 0 and (148, 109, 79) at 0.5;
+  - the rest as before;
+  - contrast ratios 3.86:1 and 2.16:1.
+- **Claude's third check:** the contrast ratios now match my two lines. The slip is still there: in the new working, 0.34729^(1/2.4) came out 0.63259, which raised back to 2.4 gives 0.3332, and the decodes of 34 and 69 don't come back to where they started. Base at Camper's R is still 3 low in every cell.
+- **The third table replaced the second in the brief,** with both workings and the note on the slip.
+- **Not done yet:** the hint experiment's numbers and the short answers.
+- **Human / Claude / model:** the tables, the working and the decision are mine. Claude's part is the three checks against my lines, which pointed at the slips without giving the numbers, and this write-up. Generative models: Gemini and ChatGPT, for the arithmetic, cross-checked by me; their versions weren't recorded.
+
+### 2026-10-28 — My hint experiment predictions
+
+- **Sent** (28 Oct):
+  - the six displayed values: 64, 128 and 192 on the quad with `source_color`, and 135, 184 and 225 on the quad without;
+  - that the quad with `source_color` shows the file's values unchanged;
+  - why.
+- **This reverses my 25 Oct prediction,** which named the quad without `source_color`. Claude's review had said my old table gave what each shader receives, with the `encode()` step missing.
+- **Claude's check:**
+  - the `source_color` column, 225 and my conclusion are right, and so is the explanation in substance;
+  - 135 and 184 come out a few steps low, from the same power slip as my pixels;
+  - it suggested "in Forward+" for "always", since the assignment says Compatibility may differ;
+  - it didn't give the right numbers.
+- **Who wrote what** (my answers when Claude asked): the "why" is a tool's wording, from Gemini or ChatGPT, and I checked it. The numbers, in my words: "Its a combination of the AI tools and me validating them".
+- **Decided** (28 Oct): write it in as it is, with a note on the slip. Claude Code put it in as an eighth dated revision at the end of the brief's Assignment 5 section.
+- **Not done yet:** the short answers.
+- **Human / Claude / model:** the decision is mine. The numbers come from Gemini and ChatGPT together with my validation, and the explanation's wording is theirs, checked by me. Claude's part is the check and this write-up.
+
+### 2026-10-28 — My short answers
+
+- **Sent** (28 Oct): answers to the six short questions in my brief.
+- **Claude's check:** 3 and 4 were right. 6 is a prediction with a reason, which is what's asked, so it wasn't judged; my 2.0 capture will settle it. Three needed fixing:
+  - 1 missed the assignment's point: Forward+ rules out none of the features its note lists. It also said Forward+ relies on Vulkan, when it runs on Vulkan, Direct3D 12 or Metal.
+  - 2 called `ALBEDO`'s starting value "uninitialized" and "solid white" at once, and said the vertex colours were built by me ("you built in code"), when Claude Code built them.
+  - 5 said each material tracks "alert states and fade timers", when a material holds uniform values and the timers live in the driver and the game's code.
+- **Who wrote them** (my answer when Claude asked): a tool's wording, from Gemini or ChatGPT, validated by me.
+- **Fixed** (28 Oct): I revised 1, 2 and 5 using Claude's notes and sent them again; all three were then accurate.
+- **Written in** by Claude Code as a ninth dated revision at the end of the brief's Assignment 5 section.
+- **Still open, and optional:** rewriting my two render_mode reasons, and the empty heading on the other moods.
+- **Human / Claude / model:** the validation and the fixes are mine; the first wording is Gemini's or ChatGPT's. Claude's part is the check, the notes the fixes used, and this write-up.
