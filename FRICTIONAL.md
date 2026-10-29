@@ -1659,7 +1659,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | Step 2, my two mutations | with their two logs, after a4f4a66 |
 | 29 Oct | The capture tool for my controlled values | its own commit, after a4f4a66 |
 | 29 Oct | My controlled-value captures, and my first play with the shader | 2d05a57 |
-| 29 Oct | Step 3, the textures, their import settings, and the normal-map check | df1bc6e, then the flip after it |
+| 29 Oct | Step 3, the textures, their import settings, and the normal-map check | df1bc6e and cbc160f, then the threshold after them |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2120,8 +2120,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Claude set the DX map to Skip, since it's only for calibration.
 - **The normal-map check:** the course's code as given, with a calibration script by Claude Code. On this pair it came out reversed: with `directx = false`, GL scored 1.573 and DX 0.427. The course says to flip `s` in that case and say so in TEST-REPORT.md.
 - **My pick:** "Yes, two commits": first the check as given, with its reversed calibration (df1bc6e), then the flip. After the flip, GL scores 0.427 and DX 1.573 with `directx = false`.
+- **The threshold** (29 Oct): my pick from Claude's recommendation, "Below 0.7". That's about halfway between the known-good 0.43 and the score of about 1 that a map with no surface behind it gets. It's in the brief's 29 Oct revision on the check.
 - **Not done yet:**
-  - the threshold the material test will trust;
   - my shader for the cooler;
   - the two materials, behind the glb's Use External setting;
   - the audit.

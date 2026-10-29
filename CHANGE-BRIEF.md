@@ -864,3 +864,13 @@ Written after Claude Code's review of the driver and its test, the `claude -p` a
 - The driver's test prints when each cone comes back, and doesn't assert it, because when is the game's timing. It asserts the fade-in from that moment.
 
 (Picked by me on 29 Oct 2026 from Claude Code's recommendations after its review, in my words "All four": dropping the getter, and writing down how the game counts the 5 s. The other two of the four change the test, not the brief. The facts from the code and the test, and the wording, are Claude Code's.)
+
+### Revised 29 Oct 2026: the normal-map check, calibrated, and its threshold
+
+Written after the check was calibrated on this texture set's own pair (TEST-REPORT.md, "The textures, their import settings, and the normal-map check"). It adds to the material plan above.
+
+- **As given, the check came out reversed:** the GL map, the right one for Godot, scored 1.57 with `directx = false`. As the course says to, `s` is flipped in `tests/normal_map_check.gd`. Now the GL map scores 0.43 with `directx = false` and 1.57 with `directx = true`, and the DX map the other way round.
+- **The threshold:** the material test passes a normal map only if it scores below 0.7 with `directx = false`. That's about halfway between this known-good map's 0.43 and the score of about 1 that a map with no surface behind it gets. So it fails a map in the other green convention (1.57 here), and one with no surface behind it.
+- **What it can't tell:** a map that passes has a real surface behind it, in Godot's convention, but not necessarily the right surface (the course's note on the check).
+
+(Picked by me on 29 Oct 2026 from Claude Code's recommendation, in my words "Below 0.7". The numbers are from `tests/normal_map_calibration.gd`; the reasoning and the wording are Claude Code's.)

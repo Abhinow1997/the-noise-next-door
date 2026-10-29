@@ -620,7 +620,7 @@ The formats were read with `get_image().get_format()` in a headless run, and the
 
 - **As given, it came out reversed:** the GL map, the right one for Godot, scored high under `directx = false`. As the course says to, `s` is flipped. Now the GL map is low under `directx = false` and high under `directx = true`, and the DX map is the other way round. The likely reason, in Claude's reading, is that Godot's image rows run downwards.
 - **The pair separates,** 0.43 against 1.57, so it calibrates the check. It doesn't reach the ideal 0 and 2: the plate is nearly flat, and the 16-bit PNGs are decoded to 8 bits, which pulls both values toward 1.
-- **The threshold** the material test will trust is still to decide, from these numbers.
+- **The threshold** the material test will trust: below 0.7 with `directx = false`. That's about halfway between this known-good map's 0.43 and the score of about 1 that a map with no surface behind it gets. It's my pick, in the brief's 29 Oct revision on the check.
 
 ### Assignment 5's checks
 
