@@ -8,7 +8,7 @@ The plan for each assignment's change, written before the work. Each assignment'
 |---|---|---|
 | [Assignment 2: the asset slice](#assignment-2-the-asset-slice) | 6 Oct 2026, drafts v1 to v3 | tag `a2` |
 | [Assignment 3: three 3D assets from Blender](#assignment-3-three-3d-assets-from-blender) | 13 Oct 2026, revised to v4 on 14 Oct | tag `a3` |
-| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026, revised 28 and 29 Oct | branch `assignment-5`, not tagged yet |
+| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026, revised 28 and 29 Oct and 1 Nov | branch `assignment-5`, not tagged yet |
 
 ---
 
@@ -886,3 +886,22 @@ Written after Claude Code checked my hint shader against the course's design. It
 - **The scene:** `hint_experiment/hint_experiment.tscn`, with its material `hint_experiment/split_quad.tres`, both Claude Code's.
 
 (My decision on 29 Oct 2026, in my words "Keep the split", from Claude Code's two options: adding the bool, or keeping the split. The facts and the wording are Claude Code's.)
+
+### Revised 1 Nov 2026: the cooler's body, red
+
+Written after my first look at the cooler in the editor, in the asset room. It changes the body's row of "The two materials", in "Revised 28 Oct 2026: the material plan, for the cooler". The lid, the textures, the uniforms and everything else in that plan stay as they are.
+
+- **What I did:** I changed the body material's `tint` from the blue to a red, moved `detail` and `uv_scale`, and compared the two in the editor.
+- **What I decided,** in my words: "So I feel the red I have updated in the image feels more better than the blue version of the tint. Let's make an update on the numbers that I have given".
+- **Kept after a warning:** Claude Code pointed out that CHARACTER-SHEET.md calls the beanie "the only red thing in the game", and that STORYBOARD.md says red "is used for nothing else". My answer: "Keep the red".
+
+| Material | `tint` | `detail` | `roughness_scale` | `normal_strength` | `uv_scale` |
+|---|---|---|---|---|---|
+| The body (`Cooler_Blue`) | `#B25D57` (was `#3B7DBF`) | 0.628 (was 0.6) | 1.0 | 1.0 | 1.441 (was 1.0) |
+
+- **The numbers** are the ones the editor saved from my sliders. `#B25D57` is the editor's colour rounded to whole steps, within half a step of it on every channel.
+- **The name stays `Cooler_Blue`:** it's the glb's name for the material, and the importer's key for Use External.
+- **Every cooler gets it,** at the camp and in the asset room, since both instance the glb.
+- **Not changed:** CHARACTER-SHEET.md and STORYBOARD.md still say red is the beanie's alone, and my cones' red for "spotted" already shares it. The Assignment 3 choice of blue (its v4 revision) stays as written, as that assignment's history.
+
+(My decision on 1 Nov 2026, from comparing the two tints in the editor. The facts from the files and the wording are Claude Code's.)

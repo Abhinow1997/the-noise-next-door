@@ -91,7 +91,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 
   Each cone has its own `ShaderMaterial` (`scripts/vision_cone.gd`). [scripts/cone_driver.gd](scripts/cone_driver.gd) sets each one's `alarm` and `shown` every frame from the camp's `spotted_at` and `spotters` (`scripts/campsite.gd`), and writes nothing else.
 - **The cooler, with my textured shader** ([shaders/cooler_paint.gdshader](shaders/cooler_paint.gdshader)):
-  - two materials from it, [materials/cooler_body.tres](materials/cooler_body.tres) (scuffed blue metal) and [materials/cooler_lid.tres](materials/cooler_lid.tres) (smoother white);
+  - two materials from it, [materials/cooler_body.tres](materials/cooler_body.tres) (scuffed red metal, changed from blue on 1 Nov) and [materials/cooler_lid.tres](materials/cooler_lid.tres) (smoother white);
   - both behind the glb's per-material Use External, so every cooler gets them;
   - the textures are Poly Haven's Blue Metal Plate, by Rob Tuytel, CC0 ([credits](assets/textures/blue_metal_plate/ATTRIBUTION.md)): a colour texture read with `source_color`, and a roughness map and a GL normal map read as data.
 - **The hint experiment** ([hint_experiment/hint_experiment.tscn](hint_experiment/hint_experiment.tscn)): a 3×1 PNG of greys 64, 128 and 192, sampled with and without `source_color` on one quad split in two.
