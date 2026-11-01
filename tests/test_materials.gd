@@ -55,9 +55,10 @@ const HINT_UNIFORMS := {
 	"without_source_color": ["sampler2D", "filter_nearest", "", ""],
 }
 
-## The brief's "two materials" table (tint as sRGB hex), and the textures both bind.
+## The brief's "two materials" table (tint as sRGB hex), with the body as revised on 1 Nov 2026,
+## and the textures both bind.
 const MATERIALS := {
-	BODY: {"tint": "3b7dbf", "detail": 0.6, "roughness_scale": 1.0, "normal_strength": 1.0, "uv_scale": 1.0},
+	BODY: {"tint": "b25d57", "detail": 0.628, "roughness_scale": 1.0, "normal_strength": 1.0, "uv_scale": 1.441},
 	LID: {"tint": "f2f2ee", "detail": 0.25, "roughness_scale": 0.6, "normal_strength": 0.5, "uv_scale": 1.0},
 }
 const COOLER_BINDINGS := {"albedo_texture": DIFF, "roughness_texture": ROUGH, "normal_texture": NOR_GL}

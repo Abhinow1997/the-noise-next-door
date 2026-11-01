@@ -8,11 +8,11 @@ An audit of the materials named in CHANGE-BRIEF.md: the textured shader's two co
 
 | Material | Shader | Uniform values it sets | Textures it binds |
 |---|---|---|---|
-| `materials/cooler_body.tres` (`Cooler_Blue`, the body) | `shaders/cooler_paint.gdshader` | `tint` Color(0.23137255, 0.49019608, 0.7490196, 1) = `#3B7DBF`; `detail` 0.6; `uv_scale` 1.0; `roughness_scale` 1.0; `normal_strength` 1.0; `render_priority` 0 | `albedo_texture` ← `blue_metal_plate_diff_1k.png`; `roughness_texture` ← `blue_metal_plate_rough_1k.png`; `normal_texture` ← `blue_metal_plate_nor_gl_1k.png` |
+| `materials/cooler_body.tres` (`Cooler_Blue`, the body) | `shaders/cooler_paint.gdshader` | `tint` `#B25D57`; `detail` 0.628; `uv_scale` 1.441 (all three as revised on 1 Nov; see the update below); `roughness_scale` 1.0; `normal_strength` 1.0; `render_priority` 0 | `albedo_texture` ← `blue_metal_plate_diff_1k.png`; `roughness_texture` ← `blue_metal_plate_rough_1k.png`; `normal_texture` ← `blue_metal_plate_nor_gl_1k.png` |
 | `materials/cooler_lid.tres` (`Cooler_White`, the lid) | `shaders/cooler_paint.gdshader` | `tint` Color(0.9490196, 0.9490196, 0.93333334, 1) = `#F2F2EE`; `detail` 0.25; `uv_scale` 1.0; `roughness_scale` 0.6; `normal_strength` 0.5; `render_priority` 0 | the same three textures, to the same samplers |
 | `hint_experiment/split_quad.tres` (the one quad) | `shaders/hint_experiment.gdshader` | none; it has no value uniforms; `render_priority` 0 | `with_source_color` ← `hint_experiment/greys_3x1.png`; `without_source_color` ← the same file |
 
-- Every value matches the brief's "two materials" table (material plan, revised 28 Oct). Both cooler materials load `res://shaders/cooler_paint.gdshader` and are two separate resources.
+- Every value matches the brief's "two materials" table (material plan, revised 28 Oct, with the body revised 1 Nov). Both cooler materials load `res://shaders/cooler_paint.gdshader` and are two separate resources.
 - They reach the cooler through `assets/props/cooler.glb.import`'s `_subresources` (Use External, with `use_external/path` and `use_external/fallback_path` both set). Loaded headless, `cooler.glb` has one surface on each and three on the embedded `Cooler_Grey`, and the asset room's `Cooler` node overrides none of them. At the camp, `campsite.gd` instances the same scene with `_model()` and doesn't recolour it.
 - The textured shader's defaults, from its source: `tint` `vec4(1.0)`, `detail` 0.5, `uv_scale` 1.0, `roughness_scale` 1.0, `normal_strength` 1.0. Both materials set every value uniform explicitly, so none falls back to a default.
 
@@ -53,7 +53,7 @@ Nothing here changes a shader, material, scene or `.import` file. The two shader
    - Nothing in `asset_room.gd` switches it, so it's off only if you untick it by hand in the editor and don't save. The test pins it as committed, on.
 2. **The colour line can push `ALBEDO` well above 1.**
    - Evidence: `cooler_paint.gdshader:20`, `ALBEDO = tint.rgb * mix(1.0, diffuse_luminance / DIFFUSE_MEAN_LUMINANCE, detail);`. The diffuse's brightest texel has linear luminance 0.2532, 5.6 times the constant 0.0452 (measured by the test from the source PNG).
-   - At that texel the lid's `ALBEDO` comes out (1.91, 1.91, 1.84) and the body's (0.16, 0.77, 1.96), in linear. An albedo above 1 reflects more light than reaches it.
+   - At that texel the lid's `ALBEDO` comes out (1.91, 1.91, 1.84) and the body's (1.73, 0.43, 0.37), in linear. (The body's was (0.16, 0.77, 1.96) with the blue tint; see the update below.) An albedo above 1 reflects more light than reaches it.
    - Only the brightest texels go that far, and the test doesn't count how many do. Whether it shows as blown-out specks on the lid, especially under the camp's glow (threshold 1.0), is for your eyes.
 3. **`DIFFUSE_MEAN_LUMINANCE` is a hand-measured constant tied to one texture.**
    - Evidence: `cooler_paint.gdshader:3`, `const float DIFFUSE_MEAN_LUMINANCE = 0.0452;`. The test measures 0.0456 from the source PNG decoded to linear, within 1 %, and asserts within 2 %.
@@ -73,7 +73,7 @@ Checked and consistent with the brief, with nothing to report: both materials' v
 
 - **Textures:** Blue Metal Plate, by Rob Tuytel (all roles), from Poly Haven (https://polyhaven.com/a/blue_metal_plate), published 26 Sep 2024. Poly Haven's textures are CC0. All three used are 1k PNGs: the diffuse, the roughness map and the OpenGL normal map, `_nor_gl`. Source, authors, licence and download date are in `assets/textures/blue_metal_plate/ATTRIBUTION.md`.
 - **Shaders:** `shaders/cooler_paint.gdshader` and `shaders/hint_experiment.gdshader` are yours, hand-written.
-- **The cooler's materials:** their values were picked by you from Claude Code's options on 28 Oct 2026; the paths were Claude Code's suggestion.
+- **The cooler's materials:** their values were picked by you from Claude Code's options on 28 Oct 2026, and the body's tint, `detail` and `uv_scale` changed by you in the editor on 1 Nov; the paths were Claude Code's suggestion.
 - **The hint experiment's scene and material** (`hint_experiment.tscn`, `split_quad.tres`) are Claude Code's.
 - **This audit and `tests/test_materials.gd`:** the `claude -p` agent (Claude Code 2.1.289, Claude Opus 5.5), 29 Oct 2026, from `prompt-4.txt`, committed unedited as 406133e; then reviewed and corrected by Claude Code (below).
 
@@ -85,3 +85,12 @@ The course's review, in a commit of its own after the audit's: every integer enu
 - **Formats:** measured with `get_image().get_format()` (above), where the audit had only quoted CLAUDE.md. They match, and the test now asserts them.
 - **Removed or replaced:** the camera "about 1.6 m away" in the asset room, which nothing measured; the cooler "about 2 m" from the fire, now 1.9 m from `COOLER_AT`; how Godot reads the shared PNG internally, which nothing showed, now your capture; and "red has the fewest bits" in BC1, where blue has as few.
 - **Checked and kept:** every light and environment value in the table against the code (`asset_room.tscn`, `main.gd:885`, `night.gd`, `campsite.gd:438` and `:542`); the measured numbers from the test's log (the mean and brightest luminance, the curl ratios, the two brightest `ALBEDO`s); and the findings.
+
+## Update (Claude Code, 1 Nov 2026): the body, red
+
+- **The body's values,** after your revision of the brief ("Revised 1 Nov 2026: the cooler's body, red"): `tint` `#3B7DBF` → `#B25D57`, `detail` 0.6 → 0.628, `uv_scale` 1.0 → 1.441.
+  - The editor saved them from your sliders.
+  - Claude Code then wrote the tint as `#B25D57` exactly, which was within half a step of the saved colour on every channel, and the two floats as 0.628 and 1.441, which were their saved values before float rounding.
+- **The test** now expects the new values (`MATERIALS` in `tests/test_materials.gd`), and passes 137 of 137 at 60 fps.
+- **Finding 2:** the body's brightest `ALBEDO` is now (1.73, 0.43, 0.37), from the test's log. Its red channel is above 1 now, as its blue channel was before.
+- Everything else here is unchanged.
