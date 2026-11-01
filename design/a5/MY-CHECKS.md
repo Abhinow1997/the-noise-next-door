@@ -15,7 +15,7 @@ GODOT="/c/Users/dotbix/AppData/Local/Programs/Godot/Godot_v4.7.2-stable_win64_co
 
 ## 2. Any time, even while Claude Code's runs go (nothing to save)
 
-- [ ] **In play (HUMAN CHECK):** from a normal start, 3 more spottings (my brief asks for at least five, and two are recorded). For each: which cones turned red, how the fade looked, when the cones came back, and any re-spotting.
+- [ ] **In play (HUMAN CHECK):** from a normal start, 1 more spotting (my brief asks for at least five; four are recorded, all on 29 Oct). For each: which cones turned red, how the fade looked, when the cones came back, and any re-spotting.
 - [ ] **Also in play:**
   - a cone coming back about 5 s after its camper walks back, fading in over 0.5 s;
   - two cones overlapping during a red: does it flicker?
@@ -30,11 +30,11 @@ Look in the editor's 3D view, not a run: running from the editor saves the scene
 - [ ] **The cooler under its light:** open `asset_room/asset_room.tscn` and turn the Environment's SSAO off. The body should read as scuffed painted metal, and the lid as smoother white plastic. Then one look at the camp at night, in play.
 - [ ] **Interface sweep (HUMAN CHECK):** on `materials/cooler_body.tres`, each uniform at its minimum, the shader's default and its maximum: `detail` 0 / 0.5 / 1, `uv_scale` 0.25 / 1 / 4, `roughness_scale` 0 / 1 / 1, `normal_strength` 0 / 1 / 2, and `tint` black and white. Record what changed, and any setting that breaks the look.
 - [ ] **One shader, two materials (HUMAN CHECK):** a capture of the body and the lid side by side. Edit one line of `shaders/cooler_paint.gdshader`: both should change. Edit one value in `materials/cooler_lid.tres`: only the lid should change. Undo both.
-- [ ] **After closing the editor:** `git status`. If any `.import`, `.tres` or `.tscn` changed, tell Claude Code: the course wants any rewritten `.import` explained. `git diff -- shaders/ materials/` must be empty.
+- [x] **After closing the editor:** `git status`. If any `.import`, `.tres` or `.tscn` changed, tell Claude Code: the course wants any rewritten `.import` explained. `git diff -- shaders/ materials/` must be empty.
 
 ## 4. After Claude Code says the audit's test is in
 
-- [ ] **The `source_color` mutation:** delete `source_color` from `albedo_texture` in `shaders/cooler_paint.gdshader` and save. Run `bash scripts/run-test.sh test_materials.gd 60; echo "exit $?"`: it must exit 1. Copy `logs/test_materials_60fps.log` to `logs/mutation-source-color_60fps.log`, then `git checkout -- shaders/cooler_paint.gdshader logs/test_materials_60fps.log`. `git diff -- shaders/` must be empty.
+- [x] **The `source_color` mutation:** delete `source_color` from `albedo_texture` in `shaders/cooler_paint.gdshader` and save. Run `bash scripts/run-test.sh test_materials.gd 60; echo "exit $?"`: it must exit 1. Copy `logs/test_materials_60fps.log` to `logs/mutation-source-color_60fps.log`, then `git checkout -- shaders/cooler_paint.gdshader logs/test_materials_60fps.log`. `git diff -- shaders/` must be empty.
 
 ## 5. Step 4: reading the language (mine to write; the spec's Step 4 has the exact wording)
 

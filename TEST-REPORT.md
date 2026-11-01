@@ -374,14 +374,14 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 
 `the-noise-next-door` · CSYE 7270 · Assignment 5 · branch `assignment-5`
 
-**Status (29 Oct 2026, about 19:10).**
+**Status (1 Nov 2026).**
 - **The cone's shader is in, and driven:** my `shaders/vision_cone.gdshader` (53b0087), the `claude -p` agent's driver and test (29fd5da), and Claude's fixes from its review of them (2024a76). Its headless test passes 93 of 93 at 30, 60 and 144 fps, and the earlier checks keep their baseline (below).
-- **Two of the three mutations are done,** on the cone's shader, and both runs exit 1 (below).
+- **All three mutations are done:** two on the cone's shader, whose runs exit 1, and `source_color` on the cooler's, which fails the material test (below).
 - **The cone's controlled-value captures are done,** and the first two spottings in play (below).
 - **The cooler's shader and its two materials are in,** behind the glb's Use External, and every check keeps its baseline (below).
 - **The hint experiment is done:** its scene, with my shader, and my capture of the bands (below).
 - **The material audit and its test are in** (below): 137 of 137 at 60 fps after Claude's review, and again from an empty cache, with every earlier check at its baseline.
-- **Not done yet:** the rest of the cone's in-play check, the cooler's look checks, and the material test's `source_color` mutation.
+- **Not done yet:** the rest of the cone's in-play check, and the cooler's look checks.
 
 **What will be tested**
 
@@ -590,11 +590,22 @@ In my words: "I played the game when running the raccons was spoted by the girl 
 - **Spotting 1:** while he was running, the girl and the low-poly man ("the boy") spotted him. Both their cones turned red, then faded away.
 - **Spotting 2:** after he got away, the camper ("the chubby guy") spotted him: the same red, then the fade.
 - **What I judged:** the red tells the player he's been spotted, and the flow feels good.
+
+**Two more spottings**, played by me on 29 Oct 2026 at about 20:06, on the code at 82365df; I sent my notes to Claude Code on 30 Oct at 20:49. The game's own log has four short windowed sessions then, between 20:06 and 20:11, with nothing logged but the engine's start-up lines.
+
+In my words:
+- "Started the game as we are drawn to the music waves if the user runs in the setting some detail casues the direct spot from the NPCs triggering the red identificatio cones red and fade away back to normal yellow tinge"
+- "Slower approc where intial view points are visiable from the NPCs to make the player understnd the vision cones as the npc vision range of the yellow which also change when the player makes sneeking or increses when running or normally walking eventual spot turn red and altering mechnisum"
+
+- **Spotting 3, running in:** following the music's waves, he ran into the camp and the campers spotted him straight away. The cones turned red, faded away, and came back to their normal yellow.
+- **Spotting 4, a slower approach:** the yellow cones showed from the start how far each camper sees, and they changed length as he sneaked, walked or ran. In the end he was spotted, the cone turned red, and the alarm followed.
+- **What I judged:** coming in slowly lets the player understand the yellow cones as the campers' vision range.
+- **Not stated for spottings 3 and 4:** which camper spotted him, and how the fade-in looked when the cones came back. For spotting 4: the fade, and whether he was spotted again.
 - **Not done yet:**
-  - three more spottings, since the brief asks for at least five;
-  - whether the cones came back yellow and faded in;
+  - one more spotting, since the brief asks for at least five and four are recorded;
+  - whether the cones came back fading in, about 5 s after their campers started walking back;
   - an overlap during a red (failure 7), since a still picture can't show flicker;
-  - the boundaries in play;
+  - the rest of the boundaries in play: the cones' length changing with sneaking (spotting 4) is as designed, but not that nothing else looks different;
   - all three cones at the tutorial's end;
   - the bubble demo by hand.
 - **A scripted picture, not play:** the bubble test's own picture from a windowed run, `design/a5/captures/bubble-demo-check/03_alert.png` (`--bubble-test` with its pictures, 87 of 87), shows a stand-in's cone red with my shader, through the fallback for cones the camp doesn't drive.
@@ -731,23 +742,65 @@ No log line has `ERROR`.
 
 No log has a `SHADER ERROR` or `SCRIPT ERROR`.
 
-**Still to do:** my `source_color` mutation.
+### The `source_color` mutation
+
+Done by me on 29 Oct 2026 at 19:42, on 82365df, as in step 4 of `design/a5/MY-CHECKS.md`. I confirmed that it was my run on 1 Nov: "Yes i ran this".
+
+| Mutation | What I changed | Result | Log |
+|---|---|---|---|
+| `source_color` | Deleted `source_color` from `albedo_texture` in `shaders/cooler_paint.gdshader`, the cooler's colour sampler | 136 of 137. The one failure: `albedo_texture hints are "source_color, filter_linear_mipmap, repeat_enable" (source: "filter_linear_mipmap, repeat_enable")`. The log ends `FAIL: 1 check(s) failed`. | `logs/mutation-source-color_60fps.log` |
+
+- **Only the source-text check caught it.** The uniform list still gave `albedo_texture` as a `sampler2D`, because `get_shader_uniform_list()` reports types, not hints. Every binding and import check passed.
+- **The exit status** isn't in the log. The test quits 1 whenever a check fails (`tests/test_materials.gd:104`), and the wrapper passes that on.
+- **Undone** with `git checkout`, as the checklist says. `git diff -- shaders/` is empty, and `logs/test_materials_60fps.log` is the committed 137-of-137 run again.
+
+### My first editor session with the cooler (1 Nov 2026)
+
+In the asset room, in the editor's 3D view, on 82365df, with only the docs changed since. My six screenshots are in [design/a5/captures/editor-1nov/](design/a5/captures/editor-1nov/). They're editor views, not in-engine captures.
+
+**The look, with SSAO off** (screenshot 02 shows it unticked). My notes, as I sent them: "With SSAO off, the cooler looks much like it did with SSAO on. The body has some subtle texture and denting, while the lid looks smooth." Whether that's my own wording or a tool's is still to confirm (FRICTIONAL.md, 1 Nov).
+
+**The body's tint, changed** (screenshots 03 and 04): from the blue to a red, with `detail` 0.628 and `uv_scale` 1.441. I kept it, in the brief's "Revised 1 Nov 2026: the cooler's body, red". The material test's expected body values changed with it, and it passes 137 of 137 at 60 fps (`logs/test_materials_60fps.log`).
+
+**What the editor rewrote** (`git status` after I closed it):
+
+| File | What changed | Why | Kept? |
+|---|---|---|---|
+| `materials/cooler_body.tres` | My red values; the editor also added UIDs to its header | I saved it | Kept. Claude wrote the tint as `#B25D57` exactly, within half a step of what was saved, so the test can compare it with my table. |
+| `asset_room/asset_room.tscn` | `ssao_enabled` removed (off), and the file rewritten in the editor's format: UIDs, node IDs, positions as transforms. Nothing moved. | The scene was saved while I judged with SSAO off | Restored with `git checkout`: my plan has SSAO off only while I judge, and the material test pins it on |
+| `chubby_boy_cicciotto.png.import`, `lowpoly_man_OMO1.png.import`, `simple_girl_repack.png.import` (in `assets/characters/`) | `compress/mode` 0 (Lossless) → 2 (VRAM Compressed), `detect_3d/compress_to` 1 → 0, and the imported file became an `.s3tc.ctex` | The editor's 3D detection: these three had `detect_3d/compress_to=1`, VRAM Compressed, so when the editor drew them in 3D, in the asset room, it switched them and cleared the flag | Restored: they're the campers' textures, outside my change, and VRAM compression is lossy. The next editor session that draws them will do the same again, unless their `detect_3d/compress_to` is set to 0. |
+
+- **The cooler's own textures weren't touched:** their `detect_3d/compress_to` is 0 and `roughness/mode` is Disabled, so the editor had nothing to change (failure 9 didn't happen for them).
+- **After the restore,** a headless `--import` had no errors and rewrote no `.import` file (`logs/reimport-after-editor.log`).
+- **Then every check** (1 Nov, 18:10 to 18:12), with the red body and the restored scene and imports:
+  - the material test, 137 of 137;
+  - the A3 assets 20, sounds 30, bubble 87, camp 31, tasks 43 and plan 19, all passing;
+  - waves 12 of 13 and title 51 of 52, failing the same single checks as before;
+  - the cones check, 43 at 30, 60 and 144 fps, and the cone's shader test, 93 of 93 at all three;
+  - the calibration, unchanged.
+
+  No log has a `SHADER ERROR` or `SCRIPT ERROR`. Each log differs from its committed one only in its timestamp and the "leaked at exit" lines, which come and go between runs.
+
+**Not done in this session:**
+- the interface sweep: I moved the tint, `detail` and `uv_scale`, but not each uniform to its minimum, default and maximum;
+- the camp at night: screenshot 01 is the asset room;
+- the lid with and without `* 0.5` in my colour line (screenshots 05 and 06): whether this was the shader-edit check, and which lid I want, are still to confirm.
 
 ### Assignment 5's checks
 
 | Check | Result so far |
 |---|---|
-| Baseline | Done before any change, again after the cone's shader and its driver, again after the cooler's materials, and from an empty cache after the material audit (above): every earlier check at its baseline count. |
-| Shaders parse | The cone's shader: the uniform-list assertions pass, there's no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's and the hint experiment's: the material test's uniform-list assertions pass (above). The `source_color` mutation is still to come. |
+| Baseline | Done before any change, again after the cone's shader and its driver, again after the cooler's materials, from an empty cache after the material audit, and again after my first editor session with the red body (above): every earlier check at its baseline count. |
+| Shaders parse | The cone's shader: the uniform-list assertions pass, there's no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's and the hint experiment's: the material test's uniform-list assertions pass (above). |
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
-| In play (HUMAN CHECK) | Two spottings with the shader on 29 Oct (above), of the five the brief asks for; the rest isn't done yet. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
+| In play (HUMAN CHECK) | Four spottings with the shader (above), of the five the brief asks for: two on 29 Oct at about 17:08, and two more at about 20:06. One more is still to do, with the cones fading back in, an overlap, the tutorial's end, the rest of the boundaries and the bubble demo. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
 | Hint experiment (HUMAN CHECK) | Done on 29 Oct (above). With `source_color`: 64, 128 and 192, unchanged. Without: 137, 188 and 225, against my 135, 184 and 225, from the known slip in my predictions. |
-| Interface sweep (HUMAN CHECK) | Not started. The materials it sweeps are ready (above). |
-| One shader, two materials (HUMAN CHECK) | Not started. The two materials from one shader exist (above); my side-by-side captures and the shader-edit and material-edit checks are still to do. |
-| Material wiring | The material test passes 137 of 137, and again after a fresh import (above). My `source_color` mutation is still to come. |
+| Interface sweep (HUMAN CHECK) | Started on 1 Nov: I moved the body's tint, `detail` and `uv_scale`, and kept the red (above). Each uniform at its minimum, default and maximum is still to do. |
+| One shader, two materials (HUMAN CHECK) | My screenshots of 1 Nov (above) show a body value changed with the lid unchanged, and the cooler and the lid's preview darker with `* 0.5` in my colour line. Whether they're my check is still to confirm. |
+| Material wiring | The material test passes 137 of 137, and again after a fresh import (above). My `source_color` mutation fails it, 136 of 137, on the sampler's hints (above). |
 | Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The material test prints the cooler's normal map's under both conventions: 0.427 and 1.573 (above). |
-| Import settings | Set explicitly on 29 Oct and read back after a reimport (above). The import from an empty cache rewrote none. Any rewrite by the editor gets checked after my first editor session with the textures. |
+| Import settings | Set explicitly on 29 Oct and read back after a reimport (above). The import from an empty cache rewrote none. After my first editor session with them (1 Nov), the editor had rewritten none of the cooler's, but three campers' by 3D detection; those were restored, and the rewrite is explained (above). |
 | What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. All logged in FRICTIONAL.md. |
 
 A headless run can show that the timings, states, visibility and uniform values follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks.

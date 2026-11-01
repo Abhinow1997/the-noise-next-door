@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Title screen check, 2026-10-29T19:07:16
+Title screen check, 2026-11-01T18:11:06
   pass  Opens on New Game                                          expected New Game   got New Game
   pass  Continue can't be picked without a save                    expected false      got false
   pass  The title is shown over the level itself                   expected true       got true

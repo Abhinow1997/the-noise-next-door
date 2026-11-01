@@ -1664,6 +1664,9 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 29 Oct | Step 3, my cooler shader and the two materials | c45c97b, then the materials after it |
 | 29 Oct | Step 3, the hint experiment | 9d782c3, then the scene after it |
 | 29 Oct | Step 3, the material audit and its review | 406133e, then the review after it |
+| 30 Oct | Two more spottings in my words, and a stray picture removed | the write-ups commit after a8b2489 |
+| 29 Oct, written up 1 Nov | Step 3, my `source_color` mutation | f66d385 (the log), then the write-ups after a8b2489 |
+| 1 Nov | My first editor session with the cooler, and the red body | af34e98 (the brief and the material) and a8b2489 (the test), then the write-ups after them |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2202,3 +2205,52 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Every earlier check stayed at its baseline, with waves and title failing the same single check as before.
 - **Not done yet:** my `source_color` mutation.
 - **Human / Claude / model:** the go-ahead is mine. The prompt, the launch, the review, its fixes and this write-up are Claude's. The audit and the test are the `claude -p` agent's (Claude Code 2.1.289, Claude Opus 5.5). No other generative model.
+
+### 2026-10-30 — Two more spottings in my words, and a stray picture removed
+
+- **The stray picture** (20:44): of the untracked `design/a5/captures/normal-play-pass.png`, I said "delete tht". Claude looked at it first. It was a screenshot of a web page in my browser, not from the game; nothing linked to it and git didn't track it. Claude sent it to the Recycle Bin.
+- **Asked** (20:44), about the in-play check: "what exactly do u want there ?" Claude quoted my brief: at least five spottings from a normal start, and for each, which cones turned red, the fade, the cones coming back, and any re-spotting. Then the other things to check in play.
+- **My notes** (20:49), as I typed them:
+  - "Started the game as we are drawn to the music waves if the user runs in the setting some detail casues the direct spot from the NPCs triggering the red identificatio cones red and fade away back to normal yellow tinge"
+  - "Slower approc where intial view points are visiable from the NPCs to make the player understnd the vision cones as the npc vision range of the yellow which also change when the player makes sneeking or increses when running or normally walking eventual spot turn red and altering mechnisum"
+- **Recorded** by Claude in TEST-REPORT.md as spottings 3 and 4, with what I didn't say marked "not stated". Asked when I'd played them, I answered "29 Oct, about 20:06". That matches the game's own log, which has four short windowed sessions then, between 20:06 and 20:11.
+- **Not done:**
+  - one more spotting;
+  - the cones fading back in;
+  - an overlap during a red;
+  - the tutorial's end;
+  - the rest of the boundaries;
+  - the bubble demo by hand.
+  - Also the write-up of a `source_color` mutation: its log, from 29 Oct at 19:42, shows the material test failing as it should, but who ran it isn't confirmed yet.
+- **Human / Claude / model:** the plays and the notes are mine. The write-up is Claude's. No generative model.
+
+### 2026-11-01 — Step 3, my `source_color` mutation, written up
+
+- **Ran** by me on 29 Oct at 19:42, on 82365df, following step 4 of `design/a5/MY-CHECKS.md`: I deleted `source_color` from `albedo_texture` in my cooler shader, ran `bash scripts/run-test.sh test_materials.gd 60`, kept the log as `logs/mutation-source-color_60fps.log`, and undid it with `git checkout`.
+- **Confirmed** on 1 Nov, when Claude asked who had run it: "Yes i ran this is looks fine for now update the deatils on it".
+- **What the log shows:** 136 of 137, and one failure, the sampler's hints read from the source text. Nothing else noticed: `get_shader_uniform_list()` still gave a `sampler2D`, since it reports types, not hints.
+- **Checked by Claude:** `git diff -- shaders/` is empty, and the material test's own log is the committed 137-of-137 run, so the undo happened. The exit status I saw wasn't recorded; the test quits 1 on any failure.
+- **So all three mutations fail their tests:** the semicolon and the rename on the cone's shader, and this one on the cooler's.
+- **Human / Claude / model:** the mutation, the run and the undo are mine. The checks and this write-up are Claude's. No generative model.
+
+### 2026-11-01 — My first editor session with the cooler, and the red body
+
+- **Looked** at the cooler in the asset room, in the editor's 3D view. My six screenshots are in `design/a5/captures/editor-1nov/`; 02 shows SSAO unticked in the Inspector.
+- **My notes on the look, as I sent them:** "With SSAO off, the cooler looks much like it did with SSAO on. The body has some subtle texture and denting, while the lid looks smooth. You're happy with the result as shader practice and approve using it in the game." The paragraph is in the second person, so whether it's my wording or a tool's rewording of it is still to confirm.
+- **The tint, an inspect-and-revise cycle:** I changed the body's `tint` from the blue to a red, and moved `detail` to 0.628 and `uv_scale` to 1.441 (screenshots 03 and 04). In my words: "So I feel the red I have updated in the image feels more better than the blue version of the tint. Let's make an update on the numbers that I have given".
+- **Claude's warning:** my CHARACTER-SHEET.md calls the beanie "the only red thing in the game", and my STORYBOARD.md says red "is used for nothing else". My answer: "Keep the red".
+- **Changed for it,** by Claude Code:
+  - the brief, as "Revised 1 Nov 2026: the cooler's body, red";
+  - the material test's expected body values, from my old table to the new one;
+  - MATERIALS.md's body row and the README.
+- **Two `ALBEDO` lines I sent,** with my labels: the line in my shader, "the slightly backer version", and the same line with `* 0.5` after `tint.rgb`, "the original what we had version". "The updated on feels better". Then: "the ALBEDO updates are for the cooler_lids".
+  - Claude checked: the file on disk has the line without `* 0.5`, as committed in c45c97b, and `git diff -- shaders/` is empty.
+  - Both materials use the one shader, so a change to the line changes the body and the lid together. Screenshots 05 and 06 show that: the lid's preview and the cooler are darker in 05.
+  - Which look I want for the lid is still to confirm.
+- **What the editor saved,** found by Claude with `git status` after my session:
+  - `materials/cooler_body.tres`, with my red values: kept.
+  - `asset_room/asset_room.tscn`, with SSAO off and the file rewritten in the editor's format, with nothing moved. Restored, since my plan has SSAO off only while I judge.
+  - Three campers' `.import` files, `chubby_boy_cicciotto.png`, `lowpoly_man_OMO1.png` and `simple_girl_repack.png`: the editor's 3D detection switched them from Lossless to VRAM Compressed (`compress/mode` 0 to 2, `detect_3d/compress_to` 1 to 0). Restored, since they're outside my change.
+  - The editor was still open, so Claude waited. Once I'd closed it ("Closed it"), Claude restored those four files with `git checkout`, and wrote the body's tint as `#B25D57` exactly, since the test compares it with my table. A headless `--import` (`logs/reimport-after-editor.log`) had no errors and rewrote no `.import` file.
+  - The material test then passed 137 of 137 with the red body, and every other check stayed at its baseline at its frame rates, with waves and title failing the same single check as before.
+- **Human / Claude / model:** the look, the tint, the sliders, the screenshots and the decisions are mine. The warning, the checks, the edits to the docs and the test, and this write-up are Claude's. Whether a tool reworded my notes on the look is still to confirm.

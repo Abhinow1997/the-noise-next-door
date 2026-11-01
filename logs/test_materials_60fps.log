@@ -1,6 +1,6 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
-Material audit test, 2026-10-29T19:07:18
+Material audit test, 2026-11-01T18:10:11
 PASS  cooler_paint.gdshader declares 8 uniforms (tint, detail, uv_scale, albedo_texture, roughness_scale, normal_strength, roughness_texture, normal_texture)
 PASS  cooler_paint.gdshader: tint is vec4 (source: vec4)
 PASS  cooler_paint.gdshader: tint hints are "source_color" (source: "source_color")
@@ -58,11 +58,11 @@ PASS  hint_experiment.gdshader: get_shader_uniform_list() has with_source_color 
 PASS  hint_experiment.gdshader: get_shader_uniform_list() has without_source_color as sampler2D
 PASS  res://materials/cooler_body.tres loads as a ShaderMaterial
 PASS  cooler_body.tres uses res://shaders/cooler_paint.gdshader (uses res://shaders/cooler_paint.gdshader)
-PASS  cooler_body.tres: tint is #3b7dbf (is 3b7dbf)
-PASS  cooler_body.tres: detail is 0.6 (is 0.6)
+PASS  cooler_body.tres: tint is #b25d57 (is b25d57)
+PASS  cooler_body.tres: detail is 0.628 (is 0.628)
 PASS  cooler_body.tres: roughness_scale is 1.0 (is 1.0)
 PASS  cooler_body.tres: normal_strength is 1.0 (is 1.0)
-PASS  cooler_body.tres: uv_scale is 1.0 (is 1.0)
+PASS  cooler_body.tres: uv_scale is 1.441 (is 1.441)
 PASS  cooler_body.tres: albedo_texture binds blue_metal_plate_diff_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_diff_1k.png)
 PASS  cooler_body.tres: roughness_texture binds blue_metal_plate_rough_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_rough_1k.png)
 PASS  cooler_body.tres: normal_texture binds blue_metal_plate_nor_gl_1k.png (binds res://assets/textures/blue_metal_plate/blue_metal_plate_nor_gl_1k.png)
@@ -146,6 +146,6 @@ INFO  blue_metal_plate_nor_gl_1k.png curl_ratio: directx = false 0.427, directx 
 PASS  blue_metal_plate_nor_gl_1k.png: curl_ratio 0.427 < 0.7 with directx = false (Godot's convention)
 INFO  blue_metal_plate_diff_1k.png: linear mean luminance 0.0456, max 0.2532 (max / constant 5.6)
 PASS  cooler_paint.gdshader: DIFFUSE_MEAN_LUMINANCE 0.0452 is the diffuse's linear mean within 2% (0.0456)
-INFO  cooler_body.tres: brightest texel gives ALBEDO (0.16, 0.77, 1.96) in linear
+INFO  cooler_body.tres: brightest texel gives ALBEDO (1.73, 0.43, 0.37) in linear
 INFO  cooler_lid.tres: brightest texel gives ALBEDO (1.91, 1.91, 1.84) in linear
 PASS: 0 check(s) failed
