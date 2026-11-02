@@ -65,21 +65,22 @@ Answer for each type I used, citing the first line of each shader.
 | `fragment()` | `shaders/cooler_paint.gdshader:17` | Runs for each visible fragment/pixel and computes that pixel's material outputs. |
 | `fragment()` | `shaders/hint_experiment.gdshader:7` | Runs for each visible fragment/pixel and computes that pixel's material outputs. |
 
-**If I moved my colour line into `vertex()`, what would change, and why?** The cone's colour mix at `vision_cone.gdshader:10` would be calculated at mesh vertices, then interpolated across each triangle. In `fragment()` it is calculated for each pixel, so the colour transition follows the per-pixel `alarm` value instead of being limited to vertex interpolation.
+I wrote no `vertex()` function in these three shaders; they all use `fragment()`.
+
+**If I moved my colour line into `vertex()`, what would change, and why?** I cannot move this line as written: `ALBEDO` is a fragment output, not a vertex built-in. To calculate it at vertices, I would put the `mix()` result in a `varying` in `vertex()` and assign that varying to `ALBEDO` in `fragment()`. Since `watch_color`, `alarm_color` and `alarm` are uniforms (`shaders/vision_cone.gdshader:4-7`), every vertex gets the same result. Interpolation would keep that same result across the triangle, so the visible colour would not change (`shaders/vision_cone.gdshader:10`; Godot's [spatial shader reference](https://docs.godotengine.org/en/4.7/tutorials/shaders/shader_reference/spatial_shader.html) lists `ALBEDO` as a fragment output, not a vertex built-in).
 
 ### Q3. Built-ins I read and wrote
 
-Three I read, and two I wrote.
+Two distinct built-ins I read, and two I wrote. `UV` appears in two shaders, but it is the same built-in.
 
 | Built-in | Read or written | Where (file:line) | If read: read-only? |
 |---|---|---|---|
-| `COLOR.a` | read | `shaders/vision_cone.gdshader:11` | Yes; read as incoming vertex-colour alpha. |
-| `UV` | read | `shaders/cooler_paint.gdshader:18` | Yes; read as interpolated texture coordinates. |
-| `UV` | read | `shaders/hint_experiment.gdshader:8` | Yes; read as interpolated texture coordinates. |
+| `COLOR.a` | read | `shaders/vision_cone.gdshader:11` | Yes in `fragment()`: it is incoming vertex-colour alpha. |
+| `UV` | read | `shaders/cooler_paint.gdshader:18`; `shaders/hint_experiment.gdshader:8` | Yes in `fragment()`: it is incoming, interpolated texture coordinates. |
 | `ALBEDO` | written | `shaders/vision_cone.gdshader:10` | — |
 | `ALPHA` | written | `shaders/vision_cone.gdshader:11` | — |
 
-**Which of the ones I read are read-only, and how I know:** `COLOR` and `UV` are read as inputs in these fragment functions; none of those lines assigns to them. Godot defines them as inputs to `fragment()`. `ALBEDO` and `ALPHA` are outputs that the shader writes.
+**Which of the ones I read are read-only, and how I know:** `COLOR` and `UV` are read-only inputs in my `fragment()` functions; the shader reference marks fragment `COLOR` and `UV` as `in`. `UV` is different in `vertex()`: the generated shader changes it at `shaders/standard_generated.gdshader:28`, where it applies a scale and offset. Godot marks vertex `UV` as `inout`, so it can be changed there and then passed to `fragment()`.
 
 ### Q4. What each hint I used changes
 
@@ -87,12 +88,13 @@ For each hint: does it change only the Inspector, or also the value the shader r
 
 | Hint | Where (file:line) | Inspector only, or the value too? | My evidence |
 |---|---|---|---|
-| `source_color` | `vision_cone.gdshader:6-7`; `cooler_paint.gdshader:6,9`; `hint_experiment.gdshader:4` | Changes colour-space handling of colour uniforms/samples, so it affects values the shader receives. | With the hint, the captured greys stayed 64, 128, 192; without it they appeared 137, 188, 225 (`TEST-REPORT.md`, “The hint experiment”). |
-| `hint_range` | `vision_cone.gdshader:4-5`; `cooler_paint.gdshader:7-8,12-13` | Sets an Inspector range; it does not clamp values set from code. | `alarm=2.0` produced output beyond the 0–1 result (`TEST-REPORT.md`, “The controlled-value captures”). |
-| `filter_nearest` | `hint_experiment.gdshader:4-5` | Changes texture sampling to use the nearest texel. | Keeps the three grey bands crisp. |
-| `filter_linear_mipmap` | `cooler_paint.gdshader:9,14-15` | Changes sampling to use linear filtering and mipmaps. | Used by the cooler's three texture samplers. |
-| `repeat_enable` | `cooler_paint.gdshader:9,14-15` | Changes sampling: UVs outside 0–1 can repeat the texture. | The shader scales UVs before sampling (`cooler_paint.gdshader:18,21-22`). |
-| `hint_normal` | `cooler_paint.gdshader:15` | Marks the sampler as normal-map data for Godot's texture handling. | It is sampled into `NORMAL_MAP` at line 22. |
+| `source_color` | `shaders/vision_cone.gdshader:6-7`; `shaders/cooler_paint.gdshader:6,9`; `shaders/hint_experiment.gdshader:4` | Changes colour-space handling of colour uniforms/samples, so it affects values the shader receives. | With the hint, the captured greys stayed 64, 128, 192; without it they appeared 137, 188, 225 (`TEST-REPORT.md`, “The hint experiment”). |
+| `hint_range` | `shaders/vision_cone.gdshader:4-5`; `shaders/cooler_paint.gdshader:7-8,12-13` | Sets an Inspector range; it does not clamp values set from code. | `alarm=2.0` produced output beyond the 0–1 result (`TEST-REPORT.md`, “The controlled-value captures”). |
+| `filter_nearest` | `shaders/hint_experiment.gdshader:4-5` | Changes texture sampling to use the nearest texel. | Each grey region samples a flat texel, so the bands stay crisp (`shaders/hint_experiment.gdshader:8-12`). |
+| `filter_linear_mipmap` | `shaders/cooler_paint.gdshader:9,14-15` | Changes sampled values by blending nearby texels and using mip levels as the texture appears smaller on screen. | It smooths sampled albedo, roughness and normal maps (`shaders/cooler_paint.gdshader:18,21-22`). |
+| `repeat_enable` | `shaders/cooler_paint.gdshader:9,14-15` | Changes sampling: UVs outside 0–1 can repeat the texture. | The shader scales UVs before sampling (`shaders/cooler_paint.gdshader:18,21-22`). |
+| `hint_default_white` | `shaders/cooler_paint.gdshader:14` | When no roughness texture is bound, the sampler supplies white (1, 1, 1, 1), so its red value is 1. With a texture bound, this hint does not change its sampled values. | The shader reads red and multiplies by `roughness_scale` (`shaders/cooler_paint.gdshader:21`); Godot documents this hint as an opaque-white fallback. |
+| `hint_normal` | `shaders/cooler_paint.gdshader:15` | In the probe, leaving the sampler unbound gave the same flat-normal result as setting `normal_strength` to 0. With the texture bound, removing `hint_normal` did not visibly change the map's result. Whether it changes import detection was not tested. | The unbound pair differed by 0 pixels beyond the 2-step threshold; the bound pair differed only at one anti-aliased edge pixel (`TEST-REPORT.md`, “Claude's `hint_normal` probe”; [`probe.txt`](design/a5/captures/hint-normal/probe.txt)). |
 
 **What my hint experiment shows:** The same greys are sampled by two uniforms, but only one has `source_color`. With the hint, measured greys stayed 64, 128, 192; without it they appeared brighter at 137, 188, 225. In this Forward+ capture the hint changes the colour-space conversion of sampled values, not just how a control looks in the Inspector (`hint_experiment.gdshader:4-5,11-12`; `TEST-REPORT.md`, “The hint experiment”).
 

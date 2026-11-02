@@ -878,6 +878,28 @@ My first note was about the three `tint` settings. Asked which of them broke the
 
 **What it can't show:** the cooler from one camera angle and one light only, so a setting whose effect depends on the angle, such as a shine from `roughness_scale` 0, may show little here.
 
+### Claude's `hint_normal` probe, for my language notes (1 Nov 2026)
+
+**Why:** for LANGUAGE-NOTES.md's question 4, Claude Code's check of my notes said, from its reading of Godot's source, that an unbound `hint_normal` sampler gives a flat normal and that the hint doesn't change a bound map's values. It hadn't run that. It probed it, and I asked for the probe in the repo ("Yes, add it") so my answer can cite it.
+
+**The probe:** `design/a5/captures/hint_normal_probe.gd`, by Claude Code. In a window, in the asset room lit as for my sweep (SSAO off, paused), it changes the body's material in memory only and saves five frames:
+- a: as committed;
+- b: `normal_strength` 0, with the normal map bound;
+- c: the normal map unbound, at `normal_strength` 1;
+- d: a copy of my shader, built in memory, with `hint_normal` taken out of `normal_texture`, and the map bound. `shaders/` isn't touched;
+- e: that copy with the map unbound, added at my word ("Yes, add that frame") so c against e shows what the hint does when nothing is bound.
+
+It compares the frames inside the cooler's box on screen and writes `probe.txt`. Claude ran it four times on 1 Nov: a to d gave the same numbers every time, and the last run, at 22:13, added e. The frames and `probe.txt` are in [design/a5/captures/hint-normal/](design/a5/captures/hint-normal/).
+
+| Frames | Pixels that differ by more than 2 steps, of 430,700 | What it shows |
+|---|---|---|
+| a and b | 3,730, the largest by 23 | The normal map visibly changes the cooler, so the probe can see a change. |
+| b and c | 0, the largest by 1 | Unbound, the sampler gives a flat normal: the same as no map at all. Not white, which would tilt every normal. |
+| a and d | 1, by 14 | Bound, taking `hint_normal` out leaves every pixel on the cooler's faces as it was. The one pixel, (814, 566), is on the body's right-hand outline against the grass: an anti-aliased edge pixel, grass in a and part covered by the body in d. In Claude's reading, the edge falls a hair differently once a different shader is compiled; that isn't proven. It isn't a change in the sampled map. |
+| c and e | 99,150, the largest by 43 | Unbound, taking `hint_normal` out changes what the sampler gives: the body is shaded as if its surface tilts. Its front face comes out darker (`#ac5b54` to `#a0544f` at (600, 450)) and its right side lighter (`#ae5c55` to `#cf6f66` at (840, 450)). Every changed pixel is on the body; the lid, on its own material, is unchanged. So the flat normal in c is the hint's doing, not every unbound sampler's. What the unbound sampler gives without the hint isn't measured; Claude's reading of Godot's source is white. |
+
+**What it can't show:** whether the hint changes the editor's import detection (Godot's docs say only "Used as normalmap"); my import sets `compress/normal_map` explicitly, so detection has nothing to change here. And it's one light and one camera angle.
+
 ### Assignment 5's checks
 
 | Check | Result so far |

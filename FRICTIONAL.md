@@ -68,6 +68,7 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 | 1 Nov | A grading run: the material test failing from an empty cache, and its fix | the commit after 72558cd |
 | 1 Nov | The log split: the sections before Assignment 5 moved to FRICTIONAL-EARLIER.md | its own commit, after the grading run's |
 | 1 Nov | The interface sweep: Claude's capture tool, my run and my notes | the tool's commit, then my captures' with the write-ups |
+| 1 Nov | Step 4, my revised Q2 to Q4, Claude's two checks, and its `hint_normal` probe | not committed yet |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -762,4 +763,18 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
   - `detail`, `roughness_scale` and `normal_strength`: I'll add what changed for each.
 - **Recorded** by Claude in TEST-REPORT.md, "The interface sweep", beside my brief's predictions, with those three rows still to come from me.
 - **Committed** at my word ("commit the updated files in"): the tool on its own, then my captures with these write-ups.
+
+### 2026-11-01 — Step 4, my revised Q2 to Q4, Claude's two checks, and its `hint_normal` probe
+
+- **Asked:** after the grading run marked Q2 to Q4 of LANGUAGE-NOTES.md as weak, I revised them and asked Claude Code to "check now", twice. It checked the facts and the line references, and gave pointers, not answers.
+- **The first check:** only Q2 had changed. It no longer said `alarm` was per-pixel, but it still concluded the colour "could look less precise" in `vertex()`. Q3 and Q4 were as before.
+- **The second check:** Q2 now says `ALBEDO` can't be written in `vertex()`, a `varying` would carry it, and the colour wouldn't change because its inputs are uniforms. Q3 names two read built-ins honestly, with `UV` as `inout` in `vertex()` and `in` in `fragment()`. Q4 adds `hint_default_white`. Claude checked each against Godot 4.7's shader reference pages, which my two links point to and which both load, and every new line reference. One soft spot was left: the `hint_normal` row said "Godot's default texture" when unbound, and that the hint makes Godot handle a bound map as normal-map data.
+- **Picked:** "Fix hint_normal first", over committing as it was.
+- **Claude's probe:** since its pointer on `hint_normal` came from reading Godot's source, not a run, Claude probed it on the cooler: unbound, the sampler gives a flat normal (the same frame as `normal_strength` 0, to the pixel); bound, taking the hint out of a copy of my shader changes no pixel on the cooler's faces, and one anti-aliased edge pixel. At my word ("Yes, add it"), the probe and its frames are in `design/a5/captures/hint-normal/`, and TEST-REPORT.md has it, "Claude's `hint_normal` probe".
+  - Its first scratch run compared the wrong area, from a crop size Claude misread; the repo's probe finds the cooler's box itself, as the sweep tool does.
+  - Claude first guessed the edge pixel was where the cooler meets the floor; it's on the body's right-hand outline against the grass.
+- **My row, and a third check:** I rewrote the `hint_normal` row from the probe and asked again. Claude found it accurate, with its numbers, link and line right, and one gap in the probe: it never showed an unbound sampler without the hint, so it couldn't say the flat normal was the hint's doing.
+- **Picked:** "Yes, add that frame". Claude added frame e, the no-hint copy with the map unbound. Against c, 99,150 pixels of the body change, the front face darker and the right side lighter: without the hint, an unbound sampler isn't flat. So the hint changes the value when nothing is bound, and not a bound map's.
+- **Not done yet:** my answer to the column's question in the `hint_normal` row, and committing LANGUAGE-NOTES.md.
+- **Human / Claude / model:** the answers are mine. The checks, the pointers, the probe, its runs and this write-up are Claude's. No generative model.
 - **Human / Claude / model:** the run, the looking, the notes and the answers are mine. The tool, its test runs, the questions and this write-up are Claude's. No generative model.
