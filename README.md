@@ -67,7 +67,8 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 | [CHANGE-BRIEF.md](CHANGE-BRIEF.md) | The plan for each assignment's change, written before the work, one section per assignment |
 | [SOURCES.md](SOURCES.md) | The generative models, every generation, other people's assets and the tools, one section per assignment |
 | [TEST-REPORT.md](TEST-REPORT.md) | How each assignment's work was tested and what happened, one section per assignment |
-| [FRICTIONAL.md](FRICTIONAL.md) | The dated log: what was asked for, what came back and what was decided, one section per assignment |
+| [FRICTIONAL.md](FRICTIONAL.md) | The dated log: what was asked for, what came back and what was decided, for Assignment 5 |
+| [FRICTIONAL-EARLIER.md](FRICTIONAL-EARLIER.md) | The same log's sections from before Assignment 5: Assignment 2, Assignment 3, and the work after Assignment 3 |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
 | [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
@@ -129,7 +130,7 @@ The docs, each with an Assignment 5 section: the plan, [CHANGE-BRIEF.md](CHANGE-
 - **Versions:** Godot 4.7.2 stable, Blender 5.2.2 LTS, the mcp-for-blender server 2.1.9 with the MCP for Blender add-on 1.8, on Windows 11.
 - **The docs:** each of these has an Assignment 3 section:
   - the plan: [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
-  - the log: [FRICTIONAL.md](FRICTIONAL.md);
+  - the log: [FRICTIONAL-EARLIER.md](FRICTIONAL-EARLIER.md);
   - the checks: [TEST-REPORT.md](TEST-REPORT.md);
   - the tools: [SOURCES.md](SOURCES.md).
 

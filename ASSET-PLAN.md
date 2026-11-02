@@ -200,7 +200,7 @@ All three pepperoni lie fully inside the wedge. At Y −0.02 the wedge is 0.063 
   - Moving in a tilted view also changed their heights: Pepperoni1 is **sunk 1.7 mm** into the cheese, and Pepperoni3 is **floating 3.1 mm** above it.
   - That's my predicted failure 3 (floats or sinks), on a single part. **Shift+Z** while moving keeps the height fixed.
   - **Fixed by me:** I set Location Z to 0.009 on Pepperoni1 (saved 17:25) and then on Pepperoni3 (saved 17:27). Claude checked that all three now sit exactly on the cheese, and the slice is still 0.15 × 0.20 × 0.02 m with 144 triangles.
-- **Before that, a first try** (16:25) went wrong. It's in FRICTIONAL.md: Solid view hid the colour changes, the cheese material got replaced instead of a slot being added, and a shared material changed two objects. Claude reset the one remaining colour at my request (16:29).
+- **Before that, a first try** (16:25) went wrong. It's in FRICTIONAL-EARLIER.md: Solid view hid the colour changes, the cheese material got replaced instead of a slot being added, and a shared material changed two objects. Claude reset the one remaining colour at my request (16:29).
 
 | Picture | Whose | What it shows |
 |---|---|---|

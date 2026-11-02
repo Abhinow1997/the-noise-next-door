@@ -155,7 +155,7 @@ What I wrote down while doing it is under the 3D viewport, above.
 
 ![After my hand edit: the golden cheese and the moved pepperoni, saved](design/a3/build/pizza_slice/08_after-hand-edit-cheese-saved_by-me.png)
 
-*After, 16:34:55: my golden cheese (`#F2B908`) in Material Preview, with two pepperoni moved, just after saving.* (Captions by Claude Code.) Claude measured what changed: the cheese's Base Color went from `#F2C14E` to `#F2B908`. Moving the two pepperoni with G also changed their heights: one sank 1.7 mm into the cheese and one floated 3.1 mm above it, which doesn't show from above. I set both back to Location Z 0.009 (saved 17:25 and 17:27). The details and my first, mixed-up try are in ASSET-PLAN.md and FRICTIONAL.md.
+*After, 16:34:55: my golden cheese (`#F2B908`) in Material Preview, with two pepperoni moved, just after saving.* (Captions by Claude Code.) Claude measured what changed: the cheese's Base Color went from `#F2C14E` to `#F2B908`. Moving the two pepperoni with G also changed their heights: one sank 1.7 mm into the cheese and one floated 3.1 mm above it, which doesn't show from above. I set both back to Location Z 0.009 (saved 17:25 and 17:27). The details and my first, mixed-up try are in ASSET-PLAN.md and FRICTIONAL-EARLIER.md.
 
 ### Changed afterwards by Claude Code
 
