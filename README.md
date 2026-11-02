@@ -99,7 +99,8 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - `--cone-shader-test`, which drives the cones through real spottings at 30, 60 and 144 fps;
   - [tests/test_materials.gd](tests/test_materials.gd), the material audit's test, with the audit itself in [MATERIALS.md](MATERIALS.md);
   - [tests/normal_map_check.gd](tests/normal_map_check.gd), calibrated on the texture set's own GL and DX pair.
-- **Still to come:** the generated StandardMaterial3D shader, annotated, my language notes, and the film.
+- **The shader Godot generates for a StandardMaterial3D:** [shaders/standard_generated.gdshader](shaders/standard_generated.gdshader), with my annotations; the editor's unedited output is [shaders/new_shader.gdshader](shaders/new_shader.gdshader). Nothing in the game uses either.
+- **Still to come:** my language notes, and the film.
 
 ### For the grader: seeing it
 

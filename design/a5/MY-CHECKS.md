@@ -15,10 +15,10 @@ GODOT="/c/Users/dotbix/AppData/Local/Programs/Godot/Godot_v4.7.2-stable_win64_co
 
 ## 2. Any time, even while Claude Code's runs go (nothing to save)
 
-- [ ] **In play (HUMAN CHECK):** from a normal start, 1 more spotting (my brief asks for at least five; four are recorded, all on 29 Oct). For each: which cones turned red, how the fade looked, when the cones came back, and any re-spotting.
-- [ ] **Also in play:**
+- [x] **In play (HUMAN CHECK):** from a normal start, 1 more spotting (my brief asks for at least five; five are recorded, the fifth on 1 Nov). For each: which cones turned red, how the fade looked, when the cones came back, and any re-spotting.
+- [x] **Also in play** (1 Nov: "for now it looks fine all the aspects i have checked"):
   - a cone coming back about 5 s after its camper walks back, fading in over 0.5 s;
-  - two cones overlapping during a red: does it flicker?
+  - two cones overlapping during a red: does it flicker? (Two red cones overlapping seen on 1 Nov; a red cone over a yellow one, failure 7's case, still to see.)
   - all three cones appearing at the tutorial's end, with no fade-in;
   - the boundaries: he moves and the campers behave as before, and only the cones and the cooler look different;
   - the bubble demo's cone still turns red.
@@ -27,9 +27,9 @@ GODOT="/c/Users/dotbix/AppData/Local/Programs/Godot/Godot_v4.7.2-stable_win64_co
 
 Look in the editor's 3D view, not a run: running from the editor saves the scene first.
 
-- [ ] **The cooler under its light:** open `asset_room/asset_room.tscn` and turn the Environment's SSAO off. The body should read as scuffed painted metal, and the lid as smoother white plastic. Then one look at the camp at night, in play.
+- [x] **The cooler under its light:** open `asset_room/asset_room.tscn` and turn the Environment's SSAO off. The body should read as scuffed painted metal, and the lid as smoother white plastic. Then one look at the camp at night, in play. (Both done on 1 Nov.)
 - [ ] **Interface sweep (HUMAN CHECK):** on `materials/cooler_body.tres`, each uniform at its minimum, the shader's default and its maximum: `detail` 0 / 0.5 / 1, `uv_scale` 0.25 / 1 / 4, `roughness_scale` 0 / 1 / 1, `normal_strength` 0 / 1 / 2, and `tint` black and white. Record what changed, and any setting that breaks the look.
-- [ ] **One shader, two materials (HUMAN CHECK):** a capture of the body and the lid side by side. Edit one line of `shaders/cooler_paint.gdshader`: both should change. Edit one value in `materials/cooler_lid.tres`: only the lid should change. Undo both.
+- [x] **One shader, two materials (HUMAN CHECK):** a capture of the body and the lid side by side. Edit one line of `shaders/cooler_paint.gdshader`: both should change. Edit one value in `materials/cooler_lid.tres`: only the lid should change. Undo both.
 - [x] **After closing the editor:** `git status`. If any `.import`, `.tres` or `.tscn` changed, tell Claude Code: the course wants any rewritten `.import` explained. `git diff -- shaders/ materials/` must be empty.
 
 ## 4. After Claude Code says the audit's test is in
@@ -38,7 +38,7 @@ Look in the editor's 3D view, not a run: running from the editor saves the scene
 
 ## 5. Step 4: reading the language (mine to write; the spec's Step 4 has the exact wording)
 
-- [ ] In a scratch scene, not saved in the repo, make a StandardMaterial3D with the Blue Metal Plate albedo, normal map and roughness textures enabled. Make it unique, then convert it to a ShaderMaterial from the Inspector's resource menu. Save the code as `shaders/standard_generated.gdshader`, and annotate it.
+- [x] In a scratch scene, not saved in the repo, make a StandardMaterial3D with the Blue Metal Plate albedo, normal map and roughness textures enabled. Make it unique, then convert it to a ShaderMaterial from the Inspector's resource menu. Save the code as `shaders/standard_generated.gdshader`, and annotate it.
 - [ ] `LANGUAGE-NOTES.md`, part 1: the line numbers in that file of `shader_type` and `render_mode`; the uniforms for the albedo colour and the normal-map strength; the albedo and normal-map samplers, with their hints; and the lines that write `ALBEDO`, `ROUGHNESS` and `NORMAL_MAP`.
 - [ ] Part 2: the eight questions, in my own words, each with a line reference to one of my three shaders:
   - what `shader_type` decides;

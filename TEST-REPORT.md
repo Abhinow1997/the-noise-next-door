@@ -381,7 +381,10 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 - **The cooler's shader and its two materials are in,** behind the glb's Use External, and every check keeps its baseline (below).
 - **The hint experiment is done:** its scene, with my shader, and my capture of the bands (below).
 - **The material audit and its test are in** (below): 137 of 137 at 60 fps after Claude's review, and again from an empty cache, with every earlier check at its baseline.
-- **Not done yet:** the rest of the cone's in-play check, and the cooler's look checks.
+- **Five spottings are recorded in play,** and the cooler's "one shader, two materials" check is done (below).
+- **The rest of the in-play list and the cooler at the camp at night** were checked by me on 1 Nov, "looks fine", with no detail for each (below).
+- **The generated shader is in,** with my annotations (below).
+- **Not done yet:** a recorded interface sweep, and LANGUAGE-NOTES.md.
 
 **What will be tested**
 
@@ -601,13 +604,25 @@ In my words:
 - **Spotting 4, a slower approach:** the yellow cones showed from the start how far each camper sees, and they changed length as he sneaked, walked or ran. In the end he was spotted, the cone turned red, and the alarm followed.
 - **What I judged:** coming in slowly lets the player understand the yellow cones as the campers' vision range.
 - **Not stated for spottings 3 and 4:** which camper spotted him, and how the fade-in looked when the cones came back. For spotting 4: the fade, and whether he was spotted again.
-- **Not done yet:**
-  - one more spotting, since the brief asks for at least five and four are recorded;
-  - whether the cones came back fading in, about 5 s after their campers started walking back;
-  - an overlap during a red (failure 7), since a still picture can't show flicker;
-  - the rest of the boundaries in play: the cones' length changing with sneaking (spotting 4) is as designed, but not that nothing else looks different;
-  - all three cones at the tutorial's end;
-  - the bubble demo by hand.
+
+**Spotting 5, two red cones overlapping**, played by me on 1 Nov 2026, on 245f766. The game's own log has a windowed session from 18:15:17, with nothing logged but the engine's start-up lines. My screenshot, taken with the game paused (Esc), is [design/a5/captures/in-play/spotting5_two_red_cones_overlapping_paused.png](design/a5/captures/in-play/spotting5_two_red_cones_overlapping_paused.png). It's an OS screenshot, not an in-engine capture.
+
+In my words: "overlapping check for the cones also is in. Both the cones overlap and turn red. And then eventually it fades away. The method seems fine."
+
+- **What I saw:** he was spotted, two campers' cones turned red where they overlapped on him, and then they faded away.
+- **What it covers of failure 7:** an overlap during a red. Both cones were red, though, and two cones of the same colour blend the same whichever is drawn first. So this overlap couldn't show the flicker failure 7 predicts, which is a red cone over a yellow one.
+- **Not stated:** which campers spotted him, whether it flickered, and whether he was spotted again.
+
+**The rest of the in-play list**, answered by me on 1 Nov. The list was:
+- the cones coming back fading in, about 5 s after their campers start walking back;
+- a red cone overlapping a yellow one (failure 7's case);
+- all three cones appearing at the tutorial's end, with no fade-in;
+- the boundaries: he moves and the campers behave as before, and only the cones and the cooler look different;
+- the bubble demo's cone still turning red.
+
+In my words: "for now it looks fine all the aspects i have checked".
+- **When:** the game's log has no windowed session after the one from 18:15:17, so I checked these in that session or before it.
+- **Not stated:** what I saw for each item. That includes whether a red cone over a yellow one flickered, which is what failure 7 predicts.
 - **A scripted picture, not play:** the bubble test's own picture from a windowed run, `design/a5/captures/bubble-demo-check/03_alert.png` (`--bubble-test` with its pictures, 87 of 87), shows a stand-in's cone red with my shader, through the fallback for cones the camp doesn't drive.
 
 ### The textures, their import settings, and the normal-map check
@@ -758,7 +773,7 @@ Done by me on 29 Oct 2026 at 19:42, on 82365df, as in step 4 of `design/a5/MY-CH
 
 In the asset room, in the editor's 3D view, on 82365df, with only the docs changed since. My six screenshots are in [design/a5/captures/editor-1nov/](design/a5/captures/editor-1nov/). They're editor views, not in-engine captures.
 
-**The look, with SSAO off** (screenshot 02 shows it unticked). My notes, as I sent them: "With SSAO off, the cooler looks much like it did with SSAO on. The body has some subtle texture and denting, while the lid looks smooth." Whether that's my own wording or a tool's is still to confirm (FRICTIONAL.md, 1 Nov).
+**The look, with SSAO off** (screenshot 02 shows it unticked). My notes, as I sent them: "With SSAO off, the cooler looks much like it did with SSAO on. The body has some subtle texture and denting, while the lid looks smooth." Asked whether that was in my own words, I answered: "previsouly i have given you the details its fine add and aatch the same along the screenshots provided" (FRICTIONAL.md, 1 Nov).
 
 **The body's tint, changed** (screenshots 03 and 04): from the blue to a red, with `detail` 0.628 and `uv_scale` 1.441. I kept it, in the brief's "Revised 1 Nov 2026: the cooler's body, red". The material test's expected body values changed with it, and it passes 137 of 137 at 60 fps (`logs/test_materials_60fps.log`).
 
@@ -781,10 +796,28 @@ In the asset room, in the editor's 3D view, on 82365df, with only the docs chang
 
   No log has a `SHADER ERROR` or `SCRIPT ERROR`. Each log differs from its committed one only in its timestamp and the "leaked at exit" lines, which come and go between runs.
 
-**Not done in this session:**
-- the interface sweep: I moved the tint, `detail` and `uv_scale`, but not each uniform to its minimum, default and maximum;
-- the camp at night: screenshot 01 is the asset room;
-- the lid with and without `* 0.5` in my colour line (screenshots 05 and 06): whether this was the shader-edit check, and which lid I want, are still to confirm.
+**One shader, two materials (HUMAN CHECK)**, in the same session, with SSAO off (the scene was saved that way). I confirmed these screenshots are my check, in the answer above.
+- **One value in one material:** the body's tint, blue in 03 and red in 04. Only the body changed; the lid stayed white.
+- **One line of the shader:** my colour line with `* 0.5` after `tint.rgb` (05) and without it (06). The body and the lid both changed: in 05 the cooler and the lid's material preview are darker. I undid it, and `git diff -- shaders/` is empty.
+- **The lid I kept:** the brighter one, without `* 0.5`, as committed.
+
+**After this session:**
+- **The camp at night:** asked about it and the interface sweep together, I answered: "I have taken a look it looks good for now".
+- **The interface sweep isn't recorded.** I moved the tint, `detail` and `uv_scale` in this session, but there's no record of each uniform at its minimum, default and maximum, or of what changed.
+
+### The generated shader (Step 4)
+
+Converted by me in the editor on 1 Nov 2026, at about 19:32: a scratch StandardMaterial3D with Blue Metal Plate's albedo, roughness and GL normal map, made unique, then converted to a ShaderMaterial.
+- **The editor's output,** unedited: `shaders/new_shader.gdshader` (e58ccb4), the name the editor gave it.
+- **My annotated copy:** `shaders/standard_generated.gdshader` (92e12b8), the file LANGUAGE-NOTES.md cites.
+
+**Checked by Claude Code,** read-only:
+- **Line by line,** the annotated file has 48 lines, as the editor's does: 16 unchanged and 32 with a comment added at the end, with no other change. So every line number in it is the editor's.
+- **Both parse:** headless, each lists the same 16 uniforms with `get_shader_uniform_list()`, from `albedo` to `uv2_offset`.
+
+**After the session:**
+- The editor rewrote the same three campers' `.import` files again, as the session before (above). They're to be restored once the editor is closed.
+- `shaders/cooler_paint.gdshader` was saved at 19:05, but its content is the committed one: `git status` shows no change.
 
 ### Assignment 5's checks
 
@@ -794,10 +827,10 @@ In the asset room, in the editor's 3D view, on 82365df, with only the docs chang
 | Shaders parse | The cone's shader: the uniform-list assertions pass, there's no `SHADER ERROR`, and both mutations exit 1 (above). The cooler's and the hint experiment's: the material test's uniform-list assertions pass (above). |
 | Driver | Done: the uniforms sampled every frame at 30, 60 and 144 fps through real events at the camp, retriggers included, with first values, last values and game-time durations in the logs (above). |
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
-| In play (HUMAN CHECK) | Four spottings with the shader (above), of the five the brief asks for: two on 29 Oct at about 17:08, and two more at about 20:06. One more is still to do, with the cones fading back in, an overlap, the tutorial's end, the rest of the boundaries and the bubble demo. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
+| In play (HUMAN CHECK) | Five spottings with the shader (above), the five the brief asks for: two on 29 Oct at about 17:08, two more at about 20:06, and one on 1 Nov at about 18:15, with two red cones overlapping. The rest of the list (the cones fading back in, a red cone over a yellow one, the tutorial's end, the boundaries and the bubble demo) I checked on 1 Nov: "for now it looks fine all the aspects i have checked", with no detail for each. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
 | Hint experiment (HUMAN CHECK) | Done on 29 Oct (above). With `source_color`: 64, 128 and 192, unchanged. Without: 137, 188 and 225, against my 135, 184 and 225, from the known slip in my predictions. |
-| Interface sweep (HUMAN CHECK) | Started on 1 Nov: I moved the body's tint, `detail` and `uv_scale`, and kept the red (above). Each uniform at its minimum, default and maximum is still to do. |
-| One shader, two materials (HUMAN CHECK) | My screenshots of 1 Nov (above) show a body value changed with the lid unchanged, and the cooler and the lid's preview darker with `* 0.5` in my colour line. Whether they're my check is still to confirm. |
+| Interface sweep (HUMAN CHECK) | Started on 1 Nov: I moved the body's tint, `detail` and `uv_scale`, and kept the red (above). Each uniform at its minimum, default and maximum, with what changed, isn't recorded yet. |
+| One shader, two materials (HUMAN CHECK) | Done on 1 Nov (above), in the asset room with SSAO off: a change to the body's tint changed only the body, and `* 0.5` in my colour line darkened the body and the lid together. Undone, and the lid kept as committed. |
 | Material wiring | The material test passes 137 of 137, and again after a fresh import (above). My `source_color` mutation fails it, 136 of 137, on the sampler's hints (above). |
 | Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The material test prints the cooler's normal map's under both conventions: 0.427 and 1.573 (above). |
 | Import settings | Set explicitly on 29 Oct and read back after a reimport (above). The import from an empty cache rewrote none. After my first editor session with them (1 Nov), the editor had rewritten none of the cooler's, but three campers' by 3D detection; those were restored, and the rewrite is explained (above). |
