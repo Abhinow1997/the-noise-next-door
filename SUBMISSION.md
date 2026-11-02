@@ -1,6 +1,6 @@
 # SUBMISSION: Assignment 5
 
-> **Draft by Claude Code (1 Nov 2026), from the repo at fab87d0 and the work after it.** Fill in everything marked **[to fill]**, check that every line says it the way you would, then delete this note. The tagged commit's own SHA can't go into that commit: put it in the copy that goes to Canvas with `submission.zip`. The Assignment 3 version of this file is at the `a3` tag.
+> The SHA that `a5` points at and the source ZIP's checksum are in the note sent to Canvas with `submission.zip`: a commit can't contain its own SHA, and the ZIP is made from the tagged commit. The Assignment 3 version of this file is at the `a3` tag.
 
 **Assignment:** Assignment 5 - Shaders, Materials, and the Godot Shading Language
 
@@ -10,9 +10,9 @@
 
 **GitHub repository URL:** https://github.com/Abhinow1997/the-noise-next-door (branch `assignment-5`)
 
-**Git tag and submitted commit SHA:** `a5` → **[to fill: the SHA `a5` points at]**
+**Git tag and submitted commit SHA:** `a5`. Its SHA is in the Canvas note.
 
-**Game-source revision shown in the film:** **[to fill: no film yet]**
+**Game-source revision shown in the film:** fab87d0, for both videos. No game source has changed since: from fab87d0 to 29e8c65, `scripts/`, `shaders/`, `materials/`, `assets/`, `asset_room/`, `hint_experiment/`, `tests/`, the scenes and `project.godot` are unchanged, and the later commits change only the docs and `design/a5/captures/`.
 
 **Godot version, renderer, and operating system:** Godot 4.7.2 stable (official build `ed1daf0bf`), Forward+ (`project.godot`, `config/features`), Windows 11 Home (build 26300). The checks run in Git Bash through `scripts/run-test.sh`.
 
@@ -28,9 +28,15 @@
 - **The hint experiment's 3×1 PNG** of greys 64, 128 and 192 is written by code: `hint_experiment/make_greys_png.gd`.
 - No generated textures.
 
-**Final film URL and filename:** **[to fill: no film yet]**
+**Final film URL and filename:**
+- **My film:** https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQCnzYL7ey7LT7zVEVrO0jFmAbKyXsnhUe-laTWk6OFZZLM?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=K6LDBs
+  - Filename: **[to fill]**
+- **An AI explainer,** a NotebookLM Video Overview made from this repo's Assignment 5 docs (SOURCES.md): https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQBgIvE33j6oSbSy8me5VXouATxUTQ1MJgl4lw_25iPwa88?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=JOdeRB
+  - Filename: **[to fill]**
 
-**Final film SHA-256:** **[to fill]**
+**Final film SHA-256:**
+- My film: **[to fill]**
+- The AI explainer: **[to fill]**
 
 **Summary of my work:**
 - **My specification** (CHANGE-BRIEF.md, "Assignment 5: shaders and materials"), committed before either shader, with dated revisions.
@@ -47,7 +53,8 @@
   - five spottings in play;
   - the cooler in the editor with SSAO off, with the shader-edit and material-edit check;
   - my interface sweep (fab87d0).
-- **My language notes,** LANGUAGE-NOTES.md (b6a8185, revised on 1 Nov after Claude Code's checks), with line references to my shaders.
+- **My language notes,** LANGUAGE-NOTES.md (b6a8185, revised in 29e8c65 after Claude Code's checks), with line references to my shaders.
+- **The films:** my film, and an AI explainer that NotebookLM made from this repo's Assignment 5 docs.
 - **Claude Code's other work:**
   - the test wrapper's adaptation;
   - the materials and their import settings;
@@ -69,11 +76,11 @@
 - the mutations: the semicolon (85 of 93) and the rename (87 of 93) of my cone shader each exit 1. My `source_color` mutation of my cooler shader fails the material test, 136 of 137; its exit status wasn't recorded, and the test quits 1 on any failure;
 - no `SHADER ERROR` or `SCRIPT ERROR` in any log.
 
-**[to fill]** Clone the `a5` tag into an empty folder, run the import and every check above, and confirm the counts match.
+**My fresh-clone check of the `a5` tag:** **[to fill: the date, and whether every count above matched]**
 
 **Known limitations:**
-- **No film yet.**
-- **The interface sweep is partly recorded.** My notes on `tint` and `uv_scale` are in TEST-REPORT.md, but not yet what changed for `detail`, `roughness_scale` and `normal_strength`. **[remove this if you add them]**
+- **The AI explainer is NotebookLM's summary of my docs.** It may simplify or misstate details; the repo is the record.
+- **The interface sweep is partly recorded.** My notes on `tint` and `uv_scale` are in TEST-REPORT.md, but not yet what changed for `detail`, `roughness_scale` and `normal_strength`.
 - **The hint experiment** is one quad split in two, not the course's bool uniform with two materials on two quads. That was my decision (CHANGE-BRIEF.md, "Revised 29 Oct 2026: the hint experiment, on one quad split in two").
 - **My predictions have a known arithmetic slip:** most channels come out 1 to 3 steps low. My capture of Base at Camper's R is 3 steps above my prediction, past my 2-step match.
 - **In play,** the rest of my list (the cones fading back in, the tutorial's end, the boundaries and the bubble demo) is recorded only as "looks fine", with no detail for each. A red cone over a yellow one (my predicted failure 7) hasn't been seen.
@@ -91,5 +98,5 @@
 
 **Source ZIP:** `submission.zip`
 - Made with `git archive --format=zip --prefix=the-noise-next-door/ -o submission.zip a5`.
-- **[to fill: its size in bytes, its number of files, and its SHA-256]**
-- If you move `a5` again, remake the ZIP and update this.
+- Its size, number of files and SHA-256 are in the Canvas note.
+- If `a5` moves, the ZIP is made again and the Canvas note updated.

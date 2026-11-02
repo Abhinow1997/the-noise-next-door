@@ -68,7 +68,7 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 | 1 Nov | A grading run: the material test failing from an empty cache, and its fix | the commit after 72558cd |
 | 1 Nov | The log split: the sections before Assignment 5 moved to FRICTIONAL-EARLIER.md | its own commit, after the grading run's |
 | 1 Nov | The interface sweep: Claude's capture tool, my run and my notes | the tool's commit, then my captures' with the write-ups |
-| 1 Nov | Step 4, my revised Q2 to Q4, Claude's two checks, and its `hint_normal` probe | not committed yet |
+| 1 Nov | Step 4, my revised Q2 to Q4, Claude's two checks, and its `hint_normal` probe | 29e8c65 |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -775,6 +775,7 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
   - Claude first guessed the edge pixel was where the cooler meets the floor; it's on the body's right-hand outline against the grass.
 - **My row, and a third check:** I rewrote the `hint_normal` row from the probe and asked again. Claude found it accurate, with its numbers, link and line right, and one gap in the probe: it never showed an unbound sampler without the hint, so it couldn't say the flat normal was the hint's doing.
 - **Picked:** "Yes, add that frame". Claude added frame e, the no-hint copy with the map unbound. Against c, 99,150 pixels of the body change, the front face darker and the right side lighter: without the hint, an unbound sampler isn't flat. So the hint changes the value when nothing is bound, and not a bound map's.
-- **Not done yet:** my answer to the column's question in the `hint_normal` row, and committing LANGUAGE-NOTES.md.
+- **Committed** by me with the probe and its write-ups, as 29e8c65.
+- **Not done yet:** my answer to the column's question in the `hint_normal` row.
 - **Human / Claude / model:** the answers are mine. The checks, the pointers, the probe, its runs and this write-up are Claude's. No generative model.
 - **Human / Claude / model:** the run, the looking, the notes and the answers are mine. The tool, its test runs, the questions and this write-up are Claude's. No generative model.

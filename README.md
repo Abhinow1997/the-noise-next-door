@@ -102,7 +102,11 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - [tests/normal_map_check.gd](tests/normal_map_check.gd), calibrated on the texture set's own GL and DX pair.
 - **The shader Godot generates for a StandardMaterial3D:** [shaders/standard_generated.gdshader](shaders/standard_generated.gdshader), with my annotations; the editor's unedited output is [shaders/new_shader.gdshader](shaders/new_shader.gdshader). Nothing in the game uses either.
 - **My language notes:** [LANGUAGE-NOTES.md](LANGUAGE-NOTES.md), the generated shader read line by line and the course's eight questions, each with line references to my shaders.
-- **Still to come:** the film.
+- **The films,** both showing the game at fab87d0:
+  - [my film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQCnzYL7ey7LT7zVEVrO0jFmAbKyXsnhUe-laTWk6OFZZLM?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=K6LDBs);
+  - [an AI explainer](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQBgIvE33j6oSbSy8me5VXouATxUTQ1MJgl4lw_25iPwa88?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=JOdeRB), a NotebookLM Video Overview made from this repo's Assignment 5 docs.
+
+  Their filenames and SHA-256 are in [SUBMISSION.md](SUBMISSION.md).
 
 ### For the grader: seeing it
 
