@@ -39,8 +39,8 @@ Look in the editor's 3D view, not a run: running from the editor saves the scene
 ## 5. Step 4: reading the language (mine to write; the spec's Step 4 has the exact wording)
 
 - [x] In a scratch scene, not saved in the repo, make a StandardMaterial3D with the Blue Metal Plate albedo, normal map and roughness textures enabled. Make it unique, then convert it to a ShaderMaterial from the Inspector's resource menu. Save the code as `shaders/standard_generated.gdshader`, and annotate it.
-- [ ] `LANGUAGE-NOTES.md`, part 1: the line numbers in that file of `shader_type` and `render_mode`; the uniforms for the albedo colour and the normal-map strength; the albedo and normal-map samplers, with their hints; and the lines that write `ALBEDO`, `ROUGHNESS` and `NORMAL_MAP`.
-- [ ] Part 2: the eight questions, in my own words, each with a line reference to one of my three shaders:
+- [x] `LANGUAGE-NOTES.md`, part 1: the line numbers in that file of `shader_type` and `render_mode`; the uniforms for the albedo colour and the normal-map strength; the albedo and normal-map samplers, with their hints; and the lines that write `ALBEDO`, `ROUGHNESS` and `NORMAL_MAP`.
+- [x] Part 2: the eight questions, in my own words, each with a line reference to one of my three shaders:
   - what `shader_type` decides;
   - which processor functions I wrote and when each runs, and what moving my colour line into `vertex()` would change;
   - three built-ins I read and two I wrote, and which are read-only;

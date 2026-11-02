@@ -100,7 +100,8 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - [tests/test_materials.gd](tests/test_materials.gd), the material audit's test, with the audit itself in [MATERIALS.md](MATERIALS.md);
   - [tests/normal_map_check.gd](tests/normal_map_check.gd), calibrated on the texture set's own GL and DX pair.
 - **The shader Godot generates for a StandardMaterial3D:** [shaders/standard_generated.gdshader](shaders/standard_generated.gdshader), with my annotations; the editor's unedited output is [shaders/new_shader.gdshader](shaders/new_shader.gdshader). Nothing in the game uses either.
-- **Still to come:** my language notes, and the film.
+- **My language notes:** [LANGUAGE-NOTES.md](LANGUAGE-NOTES.md), the generated shader read line by line and the course's eight questions, each with line references to my shaders.
+- **Still to come:** the film.
 
 ### For the grader: seeing it
 

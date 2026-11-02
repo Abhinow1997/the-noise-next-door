@@ -1670,7 +1670,8 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 1 Nov | Spotting 5, two red cones overlapping; my answers on the cooler | the write-ups commit after 92e12b8 |
 | 1 Nov | The camp at night and the rest of the in-play list, in my words; asking about Step 4 | the write-ups commit after 92e12b8 |
 | 1 Nov | Step 4, the generated shader and my annotations | e58ccb4 (the editor's output) and 92e12b8 (my annotations), then the write-ups |
-| 1 Nov | Tidying: the campers' imports restored again, two empty logs committed, the full Step 2 transcript ignored | the commit after cc3107c |
+| 1 Nov | Tidying: the campers' imports restored again, two empty logs committed, the full Step 2 transcript ignored | febce30 |
+| 1 Nov | Step 4, my LANGUAGE-NOTES.md, and Claude's check of its line references | b6a8185 (my notes), then the write-ups after it |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2303,3 +2304,24 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Two `stderr` logs,** committed at my word ("u can commit them"): `logs/capture-window.stderr.log` and `logs/bubble-demo-check-window.stderr.log`, from the windowed runs of 29 Oct. Claude read them first: both are empty, so those runs wrote nothing to stderr.
 - **`session-3.jsonl`,** Step 2's full `claude -p` transcript: in my words, "we can ignore this and metion in the logs of it cause of the size we didnt commit". It's 2,665,761 bytes, over the course's 1 MB, so `.gitignore` now keeps it out. The committed `session-3-excerpt.jsonl` records the same size and SHA-256 in its first line; Claude checked both against the file.
 - **Human / Claude / model:** the decisions are mine. The restore, the checks, the `.gitignore` line and this write-up are Claude's. No generative model.
+
+### 2026-11-01 — Step 4, my LANGUAGE-NOTES.md, and Claude's check of its line references
+
+- **The template:** at my request ("can u give me a well designed LANGUAGE-NOTES.md format with sections and the qeustions u want me to answer"), Claude Code wrote the headings, the course's questions and empty tables, with no answers. I chose not to commit it on its own ("Not yet").
+- **My answers:** "I have now added a LANguage-notes.md file as well".
+- **Checked by Claude,** against the files: every line reference points where I say. That covers Part 1's nine lines in `shaders/standard_generated.gdshader`, every `file:line` in Q1 to Q8, `scripts/vision_cone.gd:129-133` (`set_look()`, which sets `alarm` and `shown`), and lines 8 to 18 of both cooler materials.
+- **Claude's review notes,** pointers rather than answers, for me to act on or not:
+  - Q3 asks for three built-ins I read, but `UV` is listed twice, so it names two;
+  - Q4 asks for each hint I used, and `hint_default_white` (`cooler_paint.gdshader:14`) isn't in its table;
+  - Q2's `vertex()` answer speaks of "the per-pixel `alarm` value", though `alarm` is a uniform (`vision_cone.gdshader:4`); and whether `ALBEDO` can be written in `vertex()` is worth checking in Godot's docs.
+- **Provenance:** Claude pointed out two lines of my file.
+  - Line 5 reads like a tool's note to me: "revise it into your own wording before submitting if the course requires independently written answers".
+  - Line 7 says the headings came "from the assignment template", where they're Claude's template from the assignment's Step 4, and that "The draft was vestted and updated using claude-code but only the formatting was handled by AI".
+  - Asked whose wording the answers are in, I answered: "Mine".
+  - Both lines are as I wrote them; changing them is up to me.
+- **Then I edited** ("I'll edit first"), and asked Claude to look again ("check the language notes for me anything thts looking bad ?").
+  - I had taken out line 5's note to myself. Claude's second review listed what still looked weak: line 7's wording, "draft" in line 5, the Q2 to Q4 gaps above, and smaller points on Q1, Q4's evidence, Q5's numbers, Q6's line 19 and Part 3's last row.
+  - Before committing, I changed line 7 to: "The headings, questions and tables came from the claude's template.The draft was written by me and vetted and updated using assitance of claude-code but only the formatting was handled by AI all the content was provide by me."
+  - Nothing else changed, so Claude's line-reference check still held. The Q2 to Q4 gaps are as they were.
+  - Committed at my word ("commit the files now") as b6a8185, without Claude's co-author line, since the answers are mine.
+- **Human / Claude / model:** the answers are mine, in my own words, by my answer above. The template, the line-reference check, the review notes and this write-up are Claude's.

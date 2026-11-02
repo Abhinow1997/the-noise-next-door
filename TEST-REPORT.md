@@ -384,7 +384,8 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 - **Five spottings are recorded in play,** and the cooler's "one shader, two materials" check is done (below).
 - **The rest of the in-play list and the cooler at the camp at night** were checked by me on 1 Nov, "looks fine", with no detail for each (below).
 - **The generated shader is in,** with my annotations (below).
-- **Not done yet:** a recorded interface sweep, and LANGUAGE-NOTES.md.
+- **LANGUAGE-NOTES.md is written,** and Claude Code checked that every line reference in it points where I say (FRICTIONAL.md, 1 Nov).
+- **Not done yet:** a recorded interface sweep.
 
 **What will be tested**
 
