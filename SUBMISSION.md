@@ -30,13 +30,13 @@
 
 **Final film URL and filename:**
 - **My film:** https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQCnzYL7ey7LT7zVEVrO0jFmAbKyXsnhUe-laTWk6OFZZLM?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=K6LDBs
-  - Filename: **[to fill]**
+  - Filename: `Screen Recording 2026-11-01 231031.mp4`
 - **An AI explainer,** a NotebookLM Video Overview made from this repo's Assignment 5 docs (SOURCES.md): https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQBgIvE33j6oSbSy8me5VXouATxUTQ1MJgl4lw_25iPwa88?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=JOdeRB
-  - Filename: **[to fill]**
+  - Filename: `Godot_4.mp4`
 
 **Final film SHA-256:**
-- My film: **[to fill]**
-- The AI explainer: **[to fill]**
+- My film: `7342efb91c0bc96ce89c70f90389ba1dfa7c6e44a565d2d840f81e6b3c58ac53`
+- The AI explainer: `8b2c3e82373617476b6b79f93e3bdf0d4a02f1f359cfa87939053222b1afbcad`
 
 **Summary of my work:**
 - **My specification** (CHANGE-BRIEF.md, "Assignment 5: shaders and materials"), committed before either shader, with dated revisions.
@@ -76,7 +76,7 @@
 - the mutations: the semicolon (85 of 93) and the rename (87 of 93) of my cone shader each exit 1. My `source_color` mutation of my cooler shader fails the material test, 136 of 137; its exit status wasn't recorded, and the test quits 1 on any failure;
 - no `SHADER ERROR` or `SCRIPT ERROR` in any log.
 
-**My fresh-clone check of the `a5` tag:** **[to fill: the date, and whether every count above matched]**
+**My fresh-clone check of the `a5` tag:** in the Canvas note, since it can only be run once the tag exists.
 
 **Known limitations:**
 - **The AI explainer is NotebookLM's summary of my docs.** It may simplify or misstate details; the repo is the record.
