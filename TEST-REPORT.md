@@ -820,6 +820,37 @@ Converted by me in the editor on 1 Nov 2026, at about 19:32: a scratch StandardM
 - The editor rewrote the same three campers' `.import` files again, exactly as in the session before (above). Once I'd closed it, Claude restored them with `git checkout`. A headless `--import` afterwards had no errors and rewrote nothing (`logs/reimport-after-editor-2.log`).
 - `shaders/cooler_paint.gdshader` was saved at 19:05, but its content is the committed one: `git status` shows no change.
 
+### The material test from an empty cache, again (1 Nov 2026)
+
+**Found** by Claude Code's grading run (1 Nov, about 21:00), which I asked for. In a fresh clone of 72558cd, imported from an empty cache, the material test failed 136 of 137 and exited 1, on "cooler.glb.import: Cooler_Blue is Use External, res://materials/cooler_body.tres". Every other check in the clone matched this report.
+
+**Why:**
+- The import rewrote one line of `assets/props/cooler.glb.import`: `Cooler_Blue`'s `use_external/path` became `uid://deu7cy0c12pgm`, the body material's own UID.
+- The editor gave `materials/cooler_body.tres` that UID when I saved my red body on 1 Nov. On 29 Oct its header had none, so the empty-cache run that day passed. The 1 Nov reruns used the existing cache, which had no reason to reimport the glb, so they didn't see it.
+- The test compared the path as text. `use_external/fallback_path` stays the `res://` path, and the lid, which has no UID, keeps its path.
+- The game wasn't affected: the same run found the cooler drawing with both materials.
+
+**The fix** (Claude Code, at my "Yes, fix it"):
+- `assets/props/cooler.glb.import` takes Godot's own rewrite, copied from the clone, with nothing typed by hand:
+  ```
+  -"use_external/path": "res://materials/cooler_body.tres"
+  +"use_external/path": "uid://deu7cy0c12pgm"
+  ```
+- `tests/test_materials.gd` (`_is_resource()`): the path may be the `res://` path, or a `uid://` that is that material's own UID (`ResourceUID.text_to_id()` against `ResourceLoader.get_resource_uid()`). Use External on and the `res://` fallback path are checked as before. No assertion was removed.
+
+**Checked** (1 Nov, Claude Code):
+- Two fresh clones with the fix, each imported from an empty cache: the import left `cooler.glb.import` exactly as committed, and the material test passed 137 of 137, exit 0. A clone without the fix was rewritten by its import to exactly the fixed file.
+- The check still fails, 136 of 137 and exit 1, with `Cooler_Blue`'s path set to the lid's `res://` path, to the cooler shader's real UID, and to a UID that doesn't exist.
+- In this repo, a headless `--import` reimported only `cooler.glb`, with no errors (`logs/reimport-cooler-uid.log`), and the material test passed 137 of 137 (`logs/test_materials_60fps.log`).
+- Every other check, in a fixed clone from its empty cache, through `scripts/run-test.sh`:
+  - the cone's shader test, 93 of 93, and the cones check, 43, at 30, 60 and 144 fps;
+  - the A3 assets (the log is identical to the committed one), sounds 30, bubble 87, camp 31, tasks 43 and plan 19, all passing;
+  - waves 12 of 13 and title 51 of 52, failing the same single checks as before;
+  - the calibration, unchanged: 0.427 and 1.573.
+
+  No log has a `SHADER ERROR` or `SCRIPT ERROR`.
+- One empty-cache import crashed at exit (segmentation fault, exit 139) after it had finished every reimport. The next two, with and without the fix, exited 0, so it's recorded as a one-off.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
@@ -832,9 +863,9 @@ Converted by me in the editor on 1 Nov 2026, at about 19:32: a scratch StandardM
 | Hint experiment (HUMAN CHECK) | Done on 29 Oct (above). With `source_color`: 64, 128 and 192, unchanged. Without: 137, 188 and 225, against my 135, 184 and 225, from the known slip in my predictions. |
 | Interface sweep (HUMAN CHECK) | Started on 1 Nov: I moved the body's tint, `detail` and `uv_scale`, and kept the red (above). Each uniform at its minimum, default and maximum, with what changed, isn't recorded yet. |
 | One shader, two materials (HUMAN CHECK) | Done on 1 Nov (above), in the asset room with SSAO off: a change to the body's tint changed only the body, and `* 0.5` in my colour line darkened the body and the lid together. Undone, and the lid kept as committed. |
-| Material wiring | The material test passes 137 of 137, and again after a fresh import (above). My `source_color` mutation fails it, 136 of 137, on the sampler's hints (above). |
+| Material wiring | The material test passes 137 of 137, and again after a fresh import (above). On 1 Nov it failed from an empty cache, 136 of 137, after the editor gave the body material a UID; fixed the same day, and 137 of 137 from an empty cache again (above). My `source_color` mutation fails it, 136 of 137, on the sampler's hints (above). |
 | Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The material test prints the cooler's normal map's under both conventions: 0.427 and 1.573 (above). |
-| Import settings | Set explicitly on 29 Oct and read back after a reimport (above). The import from an empty cache rewrote none. After my first editor session with them (1 Nov), the editor had rewritten none of the cooler's, but three campers' by 3D detection; those were restored, and the rewrite is explained (above). |
-| What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. All logged in FRICTIONAL.md. |
+| Import settings | Set explicitly on 29 Oct and read back after a reimport (above). The import from an empty cache rewrote none. After my first editor session with them (1 Nov), the editor had rewritten none of the cooler's, but three campers' by 3D detection; those were restored, and the rewrite is explained (above). An import from an empty cache after that session rewrote `cooler.glb.import`, writing the body's `use_external/path` as its `uid://`; that rewrite is now committed as Godot writes it, and explained (above). |
+| What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. On 1 Nov: the material test compared the body's import path as text, so it failed from an empty cache once the editor had given the material a UID, and Claude's reruns that day used the existing cache, so they didn't catch it; found by Claude's grading run and fixed the same day. All logged in FRICTIONAL.md. |
 
 A headless run can show that the timings, states, visibility and uniform values follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks.

@@ -251,10 +251,21 @@ func _check_imports() -> void:
 	var mats: Dictionary = glb.get_value("params", "_subresources", {}).get("materials", {})
 	for pair: Array in [["Cooler_Blue", BODY], ["Cooler_White", LID]]:
 		var m: Dictionary = mats.get(pair[0], {})
-		_check(m.get("use_external/enabled", false) == true and m.get("use_external/path", "") == pair[1]
+		var path: String = m.get("use_external/path", "")
+		_check(m.get("use_external/enabled", false) == true and _is_resource(path, pair[1])
 			and m.get("use_external/fallback_path", "") == pair[1],
-			"cooler.glb.import: %s is Use External, %s" % [pair[0], pair[1]])
+			"cooler.glb.import: %s is Use External, %s (path is %s)" % [pair[0], pair[1], path])
 	_check(not mats.has("Cooler_Grey"), "cooler.glb.import: Cooler_Grey stays embedded")
+
+
+## True if `path`, as an .import file gives it, names the resource at `res_path`. The importer
+## writes a material's uid:// once the material has a UID of its own (cooler_body.tres since
+## the editor saved it on 1 Nov 2026), and keeps the res:// path for one that hasn't.
+func _is_resource(path: String, res_path: String) -> bool:
+	if path.begins_with("uid://"):
+		var id := ResourceUID.text_to_id(path)
+		return id != ResourceUID.INVALID_ID and id == ResourceLoader.get_resource_uid(res_path)
+	return path == res_path
 
 
 ## The imported textures' formats, from get_image().get_format(), as MATERIALS.md says.

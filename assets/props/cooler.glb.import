@@ -44,7 +44,7 @@ _subresources={
 "Cooler_Blue": {
 "use_external/enabled": true,
 "use_external/fallback_path": "res://materials/cooler_body.tres",
-"use_external/path": "res://materials/cooler_body.tres"
+"use_external/path": "uid://deu7cy0c12pgm"
 },
 "Cooler_White": {
 "use_external/enabled": true,

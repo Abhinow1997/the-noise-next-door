@@ -36,8 +36,9 @@
 - **Where its materials come from:** the glb names three, `Cooler_Blue`, `Cooler_White` and `Cooler_Grey` (its
   JSON chunk). `_subresources` in `assets/props/cooler.glb.import` sets the first two to Use External:
   `materials/cooler_body.tres` and `materials/cooler_lid.tres`, both the author's `shaders/cooler_paint.gdshader`.
-  Its keys are `use_external/enabled`, `use_external/path` and `use_external/fallback_path` (added by Godot's
-  reimport). `Cooler_Grey` stays embedded. Tangents are built on import (`meshes/ensure_tangents=true`).
+  Its keys are `use_external/enabled`, `use_external/path` (the body's as its `uid://`, as the import writes it)
+  and `use_external/fallback_path` (added by Godot's reimport). `Cooler_Grey` stays embedded. Tangents are built
+  on import (`meshes/ensure_tangents=true`).
 - Its textures: Blue Metal Plate in `assets/textures/blue_metal_plate/` (credits in `ATTRIBUTION.md`), with their
   import settings in the `.import` files; `_nor_dx` is set to Skip, only to calibrate `tests/normal_map_check.gd`.
 - No game code recolours the cooler: `_recolor()` is called only for the second tent (`_ready()` in `scripts/campsite.gd`).
@@ -111,6 +112,6 @@ them starts as a dated change to the brief, made by the human.
 
 ## Unconfirmed
 
-- The counts in `TEST-REPORT.md` were last measured on 29 Oct 2026, from an empty cache after the material audit; run the checks again before trusting them later.
+- The counts in `TEST-REPORT.md` were last measured on 1 Nov 2026, from an empty cache after the cooler's import fix; run the checks again before trusting them later.
 - `run-test.sh` forwards only two arguments, so `a3_asset_check.gd -- --mutate` (`README.md`, its Assignment 3 section)
   and the `--*-shots=` options can't be run through it as it is.

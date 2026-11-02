@@ -1672,6 +1672,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 1 Nov | Step 4, the generated shader and my annotations | e58ccb4 (the editor's output) and 92e12b8 (my annotations), then the write-ups |
 | 1 Nov | Tidying: the campers' imports restored again, two empty logs committed, the full Step 2 transcript ignored | febce30 |
 | 1 Nov | Step 4, my LANGUAGE-NOTES.md, and Claude's check of its line references | b6a8185 (my notes), then the write-ups after it |
+| 1 Nov | A grading run: the material test failing from an empty cache, and its fix | the commit after 72558cd |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2325,3 +2326,17 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
   - Nothing else changed, so Claude's line-reference check still held. The Q2 to Q4 gaps are as they were.
   - Committed at my word ("commit the files now") as b6a8185, without Claude's co-author line, since the answers are mine.
 - **Human / Claude / model:** the answers are mine, in my own words, by my answer above. The template, the line-reference check, the review notes and this write-up are Claude's.
+
+### 2026-11-01 — A grading run: the material test failing from an empty cache, and its fix
+
+- **Asked:** I pasted the assignment and asked Claude Code to "act as the grader" for my work in the repo, leaving out the film ("foget abt the film we can excuse the same"). Its grade is in the chat, not the repo.
+- **What it ran:** a clone of 72558cd in a scratch folder, `--import` from an empty cache, and every check through `scripts/run-test.sh`. It also read my controlled-value and hint captures' pixels back with headless Godot: they hold the values in TEST-REPORT.md.
+- **What it found:** every check matched TEST-REPORT.md except the material test, which failed 136 of 137 and exited 1.
+  - The import had rewritten `Cooler_Blue`'s `use_external/path` in `assets/props/cooler.glb.import` as `uid://deu7cy0c12pgm`. The editor gave `materials/cooler_body.tres` that UID when I saved my red body earlier on 1 Nov, and the test compared the path as text.
+  - The 29 Oct empty-cache run came before that UID. The 1 Nov reruns used the existing cache, which didn't reimport the glb, so they didn't see it.
+  - The game wasn't affected: the cooler still drew with both materials.
+- **Picked:** "Yes, fix it".
+- **Fixed** by Claude Code: Godot's rewrite of the `.import` file taken as it is, and the test's check made to accept that material's own UID as well as its `res://` path. No assertion was removed. It's kept apart from other changes, so it can be its own commit with the `.import` diff and the reason, as the course asks for a rewritten import setting.
+- **Checked** by Claude: the fix passes 137 of 137 from an empty cache in two fresh clones, and the import leaves the file as committed. The check still fails with the body's path pointed at the lid, at another real UID, or at a UID that doesn't exist. Every other check stays at its baseline. One empty-cache import crashed at exit after finishing its work, and the next two didn't. Details in TEST-REPORT.md, "The material test from an empty cache, again".
+- **Committed** on its own, at my word ("commit the updated files in"), with the `.import` diff and the reason in TEST-REPORT.md.
+- **Human / Claude / model:** the request and the decision are mine. The grading run, the finding, the fix, the checks and this write-up are Claude's. No generative model.
