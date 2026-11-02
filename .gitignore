@@ -23,3 +23,7 @@ __pycache__/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Step 2's full claude -p transcript: 2.7 MB, over the course's 1 MB, so it stays out of git.
+# The committed excerpt, session-3-excerpt.jsonl, records its size and SHA-256 in its first line.
+/session-3.jsonl

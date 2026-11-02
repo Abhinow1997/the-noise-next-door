@@ -816,7 +816,7 @@ Converted by me in the editor on 1 Nov 2026, at about 19:32: a scratch StandardM
 - **Both parse:** headless, each lists the same 16 uniforms with `get_shader_uniform_list()`, from `albedo` to `uv2_offset`.
 
 **After the session:**
-- The editor rewrote the same three campers' `.import` files again, as the session before (above). They're to be restored once the editor is closed.
+- The editor rewrote the same three campers' `.import` files again, exactly as in the session before (above). Once I'd closed it, Claude restored them with `git checkout`. A headless `--import` afterwards had no errors and rewrote nothing (`logs/reimport-after-editor-2.log`).
 - `shaders/cooler_paint.gdshader` was saved at 19:05, but its content is the committed one: `git status` shows no change.
 
 ### Assignment 5's checks

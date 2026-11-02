@@ -1670,6 +1670,7 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 | 1 Nov | Spotting 5, two red cones overlapping; my answers on the cooler | the write-ups commit after 92e12b8 |
 | 1 Nov | The camp at night and the rest of the in-play list, in my words; asking about Step 4 | the write-ups commit after 92e12b8 |
 | 1 Nov | Step 4, the generated shader and my annotations | e58ccb4 (the editor's output) and 92e12b8 (my annotations), then the write-ups |
+| 1 Nov | Tidying: the campers' imports restored again, two empty logs committed, the full Step 2 transcript ignored | the commit after cc3107c |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -2295,3 +2296,10 @@ The storyboard's gameplay panels depend on this camera, so it belongs in this lo
 - **Committed** by Claude at my word, in two commits and without its co-author line, since both are mine: the editor's output (e58ccb4), then my annotations (92e12b8).
 - **Also found:** the editor rewrote the same three campers' `.import` files again, to be restored once it's closed. `shaders/cooler_paint.gdshader` was saved at 19:05, with its content unchanged.
 - **Human / Claude / model:** the conversion and the annotations are mine. The checks, the review notes and this write-up are Claude's. No generative model.
+
+### 2026-11-01 — Tidying: the campers' imports restored again, two empty logs committed, the full Step 2 transcript ignored
+
+- **The campers' imports:** after I closed the editor ("closed now u can commit"), Claude restored the three `.import` files it had rewritten, `chubby_boy_cicciotto.png`, `lowpoly_man_OMO1.png` and `simple_girl_repack.png`. The rewrite was exactly the one of the session before: Lossless to VRAM Compressed by 3D detection. A headless `--import` afterwards had no errors and rewrote nothing (`logs/reimport-after-editor-2.log`). The next editor session that draws them will rewrite them again, unless their `detect_3d/compress_to` is set to 0.
+- **Two `stderr` logs,** committed at my word ("u can commit them"): `logs/capture-window.stderr.log` and `logs/bubble-demo-check-window.stderr.log`, from the windowed runs of 29 Oct. Claude read them first: both are empty, so those runs wrote nothing to stderr.
+- **`session-3.jsonl`,** Step 2's full `claude -p` transcript: in my words, "we can ignore this and metion in the logs of it cause of the size we didnt commit". It's 2,665,761 bytes, over the course's 1 MB, so `.gitignore` now keeps it out. The committed `session-3-excerpt.jsonl` records the same size and SHA-256 in its first line; Claude checked both against the file.
+- **Human / Claude / model:** the decisions are mine. The restore, the checks, the `.gitignore` line and this write-up are Claude's. No generative model.
