@@ -67,6 +67,7 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 | 1 Nov | Step 4, my LANGUAGE-NOTES.md, and Claude's check of its line references | b6a8185 (my notes), then the write-ups after it |
 | 1 Nov | A grading run: the material test failing from an empty cache, and its fix | the commit after 72558cd |
 | 1 Nov | The log split: the sections before Assignment 5 moved to FRICTIONAL-EARLIER.md | its own commit, after the grading run's |
+| 1 Nov | The interface sweep: Claude's capture tool, my run and my notes | the tool's commit, then my captures' with the write-ups |
 
 ### 2026-10-25 — Starting Assignment 5: the branch, the test wrapper, the baseline, and my first brief
 
@@ -743,3 +744,22 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 - **Links:** the eleven mentions of FRICTIONAL.md in the other docs that meant the moved entries now name FRICTIONAL-EARLIER.md (ASSET-PLAN.md, BLENDER-NOTES.md, two in the README, five in SOURCES.md, and two in TEST-REPORT.md's Assignment 3 section). The README's link to this section's anchor still works.
 - **Left as they are:** every Assignment 5 entry, unreworded, including the grading run's entry above, which another Claude Code session wrote.
 - **Human / Claude / model:** the request is mine. The move, the checks and this write-up are Claude's. No generative model.
+
+### 2026-11-01 — The interface sweep: Claude's capture tool, my run and my notes
+
+- **Asked:** after the grading run marked my sweep as not recorded, I asked what that meant, then "lets do that", to Claude's offer of a capture tool.
+- **The tool,** `design/a5/captures/capture_sweep.gd`, by Claude Code: in a window, on the asset room's cooler with SSAO off, F9 steps through every uniform of my cooler shader on the body's material, at its minimum, shader default and maximum, one at a time. Each setting is held on screen, then saved from the game's own frame. It also saves a strip per uniform and `sweep.txt`. Nothing is saved to the material or the scene.
+- **Claude's test runs** (three, into a scratch folder), and what they caught:
+  - the first framed the whole room, because the view was set before the room was ready;
+  - in the second, the window was maximized after the first capture, so 14 frames came out 1920 × 991 and the strips were cropped wrong. The tool now locks the window at 1280 × 720 and stops if a frame isn't that size;
+  - the lid's blown-out pixels are in every frame, so each frame's count is now given against the cooler as committed.
+  - In the third, all 15 frames were 1280 × 720, and two with the same settings matched pixel for pixel.
+- **My run,** at 21:26, with F9: 15 captures and 5 strips in `design/a5/captures/sweep/`, with the same numbers as Claude's last test run.
+- **My notes,** as I sent them: "All these settings completely give the extreme balck and white effects to the cooleer making it completley break the look all the others have varing effect these in large are the exteme of all to black and white colurs breaking the look completely" and "Aprat from the same the best look feels from the uv_scale = 4.000 (max) setting and feels good for the game and the cooler".
+- **Claude's three questions,** since my notes listed the committed red among the tints that break the look, and gave nothing per uniform for three of them. My answers, picked from its options:
+  - which tints broke it: black and white only;
+  - `uv_scale` 4.0: note it only, so the body keeps 1.441;
+  - `detail`, `roughness_scale` and `normal_strength`: I'll add what changed for each.
+- **Recorded** by Claude in TEST-REPORT.md, "The interface sweep", beside my brief's predictions, with those three rows still to come from me.
+- **Committed** at my word ("commit the updated files in"): the tool on its own, then my captures with these write-ups.
+- **Human / Claude / model:** the run, the looking, the notes and the answers are mine. The tool, its test runs, the questions and this write-up are Claude's. No generative model.

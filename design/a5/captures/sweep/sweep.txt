@@ -1,0 +1,29 @@
+Interface sweep of shaders/cooler_paint.gdshader on res://materials/cooler_body.tres, 2026-11-01T21:26:34, window 1280 x 720.
+The asset room, framed as key 2 frames the cooler, paused. Sun light_energy 0.8, ambient_light_energy 0.8, SSAO off, tonemap 0, exposure 1.0.
+Committed: detail 0.628, uv_scale 1.441, roughness_scale 1.000, normal_strength 1.000, tint #b25d57
+Each capture changes one uniform; the others stay at the committed values. The strips are cropped to the cooler, at [P: (268, 89), S: (730, 590)].
+'clipped' counts the pixels in that crop with a channel at 254 or 255: blown out. The lid isn't swept, so its own
+clipped pixels are in every capture; the change against the as-committed capture is the body's setting.
+
+00_as_committed.png                            as committed                                   clipped 45781 (+0 against as committed)
+01_detail_min.png                              detail = 0.000 (min)                           clipped 45762 (-19 against as committed)
+02_detail_shader_default.png                   detail = 0.500 (shader default)                clipped 45770 (-11 against as committed)
+03_detail_max.png                              detail = 1.000 (max)                           clipped 45861 (+80 against as committed)
+  strip_detail.png, left to right: min 0.000 | shader default 0.500 | max 1.000
+04_uv_scale_min.png                            uv_scale = 0.250 (min)                         clipped 45762 (-19 against as committed)
+05_uv_scale_shader_default.png                 uv_scale = 1.000 (shader default)              clipped 45772 (-9 against as committed)
+06_uv_scale_max.png                            uv_scale = 4.000 (max)                         clipped 45764 (-17 against as committed)
+  strip_uv_scale.png, left to right: min 0.250 | shader default 1.000 | max 4.000
+07_roughness_scale_min.png                     roughness_scale = 0.000 (min)                  clipped 45779 (-2 against as committed)
+08_roughness_scale_shader_default_and_max.png  roughness_scale = 1.000 (shader default and max) clipped 45781 (+0 against as committed)
+  strip_roughness_scale.png, left to right: min 0.000 | shader default and max 1.000
+09_normal_strength_min.png                     normal_strength = 0.000 (min)                  clipped 45780 (-1 against as committed)
+10_normal_strength_shader_default.png          normal_strength = 1.000 (shader default)       clipped 45781 (+0 against as committed)
+11_normal_strength_max.png                     normal_strength = 2.000 (max)                  clipped 45778 (-3 against as committed)
+  strip_normal_strength.png, left to right: min 0.000 | shader default 1.000 | max 2.000
+12_tint_black.png                              tint = #000000 (black)                         clipped 45762 (-19 against as committed)
+13_tint_shader_default.png                     tint = #ffffff (shader default, white)         clipped 97836 (+52055 against as committed)
+14_tint_committed.png                          tint = #b25d57 (committed)                     clipped 45781 (+0 against as committed)
+  strip_tint.png, left to right: black #000000 | shader default, white #ffffff | committed #b25d57
+
+What changed on screen, and whether a setting breaks the look, is the author's to write (TEST-REPORT.md).

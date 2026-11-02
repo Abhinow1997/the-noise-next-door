@@ -385,7 +385,7 @@ Claude's pictures from below (03) and close up (04–09) show none, but that's C
 - **The rest of the in-play list and the cooler at the camp at night** were checked by me on 1 Nov, "looks fine", with no detail for each (below).
 - **The generated shader is in,** with my annotations (below).
 - **LANGUAGE-NOTES.md is written,** and Claude Code checked that every line reference in it points where I say (FRICTIONAL.md, 1 Nov).
-- **Not done yet:** a recorded interface sweep.
+- **The interface sweep is captured** (1 Nov, below), with my notes on `tint` and `uv_scale`. **Not done yet:** my notes on `detail`, `roughness_scale` and `normal_strength`.
 
 **What will be tested**
 
@@ -851,6 +851,33 @@ Converted by me in the editor on 1 Nov 2026, at about 19:32: a scratch StandardM
   No log has a `SHADER ERROR` or `SCRIPT ERROR`.
 - One empty-cache import crashed at exit (segmentation fault, exit 139) after it had finished every reimport. The next two, with and without the fix, exited 0, so it's recorded as a one-off.
 
+### The interface sweep (HUMAN CHECK)
+
+Taken by me on 1 Nov 2026 at 21:26, with `design/a5/captures/capture_sweep.gd` and F9, on the working tree after 72558cd (the shader and both materials as committed). The tool is Claude Code's. It opens the asset room as my brief says to judge the cooler: the Sun and the ambient light at 0.8, SSAO off, the Linear tonemap at exposure 1. It frames the cooler as key 2 does and pauses the scene, then sets each uniform of the body's material in turn, with the others at their committed values. Each setting is held on screen for 1.5 s, then saved from the game's own 1280 × 720 frame. Nothing is saved to the material or the scene.
+
+The captures, a strip per uniform, and `sweep.txt` are in [design/a5/captures/sweep/](design/a5/captures/sweep/). Claude Code's three test runs of the tool, into a scratch folder, gave the same numbers as mine, and two captures with the same settings matched pixel for pixel.
+
+**What I saw,** in my words, as I sent them:
+- "All these settings completely give the extreme balck and white effects to the cooleer making it completley break the look all the others have varing effect these in large are the exteme of all to black and white colurs breaking the look completely"
+- "Aprat from the same the best look feels from the uv_scale = 4.000 (max) setting and feels good for the game and the cooler"
+
+My first note was about the three `tint` settings. Asked which of them broke the look, since my note listed the committed red too, I answered: black and white only. Asked what should happen with `uv_scale` 4.0, I answered: note it only, so the body keeps `uv_scale` 1.441 as committed. (Both picked from Claude Code's options.)
+
+| Uniform | Min / shader default / max | My prediction (the brief's uniform table) | What I saw | Breaks the look? | Strip |
+|---|---|---|---|---|---|
+| `tint` | black / white / (the committed red) | "The part's colour, with the texture's scratches showing in it" | Black and white: "the extreme balck and white effects to the cooleer" | Black and white, "completely". The committed red, no. | `strip_tint.png` |
+| `uv_scale` | 0.25 / 1 / 4 | "At 0.25 the scratches are 4 times bigger; at 4 they're 4 times smaller, and may turn into a fine pattern" | 4.0: "the best look", it "feels good for the game and the cooler" | Not stated | `strip_uv_scale.png` |
+| `detail` | 0 / 0.5 / 1 | "0: the flat colour the cooler has today. 1: the plate's full scratches and scuffs", which "may clash with the game's flat low-poly look" | "varing effect"; what changed is still to come from me | Still to come | `strip_detail.png` |
+| `roughness_scale` | 0 / 1 (also its max) | "0: shiny as a mirror everywhere, catching the sun. 1: the map's own roughness" | "varing effect"; what changed is still to come from me | Still to come | `strip_roughness_scale.png` |
+| `normal_strength` | 0 / 1 / 2 | "0: flat, lit as it is today. 1: the scratches catch the light as the map says. 2: twice as deep, which may look wrong" | "varing effect"; what changed is still to come from me | Still to come | `strip_normal_strength.png` |
+
+**Measured by the tool** (`sweep.txt`): the pixels in the cooler's crop with a channel at 254 or 255, against the cooler as committed. The lid isn't swept, and its own are in every capture, about 45,760.
+- `tint` white: +52,055, the most of any setting. Black: −19.
+- `detail` 1: +80.
+- Every other setting: within 19 of the cooler as committed.
+
+**What it can't show:** the cooler from one camera angle and one light only, so a setting whose effect depends on the angle, such as a shine from `roughness_scale` 0, may show little here.
+
 ### Assignment 5's checks
 
 | Check | Result so far |
@@ -861,7 +888,7 @@ Converted by me in the editor on 1 Nov 2026, at about 19:32: a scratch StandardM
 | Controlled values (HUMAN CHECK) | Done on 29 Oct (above). Every channel is within 2 except Base at Camper's R, 3 high, from the known slip in my predictions. `hint_range` doesn't clamp, there's no fog at my spots, and the OS screenshot matches once mapped. |
 | In play (HUMAN CHECK) | Five spottings with the shader (above), the five the brief asks for: two on 29 Oct at about 17:08, two more at about 20:06, and one on 1 Nov at about 18:15, with two red cones overlapping. The rest of the list (the cones fading back in, a red cone over a yellow one, the tutorial's end, the boundaries and the bubble demo) I checked on 1 Nov: "for now it looks fine all the aspects i have checked", with no detail for each. Before any shader, I played twice at the camp on 26 Oct, but didn't record what I saw. |
 | Hint experiment (HUMAN CHECK) | Done on 29 Oct (above). With `source_color`: 64, 128 and 192, unchanged. Without: 137, 188 and 225, against my 135, 184 and 225, from the known slip in my predictions. |
-| Interface sweep (HUMAN CHECK) | Started on 1 Nov: I moved the body's tint, `detail` and `uv_scale`, and kept the red (above). Each uniform at its minimum, default and maximum, with what changed, isn't recorded yet. |
+| Interface sweep (HUMAN CHECK) | Captured by me on 1 Nov at 21:26, every uniform at its minimum, shader default and maximum (above). Recorded: black and white `tint` break the look, and `uv_scale` 4.0 looks best to me. What changed for `detail`, `roughness_scale` and `normal_strength` is still to come from me. |
 | One shader, two materials (HUMAN CHECK) | Done on 1 Nov (above), in the asset room with SSAO off: a change to the body's tint changed only the body, and `* 0.5` in my colour line darkened the body and the lid together. Undone, and the lid kept as committed. |
 | Material wiring | The material test passes 137 of 137, and again after a fresh import (above). On 1 Nov it failed from an empty cache, 136 of 137, after the editor gave the body material a UID; fixed the same day, and 137 of 137 from an empty cache again (above). My `source_color` mutation fails it, 136 of 137, on the sampler's hints (above). |
 | Texture data | The normal-map check, calibrated on the GL and DX pair, as given and with `s` flipped (above). The material test prints the cooler's normal map's under both conventions: 0.427 and 1.573 (above). |

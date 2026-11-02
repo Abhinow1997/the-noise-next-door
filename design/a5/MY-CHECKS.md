@@ -28,7 +28,19 @@ GODOT="/c/Users/dotbix/AppData/Local/Programs/Godot/Godot_v4.7.2-stable_win64_co
 Look in the editor's 3D view, not a run: running from the editor saves the scene first.
 
 - [x] **The cooler under its light:** open `asset_room/asset_room.tscn` and turn the Environment's SSAO off. The body should read as scuffed painted metal, and the lid as smoother white plastic. Then one look at the camp at night, in play. (Both done on 1 Nov.)
-- [ ] **Interface sweep (HUMAN CHECK):** on `materials/cooler_body.tres`, each uniform at its minimum, the shader's default and its maximum: `detail` 0 / 0.5 / 1, `uv_scale` 0.25 / 1 / 4, `roughness_scale` 0 / 1 / 1, `normal_strength` 0 / 1 / 2, and `tint` black and white. Record what changed, and any setting that breaks the look.
+- [ ] **Interface sweep (HUMAN CHECK):** on `materials/cooler_body.tres`, each uniform at its minimum, the shader's default and its maximum: `detail` 0 / 0.5 / 1, `uv_scale` 0.25 / 1 / 4, `roughness_scale` 0 / 1 / 1, `normal_strength` 0 / 1 / 2, and `tint` black and white. Record what changed, and any setting that breaks the look. (Captured on 1 Nov at 21:26, and my notes on `tint` and `uv_scale` are in TEST-REPORT.md; still to send: what changed for `detail`, `roughness_scale` and `normal_strength`.)
+  - **Take the captures** (Claude Code's tool, 1 Nov): `"$GODOT" --path . --script "$(pwd)/design/a5/captures/capture_sweep.gd"`. A window opens on the asset room's cooler with SSAO off. Press F9 in it, and watch: each setting stays on screen for 1.5 s, named at the top, then it's saved. About 25 s; leave the window as it opens. It saves to `design/a5/captures/sweep/`: 15 captures, a strip per uniform (its captures side by side, cropped to the cooler) and `sweep.txt` (what each capture set, and how many pixels it blew out against the cooler as committed). Nothing is saved to the material or the scene.
+  - **Then write what you saw,** in your own words, from the strips and the window, and tell Claude Code for TEST-REPORT.md:
+
+    | Uniform | Min | Shader default | Max | What changed on screen | Breaks the look? Which setting? |
+    |---|---|---|---|---|---|
+    | `detail` | 0 | 0.5 | 1 | | |
+    | `uv_scale` | 0.25 | 1 | 4 | | |
+    | `roughness_scale` | 0 | 1 (also its max) | | | |
+    | `normal_strength` | 0 | 1 | 2 | | |
+    | `tint` | black | white | (the committed red, third in its strip) | | |
+
+    Compare each row with the "What I expect across its range" column of the brief's uniform table (its 28 Oct material plan), and say where it differed.
 - [x] **One shader, two materials (HUMAN CHECK):** a capture of the body and the lid side by side. Edit one line of `shaders/cooler_paint.gdshader`: both should change. Edit one value in `materials/cooler_lid.tres`: only the lid should change. Undo both.
 - [x] **After closing the editor:** `git status`. If any `.import`, `.tres` or `.tscn` changed, tell Claude Code: the course wants any rewritten `.import` explained. `git diff -- shaders/ materials/` must be empty.
 
