@@ -62,26 +62,38 @@ const SIMPLE_GIRL := "res://assets/characters/simple_girl.glb"
 ## Where things stand on the ground (x, z), from the fire, which is a little west of the
 ## middle of the camp's clearing; and which way their fronts face in degrees (0 faces
 ## the camera's side, +Z; -90 faces west, back toward his tree).
-const FIRE := Forest.CAMP + Vector2(-1.6, -0.5)
-const CAMPER_TENT := [FIRE + Vector2(5.0, -0.4), -90.0]
-const OTHER_TENT := [FIRE + Vector2(2.2, 3.6), -148.0]
-const TABLE := [FIRE + Vector2(-1.2, -2.6), 0.0]
-const SPEAKER := [FIRE + Vector2(0.0, -2.7), 10.0]
-const COOLER_AT := [FIRE + Vector2(-1.3, 1.4), 35.0]
+## Spread out on 7 Nov 2026, when the camp grew (forest.gd CAMP_RADIUS) and the author
+## approved Claude Code's layout: the fire's circle (its logs, where the camper roasts,
+## his backpack and where the girl warms her hands) stays as it was, and the rest stands
+## about 1.6 times as far from the fire: the party's corner to the north (the table, its
+## speaker and socket, the string lights, the dancers), the tents to the east and south-
+## east, and the cooler by the table (it was by the logs). Before: the fire at CAMP +
+## (-1.6, -0.5), the tents at (5.0, -0.4) and (2.2, 3.6), the table at (-1.2, -2.6), the
+## speaker at (0.0, -2.7), the cooler at (-1.3, 1.4) facing 35 degrees.
+const FIRE := Forest.CAMP + Vector2(-2.5, -0.8)
+const CAMPER_TENT := [FIRE + Vector2(8.2, -0.6), -90.0]
+const OTHER_TENT := [FIRE + Vector2(3.6, 5.8), -148.0]
+const TABLE := [FIRE + Vector2(-1.95, -4.2), 0.0]
+## Beside the table, as before (1.2 m east of its middle and 0.1 m north).
+const SPEAKER := [FIRE + Vector2(-0.75, -4.3), 10.0]
+## By the table, facing the fire.
+const COOLER_AT := [FIRE + Vector2(-4.5, -2.2), 64.0]
 ## The logs round the fire: middle, which way they lie (degrees), length.
 const LOGS := [[FIRE + Vector2(-1.5, 0.2), 80.0, 1.5], [FIRE + Vector2(0.7, 1.4), -35.0, 1.4]]
 ## The dancers: who and where; they face the fire. The second is two beats behind the
-## first, so they step out to opposite sides.
-const DANCERS := [[LOWPOLY_MAN, FIRE + Vector2(-0.7, -1.5)], [SIMPLE_GIRL, FIRE + Vector2(0.9, -1.25)]]
+## first, so they step out to opposite sides. (Before 7 Nov 2026: (-0.7, -1.5) and
+## (0.9, -1.25).)
+const DANCERS := [[LOWPOLY_MAN, FIRE + Vector2(-1.15, -2.45)], [SIMPLE_GIRL, FIRE + Vector2(1.45, -2.0)]]
 const DANCE_OFFSETS := [0.0, 2.0]
 ## Each one's walk and run at 1x (m/s, from their animate_*.py) and how fast they chase:
 ## the camper, the low-poly man, the girl (who never chases).
 const CAMPER_SPEEDS := [1.02, 3.28, 2.7]
 const MAN_SPEEDS := [1.10, 3.56, 3.1]
 const GIRL_SPEEDS := [1.04, 3.33, 0.0]
-## The camp, as the people see it: within CAMP_ZONE metres of its middle. A chitter
-## this near any of them is heard.
-const CAMP_ZONE := 9.0
+## The camp, as the people see it: within CAMP_ZONE metres of its middle (9 before the
+## camp grew on 7 Nov 2026: the clearing's radius and 1.5 m more, then and now). A
+## chitter this near any of them is heard.
+const CAMP_ZONE := 12.5
 const HEAR_CHITTER := 8.0
 ## While the party's music plays, noises carry only this much as far.
 const PARTY_MASK := 0.6
@@ -95,8 +107,9 @@ const GIRL_GRIP := Vector3(-0.0056, 0.0901, 0.0363)
 ## Their routines' other places, from the fire (x, z): where the camper roasts (facing
 ## the fire, his back to the backpack), where he has his pizza at the table, and where
 ## the girl warms her hands. The low-poly man's drink is in front of the cooler.
+## (PIZZA was (-1.5, -1.85): it's the same place by the table, which moved.)
 const ROAST := Vector2(-0.95, 0.3)
-const PIZZA := Vector2(-1.5, -1.85)
+const PIZZA := Vector2(-2.25, -3.45)
 const WARM := Vector2(0.95, 0.75)
 ## How long each activity lasts (seconds, from, to).
 const PEG_TIME := Vector2(25, 35)
@@ -108,14 +121,31 @@ const GIRL_DANCE_TIME := Vector2(30, 45)
 const WARM_TIME := Vector2(12, 18)
 ## The camper's mallet, put down by the peg while he's away from it (in his own space).
 const MALLET_DOWN := Vector3(0.25, 0.04, 0.45)
-## The string lights' poles, in the order the string runs.
-const POLES := [FIRE + Vector2(-2.4, -3.3), FIRE + Vector2(1.3, -3.7), FIRE + Vector2(4.1, -2.1)]
+## The string lights' poles, in the order the string runs (1.6 times as far from the
+## fire as before 7 Nov 2026).
+const POLES := [FIRE + Vector2(-3.85, -5.3), FIRE + Vector2(2.1, -5.9), FIRE + Vector2(6.55, -3.35)]
 ## The table's top (m) and where its legs stand, either side of its middle (x, z).
 const TABLE_TOP := 0.74
 const TABLE_LEGS := Vector2(0.59, 0.36)
-## Ground the forest keeps clear of rocks and tufts (x, z, radius).
-const CLEARINGS: Array[Vector3] = [Vector3(FIRE.x, FIRE.y - 0.6, 3.0), Vector3(FIRE.x + 5.0, FIRE.y - 0.4, 1.6),
-	Vector3(FIRE.x + 2.2, FIRE.y + 3.6, 1.6), Vector3(FIRE.x + 5.6, FIRE.y + 1.6, 0.7)]
+## Ground the forest keeps clear of rocks and tufts (x, z, radius): the fire and the
+## party's corner, each tent, the camper's peg and the cooler.
+const CLEARINGS: Array[Vector3] = [Vector3(FIRE.x - 0.5, FIRE.y - 1.5, 4.8), Vector3(FIRE.x + 8.2, FIRE.y - 0.6, 1.6),
+	Vector3(FIRE.x + 3.6, FIRE.y + 5.8, 1.6), Vector3(FIRE.x + 8.6, FIRE.y + 1.5, 0.7),
+	Vector3(FIRE.x - 4.5, FIRE.y - 2.2, 1.0)]
+## The fire keeper, the camp's fourth person (added 7 Nov 2026: "Maybe you can add in one
+## more guy or girl in"; the author picked a guy, "update the colours of clothes of the
+## new guy"): a second low-poly man in a mustard shirt and brown trousers
+## (tools/recolor_keeper.gd makes his texture). He eats at the table, then stokes the
+## fire, bending over it from its north-east side. He eats behind the table, facing the
+## camera, so he doesn't stand behind the low-poly man dancing in front of it. When the
+## camp gets its woodpile and grill (held until the author has tried this layout), he'll
+## fetch wood and cook.
+const KEEPER_TEXTURE := "res://assets/characters/lowpoly_man_keeper.png"
+const KEEPER_MATERIAL := "LowpolyMan"
+const KEEPER_EAT := Vector2(-2.1, -4.95)
+const STOKE := Vector2(0.85, -0.75)
+const KEEPER_EAT_TIME := Vector2(20, 30)
+const STOKE_TIME := Vector2(10, 15)
 
 ## The tent's guy ropes reach the ground here, in its own space (measured in
 ## assets/props/tent.blend); each gets a peg. The camper pegs out the one on its +X
@@ -195,6 +225,8 @@ var party_from_start := true
 ## toward him) and the two dancers.
 var camper: CampPerson
 var dancers: Array[CampPerson] = []
+## The fire keeper (KEEPER_TEXTURE), the fourth of them.
+var keeper: CampPerson
 var people: Array[CampPerson] = []
 ## What the people know between them: the clock (s), when and where he was last seen,
 ## and when someone last took fright.
@@ -279,6 +311,8 @@ func _ready() -> void:
 	dancers[1].protector = dancers[0]
 	dancers[0].protects = dancers[1]
 	dancers[0].flank_side = -1.0
+	keeper = _person(LOWPOLY_MAN, routines[3], "guy", MAN_SPEEDS, MAN_GRIP, "fire_keeper")
+	_retexture(keeper, KEEPER_MATERIAL, load(KEEPER_TEXTURE))
 
 	puzzles = CampPuzzles.new()
 	puzzles.camp = self
@@ -303,8 +337,8 @@ func _ready() -> void:
 	_process(0.0)
 
 
-## Each one's routine, as camp_person.gd runs it: the camper, the low-poly man, the girl.
-## `peg` is where the camper stands to peg out his tent.
+## Each one's routine, as camp_person.gd runs it: the camper, the low-poly man, the girl,
+## the fire keeper. `peg` is where the camper stands to peg out his tent.
 func _routines(peg: Vector3, cooler: Node3D) -> Array:
 	var toward_fire := func(at: Vector2) -> float:
 		var d := FIRE - at
@@ -322,6 +356,8 @@ func _routines(peg: Vector3, cooler: Node3D) -> Array:
 			_activity("drink", Vector3(drink.x, 0, drink.z), atan2(-front.x, -front.z), "take_away", 1.0, DRINK_TIME)],
 		[_activity("dance", _v3(girl_at), toward_fire.call(girl_at), "dance", dance, GIRL_DANCE_TIME),
 			_activity("warm", _v3(FIRE + WARM), toward_fire.call(FIRE + WARM), "idle", 1.0, WARM_TIME, "dance", 0.4)],
+		[_activity("eat", _v3(FIRE + KEEPER_EAT), 0.0, "idle", 1.0, KEEPER_EAT_TIME, "dance", 0.4),
+			_activity("stoke", _v3(FIRE + STOKE), toward_fire.call(FIRE + STOKE), "bend", 1.0, STOKE_TIME)],
 	]
 
 
@@ -658,6 +694,18 @@ func _recolor(node: Node, material: String, c: Color) -> void:
 				mi.set_surface_override_material(s, copy)
 
 
+## Gives every surface of `node` whose material is called `material` the texture
+## `texture` instead, in a copy of that material.
+func _retexture(node: Node, material: String, texture: Texture2D) -> void:
+	for mi: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+		for s in mi.mesh.get_surface_count():
+			var mat := mi.mesh.surface_get_material(s) as BaseMaterial3D
+			if mat and mat.resource_name == material:
+				var copy := mat.duplicate() as BaseMaterial3D
+				copy.albedo_texture = texture
+				mi.set_surface_override_material(s, copy)
+
+
 ## Pegs where the tent's guy ropes reach the ground.
 func _add_pegs(tent: Node3D) -> void:
 	for end: Vector3 in TENT_ROPE_ENDS:
@@ -721,10 +769,12 @@ func _bake_walkways() -> void:
 
 ## One of the humans, starting at the first place in their `routine`, a "guy" or the
 ## "girl" (camp_person.gd), with their `speeds` (walk, run, chase) and where they hold
-## things (`grip`), and a capsule to stop the raccoon.
-func _person(path: String, routine: Array, role: String, speeds: Array, grip: Vector3) -> CampPerson:
+## things (`grip`), and a capsule to stop the raccoon. Their node is named after their
+## model, or `called`: named before it's added, as camp_person.gd seeds their routine's
+## timings from it.
+func _person(path: String, routine: Array, role: String, speeds: Array, grip: Vector3, called := "") -> CampPerson:
 	var body := CampPerson.new()
-	body.name = path.get_file().get_basename()
+	body.name = called if called != "" else path.get_file().get_basename()
 	body.position = routine[0].at
 	body.rotation.y = routine[0].yaw
 	body.routine.assign(routine)

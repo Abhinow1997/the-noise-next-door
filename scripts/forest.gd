@@ -92,11 +92,19 @@ const WORLD := Rect2(-44, -50, 88, 74)
 ## by a trodden trail (TRAIL_POINTS) along the edge of the trees, where the trees stand
 ## back to north of TRAIL_EDGE. No tree grows in either, without moving any other tree
 ## (see _plant_trees). The forest carries on east to EAST_END.
-const CAMP := Vector2(40.5, 3.0)
-const CAMP_RADIUS := 7.5
+## On 7 Nov 2026 the camp grew, as the author asked ("expand it a little bigger. Things
+## should be a little far away from each other so that we have enough space and working
+## area to play in"): its clearing went from 7.5 m round to 11, growing east and a little
+## south so its west edge stays where the trail meets it (x = 33), and the trees along
+## the trail stand back a metre further (TRAIL_EDGE was 4.2), with a wider trodden path.
+const CAMP := Vector2(44.0, 4.0)
+const CAMP_RADIUS := 11.0
 const TRAIL_POINTS := [Vector2(2.6, 3.0), Vector2(6.5, 4.8), Vector2(11.2, 6.9), Vector2(17.0, 6.8), Vector2(24.0, 6.1),
 	Vector2(30.0, 5.6), Vector2(34.5, 4.4), Vector2(37.0, 3.6)]
-const TRAIL_EDGE := 4.2
+const TRAIL_EDGE := 3.2
+## The trail's width (m): its trodden edge, and the bare middle on it (0.55 and 0.36
+## before 7 Nov 2026).
+const TRAIL_WIDTH := Vector2(0.8, 0.55)
 const EAST_END := 80.0
 ## Where the raccoon can go: the whole forest, everywhere a tree can grow, out to a
 ## fence just inside its edge, the only one in the level. Every tree and big rock in it
@@ -1052,8 +1060,8 @@ func _scatter_east() -> void:
 ## clearing by the home pine to the camp.
 func _build_trail() -> void:
 	var trail := _spline(TRAIL_POINTS, 0.35)
-	_add_mesh(_ribbon(trail, 0.55, 0.12, 0.004, PATH_EDGE, Callable(), 2.5))
-	_add_mesh(_ribbon(trail, 0.36, 0.1, 0.006, PATH, Callable(), 2.5))
+	_add_mesh(_ribbon(trail, TRAIL_WIDTH.x, 0.12, 0.004, PATH_EDGE, Callable(), 2.5))
+	_add_mesh(_ribbon(trail, TRAIL_WIDTH.y, 0.1, 0.006, PATH, Callable(), 2.5))
 
 
 func _random_spot() -> Vector2:

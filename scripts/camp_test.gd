@@ -42,6 +42,14 @@ func _ready() -> void:
 	_man = _camp.dancers[0]
 	_girl = _camp.dancers[1]
 	_player = level.player
+	# This check is about the camper, the low-poly man and the girl. The fire keeper (the
+	# fourth, added 7 Nov 2026) is taken out of the camp for it, so he can't join their
+	# chases or be in the way: with him in, which checks passed depended on where his
+	# routine happened to have him.
+	if _camp.keeper:
+		_camp.people.erase(_camp.keeper)
+		_camp.keeper.queue_free()
+		_camp.keeper = null
 
 	_at(1.0, func() -> void:
 		_check("At first: the camper hammers", "hammer", _camper.anim.current_animation)

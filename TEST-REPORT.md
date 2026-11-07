@@ -8,7 +8,8 @@ What each assignment's work was tested for, how, and what actually happened. Eac
 |---|---|---|
 | [Assignment 2: the asset slice](#assignment-2-the-asset-slice) | 6 Oct 2026, at `81d696f` | tag `a2` |
 | [Assignment 3: the three Blender assets](#assignment-3-the-three-blender-assets) | 14 Oct 2026 | tag `a3` |
-| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026 on | branch `assignment-5`, not tagged yet |
+| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026 on | tag `a5` |
+| [Assignment 6: particle effects, and the bigger camp](#assignment-6-particle-effects-and-the-bigger-camp) | 7 Nov 2026 on | branch `assignment-6`, not tagged yet |
 
 ---
 
@@ -918,3 +919,46 @@ It compares the frames inside the cooler's box on screen and writes `probe.txt`.
 | What Claude got wrong | So far: treating the assignment's "game logic unchanged" rule as a reason not to change the cones; a test that moved him mid-leap. Claude also missed the sunken cone until a picture showed it (an older bug, now fixed). On 28 Oct, Claude found that its cone code turns any cone red whose camper starts seeing him, guards included, not just the spotter's, and that the cones check's "other cones not red" passes only because of its setup (`scripts/cones_test.gd`, line 176). The fix, a record of who spotted him, came with the driver (CHANGE-BRIEF.md, 28 Oct). On 29 Oct: the agent's re-spot during the red came only 2 ticks after the first spotting, too close to show a red that didn't restart at 30 fps, and its `main.gd` loaded the test on every run. Claude's own 29 Oct revision said the game keeps the moment a cone comes back in `_cone_back_at`, though it can draw the cone a tick later, which made a getter look necessary; and Claude's edit took CLAUDE.md to 120 lines, over the course's limit. All four were fixed in 2024a76. On 1 Nov: the material test compared the body's import path as text, so it failed from an empty cache once the editor had given the material a UID, and Claude's reruns that day used the existing cache, so they didn't catch it; found by Claude's grading run and fixed the same day. All logged in FRICTIONAL.md. |
 
 A headless run can show that the timings, states, visibility and uniform values follow the design. It can't show that the cones read clearly in play, or that the colours and fades look right. Those are the human checks.
+
+---
+
+## Assignment 6: particle effects, and the bigger camp
+
+`the-noise-next-door` · CSYE 7270 · Assignment 6 · branch `assignment-6`
+
+Run by Claude Code with `scripts/run-test.sh`, headless, Godot 4.7.2, on Windows 11. The effects aren't built yet; so far this section covers the earlier checks, before and after the camp grew.
+
+### Baseline: the earlier checks before Assignment 6 changed anything
+
+At `62ee5fb` (the `a5` tag), 7 Nov 2026. Logs: [logs/a6-baseline/](logs/a6-baseline/).
+
+| Check | Command | Result |
+|---|---|---|
+| Assignment 3's assets | `a3_asset_check.gd 60` | Pass, 0 failed |
+| Sounds | `--sound-test 60` | Pass, all checks |
+| Thought icons | `--bubble-test 60` | Pass, 87 of 87 |
+| Campers' reactions | `--camp-test 60` | Pass, 31 of 31 |
+| Camp tasks | `--tasks-test 60` | Pass, 43 of 43 |
+| Sound waves | `--waves-test 60` | Fail, 12 of 13, the recorded `--fixed-fps` failure |
+| THE PLAN | `--plan-test 60` | Pass, 19 of 19 |
+| Title screen | `--title-test 60` | Fail, 51 of 52, the recorded `--fixed-fps` failure |
+| The cones | `--cones-test 30`, `60`, `144` | Pass, 43 of 43 at each |
+| The cones' shader | `--cone-shader-test 30`, `60`, `144` | Pass, 93 of 93 at each |
+| Normal-map calibration | `normal_map_calibration.gd 60` | Ran, exit 0 |
+| The material audit | `test_materials.gd 60` | Pass, 0 failed |
+
+These match Assignment 5's recorded counts.
+
+### After the camp grew (7 Nov 2026)
+
+The camp's clearing went from 7.5 m round to 11, everything but the fire's circle stands about 1.6 times as far apart, and a fourth person, the fire keeper, came in (SOURCES.md, Assignment 6). Logs: [logs/a6-after-camp/](logs/a6-after-camp/).
+
+**Every check is back at its baseline count**, after three changes, each traced to its cause:
+
+| What failed at first | Why | What changed |
+|---|---|---|
+| Campers' reactions: "Gone: the men look about", "Up a tree: a man shoos" and, in a later run, "Calm again" and "they give up" | The fire keeper joined the chases and kept shooing the raccoon, and the test's move "out of the camp" is ignored while he's mid-leap. Which checks failed depended on where the keeper's routine had him. | `scripts/camp_test.gd` takes the keeper out of the camp for its run: the check is about the camper, the low-poly man and the girl. Its expectations are unchanged. |
+| The cones: "Spotted: the other cones not red", at 30, 60 and 144 fps | In the bigger camp the girl, frightened, turns and sees where the test stands him. Her cone's own `red()` flag turns on, but the driver draws it yellow, as the Assignment 5 rules say. | `scripts/cones_test.gd` now reads the colour each cone is drawn (its shader's `alarm`, set by `cone_driver.gd`) for that check, not `red()`. **This changes how the check measures**; the expected value is the same. `tests/cone_shader_test.gd` already checks the case of an alarmed camper seeing him during the red. |
+| (None, but the results changed from run to run) | The keeper was named after he was added, so his routine's seed (camp_person.gd seeds it from the name) came from Godot's generated name. | `scripts/campsite.gd` names him `fire_keeper` before he's added. |
+
+The tasks check (43 of 43) and both cone checks run with the keeper in the camp.

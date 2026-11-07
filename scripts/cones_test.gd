@@ -173,7 +173,13 @@ func _watch() -> void:
 			_spotter_red_in_red = _spotter_red_in_red and _camper.eyes.red()
 		_red_length = maxf(_red_length, _camper.eyes.drawn_length())
 		for person: CampPerson in _people:
-			_others_red = _others_red or person != _camper and person.eyes.red()
+			# Red as drawn: the `alarm` cone_driver.gd gives its shader, 1 only on the
+			# spotters' cones. Until 7 Nov 2026 this read the cone's own red(), which also
+			# turns on when a camper who's already alarmed sees him; it passed only while
+			# none of the others could see where he's put. In the bigger camp the girl,
+			# frightened, turns and sees him, and her cone is still drawn yellow, as the
+			# Assignment 5 rules say (tests/cone_shader_test.gd checks that case too).
+			_others_red = _others_red or person != _camper and _drawn_alarm(person) > 0.0
 			var box: AABB = person.eyes.drawn_box()
 			_off_ground = maxf(_off_ground, maxf(absf(box.position.y), absf(box.end.y)))
 		if not _shot_red and now > _spot + 0.5:
@@ -286,6 +292,15 @@ func _shot(name: String) -> void:
 
 ## In a window, a picture with `at` in the middle rather than him, when he's away from
 ## the camp: the camera is held there for a frame (main.gd places it every frame).
+## The `alarm` `person`'s cone is drawn with, 0 if it has no shader yet.
+func _drawn_alarm(person: CampPerson) -> float:
+	var m: ShaderMaterial = person.eyes.material()
+	if m == null:
+		return 0.0
+	var v = m.get_shader_parameter("alarm")
+	return 0.0 if v == null else float(v)
+
+
 func _shot_of(at: Vector3, name: String) -> void:
 	if shots == "" or DisplayServer.get_name() == "headless":
 		return

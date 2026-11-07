@@ -9,7 +9,8 @@ Where everything in the game came from: the generative models and each generatio
 | [Assignment 2: the asset slice](#assignment-2-the-asset-slice) | The generative models, the asset log of every generation, the third-party candidates, and the code and drawings | tag `a2` |
 | [Assignment 3: tools and provenance](#assignment-3-tools-and-provenance) | The Blender tools, and how each 3D asset was made | tag `a3` |
 | [After Assignment 3: the title screen, the night and level 1's camp](#after-assignment-3-the-title-screen-the-night-and-level-1s-camp) | The reference pictures, the downloads in use, and the code and drawings, 20 to 25 Oct 2026 | — |
-| [Assignment 5: tools and provenance](#assignment-5-tools-and-provenance) | The tools, who writes what, and the code so far | branch `assignment-5`, not tagged yet |
+| [Assignment 5: tools and provenance](#assignment-5-tools-and-provenance) | The tools, who writes what, and the code so far | tag `a5` |
+| [Assignment 6: the bigger camp and particle effects](#assignment-6-the-bigger-camp-and-particle-effects) | The camp grown, the fire keeper and his texture | branch `assignment-6`, not tagged yet |
 
 ---
 
@@ -237,3 +238,14 @@ The reference pictures made or shared after Assignment 3, in the same columns as
 ### Code and drawings
 
 - **The tutorial at the camp and the campers' cones** (26 Oct 2026): written by Claude Code in code, from the author's design (their answers to Claude Code's questions, in CHANGE-BRIEF.md's Assignment 5 section). The gaps were filled by Claude Code at the author's request ("take liberties with the gaps that feel approriate"): the 0.5 s fades, what the 5 s count from, the main task's name, Rock the party, and the tutorial's steps. In `scripts/camp_tutorial.gd` (new), `scripts/camp_tasks.gd` (the main task and its sub-tasks), `scripts/plan_note.gd` (sub-tasks indented, the tutorial's note), `scripts/camp_person.gd` (the confused SEARCH and when each cone shows), `scripts/vision_cone.gd` (blind until the tutorial, red for 2 s once it spots him), `scripts/campsite.gd`, `scripts/camp_input.gd` (the "??") and `scripts/main.gd`. The check is `scripts/cones_test.gd` (new). `scripts/camp_test.gd`'s "Gone" check now allows the new SEARCH state. The cone's colour and fades are left for the author's hand-written shader (Assignment 5). No generative model; none of it is a generated asset.
+
+---
+
+## Assignment 6: the bigger camp and particle effects
+
+`the-noise-next-door` · CSYE 7270 · Assignment 6 · branch `assignment-6`
+
+### Code and drawings
+
+- **Level 1's camp, grown** (7 Nov 2026): at the author's request ("expand it a little bigger. Things should be a little far away from each other so that we have enough space and working area to play in"), Claude Code proposed a layout, drawn as a map in chat, and the author approved it ("Build it as drawn") and, after playing it, the result ("Looks good"). In `scripts/forest.gd` the camp's clearing went from 7.5 m round to 11, growing east and a little south, and the trees along the trail stand a metre further back, with a wider trodden path. In `scripts/campsite.gd` and `scripts/camp_puzzles.gd` the fire's circle stays as it was and the rest stands about 1.6 times as far from the fire, with the cooler moved by the table. No new props yet: the grill, woodpile, station wagon, bushes and lanterns Claude Code suggested are held ("for now u can hold lets try it out"). No generative model.
+- **The fire keeper** (7 Nov 2026): the camp's fourth person, at the author's request ("Maybe you can add in one more guy or girl in"; they picked a guy, "update the colours of clothes of the new guy"). A second copy of TiZeta's "Lowpoly man" (CC BY 3.0, above), with a routine written by Claude Code: he eats behind the table, then stokes the fire. **His texture is a modified copy of TiZeta's:** `assets/characters/lowpoly_man_keeper.png` is the model's own texture (`lowpoly_man_OMO1.png`) with the shirt recoloured mustard and the trousers dark brown, keeping their shading; the face, hair and hands are unchanged. Made by Claude Code's [tools/recolor_keeper.gd](tools/recolor_keeper.gd), run once in Godot 4.7.2. The CC BY 3.0 credit to TiZeta carries over, with this note that it was changed. No generative model.

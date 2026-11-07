@@ -6,10 +6,44 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 
 | Section | Dates | Submitted as |
 |---|---|---|
-| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026 on | branch `assignment-5`, not tagged yet |
+| [Assignment 6: particle effects, and the bigger camp](#assignment-6-particle-effects-and-the-bigger-camp) | 6 Nov 2026 on | branch `assignment-6`, not tagged yet |
+| [Assignment 5: shaders and materials](#assignment-5-shaders-and-materials) | 25 Oct 2026 on | tag `a5` |
 | [The earlier assignments](FRICTIONAL-EARLIER.md): Assignment 2, Assignment 3, and the work after Assignment 3 | 3 to 25 Oct 2026 | tags `a2` and `a3` |
 
 **Moved on 1 Nov 2026:** the sections before Assignment 5 are now in [FRICTIONAL-EARLIER.md](FRICTIONAL-EARLIER.md), word for word, so this file is Assignment 5's. The `a2` and `a3` tags still have them here, where they were written.
+
+---
+
+## Assignment 6: particle effects, and the bigger camp
+
+`the-noise-next-door` · CSYE 7270 · Assignment 6 · branch `assignment-6`
+
+**How these entries were written:** by Claude Code on 7 Nov 2026, from my chat messages and the test logs. My messages are quoted exactly as I typed them, typos included. The chat doesn't show times, so only dates are given. These are a record of what I asked and decided and what Claude Code did; what I tried and thought myself, I add in my own words.
+
+### 6 Nov 2026: choosing the two effects
+
+- I asked Claude Code to read the assignment in my browser tab ("do you see the tab for assignement 6"), then "for the game we are woking on what can we do for this assignement".
+- Claude Code read the game's code and suggested landing dust for Effect A and music notes from the speaker for Effect B, with other options for each. I picked "Dust + music notes".
+- From its options I picked: the A6 brief replaces the old ones in CHANGE-BRIEF.md, a `landed` signal as the dust's hook, overlap as its retrigger rule, and scribbled notes. Claude Code wrote a skeleton of the brief on the new `assignment-6` branch (not committed), and I asked to fill it in "round by round".
+
+### 7 Nov 2026: effects that carry gameplay
+
+- Before answering the first round, I stopped: "i dont want to just keep working on the same elements we have we can and need to add more to the game as well gamplay wise with these ... currently we are not adding anyhting by adding the dust effect to the actual plability for the game".
+- Claude Code offered three ideas: smothering the campfire, a pine-cone lure, and party energy with an ending. It pointed out that a new task on the list would break three existing checks (the task list, and two "every task done" checks). I said "maybe both dowsing the fire is a good task we need to add it in more stagtegically and what u mean by pine cone lure ?"
+- I asked for it to feel natural: "It should not be like forced onto the player ... it should feel like a natural flow of something that you need to do." Claude Code proposed a flow built on my GDD's 7.1 (tasks that update from how he interacts with the world): an accidental kick of dirt into the fire shows the player it can be done, the idea bulb pops and the task scribbles itself onto THE PLAN, and the pine cone is found the same way. The fire task isn't built yet.
+
+### 7 Nov 2026: the bigger camp and the fire keeper
+
+- I asked for more room first: "update the original path ... towards the camp, and expand it a little bigger ... Things should be a little far away from each other ... Maybe you can add in one more guy or girl in, and we can have initially like observe the area, and then we'll go ahead with updating like these tasks in."
+- Claude Code ran every earlier check first, as the baseline (`logs/a6-baseline/`): the same counts as Assignment 5's report, with waves 12 of 13 and the title 51 of 52 as recorded.
+- It drew a map of a layout and asked three questions. My answers: "Build it as drawn"; "a guy is fine but update the colours of clothes of the new guy"; and for the new props, "for now u can hold lets try it out and then when approved we can add the same in logs".
+- Claude Code built it: the clearing 11 m round instead of 7.5, everything but the fire's circle about 1.6 times as far apart, the cooler by the table, and the fire keeper, a second low-poly man in a mustard shirt and brown trousers (a recoloured copy of TiZeta's texture; SOURCES.md, Assignment 6). It looked at frames from a windowed run to check his colours showed.
+- **What the checks showed, and what changed:**
+  - In the first full run, 4 checks failed that passed before. Claude Code traced them: the keeper joining a chase and shooing the raccoon mid-test; the keeper, eating in front of the table, overlapping the dancing man on screen; and the cones check's "the other cones not red", because the girl, frightened, can now see where the test stands him.
+  - Claude Code moved the keeper's eating spot behind the table, and named him before he's added, so camp_person.gd's seeded timings are the same every run.
+  - "The other cones not red" now reads the colour each cone is drawn (the driver's `alarm`), not the cone's own `red()` flag, which the driver overrides. The girl's cone is still drawn yellow, as my Assignment 5 rules say. This changes how that one check measures, and it's recorded here and in the test file.
+  - With the keeper's timings now the same every run, the campers' check still failed 3 of 31, depending on where he was. That check is about the other three, so it now takes the keeper out of the camp for its run, and passes 31 of 31. Every earlier check is back at its baseline count (TEST-REPORT.md, Assignment 6).
+- I played it and said "Looks good".
 
 ---
 

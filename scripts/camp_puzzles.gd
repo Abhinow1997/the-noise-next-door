@@ -30,7 +30,9 @@ const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
 ## Where things are, from the fire (x, z), and which way their fronts face (degrees).
 const BACKPACK := Vector2(-2.05, 0.5)
 const BACKPACK_FACING := -90.0
-const SOCKET := Vector2(-0.75, -2.78)
+## Under the table, 0.45 m east of its middle and 0.18 m north, wherever it stands
+## (it was (-0.75, -2.78) before the camp grew on 7 Nov 2026).
+const SOCKET := Vector2(-1.5, -4.38)
 ## The backpack: how long the zip takes, and how far the zipping is heard (m).
 const ZIP_TIME := 3.0
 const ZIP_NOISE := 1.5
