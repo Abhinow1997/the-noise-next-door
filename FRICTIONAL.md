@@ -45,6 +45,38 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
   - With the keeper's timings now the same every run, the campers' check still failed 3 of 31, depending on where he was. That check is about the other three, so it now takes the keeper out of the camp for its run, and passes 31 of 31. Every earlier check is back at its baseline count (TEST-REPORT.md, Assignment 6).
 - I played it and said "Looks good".
 
+### 7 Nov 2026: the tutorial at the camp, remade
+
+- Before the fire task, I asked to rethink arriving at the camp: "It's a little confusing when we reach the campsite, can be create a plan for the initial task, like a tutorial task."
+- Claude Code proposed five steps (hide, watch, sneak in, take a s'more, then the list), and recommended doing the Assignment 6 effects first because of the deadline. I picked "Tutorial first" and described how it should work, in my words: "the game should slow down, like slow down really in the background ... like a black layer over the game, and give like maybe an option of okay, click tab ... rather than calling it the plan, we should have it called the task ... hover over it ... make sure that the vision cones are not triggered ... select maybe one task as a tutorial, so that that also introduces all the gameplay elements ... and then beyond that, we'll open up the world to it."
+- From Claude Code's options I picked: Steal the marshmallows as the one task walked through, "TO DO" as the list's name, and a spotlight at each step.
+- Claude Code built it: the dark layer with a lit circle (`scripts/spotlight.gd`), the slow-down to 0.15 behind it, the TO DO list with a hint on hover and the marshmallows marked to start with, and the guided steps (`scripts/camp_tutorial.gd`). It first had the fades timed on the wall clock, then changed them to frame time so the checks come out the same on any machine.
+- It looked at two in-game frames: "start here" ran into the task's box, and the hint's second line was hidden behind the scrap at the bottom of the screen. It moved the hint up and made "Start here." its first words.
+- **Checks:** the cones check and the cone-shader check now walk the new arrival and pick, with the guide off (still 43 and 93 checks). A new check, `--tutorial-test`, plays the guide through (16 checks). With the slow-down in a run, Godot reports two or three sounds still in use when the check quits. It doesn't fail anything and doesn't happen without the slow-down; it isn't fixed.
+
+### 7 Nov 2026: the tutorial as a scene, with fewer words
+
+- After playing it: "Still it feels a little bit choppy ... it's just too many words." I asked for the camera to "pan around the people and the food quickly, and maybe the raccoon can make a laughing noise. And one of the person maybe can just spot him ... you can quickly hide in a bush ... he's looking a little away from the bush, and now you can ask the user to sneak away ... Keep the hints to the minimum words."
+- Claude Code rebuilt it that way: the pan over the campers, the marshmallows and the cooler; he chitters, the cones come on and the nearest camper comes to look; a beat with a new bush lit ("Seen! Hide!"); notes to hide, wait, and sneak out with Ctrl; then Tab and the marshmallows. Every beat now goes on by itself, and the words are two to five each. The Tab note now comes after he's got away.
+- The bush (`campsite.gd` `bush`) is one of the forest's bushes, a hiding spot at the camp's west side behind the backpack.
+- In a windowed run, the camper really did spot him after the laugh: a red cone with the bush right beside him.
+- I also asked: "by default have the music off". The game now starts with the music muted; M turns it on. The checks start with it on, as before.
+- **Checks:** the tutorial check was rewritten for the scene and passes 18 of 18. The cones and cone-shader checks turn the new intro off, as well as the guide, and keep their counts.
+
+### 7 Nov 2026: diving into the bush
+
+- "the hiding feels a little clunky. Maybe we can create an animation for it."
+- Claude Code made the camp's bush one you dive into: walking into it, he hops to its middle and vanishes, the bush rustles, it no longer opens its see-through window round him, and his eyes peek out of it and blink. A move key hops him out the way it points, sneaking if Ctrl's held. Only the camp's bush does this; the bubble demo's is as it was.
+- **What went wrong first:** in the first run he never stayed in. The trace showed the test's move key hopped him out only just clear of the bush, so he dived straight back in, and the test's next move came mid-dive. He now lands 1.5 m out, can't dive again for 0.6 s, and the dive starts a frame later (Godot refused to switch his collider off in the middle of working out the physics). Then the eyes didn't show in a picture: they were inside the leaves. They now sit 0.9 m out, toward the camera.
+- **Checks:** the tutorial check now checks the dive, the eyes and the hop out (19 checks).
+
+### 7 Nov 2026: a bug I found, shooed out of the bush
+
+- I played it: "if you hide in the bush even if you were spotted people are able to shoo you away. So now I think that's a big bug that you have missed ... if you hide in the bushes, people should not be able to see you. That should be the whole point."
+- **Why it happened** (Claude Code's reading of the code): the cones never saw him in a hiding spot, but catching didn't check it. A camper chasing him runs to where he was last seen, and anyone within 1 m who wasn't mid-hop shooed him (`_chase` in `scripts/camp_person.gd`). Claude Code's tutorial check had never had anyone chase him to the bush, so it missed this.
+- **The fix:** hidden, he can't be caught (`VisionCone.hidden`). They still run to where they last saw him and look about, confused. And if anything ever startles him in a hiding spot, he comes out of it first; in the run without the fix, the shoo left him invisible.
+- **Proved:** a new check chases him right to the bush. With the fix he isn't caught; with the fix taken out for one run, the check fails (he's shooed). The tutorial check has 20 checks now.
+
 ---
 
 ## Assignment 5: shaders and materials

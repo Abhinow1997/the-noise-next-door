@@ -5,6 +5,10 @@ extends Node
 ##   - before the tutorial: no cones, nobody sees him, only the music's task on the list;
 ##   - the tutorial: the game pauses with a note to press Tab, Esc doesn't unpause it,
 ##     Tab brings up THE PLAN with Rock the party and its sub-tasks, Tab again carries on;
+##     since 7 Nov 2026, when the tutorial was remade (camp_tutorial.gd), the game slows
+##     down behind a dark layer instead of pausing, Tab brings up the TO DO list with the
+##     marshmallows marked to start with, and Enter picks them and carries on. The guide's
+##     steps after the pick are turned off here (`guide`), so the cones come on at the pick;
 ##   - once he's spotted: the spotter's cone red and every cone shown for the red and its
 ##     fade, then none; the chase and the shoo as before;
 ##   - once he's got away: each of them confused ("??", SEARCH) for SEARCH_TIME, then
@@ -69,6 +73,10 @@ func _ready() -> void:
 	_tasks = level.tasks
 	_plan = level._plan
 	_tutorial = level._tutorial
+	# Its intro (the pan, the laugh, hiding) and its guide are off here: he arrives to
+	# the dark layer and Tab at once (camp_tutorial.gd), as this check was made for.
+	_tutorial.intro = false
+	_tutorial.guide = false
 
 	_at(0.5, func() -> void:
 		_check("Before the tutorial: no cones", "false false false", _showing())
@@ -80,29 +88,33 @@ func _ready() -> void:
 		_check("Before the tutorial: in plain sight, nobody sees him", "false false false", _seeing())
 		_check("Before the tutorial: nobody takes fright", "WORK WORK WORK", _states())
 		_check("At the camp: the music's task is done", true, _tasks.is_done("investigate")))
+	# (Since 7 Nov 2026 the game slows down here instead of pausing: these times are on
+	# game time, so they come later on the clock on the wall.)
 	_at(2.6, func() -> void:
-		_check("Tutorial: the game pauses", true, get_tree().paused)
+		_check("Tutorial: the game slows right down behind a dark layer", true,
+			Engine.time_scale <= CampTutorial.SLOW + 0.01 and _tutorial.spotlight.showing() and not get_tree().paused)
 		_check("Tutorial: a note says to press Tab", CampTutorial.OPEN_NOTE, _plan.note_showing())
-		_check("Tutorial: the plan isn't up yet", false, _plan.open)
+		_check("Tutorial: the TO DO list isn't up yet", false, _plan.open)
 		_shot("01_tutorial_press_tab")
 		_key(KEY_ESCAPE))
 	_at(2.8, func() -> void:
-		_check("Tutorial: Esc doesn't unpause it", true, get_tree().paused)
+		_check("Tutorial: Esc doesn't pause it or end it", true, _tutorial.running() and not get_tree().paused)
 		_key(KEY_TAB))
 	_at(3.4, func() -> void:
-		_check("Tutorial: Tab brings up the plan", true, _plan.open and _plan.up() >= 1.0)
-		_check("Tutorial: the plan shows Rock the party and its tasks",
+		_check("Tutorial: Tab brings up the TO DO list", true, _plan.open and _plan.up() >= 1.0)
+		_check("Tutorial: the list shows Rock the party and its tasks",
 			"investigate party marshmallows music cooler", _shown_ids())
-		_check("Tutorial: the note says to sneak", CampTutorial.SNEAK_NOTE, _plan.note_showing())
-		_check("Tutorial: still paused while he reads", true, get_tree().paused)
+		_check("Tutorial: the note says to pick one, the marshmallows marked",
+			CampTutorial.PICK_NOTE + " / marshmallows", _plan.note_showing() + " / " + _plan.highlighted())
+		_check("Tutorial: still slowed down while he reads", true, Engine.time_scale <= CampTutorial.SLOW + 0.01)
 		_check("Tutorial: still no cones", "false false false", _showing())
 		_shot("02_tutorial_the_plan")
-		_key(KEY_TAB))
+		_key(KEY_ENTER))
 	_at(3.6, func() -> void:
-		_check("Tutorial done: the game carries on", false, get_tree().paused)
-		_check("Tutorial done: the plan goes away", false, _plan.open)
-		_check("Tutorial done: the note goes", "", _plan.note_showing())
-		_check("Tutorial done: the cones are on", true, _camp.cones_on))
+		_check("Picked: the game's back to speed", 1.0, Engine.time_scale)
+		_check("Picked: the list goes away", false, _plan.open)
+		_check("Picked: the note goes", "", _plan.note_showing())
+		_check("Picked: the cones are on", true, _camp.cones_on))
 	# Standing there in plain sight, he's spotted at once.
 	_at(4.5, func() -> void:
 		_check("Spotted: the camper takes fright", true, S.STARTLED in _seen(_camper))

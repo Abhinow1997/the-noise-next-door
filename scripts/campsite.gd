@@ -48,6 +48,7 @@ const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
 const CampInput := preload("res://scripts/camp_input.gd")
 const SoundWaves := preload("res://scripts/sound_waves.gd")
 const ConeDriver := preload("res://scripts/cone_driver.gd")
+const HideSpot := preload("res://scripts/hide_spot.gd")
 
 const TENT := "res://assets/props/tent.glb"
 const TABLE_WITH_LAPTOP := "res://assets/props/table_with_laptop.glb"
@@ -146,6 +147,13 @@ const KEEPER_EAT := Vector2(-2.1, -4.95)
 const STOKE := Vector2(0.85, -0.75)
 const KEEPER_EAT_TIME := Vector2(20, 30)
 const STOKE_TIME := Vector2(10, 15)
+## The bush to hide in (7 Nov 2026), for the tutorial (camp_tutorial.gd: "you can quickly
+## hide in a bush ... to avoid detection"): at the camp's west side, where the trail comes
+## in, a few metres behind the camper's backpack (from the fire, x, z). How far round it
+## hides him, and how tall it is.
+const BUSH := Vector2(-3.5, 3.0)
+const BUSH_HIDE := 0.8
+const BUSH_HEIGHT := 1.2
 
 ## The tent's guy ropes reach the ground here, in its own space (measured in
 ## assets/props/tent.blend); each gets a peg. The camper pegs out the one on its +X
@@ -227,6 +235,8 @@ var camper: CampPerson
 var dancers: Array[CampPerson] = []
 ## The fire keeper (KEEPER_TEXTURE), the fourth of them.
 var keeper: CampPerson
+## The bush he can hide in (BUSH): a hiding spot (hide_spot.gd).
+var bush: Area3D
 var people: Array[CampPerson] = []
 ## What the people know between them: the clock (s), when and where he was last seen,
 ## and when someone last took fright.
@@ -292,6 +302,7 @@ func _ready() -> void:
 		smore.rotation.y = 0.7 * i
 		smore.add_to_group("food")
 	_build_string_lights()
+	_build_bush()
 
 	var rope_end: Vector3 = tent.transform * TENT_ROPE_ENDS[1]
 	var facing := Basis(Vector3.UP, deg_to_rad(CAMPER_FACING))
@@ -692,6 +703,35 @@ func _recolor(node: Node, material: String, c: Color) -> void:
 				var copy := mat.duplicate() as BaseMaterial3D
 				copy.albedo_color = c
 				mi.set_surface_override_material(s, copy)
+
+
+## The bush to hide in: one of the forest's bushes, see-through round him like theirs,
+## with a hiding spot (hide_spot.gd) its size. Nothing solid: he walks into it.
+func _build_bush() -> void:
+	var at := _v3(FIRE + BUSH)
+	bush = HideSpot.new()
+	bush.position = at
+	bush.height = BUSH_HEIGHT
+	# He dives right into it, and it rustles; his eyes peek out (since 7 Nov 2026, when
+	# the author found hiding "clunky").
+	bush.dive = true
+	if forest:
+		var leaves := MeshInstance3D.new()
+		leaves.mesh = forest.night_mesh(forest._bush_mesh(401))
+		leaves.material_override = forest.see_through
+		leaves.position = at
+		leaves.rotation.y = 0.7
+		leaves.scale = Vector3.ONE * 1.2
+		add_child(leaves)
+		bush.leaves = leaves
+	var col := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = BUSH_HIDE
+	shape.height = BUSH_HEIGHT
+	col.shape = shape
+	col.position.y = BUSH_HEIGHT * 0.5
+	bush.add_child(col)
+	add_child(bush)
 
 
 ## Gives every surface of `node` whose material is called `material` the texture

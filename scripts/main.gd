@@ -24,6 +24,8 @@ extends Node3D
 ## `--waves-shots=<folder>` for pictures.
 ## `-- --plan-test` checks THE PLAN, the to-do list on Tab, and the scraps at the bottom
 ## (scripts/plan_test.gd), with `--plan-shots=<folder>` for pictures.
+## `-- --tutorial-test` plays the tutorial at the camp through with its guide on
+## (scripts/tutorial_test.gd), with `--tutorial-shots=<folder>` for pictures.
 ## `-- --cones-test` checks the tutorial at the camp and the campers' cones and search
 ## (scripts/cones_test.gd), with `--cones-shots=<folder>` for pictures. The other tests
 ## skip the tutorial: for them the camp's tasks are on the list and the cones on from
@@ -124,6 +126,10 @@ const PIVOT := Vector3(0, 0.27, 0)
 ## When he's near a camper (a node in the "camper" group), the camera leans this
 ## share of the way toward the camper, so you can keep watching his routine...
 const LEAN := 0.3
+## The tutorial's pan (camera_focus): how long the camera takes to swing over to it or
+## back (real seconds), and how quickly it follows from one thing to the next.
+const FOCUS_TIME := 0.6
+const FOCUS_GLIDE := 4.0
 ## ...starting this far away and fully leaning at half of it.
 const LEAN_RANGE := 9.0
 ## The close-up the author picked with the Tab panel for watching him sleep in the
@@ -142,6 +148,10 @@ const SLEEP_CAMERA_OUT := 1.5
 ## The level's music: a 16-bar loop cut from the generated forest track in
 ## design/music/ (see SOURCES.md). The WAV's own loop marker makes it repeat seamlessly.
 const MUSIC_PATH := "res://assets/audio/music/forest-loop.wav"
+## Whether the music (the Music bus: the forest loop and the lullaby) is on when the game
+## starts. Off since 7 Nov 2026, as the author asked ("by default have the music off"):
+## M turns it on. The checks, run with their own flags, start with it on as before.
+const MUSIC_ON_AT_START := false
 ## How loud the music sits under the sound effects, and its fade-in time in seconds.
 ## Lowered 3 dB on 6 Oct, with the effects raised 4 dB, after the author's playtest
 ## found the effects too quiet against it.
@@ -207,6 +217,15 @@ var naps := 0
 var _plan: PlanNote
 ## The tutorial at the camp (camp_tutorial.gd), or null in the tests that skip it.
 var _tutorial: CampTutorial
+## The layer the UI is drawn on (THE PLAN, now TO DO, and its scraps): the tutorial's
+## dark layer goes in it, under them.
+var _ui_layer: CanvasLayer
+## Set by the tutorial at the camp to pan the camera round it (7 Nov 2026): a point in
+## the world the camera aims at instead of him, or null to go back to him. It glides
+## there and back on real time (FOCUS_TIME), whatever speed the game runs at.
+var camera_focus = null
+var _focus_w := 0.0
+var _focus_at := Vector3.ZERO
 var _tuner: CameraTuner
 var _nap_time := 0.0
 var _sleep_time := 0.0
@@ -313,6 +332,8 @@ func _ready() -> void:
 	var cones_test := false
 	var cones_shots := ""
 	var cone_shader_test := false
+	var tutorial_test := false
+	var tutorial_shots := ""
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -370,7 +391,14 @@ func _ready() -> void:
 			cones_shots = arg.get_slice("=", 1)
 		elif arg == "--cone-shader-test":
 			cone_shader_test = true
+		elif arg == "--tutorial-test":
+			tutorial_test = true
+		elif arg.begins_with("--tutorial-shots="):
+			tutorial_shots = arg.get_slice("=", 1)
 	_rng.seed = 7
+	if title_mode and not MUSIC_ON_AT_START and not Array(OS.get_cmdline_user_args()).any(
+			func(arg: String) -> bool: return arg.ends_with("-test")):
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Music"), true)
 
 	_build_environment()
 	forest = Forest.new()
@@ -464,6 +492,10 @@ func _ready() -> void:
 		_tutorial.plan = _plan
 		_tutorial.tasks = tasks
 		_tutorial.campsite = campsite
+		_tutorial.player = player
+		_tutorial.camera = camera
+		_tutorial.ui_layer = _ui_layer
+		_tutorial.level = self
 		add_child(_tutorial)
 	_start_music()
 	if campsite:
@@ -506,6 +538,11 @@ func _ready() -> void:
 		var shader_check = load("res://tests/cone_shader_test.gd").new()
 		shader_check.level = self
 		add_child(shader_check)
+	if tutorial_test and campsite:
+		var tutorial_check = load("res://scripts/tutorial_test.gd").new()
+		tutorial_check.level = self
+		tutorial_check.shots = tutorial_shots
+		add_child(tutorial_check)
 	if bubble_demo:
 		var demo := BubbleDemo.new()
 		demo.level = self
@@ -540,6 +577,13 @@ func _process(delta: float) -> void:
 			aim.y = player.jump_from_y + PIVOT.y
 		_anchor = _anchor.lerp(aim, 1.0 - exp(-6.0 / _zoom_now * delta))
 		_zoom_now = lerpf(_zoom_now, zoom, 1.0 - exp(-10.0 * delta))
+		# The tutorial's pan (camera_focus), on real time.
+		var real := delta / Engine.time_scale if Engine.time_scale > 0.0 else delta
+		if camera_focus != null:
+			if _focus_w <= 0.0:
+				_focus_at = _anchor
+			_focus_at = _focus_at.lerp(camera_focus + PIVOT, 1.0 - exp(-FOCUS_GLIDE * real))
+		_focus_w = move_toward(_focus_w, 1.0 if camera_focus != null else 0.0, real / FOCUS_TIME)
 		_place_camera()
 	_ear.global_transform = Transform3D(camera.global_basis, _drawn() + Vector3(0, 0.35, 0))
 	_update_see_through()
@@ -714,9 +758,25 @@ func toggle_pause() -> void:
 	_paused_label.visible = tree.paused
 
 
-## True while the tutorial at the camp has the game paused.
+## True while the tutorial at the camp holds the game (slowed, behind its dark layer).
 func tutorial_running() -> bool:
 	return _tutorial != null and _tutorial.running()
+
+
+## True once he can see the party (7 Nov 2026: the author, "he sees the music system, he
+## can see like okay, this is the main area"): its speaker well on the screen, or him
+## well into the camp's clearing whichever way the camera looks.
+func _sees_party() -> bool:
+	var at := player.global_position
+	if Vector2(at.x, at.z).distance_to(Forest.CAMP) < Forest.CAMP_RADIUS - 3.0:
+		return true
+	if campsite.puzzles == null or campsite.puzzles.speaker == null:
+		return false
+	var speaker: Vector3 = campsite.puzzles.speaker.global_position
+	if camera.is_position_behind(speaker):
+		return false
+	var view := get_viewport().get_visible_rect().size
+	return Rect2(view * 0.12, view * 0.76).has_point(camera.unproject_position(speaker))
 
 
 ## M or N: mutes or unmutes the music or the effects. Only the buses change, so
@@ -762,7 +822,7 @@ func _place_camera() -> void:
 	var ahead := lerpf(camera_ahead * _zoom_now, SLEEP_CAMERA_AHEAD, w)
 	# From the raccoon toward the camera, along the ground; yaw 0 looks north (-Z).
 	var back := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(lerpf(camera_yaw, SLEEP_CAMERA_YAW, w)))
-	var focus := _anchor - back * ahead
+	var focus := _anchor.lerp(_focus_at, smoothstep(0.0, 1.0, _focus_w)) - back * ahead
 	camera.fov = lerpf(camera_fov, SLEEP_CAMERA_FOV, w)
 	camera.global_position = focus + (back * cos(pitch) + Vector3.UP * sin(pitch)) * distance
 	camera.look_at(focus)
@@ -845,11 +905,11 @@ func _check_tasks(delta: float) -> void:
 			player.rest(forest.rest_spot, forest.rest_exit)
 
 	# The first task, following the party's music, is done once he's at the camp; and
-	# then the tutorial there starts (camp_tutorial.gd).
+	# the tutorial there starts once he can see the party (camp_tutorial.gd).
 	if campsite and not tasks.is_done("investigate") and campsite.in_camp(player.global_position):
 		tasks.done("investigate")
-		if _tutorial:
-			_tutorial.begin()
+	if _tutorial and tasks.is_done("investigate") and _tutorial.step == CampTutorial.Step.WAITING and _sees_party():
+		_tutorial.begin()
 
 	# The camp's puzzles tick tasks off (camp_tasks.gd). The sound follows the change in
 	# state, never the other way round. One laugh a frame, however many tasks finish
@@ -877,7 +937,10 @@ func _update_see_through() -> void:
 	mat.set_shader_parameter("focus_depth", (target - camera.global_position).dot(-camera.global_basis.z))
 	# Wide enough to show all of him: his size over the height of the view at his distance.
 	var view_height := 2.0 * camera.global_position.distance_to(target) * tan(deg_to_rad(camera.fov) * 0.5)
-	mat.set_shader_parameter("radius", 0.0 if player.resting or _closeup else 1.4 * player.size / view_height)
+	# Not while he's dived into a bush (player.gd `hiding_in`): it stays whole, his eyes
+	# peeking out of it.
+	mat.set_shader_parameter("radius", 0.0 if player.resting or _closeup or player.hiding_in != null
+		else 1.4 * player.size / view_height)
 
 
 # --- Level -------------------------------------------------------------------
@@ -1093,6 +1156,7 @@ func _cylinder(radius: float, height: float) -> CylinderShape3D:
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	_ui_layer = layer
 	if _closeup:
 		layer.visible = false
 

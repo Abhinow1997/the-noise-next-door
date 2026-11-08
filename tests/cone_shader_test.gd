@@ -88,6 +88,11 @@ func _ready() -> void:
 	_people.assign([_camp.camper, _camp.dancers[0], _camp.dancers[1]])
 	_player = level.player
 	_plan = level._plan
+	# The tutorial's guided steps after the pick are off here, as in cones_test.gd: the
+	# cones come on at the pick (since 7 Nov 2026, camp_tutorial.gd).
+	if level._tutorial:
+		level._tutorial.intro = false
+		level._tutorial.guide = false
 	_check_shader()
 	var sampler := Sampler.new()
 	sampler.test = self
@@ -166,13 +171,15 @@ func _physics_process(delta: float) -> void:
 				_player.place(_in_view(_people[0], 5.0))
 				_go("tutorial")
 		"tutorial":
-			if _since_ticks() > 10 and get_tree().paused and not _plan.open \
+			# Since 7 Nov 2026 the tutorial slows the game behind a dark layer instead of
+			# pausing it; Tab brings up the TO DO list, and Enter picks the marshmallows.
+			if _since_ticks() > 10 and level._tutorial.step == CampTutorial.Step.ARRIVAL and not _plan.open \
 					and _plan.note_showing() == CampTutorial.OPEN_NOTE:
 				_key(KEY_TAB)
 				_go("plan")
 		"plan":
 			if _since_ticks() > 10 and _plan.open and _plan.up() >= 1.0:
-				_key(KEY_TAB)
+				_key(KEY_ENTER)
 				_go("play")
 		"play":
 			# Spotted by the camper's own sight, once the cones are on.

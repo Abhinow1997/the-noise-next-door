@@ -449,7 +449,12 @@ func _chase(delta: float) -> void:
 			_treed = true
 			_to_state(State.SHOO)
 			return
-	elif _flat(him - global_position).length() < REACH and not player.is_hopping() and not player.resting:
+	# Hidden (in a hiding spot, the camp's bush), he can't be caught: they've come to where
+	# they last saw him, and can only look about (7 Nov 2026: the author found them
+	# shooing him out of the bush, "if you hide in the bushes, people should not be able
+	# to see you. That should be the whole point").
+	elif _flat(him - global_position).length() < REACH and not player.is_hopping() and not player.resting \
+			and not VisionCone.hidden(player):
 		_treed = false
 		var item: Node3D = player.held
 		if item and item.has_meta("camp_loot"):

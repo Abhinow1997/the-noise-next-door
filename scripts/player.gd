@@ -25,6 +25,13 @@ const LOOP_HOLD := 0.12
 const STARTLE_LEAPS := [1.6, 1.1, 0.7]
 const STARTLE_TIME := 0.42
 const STARTLE_HEIGHT := 0.35
+## Diving into a hiding spot and out of it (dive_into): how long each hop takes, how
+## high it goes, how far out of its middle he lands (clear of it, nose and tail), and
+## how long after coming out before he can dive in again (seconds).
+const DIVE_TIME := 0.32
+const DIVE_HEIGHT := 0.35
+const DIVE_OUT := 1.5
+const DIVE_AGAIN := 0.6
 ## How fast he drops off in the hollow (sleep per second). He starts just before he
 ## lands there, so the sleep animation has blended in by the time he touches down.
 const DOZE_RATE := 1.5
@@ -99,6 +106,17 @@ var resting := false
 ## Set while the title screen is up: asleep in the hollow, a move key doesn't wake him
 ## (the menu uses W, S and the arrows).
 var keep_asleep := false
+## Set while the camp's tutorial holds the game (camp_tutorial.gd): he doesn't move, and
+## E, Space and jump do nothing, until it lets go. Added 7 Nov 2026.
+var input_locked := false
+## The hiding spot he's dived into (hide_spot.gd with `dive` on: the camp's bush), or
+## null. Added 7 Nov 2026, when the author found hiding "clunky": walking into it, he
+## dives in with a little hop and vanishes into it; a move key hops him out the way it
+## points (DIVE_OUT), sneaking still if Ctrl's held.
+var hiding_in: Node3D = null
+var _shown_before := true
+var _diving := false
+var _dive_wait := 0.0
 ## True while on a tree trunk, including the hops on and off.
 var climbing := false
 ## True while he runs on the ground: Shift held, not sneaking, faster than a walk.
@@ -195,6 +213,7 @@ func _sound(path: String, db: float) -> AudioStreamPlayer:
 func _physics_process(delta: float) -> void:
 	running = false
 	climb_moving = false
+	_dive_wait = maxf(_dive_wait - delta, 0.0)
 	model.hopping = _hop_t >= 0.0
 	model.climbing = climbing
 	# Only walking sets these.
@@ -205,6 +224,8 @@ func _physics_process(delta: float) -> void:
 		_hop_process(delta)
 	elif resting:
 		_rest_process(delta)
+	elif hiding_in:
+		_hide_process(delta)
 	elif climbing:
 		_climb_process(delta)
 	else:
@@ -341,6 +362,8 @@ func _walk_process(delta: float) -> void:
 
 
 func _move_input() -> Vector2:
+	if input_locked:
+		return Vector2.ZERO
 	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
 
@@ -389,6 +412,13 @@ func _end_jump() -> void:
 ## Puts him straight at `pos` with whatever he's carrying, for the tests. He's drawn
 ## between physics ticks, so this resets that, or he'd be drawn sliding there.
 func place(pos: Vector3) -> void:
+	if hiding_in:
+		_stop_hiding()
+	if _diving:
+		# Put somewhere mid-dive: the dive's off.
+		_diving = false
+		_hop_t = -1.0
+		_shape.disabled = false
 	global_position = pos
 	_carry()
 	reset_physics_interpolation()
@@ -435,6 +465,10 @@ func start_asleep(spot: Transform3D, exit: Transform3D) -> void:
 func startle(from: Vector3) -> void:
 	if resting or climbing or is_hopping():
 		return
+	# Out of a hiding spot first, so he's seen again as he leaps (nothing catches him in
+	# one: camp_person.gd).
+	if hiding_in:
+		_stop_hiding()
 	if held:
 		_drop()
 	var away := global_position - from
@@ -457,6 +491,60 @@ func startle(from: Vector3) -> void:
 
 func _end_startle() -> void:
 	_shape.disabled = false
+
+
+## Into a hiding spot with `dive` on (hide_spot.gd calls it as he walks in): a little hop
+## to its middle, and he's gone into it.
+func dive_into(spot: Node3D) -> void:
+	if hiding_in or _diving or _dive_wait > 0.0 or _hop_t >= 0.0 or resting or climbing:
+		return
+	_diving = true
+	_hop(global_transform, Transform3D(global_basis, spot.global_position + Vector3(0, 0.02, 0)), DIVE_TIME,
+		DIVE_HEIGHT, _hidden_in.bind(spot))
+
+
+func _hidden_in(spot: Node3D) -> void:
+	# In it before his collider's back on, since turning it on tells the spot he's come
+	# in again (dive_into), and he's there already.
+	hiding_in = spot
+	_diving = false
+	_shape.disabled = false
+	_shown_before = model.visible
+	model.visible = false
+	if held:
+		held.visible = false
+	spot.call("dived", true)
+
+
+## In the hiding spot: still, out of sight, until a move key hops him out that way.
+func _hide_process(_delta: float) -> void:
+	velocity = Vector3.ZERO
+	_speed = 0.0
+	model.speed = 0.0
+	model.walk_amount = 0.0
+	model.turn = 0.0
+	sneaking = Input.is_action_pressed("sneak") and not input_locked
+	var input := _move_input()
+	if input.length() > 0.3:
+		var dir := Vector3(input.x, 0.0, input.y)
+		if camera:
+			dir = dir.rotated(Vector3.UP, camera.global_rotation.y)
+		dir = dir.normalized()
+		var spot := hiding_in
+		_stop_hiding()
+		_dive_wait = DIVE_AGAIN
+		_hop(global_transform, Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.z)),
+			spot.global_position + dir * DIVE_OUT + Vector3(0, 0.02, 0)), DIVE_TIME, DIVE_HEIGHT, _end_startle)
+
+
+## Out of the hiding spot where he is: seen again, with whatever he carries.
+func _stop_hiding() -> void:
+	var spot := hiding_in
+	hiding_in = null
+	model.visible = _shown_before
+	if held:
+		held.visible = true
+	spot.call("dived", false)
 
 
 func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done := Callable()) -> void:
@@ -710,7 +798,7 @@ func _ground_spot(angle: float) -> Transform3D:
 # --- Grabbing and chittering -----------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
-	if resting or _hop_t >= 0.0:
+	if resting or _hop_t >= 0.0 or input_locked or hiding_in:
 		return
 	if event.is_action_pressed("grab"):
 		if held:

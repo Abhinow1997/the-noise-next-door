@@ -18,15 +18,23 @@ extends RefCounted
 ## like steal marshmellows and all others which we have". The name is Claude Code's
 ## reading of that. Rock the party is done when all of its sub-tasks are.
 
+## On 7 Nov 2026 each task got a hint, how it's done, which the TO DO list writes under
+## itself while the mouse is on that task (plan_note.gd). Claude Code's words.
+
 ## A task has just been ticked off.
 signal ticked(id: String)
 
 var list: Array[Dictionary] = [
-	{"id": "investigate", "text": "Investigate the music", "done": false, "key": true},
-	{"id": "party", "text": "Rock the party", "done": false, "main": true},
-	{"id": "marshmallows", "text": "Steal the marshmallows", "done": false, "parent": "party"},
-	{"id": "music", "text": "Turn the music off", "done": false, "parent": "party"},
-	{"id": "cooler", "text": "Raid the cooler", "done": false, "parent": "party"},
+	{"id": "investigate", "text": "Investigate the music", "done": false, "key": true,
+		"hint": "Follow the music's waves through the forest to the party."},
+	{"id": "party", "text": "Rock the party", "done": false, "main": true,
+		"hint": "Spoil their party: do the three tasks under it."},
+	{"id": "marshmallows", "text": "Steal the marshmallows", "done": false, "parent": "party",
+		"hint": "His backpack's on the log by the fire. Unzip it (hold E) while his back is turned, and take the bag home."},
+	{"id": "music", "text": "Turn the music off", "done": false, "parent": "party",
+		"hint": "The plug's under the table. Tug it out with your teeth (hold E), then get away while they stand frozen."},
+	{"id": "cooler", "text": "Raid the cooler", "done": false, "parent": "party",
+		"hint": "It's by the table. Nose the lid open (hold E), or wait for it to be left open, and take the sausages home."},
 ]
 ## Whether the main task and its sub-tasks are on the list yet.
 var revealed := false

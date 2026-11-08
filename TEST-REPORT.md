@@ -962,3 +962,24 @@ The camp's clearing went from 7.5 m round to 11, everything but the fire's circl
 | (None, but the results changed from run to run) | The keeper was named after he was added, so his routine's seed (camp_person.gd seeds it from the name) came from Godot's generated name. | `scripts/campsite.gd` names him `fire_keeper` before he's added. |
 
 The tasks check (43 of 43) and both cone checks run with the keeper in the camp.
+
+### After the tutorial was remade (7 Nov 2026)
+
+The tutorial at the camp now slows the game behind a dark layer instead of pausing it, THE PLAN is called TO DO, and the marshmallows are walked through step by step (README, "The tutorial, remade"). Later the same day it became a short scene: the pan, the laugh, being seen, hiding in a new bush and sneaking out, then the list, with beats that go on by themselves and few words; and the game starts with the music muted. Then the camp's bush became one he dives into, with its rustle and his peeking eyes. Last, a camper could still shoo him out of the bush; now nobody can catch him in it. The table is the run after all of it (16:03). Logs: [logs/a6-after-tutorial/](logs/a6-after-tutorial/).
+
+| Check | Result | Changed? |
+|---|---|---|
+| Assignment 3's assets, sounds, materials | Pass | No |
+| Thought icons | Pass, 87 of 87 | No |
+| Campers' reactions | Pass, 31 of 31 | No |
+| Camp tasks | Pass, 43 of 43 | No |
+| THE PLAN (now TO DO) | Pass, 19 of 19 | No |
+| Sound waves, title screen | 12 of 13, 51 of 52 | No: the recorded `--fixed-fps` failures |
+| The cones, at 30, 60 and 144 fps | Pass, 43 of 43 at each | **Its tutorial checks were changed with the design**, one for one, so the count is the same: "the game pauses" is now "slows right down behind a dark layer", "the note says to sneak" is now "to pick one, the marshmallows marked", the second Tab is now Enter, and so on (`scripts/cones_test.gd`). The tutorial's intro and guide are turned off in it, so he arrives to the dark layer and Tab at once. |
+| The cones' shader, at 30, 60 and 144 fps | Pass, 93 of 93 at each | Its staging now waits for the slowed arrival instead of a pause, and picks with Enter instead of a second Tab. Its checks are unchanged. |
+| **New: the tutorial** | Pass, 20 of 20 | `--tutorial-test 60` plays it all through: the pan, the laugh, being seen, diving into the bush (his eyes peeking), a camper chasing him right up to the bush without catching him, hopping out sneaking, the pick, and each beat to taking the bag home. (16 checks before it became a scene, 18 before the dive, 19 before the hiding fix.) **The hiding check fails without the fix:** with `not VisionCone.hidden(player)` replaced by `true` in `scripts/camp_person.gd` for one run, "Chased to the bush" fails (he's shooed out); restored, it passes. It moves him with `place()`, so it checks the steps, not that sneaking out of sight works by feel. |
+| The music at the start | Not checked by a test | Normal play starts with the Music bus muted. The checks run with their own flags and start with it on, as before. |
+
+**Known:** in the runs where the tutorial slows the game (the cones, cone-shader and tutorial checks), Godot reports two or three sounds (the music loops and a task laugh) still in use when the check quits. It fails nothing, and it doesn't happen when the tutorial doesn't slow the game (tried with `SLOW` set to 1). It isn't fixed.
+
+**Looked at in a window:** the arrival with the camp lit, the TO DO list picking with its hint, and the cones step, from the tutorial check's own pictures (`--tutorial-shots`). Two fixes came from them: the hint was hidden behind the scrap at the bottom, and the cones step lit the camper off-screen at his tent instead of whoever's nearest. After it became a scene: the pan on the campers with "The campers", and, after the laugh, a camper really spotting him (a red cone and "!"), the bush beside him. After the dive: the bush whole with him in it, the hiding z's over it; the first picture had no eyes (they were inside the leaves), and after they were moved out, two white eyes peeking from the bush.

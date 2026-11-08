@@ -16,8 +16,20 @@ extends Control
 ##     `shown`), with a main task's sub-tasks indented under it; and the tutorial at the
 ##     camp (camp_tutorial.gd) puts its notes on a scrap at the bottom, which stays up
 ##     while the page is.
+##   - Since 7 Nov 2026 it's called TO DO, not THE PLAN (the author: "rather than calling
+##     it the plan, we should have it called the task because it's not like a plan";
+##     they picked "TO DO" from Claude Code's options). Hovering over a task with the
+##     mouse marks it in chalk and writes how it's done under the list (camp_tasks.gd's
+##     hints). For the tutorial at the camp (camp_tutorial.gd) it picks: one task is
+##     marked "start here", Up and Down move the mark, and a click on that task or Enter
+##     picks it (`picked`).
+##   - It runs on real time, so it comes up at its own speed while the tutorial has the
+##     game slowed down.
 ## The page is laid out in the picture's own pixels (1024 × 572), turned straight, and
 ## scaled to fit the window.
+
+## A task picked off the list while it's picking (start_picking).
+signal picked(id: String)
 
 const CampTasks := preload("res://scripts/camp_tasks.gd")
 const TitleMenu := preload("res://scripts/title_menu.gd")
@@ -62,7 +74,7 @@ const CHALK := Color("f6ece1")
 ## "THE PLAN": its size, the top of its capitals, its middle across, the gap added
 ## between its letters, and the chalk line under it. The picture's title is gone round
 ## in chalk, so it's drawn as its letters' outline, TITLE_RIM wide, over a faint fill.
-const TITLE := "THE PLAN"
+const TITLE := "TO DO"
 const TITLE_SIZE := 67
 const TITLE_CAP := 75.0
 const TITLE_X := 511.5
@@ -117,11 +129,26 @@ const SCRAP_PAD := 20.0
 const SCRAP_GAP := 8.0
 const SCRAP_BOTTOM := 30.0
 const SCRAP_MOVE := 0.3
+## Hovering (7 Nov 2026): the size of the hint under the list, how wide it runs, how far
+## below the last task's line it starts, what it starts with on the task to start with,
+## and how far round a task's line the mouse counts as on it.
+const HINT_SIZE := 24
+const HINT_WIDTH := 590.0
+const HINT_DROP := 19.0
+const START_HERE := "Start here. "
+const HOVER_ABOVE := 46.0
+const HOVER_BELOW := 12.0
 
 ## Set before it's added.
 var tasks: CampTasks
 ## True while the page is up (or coming up).
 var open := false
+## True while it's picking a task for the tutorial, and the task that may be picked.
+var picking := false
+var pick_id := ""
+
+## The task the mouse (or, picking, Up and Down) is on, or "".
+var _hover := ""
 
 var _clock := 0.0
 ## How far (0..1) the page is up.
@@ -253,6 +280,64 @@ func up() -> float:
 	return _up
 
 
+## For the tutorial: `id` is marked "start here", and a click on it or Enter picks it.
+func start_picking(id: String) -> void:
+	picking = true
+	pick_id = id
+	_hover = id
+
+
+func stop_picking() -> void:
+	picking = false
+	pick_id = ""
+
+
+## The task marked now (hovered, or moved to with Up and Down), or "".
+func highlighted() -> String:
+	return _hover
+
+
+func _input(event: InputEvent) -> void:
+	if not open or _up < 0.9:
+		return
+	if event is InputEventMouseMotion:
+		var at := _task_at(event.position)
+		if at != "" or not picking:
+			_hover = at
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and picking:
+		var at := _task_at(event.position)
+		if at != "":
+			_hover = at
+			if at == pick_id:
+				picked.emit(at)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.pressed and not event.echo and picking:
+		var ids: Array = tasks.shown().map(func(t: Dictionary) -> String: return t.id)
+		var i := ids.find(_hover)
+		if event.keycode == KEY_UP or event.keycode == KEY_DOWN:
+			i = clampi((i if i >= 0 else ids.find(pick_id)) + (1 if event.keycode == KEY_DOWN else -1), 0, ids.size() - 1)
+			_hover = ids[i]
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+			# Enter picks the marked task, or the one to start with if it's on another.
+			_hover = pick_id
+			picked.emit(pick_id)
+			get_viewport().set_input_as_handled()
+
+
+## The task whose line is under `point` (on the screen), or "".
+func _task_at(point: Vector2) -> String:
+	var local: Vector2 = _page.get_global_transform().affine_inverse() * point
+	var shown := tasks.shown()
+	var gap := RULE_GAP * minf(1.0, float(RULES) / shown.size())
+	for i in shown.size():
+		var rule := RULE_Y + i * gap
+		if local.y > rule - HOVER_ABOVE and local.y < rule + HOVER_BELOW \
+				and local.x > MARGIN[0].x - 20.0 and local.x < BOX_X + SQUARE:
+			return shown[i].id
+	return ""
+
+
 func _on_ticked(id: String) -> void:
 	if open:
 		_struck[id] = _clock
@@ -270,6 +355,9 @@ func _on_ticked(id: String) -> void:
 
 
 func _process(delta: float) -> void:
+	# On real time, whatever speed the game runs at (the tutorial slows it down).
+	if Engine.time_scale > 0.0:
+		delta /= Engine.time_scale
 	_clock += delta
 	_up = move_toward(_up, 1.0 if open else 0.0, delta / OPEN_TIME)
 	_page.visible = _up > 0.0
@@ -412,6 +500,14 @@ func _paint_page_chalk(item: CanvasItem) -> void:
 		if task.get("key", false):
 			TitleMenu.paw(item, Vector2(right + PAW_GAP + PAW_SIZE * 0.5, rule - TASK_SIZE * CAP_HEIGHT * 0.55),
 				PAW_SIZE, deg_to_rad(12.0), CHALK)
+		if task.id == _hover:
+			# Marked: a chalk arrow in front of it and a wavy line under it.
+			var mid := rule - TASK_SIZE * CAP_HEIGHT * 0.5
+			stroke(item, [Vector2(left - 38, mid), Vector2(left - 12, mid)], STROKE, CHALK, 1.0, 7)
+			stroke(item, [Vector2(left - 22, mid - 9), Vector2(left - 11, mid), Vector2(left - 22, mid + 9)], STROKE, CHALK, 1.0, 8)
+			var under := rule + 6.0
+			stroke(item, [Vector2(left, under), Vector2(lerpf(left, right, 0.33), under + 2.5),
+				Vector2(lerpf(left, right, 0.66), under - 1.5), Vector2(right, under + 1.0)], STROKE * 0.8, CHALK, 1.0, 9)
 		var box := Vector2(BOX_X, rule - BOX_RISE)
 		if done > 0.0:
 			cross_off(item, left, right, rule - ABOVE_RULE, TASK_SIZE, done, hash(task.id))
@@ -419,6 +515,20 @@ func _paint_page_chalk(item: CanvasItem) -> void:
 			stamp(item, box, STAMP, _clock - struck - STRIKE_TIME)
 		else:
 			empty_box(item, box, i, hash(task.id))
+	# How the marked task is done, in the gap under the last task (clear of the scraps
+	# at the bottom of the screen); picking, the one to start with says so.
+	var hovered: Dictionary = {}
+	for task: Dictionary in shown:
+		if task.id == _hover:
+			hovered = task
+	if hovered.has("hint"):
+		var rule := RULE_Y + (shown.size() - 1) * gap + HINT_DROP
+		var left := lerpf(MARGIN[0].x, MARGIN[1].x, inverse_lerp(MARGIN[0].y, MARGIN[1].y, rule)) + INDENT
+		var hint: String = hovered.hint
+		if picking and hovered.id == pick_id:
+			hint = START_HERE + hint
+		item.draw_multiline_string(_hand, Vector2(left, rule), hint,
+			HORIZONTAL_ALIGNMENT_LEFT, HINT_WIDTH, HINT_SIZE, 2, Color(CHALK, 0.9))
 
 
 # --- The scraps ------------------------------------------------------------------
