@@ -983,3 +983,16 @@ The tutorial at the camp now slows the game behind a dark layer instead of pausi
 **Known:** in the runs where the tutorial slows the game (the cones, cone-shader and tutorial checks), Godot reports two or three sounds (the music loops and a task laugh) still in use when the check quits. It fails nothing, and it doesn't happen when the tutorial doesn't slow the game (tried with `SLOW` set to 1). It isn't fixed.
 
 **Looked at in a window:** the arrival with the camp lit, the TO DO list picking with its hint, and the cones step, from the tutorial check's own pictures (`--tutorial-shots`). Two fixes came from them: the hint was hidden behind the scrap at the bottom, and the cones step lit the camper off-screen at his tent instead of whoever's nearest. After it became a scene: the pan on the campers with "The campers", and, after the laugh, a camper really spotting him (a red cone and "!"), the bush beside him. After the dive: the bush whole with him in it, the hiding z's over it; the first picture had no eyes (they were inside the leaves), and after they were moved out, two white eyes peeking from the bush.
+
+### After the roasted marshmallows (7 Nov 2026)
+
+The tutorial's second half remade: the campers freeze until he hides, the camera shows the spotter confused, then the camper roasts marshmallows and sets them on a plate on the log behind him, and he eats one behind the camper's back; then the TO DO list, with the guided backpack steps dropped. Logs: [logs/a6-after-roast/](logs/a6-after-roast/), run at 16:56.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Every earlier check | The same counts as the table above | No |
+| The tutorial | Pass, 21 of 21 | Rewritten for this flow (`scripts/tutorial_test.gd`): frozen till hidden, the spotter confused, the chase that can't catch him in the bush, the roasting, and a new check that **nobody notices him eat**. |
+
+**What the new check caught:** in the first runs everyone took fright as he ate. First the plate was on the table, in the camper's sight from the fire and behind a dancer; it moved to the log behind the camper. Then "Now!" came while the camper was still turning round from the plate, and his cone swept over the raccoon; "Now!" now waits until he faces the fire. The run before those fixes passed every other check, so without this one the problem wouldn't have shown.
+
+**Looked at in a window:** the campers frozen with the bush lit and "Hide!"; the first roasted marshmallow on the plate, lit and sparkling, the camper beside it and the raccoon's hungry thought over the bush with his eyes in it; and him eating at the log behind the camper's back, nobody alarmed.

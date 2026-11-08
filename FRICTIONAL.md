@@ -77,6 +77,14 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 - **The fix:** hidden, he can't be caught (`VisionCone.hidden`). They still run to where they last saw him and look about, confused. And if anything ever startles him in a hiding spot, he comes out of it first; in the run without the fix, the shoo left him invisible.
 - **Proved:** a new check chases him right to the bush. With the fix he isn't caught; with the fix taken out for one run, the check fails (he's shooed). The tutorial check has 20 checks now.
 
+### 7 Nov 2026: forced to hide, and the roasted marshmallows
+
+- I asked: "let's force the user to hide after he's been spotted initially ... just like the tab in which the game freezes ... make the spotter ... the confused animation, and then let him continue ... the human starts ... to tend to the fire, and makes one marshmallow, keeps it aside ... going back to the fire to make more ... the task should be sort of to quickly steal them and eat them."
+- From Claude Code's options I picked: the campers freeze while he hides; the roasting only in the tutorial; one eaten is enough; then the TO DO list and free play, with the guided backpack steps dropped.
+- Claude Code built it (`scripts/camp_tutorial.gd`, new `scripts/roast_plate.gd`): the campers' nodes stop till he's in the bush; the camera on the confused spotter ("He lost you"); the camper roasting, then turning round to set the roasted one on a plate, then back to the fire; the first one sparkles, with the raccoon's hungry thought; "Now!" once the camper's back at the fire; E eats one.
+- **What went wrong first:** the plate was on the table at first, and in the first run everyone took fright as he ate: the camper at the fire saw him there, and the table was right behind a dancer. Claude Code moved the plate to the log behind where the camper roasts ("keeps it aside"), by the backpack, where a sneaking raccoon already goes unseen in the tasks check. It still failed: a new check that nobody notices him eat caught that "Now!" came while the camper was still turning round from the plate, and his cone swept over him. "Now!" now waits until he's facing the fire.
+- **Checks:** the tutorial check was rewritten for this (21 checks), including that nobody notices him eat.
+
 ---
 
 ## Assignment 5: shaders and materials

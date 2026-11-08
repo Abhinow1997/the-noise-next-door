@@ -1,18 +1,19 @@
 extends Node
 ## The automated check for the tutorial at the camp (camp_tutorial.gd) as remade on
-## 7 Nov 2026, all of it on: it plays it through as a player would, with Tab, Enter and
-## E going through the level's input, and checks each step:
+## 7 Nov 2026, all of it on: it plays it through as a player would, with Tab and E going
+## through the level's input, and checks each step:
 ##   - the pan: the game slowed behind the dark layer, the camera on the campers with a
 ##     word or two;
 ##   - the laugh: back on him, he chitters, the cones come on, and someone comes to look;
-##   - seen: a beat with the bush lit, then a note to hide; hidden, a note to wait; once
-##     they look away, a note to sneak out; out of sight, the note to press Tab;
-##   - Tab: the TO DO list up, picking, the marshmallows marked;
-##   - Enter: back to speed, then the guide's beats, each going on by itself: the
-##     camper's routine, the sneak and unzip, the grab, the way home, and done;
-##   - then the world's open: no notes, full speed, and he can move.
-## While the camper's made to sit roasting, the others are kept at their first places,
-## out of the way, as tasks_test.gd does. Run it headless from the project folder:
+##   - hide: the campers frozen and the bush lit till he's in it; then they carry on;
+##     chased right to the bush, they can't catch him in it;
+##   - lost: the camera on the one who saw him, confused; then a note to sneak out, and a
+##     move key hops him out, sneaking;
+##   - the roasting: the camper roasts, serves one to the plate; the camera on it and the
+##     raccoon hungry; wait till he's back at the fire; sneak over and eat it with E;
+##   - Tab: the TO DO list up to read, the game slowed; Tab again, and the world's open:
+##     no notes, full speed, and he can move.
+## Run it headless from the project folder:
 ##   bash scripts/run-test.sh --tutorial-test 60
 ## It prints a table and quits with exit code 0 if every check passes, 1 if not. With
 ## `--tutorial-shots=<folder>` in a window it saves a picture at each stage.
@@ -20,6 +21,7 @@ extends Node
 const CampPerson := preload("res://scripts/camp_person.gd")
 const Campsite := preload("res://scripts/campsite.gd")
 const CampTutorial := preload("res://scripts/camp_tutorial.gd")
+const RoastPlate := preload("res://scripts/roast_plate.gd")
 const HideSpot := preload("res://scripts/hide_spot.gd")
 const Forest := preload("res://scripts/forest.gd")
 const S := CampPerson.State
@@ -67,23 +69,35 @@ func _run() -> void:
 		"%s %s %s" % [level.camera_focus == null, _tutorial._laughed_at > -INF, _camp.cones_on])
 	_check("The laugh: someone comes to look", true, _camp.people.any(func(p) -> bool: return p.state != S.WORK))
 
-	await _until(func() -> bool: return _tutorial.stage == "seen_beat", 8.0)
-	_shot("02_seen")
-	_check("Seen: a beat, the bush lit, a word or two", "true true",
-		"%s %s" % [_tutorial.spotlight.showing(), _tutorial.spotlight.line() in [CampTutorial.SEEN_LINE, CampTutorial.HEARD_LINE]])
-	await _until_real(func() -> bool: return _tutorial.stage == "hiding", 5.0)
-	_check("Then: a note to hide, back to speed, and he can move", "%s %s false" % [CampTutorial.HIDE_NOTE, 1.0],
-		"%s %s %s" % [_plan.note_showing(), Engine.time_scale, _player.input_locked])
+	await _until(func() -> bool: return _tutorial.stage == "hide", 8.0)
+	await _real(0.5)
+	_shot("02_hide")
+	_check("Seen: the campers frozen, the bush lit, 'Hide!'", "true true %s" % CampTutorial.HIDE_LINE,
+		"%s %s %s" % [_tutorial.frozen(), _camp.people.all(func(p) -> bool: return p.process_mode == Node.PROCESS_MODE_DISABLED),
+			_tutorial.spotlight.line()])
+	_check("Seen: full speed, he can move, a note to hide", "%s false %s" % [1.0, CampTutorial.HIDE_NOTE],
+		"%s %s %s" % [Engine.time_scale, _player.input_locked, _plan.note_showing()])
+	await _wait(1.0)
+	_check("Held: it waits for him to hide", "hide true", "%s %s" % [_tutorial.stage, _tutorial.frozen()])
 
 	# Into the bush.
 	_player.place(_camp.bush.global_position + Vector3(0, 0.02, 0))
 	await _until(func() -> bool: return _tutorial.stage == "hidden" and _player.hiding_in != null, 3.0)
 	await _wait(0.5)
-	_shot("02b_hidden")
-	_check("In the bush: dived in, hidden, his eyes peeking, a note to wait",
-		"true true true %s" % CampTutorial.HIDDEN_NOTE,
-		"%s %s %s %s" % [_player.hiding_in == _camp.bush, HideSpot.is_hidden(_player), _camp.bush.peeking(),
-			_plan.note_showing()])
+	_shot("03_hidden")
+	_check("In the bush: the campers carry on, his eyes peeking, a note to wait",
+		"false true true %s" % CampTutorial.HIDDEN_NOTE,
+		"%s %s %s %s" % [_tutorial.frozen(), _player.hiding_in == _camp.bush, _camp.bush.peeking(), _plan.note_showing()])
+
+	await _until(func() -> bool: return _tutorial.stage == "lost", 20.0)
+	_shot("04_lost")
+	_check("Lost: the camera on the one who saw him, confused", "true true %s" % CampTutorial.LOST_LINE,
+		"%s %s %s" % [level.camera_focus != null, _tutorial._spotter != null and _tutorial._spotter.state == S.SEARCH,
+			_tutorial.spotlight.line()])
+	await _until_real(func() -> bool: return _tutorial.stage == "roast", 6.0)
+	_check("Then: the camper roasting and serving, a note to sneak out", "roast serve %s" % CampTutorial.SNEAK_NOTE,
+		"%s %s" % [" ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name)), _plan.note_showing()])
+
 	# Chased right to the bush he's hidden in: they can't catch him or shoo him out.
 	var chaser: CampPerson = _camp.dancers[0]
 	_camp.saw(_camp.bush.global_position)
@@ -99,9 +113,6 @@ func _run() -> void:
 	_check("Chased to the bush: they come right up, but can't catch him in it", "true false true",
 		"%s %s %s" % [came < CampPerson.REACH, caught, _player.hiding_in == _camp.bush])
 
-	await _until(func() -> bool: return _tutorial.stage == "sneak", 40.0)
-	_check("They look away: a note to sneak out", CampTutorial.SNEAK_NOTE, _plan.note_showing())
-
 	# Out of the bush with a move key, sneaking: a hop out, the way it points.
 	Input.action_press("sneak")
 	Input.action_press("move_left")
@@ -112,58 +123,47 @@ func _run() -> void:
 		"%s %s %s %s" % [_player.hiding_in != null, _camp.bush.peeking(), _player.sneaking,
 			_player.global_position.distance_to(_camp.bush.global_position) > 0.9])
 	Input.action_release("sneak")
+	await _wait(0.1)
+	_check("Out: a note to watch the camper", CampTutorial.WATCH_NOTE, _plan.note_showing())
 
-	# Away, out of sight.
-	_player.place(AWAY)
-	await _until(func() -> bool: return _tutorial.step == CampTutorial.Step.TASKS, 10.0)
-	_check("Out of sight: a word, and the note to press Tab", "%s %s" % [CampTutorial.ESCAPED_LINE, CampTutorial.OPEN_NOTE],
+	# Back in the bush, to watch the camper roast and serve, as a player might.
+	_player.place(_camp.bush.global_position + Vector3(0, 0.02, 0))
+	await _until(func() -> bool: return _tutorial.stage == "food", 30.0)
+	await _real(0.4)
+	_shot("05_food")
+	_check("Served: one on the plate, the camera on it, two words, he's hungry", "1 true %s hungry" % CampTutorial.FOOD_LINE,
+		"%s %s %s %s" % [_tutorial.roast.on_plate, level.camera_focus != null, _tutorial.spotlight.line(), level.bubbles.showing()])
+	await _until_real(func() -> bool: return _tutorial.stage == "wait", 4.0)
+	_check("Then: a note to wait till he's at the fire", CampTutorial.WAIT_NOTE, _plan.note_showing())
+	await _until(func() -> bool: return _tutorial.stage == "steal", 30.0)
+	_check("He's back roasting: 'Now!', a note to eat", "%s %s" % [CampTutorial.NOW_LINE, CampTutorial.EAT_NOTE],
 		"%s %s" % [_tutorial.spotlight.line(), _plan.note_showing()])
+
+	var spotted_before: float = _camp.spotted_at
+	await _sneak_to(_tutorial.roast.eat_from(), _tutorial.roast.plate_point())
+	await _wait(0.3)
+	await _press_e(RoastPlate.EAT_TIME + 0.2)
+	await _until(func() -> bool: return _tutorial.step == CampTutorial.Step.TASKS, 3.0)
+	_check("Eaten behind his back, sneaking: nobody noticed", "true WORK WORK WORK WORK",
+		"%s %s" % [_camp.spotted_at == spotted_before, " ".join(_camp.people.map(func(p) -> String: return S.keys()[p.state]))])
+	_shot("06_yum")
+	_check("Eaten: 'Yum!', the note to press Tab, the camper's own routine back", "%s %s peg roast pizza" % [
+		CampTutorial.YUM_LINE, CampTutorial.OPEN_NOTE],
+		"%s %s %s" % [_tutorial.spotlight.line(), _plan.note_showing(),
+			" ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name))])
+	Input.action_release("sneak")
 
 	_key(KEY_TAB)
 	await _real(1.0)
-	_shot("03_to_do")
-	_check("Tab: the TO DO list, picking, the marshmallows marked, slowed", "true true marshmallows true",
-		"%s %s %s %s" % [_plan.open and _plan.up() >= 1.0, _plan.picking, _plan.highlighted(),
-			Engine.time_scale <= CampTutorial.SLOW + 0.01])
-
-	# Everyone calm and out of the way, the camper at his tent: the guide starts with
-	# his routine.
-	await _until(func() -> bool: return _calm(), 40.0)
-	_settle([0, 0, 0])
-	_key(KEY_ENTER)
-	await _real(0.3)
-	_check("Picked: the list away; a beat on the camper's routine", "false routine true",
-		"%s %s %s" % [_plan.open, _tutorial.stage, _tutorial.spotlight.showing()])
-	await _until_real(func() -> bool: return not _tutorial._holding, 4.0)
-	_check("The beat goes on by itself: back to speed, a note to wait", "%s %s" % [1.0, CampTutorial.STEPS.routine[4]],
-		"%s %s" % [Engine.time_scale, _plan.note_showing()])
-
-	_settle([1, 0, 0])
-	await _until(func() -> bool: return _tutorial.stage == "sneak", 30.0)
-	_check("Roasting: a beat on the backpack", "sneak true", "%s %s" % [_tutorial.stage, _tutorial.spotlight.showing()])
-	await _until_real(func() -> bool: return not _tutorial._holding, 4.0)
-	await _sneak_to(_backpack_front(), _puzzles._backpack.global_position)
-	await _wait(0.3)
-	await _press_e(Campsite.CampPuzzles.ZIP_TIME + 0.3)
-	await _until(func() -> bool: return _tutorial.stage == "grab", 5.0)
-	_check("Unzipped: a beat on the bag", "grab true", "%s %s" % [_tutorial.stage, _tutorial.spotlight.showing()])
-	await _until_real(func() -> bool: return not _tutorial._holding, 4.0)
-	await _press_e(0.0)
-	await _until(func() -> bool: return _tutorial.stage == "home", 5.0)
-	_check("Grabbed: a beat on the way home", "home true true",
-		"%s %s %s" % [_tutorial.stage, _tutorial.spotlight.showing(), _player.held == _puzzles.bag])
-	await _until_real(func() -> bool: return not _tutorial._holding, 4.0)
-	Input.action_release("sneak")
-	_player.place(Forest.HOME + Vector3(1.0, 0.02, 1.2))
-	await _wait(0.3)
-	await _press_e(0.0)
-	await _until(func() -> bool: return _tutorial.stage == "done", 5.0)
-	_check("Home: the task done, and a last beat", "true done true",
-		"%s %s %s" % [level.tasks.is_done("marshmallows"), _tutorial.stage, _tutorial.spotlight.showing()])
-	await _until_real(func() -> bool: return not _tutorial._holding, 4.0)
-	await _real(0.2)
-	_check("Done: the world's open (no note, full speed, he can move)", "DONE  %s false" % 1.0,
-		"%s %s %s %s" % [CampTutorial.Step.keys()[_tutorial.step], _plan.note_showing(), Engine.time_scale, _player.input_locked])
+	_shot("07_to_do")
+	_check("Tab: the TO DO list up to read, the camp's tasks on it, slowed", "true investigate party marshmallows music cooler true",
+		"%s %s %s" % [_plan.open and _plan.up() >= 1.0,
+			" ".join(level.tasks.shown().map(func(t: Dictionary) -> String: return t.id)), Engine.time_scale <= CampTutorial.SLOW + 0.01])
+	_key(KEY_TAB)
+	await _real(0.5)
+	_check("Tab again: the world's open (list away, no note, full speed, he can move)", "DONE false  %s false" % 1.0,
+		"%s %s %s %s %s" % [CampTutorial.Step.keys()[_tutorial.step], _plan.open, _plan.note_showing(), Engine.time_scale,
+			_player.input_locked])
 
 	for music: AudioStreamPlayer in [level._music, level._sleep_music]:
 		if music:

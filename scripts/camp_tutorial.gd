@@ -1,39 +1,40 @@
 extends Node
 ## The tutorial at the camp. First made on 26 Oct 2026 (the game paused, Tab, the list,
-## a note to sneak); remade on 7 Nov 2026 to the author's design, in two goes the same
-## day. The first: "the game should slow down ... like a black layer over the game ...
-## click tab ... hover over it ... select maybe one task as a tutorial". The second, after
-## playing it ("Still it feels a little bit choppy ... it's just too many words"): "pan
-## around the people and the food quickly, and maybe the raccoon can make a laughing
-## noise. And one of the person maybe can just spot him ... you can quickly hide in a
-## bush ... he's looking a little away from the bush, and now you can ask the user to
-## sneak away ... Keep the hints to the minimum words." Their picks from Claude Code's
-## options: the marshmallows as the task walked through, "TO DO" as the list's name
-## (plan_note.gd), a spotlight at each step. The rest, and the few words, are Claude
-## Code's.
+## a note to sneak); remade on 7 Nov 2026 to the author's design, in rounds after they
+## played each version: the dark layer and Tab; "pan around the people and the food
+## quickly ... the raccoon can make a laughing noise ... spot him ... hide in a bush ...
+## sneak away ... Keep the hints to the minimum words"; and then "force the user to hide
+## after he's been spotted ... make the spotter ... the confused animation ... the human
+## starts ... to tend to the fire, and makes one marshmallow ... keeping them on the table
+## ... going back to the fire to make more ... the task should be sort of to quickly steal
+## them and eat them". Their picks from Claude Code's options: "TO DO" as the list's name
+## (plan_note.gd); the campers freeze while he hides; the roasting only in the tutorial;
+## one eaten is enough; then the list and free play. The rest, and the few words, are
+## Claude Code's.
 ##   1. The pan: once he can see the party (main.gd), the game slows right down (SLOW)
 ##      behind a dark layer (spotlight.gd) and the camera pans over the campers, the
 ##      marshmallows and the cooler (main.gd `camera_focus`), a word or two on each.
-##   2. The laugh: back on him, he chitters, and the nearest camper hears it and comes to
-##      look; the cones come on. He's held still till he's seen (or a few seconds).
-##   3. Seen: a beat with the bush lit (campsite.gd `bush`), "Seen! Hide!". Then a note:
-##      hide in the bush; hidden, wait till they look away; then sneak out with Ctrl.
-##      Seen again, it's back to hiding. Out of sight, far enough from the bush, and
-##      nobody after him: "Out of sight".
-##   4. The list: a note says Tab; Tab brings up the TO DO list with Rock the party and
-##      its tasks on it (camp_tasks.gd `reveal`), hovering shows how, and the
-##      marshmallows are marked to start with; a click or Enter picks them.
-##   5. The guide: each step a beat, the game slowed with that step's thing lit and a
-##      few words, that goes on by itself (BEAT) or with any key; then a note while he
-##      does it: wait till the camper roasts, sneak up and hold E, grab the bag, take it
-##      home, done. Caught and the bag taken back, it goes back to waiting.
-##   6. Then the world's open: everything plays as before, with no more notes.
-## While a beat holds the game it holds the raccoon still (player.gd `input_locked`) and
-## Esc doesn't pause (main.gd). It's the only game script that changes Engine.time_scale,
+##   2. The laugh: back on him, he chitters, the cones come on, and the nearest camper
+##      hears it and comes to look. He's held still till he's seen (or a few seconds).
+##   3. Hide: the campers freeze where they are (their nodes stop), the bush is lit
+##      (campsite.gd `bush`), and he has to get into it, as he has to press Tab later.
+##      In it (player.gd `hiding_in`), they carry on, and lose him.
+##   4. Lost: once the one who saw him is confused ("??", SEARCH), the camera's on him
+##      for a moment; then a note to sneak out.
+##   5. The roasting (roast_plate.gd): the camper roasts a marshmallow, takes it to a
+##      plate on the table and goes back for more. The first one on the plate: the camera
+##      on it, sparkling, and the raccoon hungry (thought_bubbles.gd). Then: wait till
+##      he's back at the fire; now, sneak over and eat one with E. Eaten: "Yum!".
+##   6. The list: a note says Tab; Tab brings up the TO DO list with Rock the party and
+##      its tasks on it (camp_tasks.gd `reveal`), the game slowed; Tab again puts it away,
+##      and the world's open, with no more notes.
+## While it holds the game it holds the raccoon still (player.gd `input_locked`) and Esc
+## doesn't pause (main.gd). It's the only game script that changes Engine.time_scale,
 ## and only while it holds the game: it puts it back to 1 when it lets go.
-## The checks that go through it turn parts off: cones_test.gd and
-## tests/cone_shader_test.gd turn `intro` and `guide` off (he arrives to the dark layer
-## and Tab at once, and the cones come on at the pick); tutorial_test.gd plays it all.
+## With `intro` off (cones_test.gd and tests/cone_shader_test.gd), he arrives to the
+## dark layer and Tab at once, the list picks the marshmallows (plan_note.gd), and the
+## cones come on at the pick, as those checks were made for. `guide` is left from an
+## earlier version and does nothing now.
 
 signal finished
 
@@ -41,12 +42,12 @@ const CampPerson := preload("res://scripts/camp_person.gd")
 const Campsite := preload("res://scripts/campsite.gd")
 const Spotlight := preload("res://scripts/spotlight.gd")
 const HideSpot := preload("res://scripts/hide_spot.gd")
-const Forest := preload("res://scripts/forest.gd")
+const RoastPlate := preload("res://scripts/roast_plate.gd")
 const S := CampPerson.State
 
-enum Step { WAITING, INTRO, ARRIVAL, TASKS, PICKING, GUIDE, DONE }
+enum Step { WAITING, INTRO, ARRIVAL, TASKS, LIST, PICKING, DONE }
 
-## The task walked through.
+## The task picked on the list without the intro.
 const FIRST := "marshmallows"
 ## How long after he's seen the party it starts: as long as the music's task takes to be
 ## crossed off at the bottom (plan_note.gd STRIKE_TIME, and a moment to read it).
@@ -62,43 +63,40 @@ const PAN_DWELL := 1.4
 const PAN_RADIUS := 210.0
 const PAN_DARK := 0.55
 ## Back on him, how long before he laughs (real seconds); and how long the campers have
-## to see him before the tutorial goes on anyway (game seconds).
+## to see him before it goes on anyway (game seconds).
 const LAUGH_AFTER := 0.7
 const SEEN_WAIT := 5.0
-## How long a beat holds the game (real seconds), and a word shown without holding it.
-const BEAT := 1.5
+## Hiding: how dark the rest is while the bush is lit.
+const HIDE_DARK := 0.45
+## Lost: how long the one who saw him has to get confused (game seconds), and how long
+## at most the camera stays on him (real seconds).
+const LOST_WAIT := 12.0
+const LOST_SHOW := 3.0
+## The first roasted marshmallow: how long the camera's on it (real seconds).
+const FOOD_SHOW := 1.8
+## A few words on the screen, without holding the game (real seconds).
 const FLASH := 1.2
-## Out of sight: how far from the bush, and how long unseen.
-const ESCAPE := 5.0
-const UNSEEN := 1.0
 
 ## The words. Few, as the author asked.
 const ARRIVAL_LINE := "The party"
 const OPEN_NOTE := "Tab: your TO DO list"
+const CLOSE_NOTE := "Tab to close"
 const PICK_NOTE := "Pick the marshmallows"
-const SEEN_LINE := "Seen! Hide!"
-const HEARD_LINE := "Hide!"
+const HIDE_LINE := "Hide!"
 const HIDE_NOTE := "Hide in the bush"
 const HIDDEN_NOTE := "Wait till they look away"
+const LOST_LINE := "He lost you"
 const SNEAK_NOTE := "Sneak out: hold Ctrl"
-const AGAIN_NOTE := "Seen! Hide again"
-const ESCAPED_LINE := "Out of sight"
-const RETRY_NOTE := "Caught! Wait till he roasts"
-## The guide's steps: what's lit (see _target), how wide, how high above it, the words
-## on the beat, and the note while he does it ("" for none).
-const STEPS := {
-	"routine": ["camper", 150.0, 1.0, "Wait till he roasts", "Wait till he roasts"],
-	"sneak": ["backpack", 110.0, 0.3, "Now! Sneak up, hold E", "Sneak up, hold E"],
-	"grab": ["bag", 100.0, 0.1, "Grab it: E", "Grab the bag: E"],
-	"home": ["home", 120.0, 0.0, "Take it home", "Take it home"],
-	"done": ["player", 140.0, 0.4, "Nice!", ""],
-}
-## The states in which a camper is after him or looking for the noise.
-const ALARMED := [S.STARTLED, S.GUARD, S.CHASE, S.SHOO, S.TAKE, S.INVESTIGATE]
+const WATCH_NOTE := "Watch the camper"
+const FOOD_LINE := "Roasted marshmallows"
+const WAIT_NOTE := "Wait till he's at the fire"
+const NOW_LINE := "Now!"
+const EAT_NOTE := "Sneak over: E to eat"
+const YUM_LINE := "Yum!"
 
 ## Set before it's added (main.gd): the TO DO list, the tasks, the camp, the raccoon,
 ## the camera, the UI layer the dark layer goes in (under the list), and the level (for
-## the camera's pan).
+## the camera's pan and the thought bubbles).
 var plan
 var tasks
 var campsite
@@ -109,24 +107,27 @@ var level: Node
 ## Off in some checks (above).
 var intro := true
 var guide := true
-## Where it's got to, the task picked, and the step within the intro or the guide.
+## Where it's got to, and the stage within the intro.
 var step := Step.WAITING
-var task := ""
 var stage := ""
 var spotlight: Spotlight
+## The roasting (roast_plate.gd), made when it starts.
+var roast: RoastPlate
 
 var _wait := INF
 var _slow := false
 var _owns_time := false
-## Real seconds left of a pan stop, a beat or a flash.
+## Real seconds left of a pan stop or a moment, and of a flash.
 var _left := 0.0
 var _flash_left := 0.0
-## True while a beat holds the game.
-var _holding := false
 var _pan_i := 0
-## On the camp's clock: when he laughed, and when he last hid.
+## On the camp's clock: when he laughed, and when he hid. Who heard him laugh, and who
+## saw him.
 var _laughed_at := -INF
 var _hid_at := -INF
+var _heard_by = null
+var _spotter = null
+var _frozen := false
 
 
 func _ready() -> void:
@@ -144,11 +145,11 @@ func _ready() -> void:
 		plan.picked.connect(_pick)
 
 
-## True while it holds the game: the pan and the laugh till he's seen, a beat, and from
-## the dark layer at arriving until the pick.
+## True while it holds the game: the pan and the laugh till he's seen, the moments it
+## shows something, and the list.
 func running() -> bool:
-	return _holding or step == Step.ARRIVAL or step == Step.PICKING \
-		or (step == Step.INTRO and stage in ["pan", "laugh", "seen"])
+	return step in [Step.ARRIVAL, Step.PICKING, Step.LIST] \
+		or (step == Step.INTRO and stage in ["pan", "laugh", "seen", "lost", "food"])
 
 
 ## He's seen the party (main.gd): it starts START_AFTER seconds of play later.
@@ -165,7 +166,7 @@ func _process(delta: float) -> void:
 		Engine.time_scale = move_toward(Engine.time_scale, SLOW, real * (1.0 - SLOW) / SLOW_IN)
 	if _flash_left > 0.0:
 		_flash_left -= real
-		if _flash_left <= 0.0 and not _holding:
+		if _flash_left <= 0.0 and stage not in ["pan", "hide", "food"]:
 			spotlight.clear()
 	match step:
 		Step.WAITING:
@@ -178,8 +179,6 @@ func _process(delta: float) -> void:
 						_arrive()
 		Step.INTRO:
 			_intro(real)
-		Step.GUIDE:
-			_guide(real)
 	if player:
 		player.input_locked = running()
 
@@ -189,20 +188,28 @@ func _input(event: InputEvent) -> void:
 	var click: bool = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
 	if not (key or click):
 		return
-	if key and event.keycode == KEY_TAB and step in [Step.ARRIVAL, Step.TASKS]:
-		_open_list()
-		get_viewport().set_input_as_handled()
-	elif key and event.keycode == KEY_TAB and step == Step.PICKING:
-		get_viewport().set_input_as_handled()
-	elif _holding or (step == Step.INTRO and stage == "pan"):
-		# Any key or a click goes on: a beat ends, and the pan is skipped.
+	if key and event.keycode == KEY_TAB:
+		match step:
+			Step.ARRIVAL:
+				_open_list(true)
+				get_viewport().set_input_as_handled()
+			Step.TASKS:
+				_open_list(false)
+				get_viewport().set_input_as_handled()
+			Step.LIST:
+				_close_list()
+				get_viewport().set_input_as_handled()
+			Step.PICKING:
+				get_viewport().set_input_as_handled()
+	elif step == Step.INTRO and stage in ["pan", "lost", "food"]:
+		# Any key or a click goes on.
 		_left = 0.0
 		if stage == "pan":
 			_pan_i = PAN.size()
 		get_viewport().set_input_as_handled()
 
 
-# --- The intro: the pan, the laugh, seen, hide and sneak away ----------------------
+# --- The intro -------------------------------------------------------------------
 
 func _start_intro() -> void:
 	step = Step.INTRO
@@ -223,37 +230,55 @@ func _intro(real: float) -> void:
 			if _left <= 0.0:
 				_laugh()
 		"seen":
-			if campsite.spotted_at > _laughed_at:
-				_seen_beat(SEEN_LINE)
-			elif campsite.clock - _laughed_at > SEEN_WAIT:
-				_seen_beat(HEARD_LINE)
-		"seen_beat":
-			_left -= real
-			if _left <= 0.0:
-				_let_go()
+			if campsite.spotted_at > _laughed_at or campsite.clock - _laughed_at > SEEN_WAIT:
+				_spotter = campsite.spotters[0] if not campsite.spotters.is_empty() else _heard_by
+				_freeze(true)
+				spotlight.point(campsite.bush, 140.0, HIDE_LINE, "", 0.6, HIDE_DARK)
 				plan.note(HIDE_NOTE)
-				stage = "hiding"
-		"hiding":
-			if HideSpot.is_hidden(player):
+				stage = "hide"
+		"hide":
+			# Held till he's in the bush; then they carry on, and lose him.
+			if player.hiding_in != null:
+				_freeze(false)
+				spotlight.clear()
 				_hid_at = campsite.clock
 				plan.note(HIDDEN_NOTE)
 				stage = "hidden"
-			elif _escaped() and player.global_position.distance_to(campsite.bush.global_position) > ESCAPE * 2.0:
-				# Got clean away without the bush: that'll do too.
-				_flash(ESCAPED_LINE)
-				plan.note(OPEN_NOTE)
-				step = Step.TASKS
-		"hidden", "sneak":
-			if campsite.spotted_at > _hid_at:
-				plan.note(AGAIN_NOTE)
-				stage = "hiding"
-			elif stage == "hidden" and _looking_away():
-				plan.note(SNEAK_NOTE)
-				stage = "sneak"
-			elif _escaped():
-				_flash(ESCAPED_LINE)
-				plan.note(OPEN_NOTE)
-				step = Step.TASKS
+		"hidden":
+			var confused: bool = _spotter != null and _spotter.state == S.SEARCH
+			if confused or campsite.clock - _hid_at > LOST_WAIT:
+				if confused:
+					level.camera_focus = _spotter.global_position
+					_flash(LOST_LINE)
+				stage = "lost"
+				_left = LOST_SHOW if confused else 0.0
+		"lost":
+			_left -= real
+			if _spotter != null and _spotter.state == S.SEARCH:
+				level.camera_focus = _spotter.global_position
+			if _left <= 0.0 or (_spotter != null and _spotter.state != S.SEARCH):
+				level.camera_focus = null
+				spotlight.clear()
+				_start_roasting()
+		"roast":
+			if player.hiding_in == null and plan.note_showing() == SNEAK_NOTE:
+				plan.note(WATCH_NOTE)
+		"food":
+			_left -= real
+			if _left <= 0.0:
+				level.camera_focus = null
+				spotlight.clear()
+				plan.note(WAIT_NOTE)
+				stage = "wait"
+		"wait":
+			if _roasting():
+				_flash(NOW_LINE)
+				plan.note(EAT_NOTE)
+				stage = "steal"
+		"steal":
+			if not _roasting() and campsite.camper.activity() != "roast":
+				plan.note(WAIT_NOTE)
+				stage = "wait"
 
 
 func _pan_next() -> void:
@@ -277,38 +302,76 @@ func _laugh() -> void:
 	campsite.cones_on = true
 	_laughed_at = campsite.clock
 	player.chitter()
-	var nearest = null
+	_heard_by = null
 	for person in campsite.people:
-		if person.state == S.WORK and (nearest == null or person.global_position.distance_to(player.global_position)
-				< nearest.global_position.distance_to(player.global_position)):
-			nearest = person
-	if nearest:
-		nearest.hear(player.global_position)
+		if person.state == S.WORK and (_heard_by == null or person.global_position.distance_to(player.global_position)
+				< _heard_by.global_position.distance_to(player.global_position)):
+			_heard_by = person
+	if _heard_by:
+		_heard_by.hear(player.global_position)
 	stage = "seen"
 
 
-func _seen_beat(line: String) -> void:
-	stage = "seen_beat"
-	spotlight.point(campsite.bush, 120.0, line, "", 0.6)
-	_hold(true)
-	_holding = true
-	_left = BEAT
+## The campers stop where they are, or carry on.
+func _freeze(on: bool) -> void:
+	_frozen = on
+	for person in campsite.people:
+		person.process_mode = Node.PROCESS_MODE_DISABLED if on else Node.PROCESS_MODE_INHERIT
 
 
-## True once nobody's after him or looking for the noise.
-func _looking_away() -> bool:
-	return campsite.people.all(func(p) -> bool: return not p.state in ALARMED)
+## True while the campers are frozen (for the tests).
+func frozen() -> bool:
+	return _frozen
 
 
-## True once he's out of the bush, well away from it, nobody's seen him lately, and
-## nobody's after him.
-func _escaped() -> bool:
-	return not HideSpot.is_hidden(player) \
-		and player.global_position.distance_to(campsite.bush.global_position) >= ESCAPE \
-		and campsite.clock - campsite.last_seen > UNSEEN and _looking_away()
+func _start_roasting() -> void:
+	if roast == null:
+		roast = RoastPlate.new()
+		roast.camp = campsite
+		campsite.add_child(roast)
+		roast.served.connect(_on_served)
+		roast.eaten.connect(_on_eaten)
+	roast.start()
+	plan.note(SNEAK_NOTE if player.hiding_in != null else WATCH_NOTE)
+	stage = "roast"
 
 
-# --- The list and the pick -------------------------------------------------------
+## A roasted marshmallow's on the plate: the first time, the camera's on it, sparkling,
+## and he's hungry.
+func _on_served() -> void:
+	if step != Step.INTRO or stage != "roast":
+		return
+	var at := roast.plate_point()
+	level.camera_focus = at
+	spotlight.point(at, 110.0, FOOD_LINE, "", 0.0, PAN_DARK)
+	if level.get("bubbles"):
+		level.bubbles.pop("hungry", FOOD_SHOW + 1.0)
+	_left = FOOD_SHOW
+	stage = "food"
+
+
+func _on_eaten() -> void:
+	if step != Step.INTRO:
+		return
+	_flash(YUM_LINE)
+	roast.stop()
+	plan.note(OPEN_NOTE)
+	stage = ""
+	step = Step.TASKS
+
+
+## True while the camper sits roasting, calm, turned all the way back to the fire (his
+## back to the plate). He counts as at it the moment he's there, while still turning
+## round from the plate; in the first run, "Now!" came then, and his cone swept over the
+## raccoon as he turned.
+func _roasting() -> bool:
+	var camper = campsite.camper
+	if not (camper.activity() == "roast" and camper.at_activity() and camper.state == S.WORK):
+		return false
+	return absf(angle_difference(camper.rotation.y, camper.activity_facing())) < 0.2
+
+
+# --- The list --------------------------------------------------------------------
 
 ## Without the intro: the dark layer at once, with the note to press Tab.
 func _arrive() -> void:
@@ -319,104 +382,45 @@ func _arrive() -> void:
 	plan.note(OPEN_NOTE)
 
 
-func _open_list() -> void:
+## The TO DO list, the game slowed: picking the marshmallows without the intro, or just
+## to read with it.
+func _open_list(picking: bool) -> void:
 	tasks.reveal()
 	if not plan.open:
 		plan.toggle()
-	plan.start_picking(FIRST)
-	plan.note(PICK_NOTE)
 	spotlight.clear()
 	_hold(true)
-	step = Step.PICKING
+	if picking:
+		plan.start_picking(FIRST)
+		plan.note(PICK_NOTE)
+		step = Step.PICKING
+	else:
+		plan.note(CLOSE_NOTE)
+		step = Step.LIST
 
 
-## A task picked on the list (plan_note.gd `picked`): only the marshmallows start it.
+func _close_list() -> void:
+	if plan.open:
+		plan.toggle()
+	plan.note("")
+	_hold(false)
+	step = Step.DONE
+	finished.emit()
+
+
+## A task picked on the list (plan_note.gd `picked`), without the intro: only the
+## marshmallows.
 func _pick(id: String) -> void:
 	if step != Step.PICKING or id != FIRST:
 		return
-	task = id
 	plan.stop_picking()
 	if plan.open:
 		plan.toggle()
 	plan.note("")
 	_hold(false)
 	campsite.cones_on = true
-	if guide:
-		step = Step.GUIDE
-		_show("sneak" if _roasting() else "routine")
-	else:
-		step = Step.DONE
-		finished.emit()
-
-
-# --- The guide -------------------------------------------------------------------
-
-func _show(id: String) -> void:
-	stage = id
-	var s: Array = STEPS[id]
-	spotlight.point(_target(s[0]), s[1], s[3], "", s[2])
-	plan.note("")
-	_hold(true)
-	_holding = true
-	_left = BEAT
-
-
-## A beat over: back to play, with the step's note.
-func _carry_on() -> void:
-	_let_go()
-	match stage:
-		"routine":
-			stage = "wait"
-			plan.note(STEPS.routine[4])
-		"done":
-			plan.note("")
-			step = Step.DONE
-			finished.emit()
-		_:
-			plan.note(STEPS[stage][4])
-
-
-## Each frame of the guide: a beat runs out, or he's done this step and it's the next.
-func _guide(real: float) -> void:
-	if _holding:
-		_left -= real
-		if _left <= 0.0:
-			_carry_on()
-		return
-	var puzzles = campsite.puzzles
-	if tasks.is_done(FIRST):
-		_show("done")
-		return
-	match stage:
-		"wait":
-			if _roasting():
-				_show("sneak")
-		"sneak":
-			if puzzles._unzipped:
-				_show("grab")
-			elif not _roasting():
-				stage = "wait"
-				plan.note(STEPS.routine[4])
-		"grab":
-			if player.held == puzzles.bag:
-				_show("home")
-			elif not puzzles._unzipped:
-				_retry()
-		"home":
-			if player.held != puzzles.bag and not puzzles._unzipped:
-				_retry()
-
-
-## Caught with the bag, it's gone back in the backpack: wait for him to roast again.
-func _retry() -> void:
-	stage = "wait"
-	plan.note(RETRY_NOTE)
-
-
-## True while the camper sits roasting, calm, his back to the backpack.
-func _roasting() -> bool:
-	var camper = campsite.camper
-	return camper.activity() == "roast" and camper.at_activity() and camper.state == S.WORK
+	step = Step.DONE
+	finished.emit()
 
 
 # --- Holding the game, and what's lit ----------------------------------------------
@@ -429,13 +433,6 @@ func _hold(on: bool) -> void:
 	elif _owns_time:
 		Engine.time_scale = 1.0
 		_owns_time = false
-
-
-## A beat's over: the dark layer goes and the game's back to speed.
-func _let_go() -> void:
-	_holding = false
-	spotlight.clear()
-	_hold(false)
 
 
 ## A few words on the screen for a moment, without holding the game.
@@ -457,19 +454,3 @@ func _pan_point(what: String) -> Vector3:
 		"cooler":
 			return campsite.puzzles.cooler.global_position + Vector3.UP * 0.3
 	return player.global_position
-
-
-## What a guide step lights: a node, or his home (a point off the screen, lit at its edge).
-func _target(what: String):
-	match what:
-		"camper":
-			return campsite.camper
-		"backpack":
-			return campsite.puzzles._backpack
-		"bag":
-			return campsite.puzzles.bag
-		"home":
-			return Forest.HOME
-		"player":
-			return player
-	return null
