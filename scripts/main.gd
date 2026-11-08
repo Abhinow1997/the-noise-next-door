@@ -31,6 +31,8 @@ extends Node3D
 ## skip the tutorial: for them the camp's tasks are on the list and the cones on from
 ## the start. `-- --cone-shader-test` checks the cones' shader and what drives it
 ## (tests/cone_shader_test.gd, cone_driver.gd), through the tutorial as --cones-test.
+## `-- --leaf-burst-test` checks when and where Effect A, the leaf burst, fires as he dives
+## into the bush and out (tests/leaf_burst_state_test.gd), with the tutorial skipped.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -68,6 +70,8 @@ const Campsite := preload("res://scripts/campsite.gd")
 const CampTasks := preload("res://scripts/camp_tasks.gd")
 const PlanNote := preload("res://scripts/plan_note.gd")
 const CampTutorial := preload("res://scripts/camp_tutorial.gd")
+## Effect A, the leaves bursting out of the bush as he dives in or out (leaf_bursts.gd).
+const LeafBursts := preload("res://scripts/leaf_bursts.gd")
 ## The level is at night, as the title screen is: the author asked for the game to be at
 ## night too on 21 Oct 2026. Off, it's the daylight it had before.
 const NIGHT := true
@@ -334,6 +338,7 @@ func _ready() -> void:
 	var cone_shader_test := false
 	var tutorial_test := false
 	var tutorial_shots := ""
+	var leaf_burst_test := false
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -395,6 +400,8 @@ func _ready() -> void:
 			tutorial_test = true
 		elif arg.begins_with("--tutorial-shots="):
 			tutorial_shots = arg.get_slice("=", 1)
+		elif arg == "--leaf-burst-test":
+			leaf_burst_test = true
 	_rng.seed = 7
 	if title_mode and not MUSIC_ON_AT_START and not Array(OS.get_cmdline_user_args()).any(
 			func(arg: String) -> bool: return arg.ends_with("-test")):
@@ -417,7 +424,12 @@ func _ready() -> void:
 		# Under the title the night's quiet; the party starts with New Game (start_party).
 		campsite.party_from_start = not title_mode
 		add_child(campsite)
-		if sound_test or camp_test or tasks_test or waves_test or plan_test:
+		# The leaf burst listens to the bush; it writes no game state (CHANGE-BRIEF.md,
+		# revised 7 Nov 2026: the wiring Step 3 needs).
+		var leaf_bursts := LeafBursts.new()
+		leaf_bursts.bush = campsite.bush
+		add_child(leaf_bursts)
+		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test:
 			# These skip the tutorial at the camp: everything's as it is after it.
 			tasks.reveal()
 			campsite.cones_on = true
@@ -543,6 +555,11 @@ func _ready() -> void:
 		tutorial_check.level = self
 		tutorial_check.shots = tutorial_shots
 		add_child(tutorial_check)
+	if leaf_burst_test and campsite:
+		# Loaded only under its flag, as the cone shader's check.
+		var burst_check = load("res://tests/leaf_burst_state_test.gd").new()
+		burst_check.level = self
+		add_child(burst_check)
 	if bubble_demo:
 		var demo := BubbleDemo.new()
 		demo.level = self

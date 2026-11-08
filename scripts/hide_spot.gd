@@ -9,6 +9,11 @@ extends Area3D
 ## `dive_into`) and vanishes; its `leaves` rustle as he goes in and out, and his eyes
 ## peek out of it, blinking, while he's in.
 
+## He's dived in (true) or come out (false), from `dived()`: for presentation to follow
+## (the leaf burst, leaf_bursts.gd; CHANGE-BRIEF.md, revised 7 Nov 2026). Nothing in the
+## game listens to it.
+signal hiding_changed(inside: bool)
+
 @export var needs_sneak := false
 ## How tall the hiding place is, in metres: the z's float up from its top.
 @export var height := 1.0
@@ -90,6 +95,7 @@ func dived(inside: bool) -> void:
 	if _eyes:
 		_eyes.visible = inside
 		_blink = _rng.randf_range(BLINK_EVERY.x, BLINK_EVERY.y)
+	hiding_changed.emit(inside)
 
 
 ## True while his eyes are peeking out of it (for the tests).
