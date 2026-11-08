@@ -313,3 +313,16 @@ Step 3's plan (a `claude -p` session, `design/a6/session-3.jsonl`) needs things 
 6. **Emission, process and draw:** emission is `amount`, `one_shot`, `explosiveness`, `lifetime`, `preprocess` and the `amount_ratio` it's driven by. Process is the box shape and offset, `direction`, `spread`, the velocities, `gravity`, damping, turbulence, the angles, the scales and `scale_curve`, `lifetime_randomness`, `color_ramp` and `local_coords`. Draw is the quad, its `StandardMaterial3D` and texture, and `visibility_aabb`.
 
 (The job is my own words. The rest is Claude Code's options from 8 Nov 2026, used at my word.)
+
+---
+
+### Revised 8 Nov 2026: Effect B's wiring, for Step 3
+
+Step 3's plan for Effect B (a `claude -p` session, `design/a6/session-6.jsonl`) needs the following, which the revision above allows only in general terms.
+
+- **The driver:** a new presentation script, `scripts/campfire_smoke.gd`, that makes one copy of the smoke at the fire pit. Every frame it sets the copy's `amount_ratio` to the fire's `strength`, and `emitting` to whether the fire is burning. It sets the copy's state before adding it, so a cold fire doesn't preprocess a column. It reads `strength` and `burning()` and writes nothing outside its copy; `amount` and the scene's settings are never touched.
+- **The wiring:** a few lines in `scripts/main.gd`'s `_ready()` that add the driver after the developer start points have set the fire. Two flags in the `--leaf-burst-test` pattern start the new state test in the real level: `--smoke-test` with the fire cold, and `--smoke-load-test` with it burning.
+- **The preview:** one line in `previews/campfire_smoke_preview.gd`, so that it removes the game's copy and its strip shows only its own.
+- **Hidden:** while the smoke is hidden, `amount_ratio` keeps following `strength`, so there's no jump when it's shown again. This replaces the rule above that hidden means `amount_ratio` doesn't change; its settings still don't.
+
+(Picked by me on 8 Nov 2026 from Claude Code's recommendations, "Approve all three": the hidden rule, this revision on record for the wiring, and the preview's line. The rest of the plan is the session's.)

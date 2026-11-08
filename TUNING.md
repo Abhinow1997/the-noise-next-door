@@ -75,3 +75,33 @@ It said the change wouldn't fix the width, the weak first beat or the confetti l
 **Strips** (fixture captures): `captures/leaf_burst/r0/`, `captures/leaf_burst/r1/`
 
 **Commits:**
+
+# Campfire smoke — r0 first visual verdict
+
+The smoke is like filament, and it's like glowing. When the fire is up, I can see it; I saw it in the preview window, and in the gameplay as well. And it looks visibly well lit. Also, if we can update a little bit of the surrounding area with light, that will be a good indicator. At this point, it's just glow on the smoke, but if we can maybe increase the light or visibility of it, that can also play an effect in the gameplay: if the surrounding is a bit well lit, the area in which the NPCs can spot should be affected, and higher. So that is one input that I can see.
+
+And to clear up the doubts: there's just a bucket lying around. Maybe we can have some element of playing with the bucket for the raccoon; at this point, it feels like it's pretty easy. It's just sitting beside the raccoon. Maybe the bucket is just there, and we have to think about how the bucket is available. Maybe the bucket can be filled with water by the raccoon dragging it to the nearby river, and then he can douse the fire. Or maybe we can have a different element, in which somebody fills the bucket with something, and then we switch it with water, and then we can use that, and eventually it would be used on the fire to douse it out. Something like that.
+
+(Dictated by me on 8 Nov 2026, after the preview and play, before Claude Code read the strip. Claude Code transcribed it and fixed the spelling and punctuation.)
+
+## Claude's reading of the smoke's r0 (fixture capture, 8 Nov 2026)
+
+Read after the verdict above was written. The strip is `captures/campfire_smoke/r0/`: frames 10, 25, 55, 100, 110 and 160 of the preview (`previews/campfire_smoke_preview.tscn`), at 30 fps and 1280 × 720. The fire is lit from cold at frame 10 (three logs, strength 0.9), and the bucket douses it at frame 100. Sizes are judged at the game camera's scale, about 142 px a metre across. This is a claim, to check against the running game.
+
+| Frame | The brief's table | What the frame shows |
+|---|---|---|
+| 10 (lit) | The first puffs at the pit | The pit still cold: no flames and no smoke. The lighting lands on the next frame. |
+| 25 (0.5 s) | A short column starting to rise | The flare: tall flames, and the first faint haze just over them, tinted warm by the firelight. |
+| 55 (1.5 s) | The column building, puffs growing as they rise | A soft cluster of round, see-through, light grey puffs, about 0.6 to 1.2 m over the pit. It reads as a cloud more than a column. |
+| 100 (3 s, doused) | The full column, about 2 m; the fire goes out | The widest it gets: about 1.7 m across and 2 m tall, close to the brief's 1.5 × 2 m. The bucket's just over and the flames are still up. |
+| 110 (0.33 s after) | No new puffs at the pit; the column rising away | The flames down to small tongues; the smoke still hangs over the pit and rises. |
+| 160 (2 s after) | The last puffs high up, faint | Only faint wisps left high up: nearly clear. Matches. |
+
+**Where I agree with the verdict:**
+- It shows clearly whenever the fire's up, lighter than the night grass and the trees behind it.
+- It looks lit, almost glowing. The puffs are unshaded light grey, so nothing darkens them, and the firelight warms the low ones.
+
+**Where I'd add to it:**
+- It reads as a cloud hanging over the pit more than a rising column. The puffs start only 0.35 m up, rise slowly (gravity 0.12, with damping) and spread, so they pool at about head height.
+- **About the surrounding light:** that's the fire's own light (`scripts/campsite.gd`), game code outside the effect. Where he's seen further already follows that light's reach: 0.8 of it, about 6.4 m at full. So a bigger, brighter lit area would change the fire's light, not the smoke's settings.
+- **About the fixture:** the preview doesn't place the raccoon, so his bored thought shows up in frame 160. The campers react to the douse's hiss in frames 110 and 160. Neither is part of the effect.
