@@ -51,7 +51,9 @@ func _process(_delta: float) -> void:
 		_burst(1.0, "dive in")
 	elif retrigger and _frame == retrigger_frame:
 		_burst(retrigger_ratio, "hop out")
-	_alive = _alive.filter(func(b: Node3D) -> bool: return is_instance_valid(b) and not b.is_queued_for_deletion())
+	# Untyped: a burst its timer has freed is no longer a Node3D, and a typed argument
+	# can't take it (a SCRIPT ERROR every frame from the first free on).
+	_alive = _alive.filter(func(b) -> bool: return is_instance_valid(b) and not b.is_queued_for_deletion())
 	if _frame in STRIP:
 		print("frame %d: %d burst(s) alive" % [_frame, _alive.size()])
 

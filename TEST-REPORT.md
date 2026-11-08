@@ -926,7 +926,7 @@ A headless run can show that the timings, states, visibility and uniform values 
 
 `the-noise-next-door` · CSYE 7270 · Assignment 6 · branch `assignment-6`
 
-Run by Claude Code with `scripts/run-test.sh`, headless, Godot 4.7.2, on Windows 11. The effects aren't built yet; so far this section covers the earlier checks, before and after the camp grew.
+Run by Claude Code with `scripts/run-test.sh`, headless, Godot 4.7.2, on Windows 11. This section covers the earlier checks before and after the camp grew, then the effects: Effect A's scene and its configuration test are built (Step 2), and it isn't in the game yet.
 
 ### Baseline: the earlier checks before Assignment 6 changed anything
 
@@ -1020,3 +1020,23 @@ The tutorial's second half remade: the campers freeze until he hides, the camera
 | Title screen | **realtime** | Pass, all checks |
 
 The same counts as the run before the wrapper changed (`logs/a6-after-roast/`). The realtime runs agree with Assignment 5's report, that both pass without `--fixed-fps`.
+
+### Step 2: Effect A built, its configuration test, and two mutations (7 Nov 2026)
+
+A `claude -p` session built the leaf burst (`effects/leaf_burst.tscn`), its configuration test (`tests/test_leaf_burst_config.gd`) and a preview (`previews/leaf_burst_preview.tscn`), committed unedited at `b0ca8d0` (prompt `design/a6/prompt-2.txt`, transcript `design/a6/session-2.jsonl`). Claude Code ran the checks below on it. Logs: [logs/a6-step2/](logs/a6-step2/).
+
+| Check | Command | Result |
+|---|---|---|
+| **New: Effect A's configuration** | `test_leaf_burst_config.gd 60` | Pass, 110 checks, 0 failed (exit 0). The session said 112; the log has 110. |
+| Mutation 1, a Godot 3 name: Leaves' `initial_velocity_min = 2.0` renamed `initial_velocity = 2.0` in the scene | the same | **Fails, as it should** (exit 1): `Leaves: initial_velocity_min = 2.0 (got 0.0)`. Godot loaded the scene without an error or a warning; the leaves would have started with no speed. |
+| Mutation 2, a value changed without changing the brief: Leaves' `amount` 18 to 24 | the same | **Fails, as it should** (exit 1): `Leaves: amount = 18 (got 24)`. |
+| After each mutation | | The scene restored byte for byte (checked with `cmp`); the clean rerun passes. |
+| The preview, headless | `Godot_v4.7.2-stable_win64_console.exe --headless --path . --fixed-fps 30 --quit-after 60 res://previews/leaf_burst_preview.tscn -- --leaf-burst-preview` (not through the wrapper, which runs a script or a `main.tscn` flag) | The dive-in burst at frame 10 (`amount_ratio` 1.0) and the hop-out burst at frame 20 (0.5), both at the bush, (38, 0, 6.2). One alive at frames 10 to 15, two at 20 and 30, one at 50. No `SCRIPT ERROR` after the fix below. |
+
+A headless run reads the settings and the nodes' state, not the look: the frame strip shows that (HUMAN CHECK, not taken yet). The earlier checks weren't rerun: no game file changed.
+
+**What the review found in the preview:** the session's two tries to run it were refused by its allowlist, so it had never been run. Run here, it logged a `SCRIPT ERROR` every frame from the first burst being freed (about frame 40): the list of live bursts was filtered with a lambda whose argument was typed `Node3D`, which a freed burst no longer is. The argument is untyped now (`previews/leaf_burst_preview.gd`); the bursts, their timing and the camera are as the session wrote them. A scratch probe (not in the repo) also showed the preview's camera holding on the bush from 18.9 m, with the bush in the middle of the view.
+
+**Known:** at exit the preview prints "4 ObjectDB instances were leaked" and "2 resources still in use". A bare `main.tscn` run with the same flags prints the same two lines, as do several earlier checks' logs, so they come from the level, not the effect.
+
+**Untouched:** `shaders/`, `scripts/`, `project.godot` and `main.tscn` have no changes, and the effect isn't wired into the game.
