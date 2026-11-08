@@ -174,3 +174,14 @@ The plan for this assignment's change, written before the work. As the course as
 - **My decisions** (7 Nov 2026): the leaf burst as Effect A, from Claude Code's suggestion; its job, in my own words; its intent, rules, frame strip, boundaries, evidence split, predicted failures and price, picked from or taken as Claude Code proposed them, as marked under each; Effect B later.
 - **Claude Code's contributions:** the suggestion and options, the facts from the code, the settings' numbers, the frame reading, the price reasoning, the drafts of the short answers, and this outline of the course's brief.
 - **Generative models:** none.
+
+---
+
+### Revised 7 Nov 2026: the preview's retrigger frame
+
+The course's preview scene triggers Effect A at frame 10 and, with its retrigger option on, again at a frame the brief gives; the brief above didn't give one.
+
+- **The retrigger:** the hop-out burst (`amount_ratio` 0.5) at **frame 20**, 0.33 s after the dive-in burst at frame 10: a quick in and out.
+- **What the strip should show then:** the first burst's leaves at their widest and still alive, and the smaller second burst starting at the bush, both at once (the overlap rule, two alive).
+
+(Picked by me on 7 Nov 2026 from Claude Code's options, its recommendation, before the build.)
