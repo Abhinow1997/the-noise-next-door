@@ -19,6 +19,8 @@ extends Node3D
 
 const CampfireSmoke := preload("res://effects/campfire_smoke.tscn")
 const Main := preload("res://scripts/main.gd")
+## The fire's script has no class_name: its type comes from here (review fix, 8 Nov 2026).
+const CampFire := preload("res://scripts/camp_fire.gd")
 ## The brief's strip, printed with the fire's strength and the smoke's state at each.
 const STRIP := [10, 25, 55, 100, 110, 160]
 

@@ -1217,3 +1217,22 @@ Logs: [logs/a6-firelight/](logs/a6-firelight/), on the working tree over `166789
 | Every other check in CLAUDE.md's list | The recorded counts; waves and title failing only their recorded check at 60 fps; tent 16, Effect A's state 37 | No |
 
 No `SCRIPT ERROR` in any log.
+
+### Effect B, Step 2: the campfire smoke built, its configuration test, and its preview (8 Nov 2026)
+
+**How it was made:**
+- **The build:** a `claude -p` session with the edit allowlist (`design/a6/prompt-5.txt`, transcript `design/a6/session-5.jsonl`), committed unedited in `9e81f79`.
+- **What it reported:** its result event lists refused commands, all ways of running Godot outside the wrapper (reading ClassDB with a scratch script). It said so in its report, rather than printing made-up output, and ran the configuration test through `scripts/run-test.sh`. It didn't run the preview, which the wrapper can't start.
+- **What it touched:** only its own new files. `git diff --stat shaders/` prints nothing.
+- **Its own decisions, noted in its report:**
+  - the scale curve's range raised to 2, so the brief's 1.6 isn't clamped to 1;
+  - a midway colour at the 15% stop;
+  - the defaults left for turbulence's speed and influence, `disable_fog` and `randomness`;
+  - the preview keeps `emitting` on and drives only `amount_ratio`, so that lighting from cold builds up rather than a preprocessed column appearing at once.
+
+| Check | Mode | Result |
+|---|---|---|
+| **New: Effect B's configuration** (`bash scripts/run-test.sh test_campfire_smoke_config.gd 60`) | 60 fps | Pass, 0 failed, in the session's run and in Claude Code's own ([logs/a6-step5/config_60fps.log](logs/a6-step5/config_60fps.log)). It checks each property exists on this build before reading it. It covers the feature Effect A doesn't use and predicted failures 5, 6 and 7. |
+| Effect B's preview, headless (`--quit-after 180`, `-- --campfire-smoke-preview`) | 30 fps | As committed, a parse error: `var fire: CampFire` names a type the project doesn't declare (the fire's script has no `class_name`). Fixed in the review with one line: the type comes from a `preload`, as everywhere else. Then it runs with no `SCRIPT ERROR`. It lights the fire at frame 10 (strength 0.90, `amount_ratio` 0.90) and douses it at frame 100 (0.23 at frame 110, 0 at 160), and `amount` stays 40 ([logs/a6-step5/preview_headless_30fps.log](logs/a6-step5/preview_headless_30fps.log)). |
+
+**Not yet:** the strip, the author's first verdict, the wiring and the state test.
