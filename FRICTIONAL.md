@@ -85,6 +85,53 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 - **What went wrong first:** the plate was on the table at first, and in the first run everyone took fright as he ate: the camper at the fire saw him there, and the table was right behind a dancer. Claude Code moved the plate to the log behind where the camper roasts ("keeps it aside"), by the backpack, where a sneaking raccoon already goes unseen in the tasks check. It still failed: a new check that nobody notices him eat caught that "Now!" came while the camper was still turning round from the plate, and his cone swept over him. "Now!" now waits until he's facing the fire.
 - **Checks:** the tutorial check was rewritten for this (21 checks), including that nobody notices him eat.
 
+### 7 Nov 2026: Effect A's brief, the leaf burst
+
+- After the roasting was committed, Claude Code pointed out two events the tutorial now has: the bush, "a burst of leaves each time he dives in or out, a good Effect A because diving in and straight out gives the overlap case", and smoke or sparks from the roasting as a candidate for Effect B. I said "Yes, start the brief". The landing dust from 6 Nov was dropped.
+- For Effect B it asked which job, recommending smoke from the roasting marshmallow, with music notes and a running dust trail as the others. My answer: "just do the effect A first we will work on effect B". The brief says B comes later, in a dated revision.
+- Claude Code rewrote the brief's skeleton around the leaf burst, with facts from the code: the bush, the dive and its timings, the view's scale, the night colours, the fire's light and the fog. Then it asked round by round:
+  - **Round 1:** leaves and a puff (two emitters), `GPUParticles3D`, bush-wide and under a second, lighter greens and browns. All four were its recommendations.
+  - **The job, in my words:** "for round one, it tells the effect just tells that you've been hidden or you jumped into the bushes to get hidden. And you're out of sight, basically, giving you an option to hide away from the chasing NPC. And deactivate the status of being caught to reset the scenario for you, that helps in that particular case." The brief has it with the spelling fixed and commas added, and says so.
+  - **Round 2:** a burst both ways, smaller going out; overlap; the bush at night behind the preview. Those were its recommendations. For change over life I picked "Fade only", where Claude Code had recommended spin, drift, browning and a fade, and noted that the course warns a fade alone usually reads flat.
+  - **Round 3:** its numbers for every setting, which I took: "Use these". Before the commit it corrected its own table: the leaves' 0.2 is the process material's `lifetime_randomness`, not the node's `randomness`, which randomises when particles are emitted.
+  - **Round 4:** I predicted two failures, "Colours don't show" and "The fade doesn't show". The brief needs three, so I added "Second burst dropped": one node reused, so hopping straight out shows nothing. I took its reading of the frame strip ("Use this reading"), and its price predictions and budget and its boundaries and evidence split ("Use these" for each).
+- **The short answers:** "Draft, I'll check". Claude Code drafted them (the fifth waits for Effect B). I pasted in notes on two, then wrote "Everything else looks good":
+  - answer 6: the sphere emission shape and its radius belong to the process material, not the node. Claude Code moved them.
+  - answer 1: my note said `amount_ratio` 0.5 can be confirmed to give exactly 9 leaves and 6 flecks. Claude Code put in what the class reference says it does, but kept the answer from calling it confirmed, since nobody had seen it on this build. It also corrected its own draft's claim that the state test checks the count: a headless run can only read the ratio.
+- Committed as `f24df97`, before any build.
+
+### 7 Nov 2026: Step 0, the course's test wrapper
+
+- "Yes, do Step 0". Claude Code merged the course's `scripts/run-test.sh` with ours (`ed05ada`). From the course's: `realtime` in place of a frame rate, and an optional timeout. From ours: the project at the repo root, the Godot finder and the flag mode. It tried each part before committing, including a 5 s timeout on the cones check, which exited 124.
+- It ran every check through the new wrapper (`d641932`, `logs/a6-step0/`): the same counts as before, and the waves and title checks pass in realtime (13 of 13, and all), as Assignment 5 recorded without `--fixed-fps`.
+- The same commit has Step 1's prompt, `design/a6/prompt-1.txt`: the course's, with the paths changed for this repo (the project at the root, `effects/` for the effect scenes).
+
+### 7 Nov 2026: Step 1, CLAUDE.md from a `claude -p` session
+
+- Claude Code asked who runs the session: "You run it". It ran `claude -p` with the course's read-only allowlist (42 turns, 167 s) and committed the draft unedited, with its transcript, `design/a6/session-1.jsonl` (`da111e2`). The allowlist refused six of its commands, all running Godot or listing folders outside it. The session said so, and put what it couldn't check under "Unconfirmed".
+- Meanwhile I asked: "also remove the older a5's jsonl". Assignment 5's four transcripts are off the branch (`e04da16`), and still at tag `a5`.
+- **Claude Code's review** (`f9c94ca`), against the files and Godot 4.7.2 itself (a scratch script, not in the repo):
+  - it put back the course's "Headless facts", and added one found here: on 4.7.2 a one-shot `GPUParticles3D` never sends `finished` in a headless run, so a burst has to be freed on a timer;
+  - it read every particle name the brief uses back from the engine, which settled the draft's "unsure" about `emission_shape_offset`. Godot 3's `scale_random`, `flags_unshaded` and `params_billboard_mode` don't exist, and `initial_velocity` and `scale` aren't stored;
+  - "Out of scope" now says the tutorial changes `Engine.time_scale`; the draft read as if no game code did.
+
+### 7 Nov 2026: Step 2, Effect A built
+
+- Before the build, Claude Code pointed out that the brief didn't say at which frame the preview fires the second burst. I picked "Frame 20 (Recommended)": the hop-out burst, 0.33 s after the dive-in one. It went in as a dated revision of the brief (`a94e53b`).
+- "Yes, build it". Claude Code ran `claude -p` with the edit allowlist and `design/a6/prompt-2.txt` (25 turns, 279 s). The session built the leaf burst's scene (`effects/leaf_burst.tscn`), its configuration test, and a preview over the game's own level. They were committed unedited, with its transcript (`b0ca8d0`). Its allowlist refused four commands, including both of its tries to run the preview.
+- **Claude Code's review:**
+  - the configuration test passes, 110 checks;
+  - two mutations of the scene each fail it, as they should. One is a Godot 3 name (`initial_velocity` for `initial_velocity_min`), which Godot loaded without a warning, leaving the leaves no speed. The other changes the leaves' `amount` from 18 to 24 without a brief change;
+  - run for the first time, the preview logged a `SCRIPT ERROR` every frame once its first burst was freed. "Yes, both": the build was committed unedited first, then the fix to one line (`10c6e2c`). TEST-REPORT has the details.
+- **Choices the session made that my brief doesn't settle,** listed by Claude Code for me to decide after seeing the strip:
+  - the colours may show paler than their hex values: the game's other vertex-coloured materials set `vertex_color_is_srgb`, and these don't;
+  - the leaves take a little of the level's fog;
+  - the green and brown values it picked;
+  - the leaf quad is stored in the scene rather than "built in code", which follows CLAUDE.md's rule;
+  - the visibility box starts at the ground.
+  - Also, by Claude Code's rough arithmetic, the fastest leaves may fly wider than the brief's 2.4 m and past the box.
+- **Strip r0:** I ran the capture in a window: "60 frames at 30 FPS", in `captures/leaf_burst/r0/`. My first verdict goes in TUNING.md before Claude Code reads the frames.
+
 ---
 
 ## Assignment 5: shaders and materials
