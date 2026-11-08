@@ -1,0 +1,135 @@
+[gd_scene load_steps=13 format=3]
+
+; Effect A, the leaf burst (CHANGE-BRIEF.md, "Effect A: leaf burst", "The settings").
+; Two GPUParticles3D under one Node3D root: Leaves tumble out and flutter down; Puff is a
+; quick puff of small flecks that makes the first frame strong. Every value here is the
+; brief's; a change to one starts as a dated revision of CHANGE-BRIEF.md (CLAUDE.md,
+; "Ownership"). Not emitting at load: a script instances a fresh copy per event, places it
+; at the bush, sets amount_ratio 0.5 for the hop-out, restarts it and frees it on a timer.
+; No fixed seed here: the preview sets one on its own instances only.
+; Written by Claude Code, 7 Nov 2026.
+
+; Leaves' colour_initial_ramp: yellow-greens a little lighter than the bush (#507548), and a
+; few of the forest's fallen-leaf browns and oranges (forest.gd, LEAVES). Constant
+; interpolation, so each leaf takes one of these colours, picked at random, never a blend:
+; #7d8a45 (LEAVES), #8fa04a, #a3b052, #6f8f3e, then #a8763a, #c96a32, #b85a2e (LEAVES).
+[sub_resource type="Gradient" id="Gradient_leaf_colours"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.175, 0.35, 0.525, 0.7, 0.8, 0.9)
+colors = PackedColorArray(0.490196, 0.541176, 0.270588, 1, 0.560784, 0.627451, 0.290196, 1, 0.639216, 0.690196, 0.321569, 1, 0.435294, 0.560784, 0.243137, 1, 0.658824, 0.462745, 0.227451, 1, 0.788235, 0.415686, 0.196078, 1, 0.721569, 0.352941, 0.180392, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_leaf_colours"]
+gradient = SubResource("Gradient_leaf_colours")
+
+; Leaves' color_ramp, fade only: white (so the initial colour shows unchanged), alpha 1
+; until 66% of the life, then down to 0.
+[sub_resource type="Gradient" id="Gradient_leaf_fade"]
+offsets = PackedFloat32Array(0, 0.66, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_leaf_fade"]
+gradient = SubResource("Gradient_leaf_fade")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_leaves"]
+lifetime_randomness = 0.2
+emission_shape_offset = Vector3(0, 0.5, 0)
+emission_shape = 1
+emission_sphere_radius = 0.55
+angle_min = 0.0
+angle_max = 360.0
+direction = Vector3(0, 1, 0)
+spread = 70.0
+initial_velocity_min = 2.0
+initial_velocity_max = 3.2
+gravity = Vector3(0, -3.5, 0)
+damping_min = 2.0
+damping_max = 3.0
+scale_min = 1.0
+scale_max = 1.0
+color_ramp = SubResource("GradientTexture1D_leaf_fade")
+color_initial_ramp = SubResource("GradientTexture1D_leaf_colours")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_leaf"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+vertex_color_use_as_albedo = true
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="QuadMesh_leaf"]
+material = SubResource("StandardMaterial3D_leaf")
+size = Vector2(0.12, 0.08)
+
+; Puff's colour_initial_ramp: pale tan flecks (#d9c49b to #c4ab84).
+[sub_resource type="Gradient" id="Gradient_puff_colours"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(0.85098, 0.768627, 0.607843, 1, 0.768627, 0.670588, 0.517647, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_puff_colours"]
+gradient = SubResource("Gradient_puff_colours")
+
+; Puff's color_ramp, fade only: alpha down from 1 to 0 over its life.
+[sub_resource type="Gradient" id="Gradient_puff_fade"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_puff_fade"]
+gradient = SubResource("Gradient_puff_fade")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_puff"]
+lifetime_randomness = 0.0
+emission_shape_offset = Vector3(0, 0.5, 0)
+emission_shape = 1
+emission_sphere_radius = 0.4
+angle_min = 0.0
+angle_max = 0.0
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 1.0
+initial_velocity_max = 2.0
+gravity = Vector3(0, 0, 0)
+damping_min = 4.0
+damping_max = 4.0
+scale_min = 1.0
+scale_max = 1.0
+color_ramp = SubResource("GradientTexture1D_puff_fade")
+color_initial_ramp = SubResource("GradientTexture1D_puff_colours")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fleck"]
+transparency = 1
+blend_mode = 0
+shading_mode = 0
+vertex_color_use_as_albedo = true
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="QuadMesh_fleck"]
+material = SubResource("StandardMaterial3D_fleck")
+size = Vector2(0.04, 0.04)
+
+[node name="LeafBurst" type="Node3D"]
+
+; visibility_aabb: 3.2 x 2.2 x 3.2 m round the bush, from the ground up (the 2.4 m burst
+; and room to fall).
+[node name="Leaves" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 18
+lifetime = 0.9
+one_shot = true
+preprocess = 0.0
+explosiveness = 0.9
+local_coords = false
+visibility_aabb = AABB(-1.6, 0, -1.6, 3.2, 2.2, 3.2)
+process_material = SubResource("ParticleProcessMaterial_leaves")
+draw_pass_1 = SubResource("QuadMesh_leaf")
+
+[node name="Puff" type="GPUParticles3D" parent="."]
+emitting = false
+amount = 12
+lifetime = 0.35
+one_shot = true
+preprocess = 0.0
+explosiveness = 1.0
+local_coords = false
+visibility_aabb = AABB(-1.6, 0, -1.6, 3.2, 2.2, 3.2)
+process_material = SubResource("ParticleProcessMaterial_puff")
+draw_pass_1 = SubResource("QuadMesh_fleck")
