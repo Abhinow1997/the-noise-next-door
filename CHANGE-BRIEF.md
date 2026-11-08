@@ -185,3 +185,15 @@ The course's preview scene triggers Effect A at frame 10 and, with its retrigger
 - **What the strip should show then:** the first burst's leaves at their widest and still alive, and the smaller second burst starting at the bush, both at once (the overlap rule, two alive).
 
 (Picked by me on 7 Nov 2026 from Claude Code's options, its recommendation, before the build.)
+
+---
+
+### Revised 7 Nov 2026: the signal's name, and the wiring Step 3 needs
+
+Step 3's plan (a `claude -p` session, `design/a6/session-3.jsonl`) needs things the boundaries above don't allow, beyond the one signal.
+
+- **The signal:** `hiding_changed(inside: bool)`, emitted at the end of the bush's `dived()` in `scripts/hide_spot.gd`: `inside` is true for a dive in, false for a hop out.
+- **The wiring:** a few lines in `scripts/main.gd`'s `_ready()` that add the burst listener (presentation code, a new script) to the level beside the camp's bush; and a `--leaf-burst-test` flag in `scripts/main.gd`, in the pattern of `--cone-shader-test`, that starts the new state test in the real level with the tutorial skipped. Neither writes game state, and nothing in the game reads the listener.
+- **Freeing a burst:** after its emitters' own lifetimes, read from the copy, plus a little, so the code holds no lifetime of its own.
+
+(Picked by me on 7 Nov 2026 from Claude Code's options: the name; the wiring, with this revision on record; and the lifetimes read from the scene. The rest of the plan is the session's.)
