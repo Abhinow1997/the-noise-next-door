@@ -20,16 +20,20 @@ extends Node3D
 ##   - E at the plate (interactable.gd, a quick hold) takes one: `taken`. It's in his
 ##     mouth as he runs (player.gd `snack`), and E doesn't drop it.
 ##   - Once he may (`can_eat`, the tutorial's: the campers calm again) and he's out of
-##     any hiding spot, the E shows over him, and holding E eats it: he sits up as in his
-##     bored pose, the marshmallow between his paws, and lifts it to his mouth for each
-##     of BITES bites, smaller after each. Let go, and he stands with it in his mouth
-##     again; what he's eaten stays eaten. Eaten: `eaten`.
+##     any hiding spot, the E shows over him, and holding E eats it in BITES bites: he
+##     sits up and holds it in his front paws, and each bite he lifts it to his mouth, a
+##     chomp, and he chews (raccoon_model.gd `eating`, raccoon_eat.gd); it's smaller
+##     after each, squashed for a moment by the chomp. Let go, and he stands with it in
+##     his mouth again; what he's eaten stays eaten. Eaten: `eaten`. (First made with
+##     his bored pose as it is, the marshmallow floating from his limp paws to his
+##     mouth; the author: "the eating animation can be way better".)
 
 signal served
 signal taken
 signal eaten
 
 const Interactable := preload("res://scripts/interactable.gd")
+const RaccoonEat := preload("res://scripts/raccoon_eat.gd")
 const CampPerson := preload("res://scripts/camp_person.gd")
 const Campsite := preload("res://scripts/campsite.gd")
 
@@ -52,12 +56,13 @@ const TAKE_TIME := 0.3
 ## Eating it: how long E is held, in how many bites, and how far its munching is heard
 ## (m); how big it is in his mouth and paws (times its size on the plate: at its own
 ## size, about 3 px across on the screen in the first window frames, it didn't show);
-## and the share of the eating each bite's lift to his mouth and back down takes.
-const EAT_FOR := 1.8
+## and how long (a share of a bite, from the chomp) and how hard a chomp squashes it.
+const EAT_FOR := 2.4
 const BITES := 3
 const EAT_NOISE := 0.8
 const CARRIED := 2.4
-const BITE_SPAN := 0.22
+const SQUASH_FOR := 0.12
+const SQUASH := 0.35
 ## How far off they sparkle (m).
 const SPARKLE_RANGE := 16.0
 const TOASTED := Color("c98a4a")
@@ -80,10 +85,8 @@ var _take: Interactable
 ## The one he's taken, in his mouth or his paws, and the E that eats it.
 var _snack: MeshInstance3D
 var _munch: Interactable
-## How much of it he's eaten (0..1); and whether he's sitting up eating.
+## How much of it he's eaten (0..1).
 var _bitten := 0.0
-var _posing := false
-var _skeleton: Skeleton3D
 var _saved := {}
 var _last_activity := ""
 
@@ -200,34 +203,31 @@ func _physics_process(_delta: float) -> void:
 	_last_activity = activity
 
 
-## Sitting up to eat while E's held, the marshmallow lifted to his mouth for each bite.
+## Sitting up to eat while E's held (raccoon_model.gd `eating`): in his paws, bite by
+## bite; in his mouth otherwise.
 func _process(_delta: float) -> void:
 	if _snack == null or _munch == null:
 		return
-	var sitting := _munch.working
-	if sitting != _posing:
-		_posing = sitting
-		player.model.forced_animation = "bored" if sitting else ""
-	if sitting:
-		# Eating, not bored: no bored face or sigh over him (thought_bubbles.gd).
-		player.model._still = 0.0
+	var model = player.model
+	var sitting: bool = _munch.working and model.paws != null
 	# What's eaten stays eaten: the E's ring doesn't run back.
 	_bitten = maxf(_bitten, _munch.progress)
 	_munch.progress = _bitten
-	var bites := 0
-	var lift := 0.0
-	for i in BITES:
-		var at := (i + 0.5) / BITES
-		if _bitten >= at:
-			bites += 1
-		var d := absf(_bitten - at) / (BITE_SPAN * 0.5)
-		if d < 1.0:
-			lift = maxf(lift, 0.5 + 0.5 * cos(PI * d))
-	_snack.scale = Vector3.ONE * CARRIED * (1.0 - 0.85 * bites / BITES)
-	if sitting:
-		_snack.global_position = _paws().lerp(player.model.mouth.global_position, lift)
-	else:
-		_snack.position = Vector3.ZERO
+	var f := minf(_bitten * BITES, BITES - 0.001)
+	var phase := f - floorf(f)
+	model.eating = sitting
+	model.eat_bite = phase if sitting else -1.0
+	# Each chomp takes a bite out of it, and squashes it for a moment.
+	var bites := clampi(floori(f - RaccoonEat.CHOMP) + 1, 0, BITES)
+	var since := phase - RaccoonEat.CHOMP
+	var squash := SQUASH * (1.0 - since / SQUASH_FOR) if since >= 0.0 and since < SQUASH_FOR else 0.0
+	var size := CARRIED * (1.0 - 0.8 * bites / BITES)
+	_snack.scale = Vector3(1.0 + squash * 0.5, 1.0 - squash, 1.0 + squash * 0.5) * size
+	var hold: Node3D = model.paws if sitting else model.mouth
+	if _snack.get_parent() != hold:
+		_snack.reparent(hold, false)
+		_snack.transform = Transform3D(Basis(), Vector3.ZERO)
+		_snack.scale = Vector3.ONE * size
 
 
 func _taken() -> void:
@@ -247,7 +247,7 @@ func _taken() -> void:
 	_munch.hold_time = EAT_FOR
 	_munch.noise = EAT_NOISE
 	_munch.camp = camp
-	_munch.prompt_height = 0.35
+	_munch.prompt_height = 0.55
 	_munch.enabled = func() -> bool: return player.snack != null and player.hiding_in == null \
 		and (not can_eat.is_valid() or can_eat.call())
 	_munch.finished.connect(_eaten)
@@ -256,9 +256,8 @@ func _taken() -> void:
 
 
 func _eaten() -> void:
-	if _posing:
-		_posing = false
-		player.model.forced_animation = ""
+	player.model.eating = false
+	player.model.eat_bite = -1.0
 	player.snack = null
 	if _snack:
 		_snack.queue_free()
@@ -267,21 +266,6 @@ func _eaten() -> void:
 		_munch.queue_free()
 		_munch = null
 	eaten.emit()
-
-
-## Between his front paws (the rigged model's hands), or under his chin on the others.
-func _paws() -> Vector3:
-	if _skeleton == null:
-		var found: Array = player.model.find_children("*", "Skeleton3D", true, false)
-		if not found.is_empty():
-			_skeleton = found[0]
-	if _skeleton:
-		var left := _skeleton.find_bone("hand.L")
-		var right := _skeleton.find_bone("hand.R")
-		if left >= 0 and right >= 0:
-			var mid := (_skeleton.get_bone_global_pose(left).origin + _skeleton.get_bone_global_pose(right).origin) * 0.5
-			return _skeleton.global_transform * mid + Vector3.UP * 0.02
-	return player.model.mouth.global_position + Vector3.DOWN * 0.15
 
 
 func _carry(camper, on: bool) -> void:

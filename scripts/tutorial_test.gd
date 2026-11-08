@@ -14,7 +14,7 @@ extends Node
 ##     no words, the raccoon hungry; he takes it with E; they come to, alerted, and the
 ##     men chase him; E doesn't drop it, and he can't eat it yet;
 ##   - away, once they're all back at work: the E over him; holding it, he sits up and
-##     eats it, held still, and nobody notices; "Yum!";
+##     eats it from his paws, held still, and nobody notices; "Yum!";
 ##   - Tab: the TO DO list up to read, the game slowed; Tab again, and the world's open:
 ##     no notes, full speed, and he can move.
 ## Run it headless from the project folder:
@@ -202,8 +202,9 @@ func _run() -> void:
 	Input.parse_input_event(down)
 	await _wait(RoastPlate.EAT_FOR * 0.45)
 	_shot("07_eating")
-	_check("Holding E: he sits up and eats it, held still", "bored true true",
-		"%s %s %s" % [_player.model.forced_animation, _player.input_locked, _tutorial.roast.eating()])
+	_check("Holding E: he sits up and eats it from his paws, held still", "true true true true",
+		"%s %s %s %s" % [_player.model.eating, _player.snack != null and _player.snack.get_parent() == _player.model.paws,
+			_player.input_locked, _tutorial.roast.eating()])
 	await _wait(RoastPlate.EAT_FOR * 0.55 + 0.2)
 	var up := InputEventAction.new()
 	up.action = "grab"
@@ -214,9 +215,9 @@ func _run() -> void:
 		"%s %s" % [_camp.spotted_at == spotted_away, " ".join(_camp.people.map(func(p) -> String: return S.keys()[p.state]))])
 	_shot("08_yum")
 	_check("Eaten: 'Yum!', the note to press Tab, he's up, the camper's own routine back",
-		"%s %s false  peg roast pizza" % [CampTutorial.YUM_LINE, CampTutorial.OPEN_NOTE],
+		"%s %s false false peg roast pizza" % [CampTutorial.YUM_LINE, CampTutorial.OPEN_NOTE],
 		"%s %s %s %s %s" % [_tutorial.spotlight.line(), _plan.note_showing(), _tutorial.roast.carrying(),
-			_player.model.forced_animation, " ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name))])
+			_player.model.eating, " ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name))])
 
 	_key(KEY_TAB)
 	await _real(1.0)

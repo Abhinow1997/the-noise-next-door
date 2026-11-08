@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Assignment 3 asset check (normal run)
+
+S'more  (res://assets/props/smore.glb, brief v2 size, v3 budget)
+  ok   size X,Y,Z = W,H,D   0.1297 x 0.0335 x 0.0823 m (brief 0.130 x 0.035 x 0.085)
+  ok   height along Y       Y size 0.0335 m against the brief's H 0.035 (longest side: X)
+  ok   bottom on the floor  bottom at Y = +0.0000 m
+  ok   scale 1,1,1          7 nodes, all 1,1,1
+  ok   triangles            402 (budget 420)
+  ok   every part resting   6 parts
+  ok   facing               plain marshmallows on its +X side
+
+Pizza slice  (res://assets/props/pizza_slice.glb, brief v1)
+  ok   size X,Y,Z = W,H,D   0.1500 x 0.0200 x 0.2000 m (brief 0.150 x 0.020 x 0.200)
+  ok   height along Y       Y size 0.0200 m against the brief's H 0.020 (longest side: Z)
+  ok   bottom on the floor  bottom at Y = +0.0000 m
+  ok   scale 1,1,1          6 nodes, all 1,1,1
+  ok   triangles            144 (budget 200)
+  ok   every part resting   5 parts
+  ok   facing               crust at the back (-Z), tip to the front (+Z)
+
+Cooler  (res://assets/props/cooler.glb, brief v1)
+  ok   size X,Y,Z = W,H,D   0.5800 x 0.3600 x 0.3600 m (brief 0.580 x 0.360 x 0.360)
+  ok   height along Y       Y size 0.3600 m against the brief's H 0.360 (longest side: X)
+  ok   bottom on the floor  bottom at Y = +0.0000 m
+  ok   scale 1,1,1          6 nodes, all 1,1,1
+  ok   triangles            76 (budget 150)
+  ok   every part resting   5 parts
+
+PASS: 0 check(s) failed

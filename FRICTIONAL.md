@@ -148,6 +148,51 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
   - In the window pictures, the marshmallow in his paws was about 3 px across; it's drawn 2.4 times its plate size now.
 - **Checks:** the tutorial check was rewritten for this, with 28 checks. It covers that nobody comes for him in the bush, and that nobody notices him eat. Every other check is at its Step 0 count (TEST-REPORT.md, "After the tutorial's steal and eat"). CLAUDE.md's baseline line now gives the tutorial's new count.
 
+### 7 Nov 2026: a better eating animation
+
+- After trying it: "the eating animation can be way better", then "needs to be improved".
+- What it was: his bored pose as it stands (slumped, head hung, eyes half shut, front legs limp), with the marshmallow floating from between his limp paws up to his mouth.
+- There's no Blender on this machine; the rig's seven animations were made in Blender through its MCP. So Claude Code made the eating in Godot, laid over the bored animation's sit (`scripts/raccoon_eat.gd`), as a skeleton modifier like the one that bends his back and tail:
+  - he sits up straight, ears up, looking down at the marshmallow, held in both front paws (Godot 4.7's `TwoBoneIK3D` brings each paw to a point under his chin);
+  - each bite, he lifts it to his mouth as his head dips to meet it, and chomps; the marshmallow squashes and gets smaller;
+  - he chews with quick nods, his eyes squeezed shut and his head tilting, while his paws lower it again;
+  - a bite takes 0.8 s, so it takes 2.4 s of holding E to eat it.
+- **Tuned by looking:**
+  - Claude Code rendered him alone, from the game camera and from the side, at seven points of a bite, with a scratch script not in the repo.
+  - The first version held it at his mouth all the time, so the bites barely showed; the second looked at the sky; the third looks at what he holds.
+  - Then in a game window: once he sat up taller, the E sat over his ears, so it's higher now.
+- **Checks:** the tutorial check now checks that he eats from his paws (still 28 checks). The full run is in TEST-REPORT.md, "The eating animation".
+- I played it: "that looks fine".
+
+### 7 Nov 2026: strip r0, my verdict and Claude's reading
+
+- I asked what the assignment needed next ("ok focusing on the assignement requirement waht do we need next ?"). Claude Code listed the remaining steps from the assignment page. It also found it had pushed CLAUDE.md to 122 lines, over the course's 120, with its note on the tutorial's count, and brought it back to 119.
+- I ran the preview in a window, wrote my first verdict in TUNING.md, and said: "I have updated u can check on the same".
+- Claude Code then read frames 10, 12, 15, 20, 30 and 50 against the brief's table, and wrote its reading under my verdict in TUNING.md:
+  - It agreed on the confetti look, the pale colours, the weak first beat, the small size and the lack of tumble.
+  - It differed on one point: the bright white shapes near the fire are the loot sparkle icons, not the fire's sparks.
+  - It noted the preview's half see-through bush, and that the burst starts inside the bush, so in play the first frames would be hidden.
+- Committed: the six frames and TUNING.md (`f2434cc`). The rest of the sequence was deleted.
+- Claude Code offered to fix the preview's see-through bush and recapture r0 first. My answer: "Leave it, plan Step 3".
+
+### 7 Nov 2026: Step 3, Effect A wired
+
+- **The plan:** Claude Code ran the course's Step 3 prompt (`design/a6/prompt-3.txt`) as a read-only `claude -p` session (`design/a6/session-3.jsonl`). The plan had a signal at the end of `dived()`, a listener that makes a fresh copy of the burst per event, and a state test driven by real move keys. Its two open questions were the signal's name and the wiring in `main.gd`, which the brief didn't allow.
+- **My picks:**
+  - "hiding_changed (Recommended)" for the signal;
+  - "Approve, add a revision (Recommended)" for the wiring and the test flag;
+  - of Claude Code's three suggested changes, only "Lifetimes from scene". So the plan's own rerun of every test stayed in, and so did its way of handling a camper spotting him.
+- **The revision:** Claude Code drafted it, and I approved it word for word ("Add and commit (Recommended)"): `9bbc789`. Claude Code brought CLAUDE.md in line with it.
+- **The build:** the same session, resumed with the edit allowlist (`design/a6/session-3-build.jsonl`), built it: the signal, `scripts/leaf_bursts.gd`, the lines and the flag in `main.gd`, and `tests/leaf_burst_state_test.gd`.
+  - The state test passes 37 of 37 at 60 fps, and every earlier check kept its count, before and after.
+  - It broke its own listener four ways (a reused node, a burst at load, no half burst, never freed); each fails the test.
+  - Four of its commands were refused: ways of running every test at once. It ran them one by one.
+- **Claude Code's review:**
+  - it read the diffs and found only the four planned files changed;
+  - it reran both of Effect A's tests itself;
+  - it put back the 15 tracked logs the session's runs had overwritten (its copies are in `logs/a6-step3-before/` and `logs/a6-step3-after/`).
+- **The Godot 3 name, now with the effect wired:** with `initial_velocity_min` renamed `initial_velocity`, the state test still passes 37 of 37. The burst still fires in the game, while only the configuration test fails, as the course says it would.
+
 ---
 
 ## Assignment 5: shaders and materials

@@ -1066,3 +1066,50 @@ A gameplay change the author asked for after Step 2, outside Effect A. In the tu
 **Looked at in a window** (the check's own pictures, `--tutorial-shots`, not committed): the plate lit on the log with its sparkle, and the raccoon's hungry thought over the bush, with no words; the steal, with the red cones, the camper's "!" and the others' fright; and him sitting up, eating. In the first pictures, the marshmallow in his paws was about 3 px across. It's drawn at 2.4 times its plate size now (`CARRIED` in `scripts/roast_plate.gd`).
 
 **The effects' baseline:** Step 0's tutorial count (21) is now 28. Every other count is Step 0's.
+
+### The eating animation (7 Nov 2026)
+
+The author found the eating weak ("the eating animation can be way better"). It's now a skeleton modifier laid over his bored animation's sit (`scripts/raccoon_eat.gd`, wired in `scripts/raccoon_model.gd` with a `TwoBoneIK3D` for his front paws). He sits up holding the marshmallow in his paws and lifts it to his mouth for each of three bites, chomping and chewing. Logs: [logs/a6-after-eat-anim/](logs/a6-after-eat-anim/), run from 19:54 to 19:56 on the working tree over `b241fc7`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Every check in the table above | The same counts (waves and title failing only their recorded `--fixed-fps` checks, passing in realtime) | No |
+| The tutorial | Pass, 28 of 28 | One check now reads `eating` and the marshmallow's place in his paws, where it read the forced bored pose: "Holding E: he sits up and eats it from his paws, held still". The count is the same. |
+
+No `SCRIPT ERROR` in any log, and no new engine errors or warnings in the tutorial's.
+
+**Looked at, not tested:** the look was tuned by renders: him alone from the game camera and from the side, at seven points of a bite (a scratch script, not in the repo), and then the tutorial check's own picture in a game window. Holding E now takes 2.4 s (0.8 s a bite); it was 1.8 s.
+
+### Step 3: Effect A wired, and its state test (7 Nov 2026)
+
+**How it was made:**
+- **The plan:** a read-only `claude -p` session (`design/a6/prompt-3.txt`, transcript `design/a6/session-3.jsonl`).
+- **The author's decisions:** the signal's name; the wiring in `main.gd`, approved with a dated brief revision (`9bbc789`); and bursts freed by the lifetimes read from the scene.
+- **The build:** the same session, resumed with the edit allowlist (`design/a6/prompt-3-approve.txt`, transcript `design/a6/session-3-build.jsonl`). Its result event lists four refused commands, all ways of running every test in one command: a script, a loop, a pipe to `tail`, and copying the logs. It ran each test on its own instead.
+- **What it touched:** `scripts/hide_spot.gd` (the signal `hiding_changed`), `scripts/main.gd` (the listener's lines and the `--leaf-burst-test` flag), and the new `scripts/leaf_bursts.gd` and `tests/leaf_burst_state_test.gd`. Nothing in `shaders/`, and none of the other uncommitted work, was touched.
+
+| Check | Mode | Result |
+|---|---|---|
+| **New: Effect A's state** (`bash scripts/run-test.sh --leaf-burst-test 60`) | 60 fps | Pass, 37 of 37, in the session's run and in Claude Code's own. Real move keys drive four events: in, straight out, in again, out after 1 s hidden. |
+| Effect A's configuration | 60 fps | Pass, 0 failed |
+| Every earlier check, before and after the change | as CLAUDE.md says | The recorded counts both times: bubbles 87, camp 31, tasks 43, plan 19, tutorial 28; cones 43 and cone shader 93 at 30, 60 and 144; waves 13 of 13 and title all in realtime; the asset, materials and calibration checks clean. Logs: [logs/a6-step3-before/](logs/a6-step3-before/), [logs/a6-step3-after/](logs/a6-step3-after/). |
+| The state test against four broken listeners (the session's mutations) | 60 fps | Each fails, exit 1:<br>• one node reused (predicted failure 3): no new burst on the hop-out, overlap 1, not 2;<br>• a burst at load;<br>• no `amount_ratio` 0.5;<br>• never freed.<br>The listener was restored byte for byte. |
+| The Godot 3 name again, with the effect wired (Step 2's mutation: "run the game too and note that the effect still fires") | 60 fps | The state test still passes, 37 of 37: in the real level, the burst still fires on every dive and hop. Only the configuration test fails: `Leaves: initial_velocity_min = 2.0 (got 0.0)`. This is the silent failure the configuration test is for. Restored byte for byte. |
+
+**What the state test proves:** for the four events it drives with real keys:
+- one burst per dive in or hop out, and none at load, before he lands, while he's hidden or while he stands outside;
+- each burst at the bush;
+- `amount_ratio` 1.0 going in and 0.5 coming out, with `emitting` set;
+- in and straight out gives two different copies alive at once, and never more than two are alive;
+- each copy is freed 1.00 s after it was made, give or take a tick (the scene's 0.9 s lifetime plus 0.1 s);
+- the bursts, the signals and the driven events all number four.
+
+**What it can't prove headlessly:**
+- that particles appear, or how many 0.5 gives;
+- the look against the frame table;
+- the visibility box near the screen's edge;
+- GPU cost.
+
+Those are the frame strips, the author's eyes in play, and the Visual Profiler.
+
+**Not driven:** the `startle()` and `place()` out paths (the same `dived()` and signal), and the tutorial's slowed `time_scale`. The tutorial check dives with the listener in, and still passes 28 of 28.

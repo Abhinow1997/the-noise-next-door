@@ -9,6 +9,7 @@ extends Node3D
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const RaccoonFlex := preload("res://scripts/raccoon_flex.gd")
+const RaccoonEat := preload("res://scripts/raccoon_eat.gd")
 ## Exported from raccoon.blend by assets/characters/export_raccoon.py.
 const MODEL_PATH := "res://assets/characters/raccoon.glb"
 ## Exported from raccoon_v2.blend by assets/characters/export_raccoon_v2.py: one
@@ -26,6 +27,10 @@ const MODEL_SLEEP_BED := Vector3(-0.111, 0.001, 0.104)
 const CODE_SLEEP_BED := Vector3(-0.113, -0.038, -0.021)
 ## How long one animation takes to blend into the next, in seconds.
 const RIGGED_BLEND := 0.2
+## Eating from his paws: how far past his wrists, toward his toes, what he holds sits
+## (m at model scale 1), and how long sitting up to eat takes to ease in or out (s).
+const PAW_GRIP := 0.03
+const EAT_BLEND := 0.25
 ## Between the ones he moves about in it's a little longer, so starting, stopping and
 ## changing gait ease in; and one gait changing to another carries on from the same
 ## point in its stride.
@@ -139,6 +144,11 @@ var squash := 0.0
 ## its landing, and how far to tip him nose up then besides his weight's tip (radians).
 var jumping := false
 var pitch := 0.0
+## Rigged model only: sitting up eating something from his front paws (raccoon_eat.gd,
+## over the bored animation's sit), and how far through a bite he is (0..1; negative
+## between bites).
+var eating := false
+var eat_bite := -1.0
 
 var body: Node3D
 var head: Node3D
@@ -146,6 +156,9 @@ var tail: Node3D
 var legs: Array[Node3D] = []
 ## Where carried objects are held.
 var mouth: Node3D
+## Rigged model only: between his front paws, following them (for something he eats
+## from them); null on the other models.
+var paws: Node3D
 
 var _leg_height: Array[float] = []
 var _eyes: Array[Node3D] = []
@@ -168,6 +181,12 @@ var _bounce := 0.0
 ## The rigged model: its give in turns (raccoon_flex.gd), the playback rate as eased,
 ## and his bank and tip (radians) with how fast each is changing.
 var _flex: RaccoonFlex
+## The rigged model's eating (raccoon_eat.gd) and the IK that brings his paws up to
+## what he eats; his skeleton, and its hand bones.
+var _eat: RaccoonEat
+var _eat_ik: TwoBoneIK3D
+var _skeleton: Skeleton3D
+var _hands := PackedInt32Array()
 var _rate := 1.0
 var _lean := 0.0
 var _lean_v := 0.0
@@ -384,15 +403,73 @@ func _build_rigged() -> bool:
 	skeleton.add_child(_flex)
 	var rig_to_skeleton := (_rig.global_basis.inverse() * skeleton.global_basis).orthonormalized()
 	_flex.setup(rig_to_skeleton.inverse() * Vector3.UP)
+	_build_eating(skeleton, rig_to_skeleton, model_to_skeleton)
 	_anim.play("idle")
 	return true
+
+
+## Eating from his paws (raccoon_eat.gd), then the IK that brings each front paw up to
+## the target it sets, elbows toward its poles; and the point between his paws.
+func _build_eating(skeleton: Skeleton3D, rig_to_skeleton: Basis, model_to_skeleton: Transform3D) -> void:
+	_skeleton = skeleton
+	_eat = RaccoonEat.new()
+	skeleton.add_child(_eat)
+	# He faces +Z in the file.
+	_eat.setup(rig_to_skeleton.inverse() * Vector3.UP, rig_to_skeleton.inverse() * Vector3.BACK,
+		model_to_skeleton.basis.get_scale().x, mouth.transform.origin)
+	_eat_ik = TwoBoneIK3D.new()
+	_eat_ik.setting_count = 2
+	skeleton.add_child(_eat_ik)
+	for i in 2:
+		var s := "L" if i == 0 else "R"
+		var target := Marker3D.new()
+		target.name = "EatPaw" + s
+		skeleton.add_child(target)
+		var pole := Marker3D.new()
+		pole.name = "EatElbow" + s
+		skeleton.add_child(pole)
+		_eat.targets.append(target)
+		_eat.poles.append(pole)
+		_eat_ik.set_root_bone_name(i, "upperarm." + s)
+		_eat_ik.set_middle_bone_name(i, "forearm." + s)
+		_eat_ik.set_end_bone_name(i, "hand." + s)
+		_eat_ik.set_target_node(i, _eat_ik.get_path_to(target))
+		_eat_ik.set_pole_node(i, _eat_ik.get_path_to(pole))
+	_eat_ik.influence = 0.0
+	_eat_ik.active = false
+	_hands = PackedInt32Array([skeleton.find_bone("hand.L"), skeleton.find_bone("hand.R")])
+	paws = Marker3D.new()
+	paws.name = "Paws"
+	skeleton.add_child(paws)
+	skeleton.skeleton_updated.connect(_place_paws)
+
+
+## Between his front paws, as drawn (after the modifiers): a little past his wrists,
+## toward his toes.
+func _place_paws() -> void:
+	if paws == null or _hands.size() < 2 or _hands[0] < 0 or _hands[1] < 0:
+		return
+	var left := _skeleton.get_bone_global_pose(_hands[0])
+	var right := _skeleton.get_bone_global_pose(_hands[1])
+	var toes := (left.basis.y.normalized() + right.basis.y.normalized()).normalized()
+	paws.position = (left.origin + right.origin) * 0.5 + toes * PAW_GRIP * _eat._scale
+	paws.basis = left.basis.orthonormalized()
 
 
 ## Picks the animation for what he's doing and plays it at a speed to match.
 func _process_rigged(delta: float) -> void:
 	var anim_name := forced_animation
-	if anim_name == "":
+	if anim_name == "" and eating:
+		# Eating sits him up as in his bored pose, without the bored face or sigh.
+		anim_name = "bored"
+		_still = 0.0
+	elif anim_name == "":
 		anim_name = _rigged_state(delta)
+	if _eat:
+		_eat.amount = move_toward(_eat.amount, 1.0 if eating and anim_name == "bored" else 0.0, delta / EAT_BLEND)
+		_eat.bite = eat_bite
+		_eat_ik.influence = _eat.amount
+		_eat_ik.active = _eat.amount > 0.0
 	var was_running := _anim.current_animation == "run"
 	if _anim.current_animation != anim_name:
 		_change_animation(anim_name)

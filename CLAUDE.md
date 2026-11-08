@@ -14,9 +14,9 @@
 - **The bush:** `bush`, an `Area3D` running `scripts/hide_spot.gd` (`var bush: Area3D`, `scripts/campsite.gd`),
   built by `_build_bush()` at `FIRE + BUSH`, `BUSH := Vector2(-3.5, 3.0)`, with `dive = true` (`scripts/campsite.gd`).
   It is never freed (`CHANGE-BRIEF.md`, "Facts from the code").
-- **The event:** `dived(inside: bool)` in `scripts/hide_spot.gd`, which starts the rustle today. **No signal exists
-  yet**: `hide_spot.gd` declares none. Adding one there is the brief's one allowed change to game code
-  (`CHANGE-BRIEF.md`, "Boundaries"). Its name and signature aren't decided.
+- **The event:** `dived(inside: bool)` in `scripts/hide_spot.gd`, which starts the rustle, ends by emitting
+  `hiding_changed(inside: bool)`; `scripts/leaf_bursts.gd` listens, added in `scripts/main.gd` (`CHANGE-BRIEF.md`,
+  "Revised 7 Nov 2026: the signal's name, and the wiring Step 3 needs").
 - **Its callers** (`scripts/player.gd`):
   - in: walking into the bush, `_on_body_entered()` (`hide_spot.gd`) defers `dive_into()`, a `DIVE_TIME` 0.32 s hop;
     on landing `_hidden_in()` calls `spot.call("dived", true)`;
@@ -26,7 +26,7 @@
 ### The scenes the effects appear in
 - `res://main.tscn` (`project.godot`, `run/main_scene`), one `Node3D` running `scripts/main.gd`, which builds the camp
   with `Campsite.new()` (`_ready()`). The tutorial's "Hide!" makes him dive in once (`scripts/camp_tutorial.gd`).
-- The effect's own scene(s) go in `effects/` (see Ownership). That folder doesn't exist yet.
+- Effect A: `effects/leaf_burst.tscn` (see Ownership); `previews/leaf_burst_preview.tscn`; `tests/test_leaf_burst_config.gd` (at 60).
 
 ### Tests: always through `scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
 - An argument starting with `--` runs `main.tscn` with that flag (`-- <flag>`); anything else runs
@@ -48,16 +48,15 @@ bash scripts/run-test.sh --plan-test 60                # scripts/plan_test.gd
 bash scripts/run-test.sh --tutorial-test 60            # scripts/tutorial_test.gd (dives into the bush)
 bash scripts/run-test.sh --cones-test 30               # scripts/cones_test.gd; also 60 and 144
 bash scripts/run-test.sh --cone-shader-test 30         # tests/cone_shader_test.gd; also 60 and 144
+bash scripts/run-test.sh test_leaf_burst_config.gd 60  # tests/test_leaf_burst_config.gd (Effect A's settings)
+bash scripts/run-test.sh --leaf-burst-test 60          # tests/leaf_burst_state_test.gd (Effect A's state)
 bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; fails 12 of 13 at 60 fps
 bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; fails 51 of 52 at 60 fps
 ```
 - Flags are parsed in `scripts/main.gd` (header comment); `--title-test` in `scripts/title_screen.gd`.
-- The baseline before any effect (`TEST-REPORT.md`, "Step 0", at `ed05ada`, logs in `logs/a6-step0/`): bubbles 87,
-  camp 31, tasks 43, plan 19, tutorial 21; cones 43 and cone shader 93 at 30, 60 and 144; waves 13 of 13 and
-  title all in realtime. Their `--fixed-fps` failures (12 of 13, 51 of 52) are recorded and expected: don't "fix" them.
-- Since then (7 Nov 2026, after Step 2, a gameplay change the author asked for), the tutorial's steal and eat were
-  remade and its check has **28** checks; every other count is unchanged (`TEST-REPORT.md`, "After the tutorial's
-  steal and eat", logs in `logs/a6-after-steal/`).
+- The baseline before any effect (`TEST-REPORT.md`, "Step 0", `ed05ada`, `logs/a6-step0/`): bubbles 87, camp 31,
+  tasks 43, plan 19, tutorial 21 (**28** since its 7 Nov remake, `logs/a6-after-steal/`); cones 43, cone shader 93
+  at 30, 60, 144; waves 13/13, title all in realtime; their `--fixed-fps` failures (12/13, 51/52) are expected: don't "fix" them.
 
 ## Headless facts
 - A headless run uses a dummy renderer (it reports no video adapter): it draws no particles and runs no GPU
@@ -103,8 +102,8 @@ Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUP
 
 - The raccoon's movement, collision, input and key bindings, including the dive, its hop and its timings.
 - The campers: what they see, their states, routines and timings. The tutorial's steps and wording.
-- Game code beyond one signal emitted from `dived()` in `hide_spot.gd`. The effect listens; it never writes
-  game state, and nothing in the game reads the effect.
+- Game code beyond the signal from `dived()` and the wiring the brief's 7 Nov revision allows (in `main.gd`). The
+  effect listens; it never writes game state, and nothing in the game reads it.
 - Every other look: the bush's rustle and peeking eyes, the fire and its sparks, cones, cooler, trees, icons,
   waves, and everything in `shaders/`.
 - What any existing test expects. A test may change how it measures only with the same expected value.
@@ -115,8 +114,6 @@ Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUP
 
 - What `amount_ratio` 0.5 does to a one-shot burst's count on this build: headless reads only the value; the frame
   strip shows the count (`CHANGE-BRIEF.md`, short answer 1).
-- The signal's name and arguments, the effect scene's file name in `effects/`, and the new tests' names and
-  commands: none exist yet.
 - The test counts were last measured on 7 Nov 2026 at `ed05ada` (`TEST-REPORT.md`, "Step 0"); rerun before trusting.
 - `run-test.sh` takes a third argument only as the timeout, so `a3_asset_check.gd -- --mutate` and the
   `--*-shots=<folder>` options still can't go through it.
