@@ -55,6 +55,9 @@ bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; 
 - The baseline before any effect (`TEST-REPORT.md`, "Step 0", at `ed05ada`, logs in `logs/a6-step0/`): bubbles 87,
   camp 31, tasks 43, plan 19, tutorial 21; cones 43 and cone shader 93 at 30, 60 and 144; waves 13 of 13 and
   title all in realtime. Their `--fixed-fps` failures (12 of 13, 51 of 52) are recorded and expected: don't "fix" them.
+- Since then (7 Nov 2026, after Step 2, a gameplay change the author asked for), the tutorial's steal and eat were
+  remade and its check has **28** checks; every other count is unchanged (`TEST-REPORT.md`, "After the tutorial's
+  steal and eat", logs in `logs/a6-after-steal/`).
 
 ## Headless facts
 - A headless run uses a dummy renderer (it reports no video adapter): it draws no particles and runs no GPU

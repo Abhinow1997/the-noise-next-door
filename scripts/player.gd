@@ -100,6 +100,10 @@ var camera: Camera3D
 var trees: Array[Dictionary] = []
 var model: RaccoonModel
 var held: RigidBody3D
+## A snack in his mouth that isn't a body he holds (the tutorial's stolen roasted
+## marshmallow, roast_plate.gd): while he has it, E doesn't grab or drop; holding E
+## eats it there (an Interactable), once it's allowed.
+var snack: Node3D
 var sneaking := false
 ## True while curled up in the hollow, including the hop in and the leap out.
 var resting := false
@@ -801,6 +805,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if resting or _hop_t >= 0.0 or input_locked or hiding_in:
 		return
 	if event.is_action_pressed("grab"):
+		if snack:
+			return
 		if held:
 			_drop()
 		elif climbing:

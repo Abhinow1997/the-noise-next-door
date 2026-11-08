@@ -39,6 +39,10 @@ extends CharacterBody3D
 ##     faded (campsite.gd `spot`); then each goes, and comes back BACK_AFTER seconds after
 ##     its own person is calm again: when they start walking back, for the ones who took
 ##     fright.
+##   - In the tutorial (camp_tutorial.gd), since 7 Nov 2026: as he dives into the bush,
+##     `lose_him` leaves whoever was after him or frightened confused where they stand;
+##     as he steals a roasted marshmallow, `alert` has the camper spot him, and
+##     `chase_next` sends the men straight after him once their flinch is over.
 ## The camp (campsite.gd) keeps what they know between them: where and when he was last
 ## seen, the camp's bounds, when someone last took fright, and whether the music's on.
 
@@ -124,6 +128,10 @@ var protector
 var protects
 
 var state := State.WORK
+## The next fright sends a man straight to chasing him after the flinch, instead of
+## standing guard (the tutorial sets it as he steals a roasted marshmallow:
+## camp_tutorial.gd). Used up by that flinch.
+var chase_next := false
 var player: Player
 var anim: AnimationPlayer
 var eyes: VisionCone
@@ -252,7 +260,9 @@ func _physics_process(delta: float) -> void:
 			_play("scared", 1.0, 0.15)
 			_face(camp.last_seen_at, delta)
 			if _t >= FLINCH:
-				_to_state(State.FLEE if role == "girl" else State.GUARD)
+				var chase := chase_next and role != "girl"
+				chase_next = false
+				_to_state(State.FLEE if role == "girl" else (State.CHASE if chase else State.GUARD))
 		State.GUARD:
 			_guard(delta)
 		State.CHASE:
@@ -325,6 +335,34 @@ func hear(at: Vector3, freeze := 0.0) -> void:
 		_huh = freeze if _frozen else HUH
 		_noise_at = at
 		_to_state(State.INVESTIGATE)
+
+
+## The tutorial (camp_tutorial.gd): they see him take a roasted marshmallow off the
+## plate. A flinch, as on spotting him, which the others catch; with `chase_next` set,
+## the men then go straight for him (the author's pick on 7 Nov 2026, "Alert and chase").
+func alert() -> void:
+	if player == null:
+		return
+	camp.saw(player.global_position)
+	_startle(true)
+
+
+## The tutorial (camp_tutorial.gd), as he dives into the bush: whoever's after him or
+## frightened is confused where they stand ("??", SEARCH), looks about, and goes back to
+## work, without coming to look. The author, 7 Nov 2026: "when the player jumps in the
+## tutorial dont let the npcs run to him just let them be confused look around and go
+## back to their working".
+func lose_him() -> void:
+	chase_next = false
+	# A fright still going round doesn't reach the calm ones now.
+	_fright_seen = camp.frightened
+	_fright_at = INF
+	# Frozen, their eyes stopped looking (camp_tutorial.gd), and still say they see him
+	# from before; looking again on the next tick, they won't.
+	eyes.seeing = false
+	if state in [State.STARTLED, State.GUARD, State.CHASE, State.SHOO, State.FLEE, State.COWER,
+			State.INVESTIGATE]:
+		_to_state(State.SEARCH)
 
 
 ## Goes to put the music's plug back in (campsite.gd), if they're calm.

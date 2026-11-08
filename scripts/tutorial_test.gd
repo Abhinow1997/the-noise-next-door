@@ -5,12 +5,16 @@ extends Node
 ##   - the pan: the game slowed behind the dark layer, the camera on the campers with a
 ##     word or two;
 ##   - the laugh: back on him, he chitters, the cones come on, and someone comes to look;
-##   - hide: the campers frozen and the bush lit till he's in it; then they carry on;
-##     chased right to the bush, they can't catch him in it;
-##   - lost: the camera on the one who saw him, confused; then a note to sneak out, and a
-##     move key hops him out, sneaking;
-##   - the roasting: the camper roasts, serves one to the plate; the camera on it and the
-##     raccoon hungry; wait till he's back at the fire; sneak over and eat it with E;
+##   - hide: the campers frozen and the bush lit till he's in it; then they carry on, the
+##     ones who saw him confused where they stand, nobody coming for him;
+##   - lost: the camera on the one who saw him, confused; chased right to the bush (set
+##     going by the check), they can't catch him in it; all back at work, the roasting
+##     starts, with a note to sneak out, and a move key hops him out, sneaking;
+##   - the plate: the first roasted marshmallow on it, the campers frozen, the plate lit,
+##     no words, the raccoon hungry; he takes it with E; they come to, alerted, and the
+##     men chase him; E doesn't drop it, and he can't eat it yet;
+##   - away, once they're all back at work: the E over him; holding it, he sits up and
+##     eats it, held still, and nobody notices; "Yum!";
 ##   - Tab: the TO DO list up to read, the game slowed; Tab again, and the world's open:
 ##     no notes, full speed, and he can move.
 ## Run it headless from the project folder:
@@ -80,25 +84,37 @@ func _run() -> void:
 	await _wait(1.0)
 	_check("Held: it waits for him to hide", "hide true", "%s %s" % [_tutorial.stage, _tutorial.frozen()])
 
-	# Into the bush.
+	# Into the bush. Whoever saw him or took fright is confused where they stand; nobody
+	# comes for him (the author: "dont let the npcs run to him").
+	var alarmed: Array = _camp.people.filter(func(p) -> bool: return p.state != S.WORK)
 	_player.place(_camp.bush.global_position + Vector3(0, 0.02, 0))
 	await _until(func() -> bool: return _tutorial.stage == "hidden" and _player.hiding_in != null, 3.0)
-	await _wait(0.5)
+	var went_for_him := false
+	var drift := 0.0
+	var was := {}
+	for i in 30:
+		await get_tree().physics_frame
+		_watch_calm(was)
 	_shot("03_hidden")
 	_check("In the bush: the campers carry on, his eyes peeking, a note to wait",
 		"false true true %s" % CampTutorial.HIDDEN_NOTE,
 		"%s %s %s %s" % [_tutorial.frozen(), _player.hiding_in == _camp.bush, _camp.bush.peeking(), _plan.note_showing()])
+	_check("In the bush: the ones who saw him are confused ('??') where they stand", "true true",
+		"%s %s" % [not alarmed.is_empty(), alarmed.all(func(p) -> bool: return p.state == S.SEARCH)])
 
-	await _until(func() -> bool: return _tutorial.stage == "lost", 20.0)
+	await _until(func() -> bool: return _watch_calm(was) or _tutorial.stage == "lost", 20.0)
 	_shot("04_lost")
 	_check("Lost: the camera on the one who saw him, confused", "true true %s" % CampTutorial.LOST_LINE,
 		"%s %s %s" % [level.camera_focus != null, _tutorial._spotter != null and _tutorial._spotter.state == S.SEARCH,
 			_tutorial.spotlight.line()])
-	await _until_real(func() -> bool: return _tutorial.stage == "roast", 6.0)
-	_check("Then: the camper roasting and serving, a note to sneak out", "roast serve %s" % CampTutorial.SNEAK_NOTE,
-		"%s %s" % [" ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name)), _plan.note_showing()])
+	await _until_real(func() -> bool: return _watch_calm(was) or _tutorial.stage == "calming", 6.0)
+	went_for_him = was.get("went", false)
+	drift = was.get("drift", 0.0)
+	_check("In the bush, till they've lost him: nobody came for him, nobody moved while confused", "false true",
+		"%s %s" % [went_for_him, drift < 0.1])
 
-	# Chased right to the bush he's hidden in: they can't catch him or shoo him out.
+	# Chased right to the bush he's hidden in (set going by the check): they can't catch
+	# him or shoo him out.
 	var chaser: CampPerson = _camp.dancers[0]
 	_camp.saw(_camp.bush.global_position)
 	chaser._to_state(S.CHASE)
@@ -113,6 +129,12 @@ func _run() -> void:
 	_check("Chased to the bush: they come right up, but can't catch him in it", "true false true",
 		"%s %s %s" % [came < CampPerson.REACH, caught, _player.hiding_in == _camp.bush])
 
+	await _until(func() -> bool: return _tutorial.stage == "roast", 40.0)
+	_check("All back at work: the camper roasting and serving, a note to sneak out",
+		"true roast serve %s" % CampTutorial.SNEAK_NOTE,
+		"%s %s %s" % [_calm(), " ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name)),
+			_plan.note_showing()])
+
 	# Out of the bush with a move key, sneaking: a hop out, the way it points.
 	Input.action_press("sneak")
 	Input.action_press("move_left")
@@ -124,38 +146,81 @@ func _run() -> void:
 			_player.global_position.distance_to(_camp.bush.global_position) > 0.9])
 	Input.action_release("sneak")
 	await _wait(0.1)
-	_check("Out: a note to watch the camper", CampTutorial.WATCH_NOTE, _plan.note_showing())
+	_check("Out: the note goes, and no other words", "", _plan.note_showing())
 
 	# Back in the bush, to watch the camper roast and serve, as a player might.
 	_player.place(_camp.bush.global_position + Vector3(0, 0.02, 0))
-	await _until(func() -> bool: return _tutorial.stage == "food", 30.0)
+	await _until(func() -> bool: return _tutorial.stage == "grab", 30.0)
 	await _real(0.4)
-	_shot("05_food")
-	_check("Served: one on the plate, the camera on it, two words, he's hungry", "1 true %s hungry" % CampTutorial.FOOD_LINE,
-		"%s %s %s %s" % [_tutorial.roast.on_plate, level.camera_focus != null, _tutorial.spotlight.line(), level.bubbles.showing()])
-	await _until_real(func() -> bool: return _tutorial.stage == "wait", 4.0)
-	_check("Then: a note to wait till he's at the fire", CampTutorial.WAIT_NOTE, _plan.note_showing())
-	await _until(func() -> bool: return _tutorial.stage == "steal", 30.0)
-	_check("He's back roasting: 'Now!', a note to eat", "%s %s" % [CampTutorial.NOW_LINE, CampTutorial.EAT_NOTE],
-		"%s %s" % [_tutorial.spotlight.line(), _plan.note_showing()])
+	_shot("05_plate")
+	_check("Served: one on the plate, the campers frozen, it's lit with no words, he's hungry", "1 true true true  hungry",
+		"%s %s %s %s %s %s" % [_tutorial.roast.on_plate, _tutorial.frozen(),
+			_camp.people.all(func(p) -> bool: return p.process_mode == Node.PROCESS_MODE_DISABLED),
+			_tutorial.spotlight.showing(), _tutorial.spotlight.line(), level.bubbles.showing()])
+	_check("Served: no note, full speed, he can move", "%s %s false" % ["", 1.0],
+		"%s %s %s" % [_plan.note_showing(), Engine.time_scale, _player.input_locked])
+	await _wait(1.0)
+	_check("Held: it waits for him to take it", "grab true 1", "%s %s %s" % [_tutorial.stage, _tutorial.frozen(),
+		_tutorial.roast.on_plate])
 
+	# Over to the plate, and E takes it.
 	var spotted_before: float = _camp.spotted_at
-	await _sneak_to(_tutorial.roast.eat_from(), _tutorial.roast.plate_point())
+	await _sneak_to(_tutorial.roast.take_from(), _tutorial.roast.plate_point())
 	await _wait(0.3)
-	await _press_e(RoastPlate.EAT_TIME + 0.2)
-	await _until(func() -> bool: return _tutorial.step == CampTutorial.Step.TASKS, 3.0)
-	_check("Eaten behind his back, sneaking: nobody noticed", "true WORK WORK WORK WORK",
-		"%s %s" % [_camp.spotted_at == spotted_before, " ".join(_camp.people.map(func(p) -> String: return S.keys()[p.state]))])
-	_shot("06_yum")
-	_check("Eaten: 'Yum!', the note to press Tab, the camper's own routine back", "%s %s peg roast pizza" % [
-		CampTutorial.YUM_LINE, CampTutorial.OPEN_NOTE],
-		"%s %s %s" % [_tutorial.spotlight.line(), _plan.note_showing(),
-			" ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name))])
+	await _press_e(RoastPlate.TAKE_TIME + 0.2)
 	Input.action_release("sneak")
+	await _wait(0.1)
+	_check("Taken: in his mouth, off the plate, the campers come to, the dark layer gone", "true 0 false false",
+		"%s %s %s %s" % [_tutorial.roast.carrying(), _tutorial.roast.on_plate, _tutorial.frozen(),
+			_tutorial.spotlight.showing()])
+	await _until(func() -> bool: return _camp.people.any(func(p) -> bool: return p.state == S.CHASE), 4.0)
+	_shot("06_taken")
+	_check("Taken: the camper spots him, the men chase him", "true true",
+		"%s %s" % [_camp.spotted_at > spotted_before, _camp.people.any(func(p) -> bool: return p.state == S.CHASE)])
+	# Away out of the camp. A chaser may have shooed him already, and his leap may have
+	# landed him in the bush (a dive starts the tick after): it's all over first.
+	await _wait(0.6)
+	await _until(func() -> bool: return not _player.is_hopping(), 3.0)
+	await _wait(0.2)
+	_player.place(AWAY)
+	await _wait(0.2)
+	await _press_e(0.1)
+	_check("Running with it: he keeps it, E doesn't drop it, and he can't eat it yet", "true true false",
+		"%s %s %s" % [_player.global_position.distance_to(AWAY) < 0.5, _tutorial.roast.carrying(),
+			_tutorial.roast.can_eat_now()])
+
+	# Till they've lost him and all gone back to work.
+	await _until(func() -> bool: return _tutorial.roast.can_eat_now(), 40.0)
+	_check("Away, once they're all back at work: the E to eat it", "true true true",
+		"%s %s %s" % [_calm(), _tutorial.roast.carrying(), _tutorial.roast.can_eat_now()])
+
+	# Holding E, he sits up and eats it.
+	var spotted_away: float = _camp.spotted_at
+	var down := InputEventAction.new()
+	down.action = "grab"
+	down.pressed = true
+	Input.parse_input_event(down)
+	await _wait(RoastPlate.EAT_FOR * 0.45)
+	_shot("07_eating")
+	_check("Holding E: he sits up and eats it, held still", "bored true true",
+		"%s %s %s" % [_player.model.forced_animation, _player.input_locked, _tutorial.roast.eating()])
+	await _wait(RoastPlate.EAT_FOR * 0.55 + 0.2)
+	var up := InputEventAction.new()
+	up.action = "grab"
+	up.pressed = false
+	Input.parse_input_event(up)
+	await _until(func() -> bool: return _tutorial.step == CampTutorial.Step.TASKS, 3.0)
+	_check("Eaten once they'd calmed: nobody noticed", "true WORK WORK WORK WORK",
+		"%s %s" % [_camp.spotted_at == spotted_away, " ".join(_camp.people.map(func(p) -> String: return S.keys()[p.state]))])
+	_shot("08_yum")
+	_check("Eaten: 'Yum!', the note to press Tab, he's up, the camper's own routine back",
+		"%s %s false  peg roast pizza" % [CampTutorial.YUM_LINE, CampTutorial.OPEN_NOTE],
+		"%s %s %s %s %s" % [_tutorial.spotlight.line(), _plan.note_showing(), _tutorial.roast.carrying(),
+			_player.model.forced_animation, " ".join(_camp.camper.routine.map(func(a: Dictionary) -> String: return a.name))])
 
 	_key(KEY_TAB)
 	await _real(1.0)
-	_shot("07_to_do")
+	_shot("09_to_do")
 	_check("Tab: the TO DO list up to read, the camp's tasks on it, slowed", "true investigate party marshmallows music cooler true",
 		"%s %s %s" % [_plan.open and _plan.up() >= 1.0,
 			" ".join(level.tasks.shown().map(func(t: Dictionary) -> String: return t.id)), Engine.time_scale <= CampTutorial.SLOW + 0.01])
@@ -174,29 +239,30 @@ func _run() -> void:
 	_finish()
 
 
+# --- Watching -------------------------------------------------------------------
+
+## Notes in `was` whether anyone has gone for him (chasing, wondering, guarding or
+## shooing) and how far anyone has moved while confused, since it was first called.
+## Returns false, so it can ride along in an `_until`.
+func _watch_calm(was: Dictionary) -> bool:
+	for person: CampPerson in _camp.people:
+		if person.state in [S.CHASE, S.INVESTIGATE, S.GUARD, S.SHOO]:
+			was["went"] = true
+		var key := person.get_instance_id()
+		if person.state == S.SEARCH:
+			if not was.has(key):
+				was[key] = person.global_position
+			was["drift"] = maxf(was.get("drift", 0.0), person.global_position.distance_to(was[key]))
+		else:
+			was.erase(key)
+	return false
+
+
 # --- Moves ---------------------------------------------------------------------
-
-## Each of the camper, the low-poly man and the girl at step `steps[i]` of their routine,
-## staying at it, and the fire keeper eating behind the table.
-func _settle(steps: Array) -> void:
-	var people: Array = [_camp.camper, _camp.dancers[0], _camp.dancers[1], _camp.keeper]
-	steps = steps + [0]
-	for i in people.size():
-		var person = people[i]
-		if person._step != steps[i]:
-			person._step = steps[i]
-			person._arrived = false
-		person._step_left = 400.0
-
 
 ## True while all four are calm, at work on their routines.
 func _calm() -> bool:
 	return _camp.people.all(func(p: CampPerson) -> bool: return p.state == S.WORK)
-
-
-func _backpack_front() -> Vector3:
-	var pack: Node3D = _puzzles._backpack
-	return pack.global_position + pack.global_basis.z * 0.42 + Vector3(0, 0.02, 0)
 
 
 func _sneak_to(at: Vector3, look: Vector3) -> void:

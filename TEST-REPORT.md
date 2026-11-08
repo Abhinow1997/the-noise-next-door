@@ -1040,3 +1040,29 @@ A headless run reads the settings and the nodes' state, not the look: the frame 
 **Known:** at exit the preview prints "4 ObjectDB instances were leaked" and "2 resources still in use". A bare `main.tscn` run with the same flags prints the same two lines, as do several earlier checks' logs, so they come from the level, not the effect.
 
 **Untouched:** `shaders/`, `scripts/`, `project.godot` and `main.tscn` have no changes, and the effect isn't wired into the game.
+
+### After the tutorial's steal and eat (7 Nov 2026)
+
+A gameplay change the author asked for after Step 2, outside Effect A. In the tutorial, once he's in the bush, whoever saw him is confused where they stand, and nobody comes for him. The first roasted marshmallow on the plate stops the camp under the dark layer, with no words. E takes it, the campers are alerted, and the men chase him. Once they've all calmed, holding E, he sits up and eats it (README, "The tutorial, remade"). Logs: [logs/a6-after-steal/](logs/a6-after-steal/), run at 19:38 on the working tree over `4880462`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Assignment 3's assets, sounds, materials, normal-map calibration | Pass (calibration ran, exit 0) | No |
+| Thought icons | Pass, 87 of 87 | No |
+| Campers' reactions | Pass, 31 of 31 | No |
+| Camp tasks | Pass, 43 of 43 | No |
+| TO DO | Pass, 19 of 19 | No |
+| Sound waves | 12 of 13 at 60 fps, the recorded `--fixed-fps` failure; 13 of 13 in realtime | No |
+| Title screen | 51 of 52 at 60 fps, the recorded `--fixed-fps` failure; all in realtime | No |
+| The cones, at 30, 60 and 144 fps | Pass, 43 of 43 at each | No |
+| The cones' shader, at 30, 60 and 144 fps | Pass, 93 of 93 at each | No |
+| Effect A's configuration | Pass, 0 failed | No |
+| **The tutorial** | Pass, 28 of 28 | **Rewritten for this flow** (`scripts/tutorial_test.gd`; 21 checks before). New checks:<br>• in the bush, the ones who saw him are confused where they stand, and nobody comes for him: from the dive until they've lost him, nobody chases, wonders, guards or shoos, and nobody moves while confused;<br>• the plate freezes the camp, with no words;<br>• taking it brings the alert and the chase;<br>• E doesn't drop it, and he can't eat while they're alarmed;<br>• once they're calm he eats it sitting up, held still, and nobody notices.<br>The roasting's word checks ("Roasted marshmallows", "Wait till he's at the fire", "Now!", the note to eat) went with the words. The chase to the bush that can't catch him stays, now while they calm down before the roasting. |
+
+**What the new checks caught:**
+- After the dive, the man who'd spotted him went straight back to guarding. While he was frozen, his cone stopped looking and still said it saw him from before the freeze, so the first tick after the dive turned his confusion back into guarding. `lose_him` (`scripts/camp_person.gd`) now clears that.
+- Twice, the check itself put him back in the bush. It moved him away with `place()` on the tick his shooed leap landed him in the bush, and the dive, which starts a tick later, hopped him back from 18 m off. Only `place()` (the checks') can do that; the check now waits for the leap and any dive to settle.
+
+**Looked at in a window** (the check's own pictures, `--tutorial-shots`, not committed): the plate lit on the log with its sparkle, and the raccoon's hungry thought over the bush, with no words; the steal, with the red cones, the camper's "!" and the others' fright; and him sitting up, eating. In the first pictures, the marshmallow in his paws was about 3 px across. It's drawn at 2.4 times its plate size now (`CARRIED` in `scripts/roast_plate.gd`).
+
+**The effects' baseline:** Step 0's tutorial count (21) is now 28. Every other count is Step 0's.

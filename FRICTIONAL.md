@@ -132,6 +132,22 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
   - Also, by Claude Code's rough arithmetic, the fastest leaves may fly wider than the brief's 2.4 m and past the box.
 - **Strip r0:** I ran the capture in a window: "60 frames at 30 FPS", in `captures/leaf_burst/r0/`. My first verdict goes in TUNING.md before Claude Code reads the frames.
 
+### 7 Nov 2026: in the bush they lose him; the marshmallow stolen, a chase, and eaten
+
+- After Step 2, a gameplay change, outside Effect A: "when the player jumps in the tutorial dont let the npcs run to him just let them be confused look around and go back to their working", and on the next line, "later after the npcs have lost him and go back to their routine also update the flow in which he is stelaing marshmellowsdo the same pause and black tinge block like during the hiding we had in the tutorial no need for the word hints to tell the player "oh marshowmellows steal it" just give the raccon the food bubble when the marshmellows are removed by the npc and then the flow which i describe after steling it make him run away making the npcs altered and we need eating for the stole marshmellow".
+- Then: "sitting like in the boarded section eating should be holding it in his had and eat holding E". Claude Code read "boarded" as his bored pose, sitting on his rump.
+- From Claude Code's two questions I picked "Alert and chase (Recommended)": the men chase him, and if they catch him he's shooed but keeps it. And "Once they've calmed": he may eat it only once they're all back at work.
+- Claude Code built it:
+  - **In the bush:** whoever was after him or frightened stands where they are, confused ("??"), looks about, and walks back to work (`lose_him` in `scripts/camp_person.gd`). The roasting starts once all four are back at work.
+  - **The plate:** the first roasted marshmallow on it stops the camp as the hide did: the campers frozen, the plate lit under the dark layer, the raccoon's hungry thought, and no words. "Roasted marshmallows", "Wait till he's at the fire", "Now!", "Sneak over: E to eat" and "Watch the camper" are gone.
+  - **The steal:** E takes it into his mouth. The campers come to: the camper, turned to the plate, spots him, the others take fright, and the men chase him (`alert`, `chase_next`). E doesn't drop it.
+  - **Eating:** once they're all back at work and he's out of the bush, the E shows over him. Holding it, he sits up in his bored pose with the marshmallow between his paws (his `hand.L` and `hand.R` bones), and lifts it to his mouth for three bites, smaller each time. If he lets go, he stands with what's left. Then "Yum!", and the TO DO list as before (`scripts/roast_plate.gd`, `scripts/camp_tutorial.gd`, `scripts/player.gd` `snack`).
+- **What went wrong first:**
+  - After the dive, the man who'd spotted him went straight back to guarding. While he was frozen, his cone had stopped looking, and it still said it saw him from before the freeze. `lose_him` now clears that.
+  - Twice, the check itself put the raccoon back in the bush, through its own `place()`, which only the checks use. It now waits for him to land first.
+  - In the window pictures, the marshmallow in his paws was about 3 px across; it's drawn 2.4 times its plate size now.
+- **Checks:** the tutorial check was rewritten for this, with 28 checks. It covers that nobody comes for him in the bush, and that nobody notices him eat. Every other check is at its Step 0 count (TEST-REPORT.md, "After the tutorial's steal and eat"). CLAUDE.md's baseline line now gives the tutorial's new count.
+
 ---
 
 ## Assignment 5: shaders and materials

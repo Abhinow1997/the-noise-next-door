@@ -10,7 +10,13 @@ extends Node
 ## them and eat them". Their picks from Claude Code's options: "TO DO" as the list's name
 ## (plan_note.gd); the campers freeze while he hides; the roasting only in the tutorial;
 ## one eaten is enough; then the list and free play. The rest, and the few words, are
-## Claude Code's.
+## Claude Code's. Then, later on 7 Nov 2026: "when the player jumps in the tutorial dont
+## let the npcs run to him just let them be confused look around and go back to their
+## working", and for the marshmallows "do the same pause and black tinge block like
+## during the hiding ... no need for the word hints ... just give the raccon the food
+## bubble ... after steling it make him run away making the npcs altered and we need
+## eating for the stole marshmellow"; their picks: alerted, the men chase him; he eats
+## it once they've calmed.
 ##   1. The pan: once he can see the party (main.gd), the game slows right down (SLOW)
 ##      behind a dark layer (spotlight.gd) and the camera pans over the campers, the
 ##      marshmallows and the cooler (main.gd `camera_focus`), a word or two on each.
@@ -18,13 +24,19 @@ extends Node
 ##      hears it and comes to look. He's held still till he's seen (or a few seconds).
 ##   3. Hide: the campers freeze where they are (their nodes stop), the bush is lit
 ##      (campsite.gd `bush`), and he has to get into it, as he has to press Tab later.
-##      In it (player.gd `hiding_in`), they carry on, and lose him.
-##   4. Lost: once the one who saw him is confused ("??", SEARCH), the camera's on him
-##      for a moment; then a note to sneak out.
-##   5. The roasting (roast_plate.gd): the camper roasts a marshmallow, takes it to a
-##      plate on the table and goes back for more. The first one on the plate: the camera
-##      on it, sparkling, and the raccoon hungry (thought_bubbles.gd). Then: wait till
-##      he's back at the fire; now, sneak over and eat one with E. Eaten: "Yum!".
+##      In it (player.gd `hiding_in`), they carry on, but whoever was after him or
+##      frightened is confused where they stand (camp_person.gd `lose_him`).
+##   4. Lost: the camera's on the one who saw him, confused ("??", SEARCH), for a moment;
+##      then they all go back to work.
+##   5. The roasting (roast_plate.gd), once they're all back at work: the camper roasts a
+##      marshmallow, turns round to put it on a plate on the log and goes back for more,
+##      with a note to sneak out if he's in the bush. The first one on the plate: the
+##      campers freeze as they did for the hide, the plate's lit under the dark layer and
+##      the raccoon's hungry (thought_bubbles.gd), with no words, till he takes it with E.
+##      Then they come to: the camper, turned to the plate, spots him, the others catch
+##      the fright, and the men chase him (camp_person.gd `alert`, `chase_next`). Caught,
+##      he's shooed but keeps it. Once they've lost him and are all back at work, the E
+##      shows over him: holding it, he sits up and eats it. Eaten: "Yum!".
 ##   6. The list: a note says Tab; Tab brings up the TO DO list with Rock the party and
 ##      its tasks on it (camp_tasks.gd `reveal`), the game slowed; Tab again puts it away,
 ##      and the world's open, with no more notes.
@@ -68,12 +80,16 @@ const LAUGH_AFTER := 0.7
 const SEEN_WAIT := 5.0
 ## Hiding: how dark the rest is while the bush is lit.
 const HIDE_DARK := 0.45
-## Lost: how long the one who saw him has to get confused (game seconds), and how long
-## at most the camera stays on him (real seconds).
+## Lost: how long after he's in the bush the camera goes to the one who saw him (game
+## seconds), how long that one has to get confused, and how long at most the camera
+## stays on them (real seconds).
+const LOST_AFTER := 0.8
 const LOST_WAIT := 12.0
 const LOST_SHOW := 3.0
-## The first roasted marshmallow: how long the camera's on it (real seconds).
-const FOOD_SHOW := 1.8
+## The first roasted marshmallow on the plate: how wide it's lit, and how long the
+## raccoon's hungry thought stays up at most (it goes as he takes it).
+const PLATE_RADIUS := 110.0
+const HUNGRY_HOLD := 60.0
 ## A few words on the screen, without holding the game (real seconds).
 const FLASH := 1.2
 
@@ -87,11 +103,6 @@ const HIDE_NOTE := "Hide in the bush"
 const HIDDEN_NOTE := "Wait till they look away"
 const LOST_LINE := "He lost you"
 const SNEAK_NOTE := "Sneak out: hold Ctrl"
-const WATCH_NOTE := "Watch the camper"
-const FOOD_LINE := "Roasted marshmallows"
-const WAIT_NOTE := "Wait till he's at the fire"
-const NOW_LINE := "Now!"
-const EAT_NOTE := "Sneak over: E to eat"
 const YUM_LINE := "Yum!"
 
 ## Set before it's added (main.gd): the TO DO list, the tasks, the camp, the raccoon,
@@ -145,11 +156,12 @@ func _ready() -> void:
 		plan.picked.connect(_pick)
 
 
-## True while it holds the game: the pan and the laugh till he's seen, the moments it
-## shows something, and the list.
+## True while it holds the game: the pan and the laugh till he's seen, the moment it
+## shows the one who lost him, and the list; and him, while he sits eating.
 func running() -> bool:
 	return step in [Step.ARRIVAL, Step.PICKING, Step.LIST] \
-		or (step == Step.INTRO and stage in ["pan", "laugh", "seen", "lost", "food"])
+		or (step == Step.INTRO and stage in ["pan", "laugh", "seen", "lost"]) \
+		or (roast != null and roast.eating())
 
 
 ## He's seen the party (main.gd): it starts START_AFTER seconds of play later.
@@ -166,7 +178,7 @@ func _process(delta: float) -> void:
 		Engine.time_scale = move_toward(Engine.time_scale, SLOW, real * (1.0 - SLOW) / SLOW_IN)
 	if _flash_left > 0.0:
 		_flash_left -= real
-		if _flash_left <= 0.0 and stage not in ["pan", "hide", "food"]:
+		if _flash_left <= 0.0 and stage not in ["pan", "hide", "grab"]:
 			spotlight.clear()
 	match step:
 		Step.WAITING:
@@ -201,7 +213,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 			Step.PICKING:
 				get_viewport().set_input_as_handled()
-	elif step == Step.INTRO and stage in ["pan", "lost", "food"]:
+	elif step == Step.INTRO and stage in ["pan", "lost"]:
 		# Any key or a click goes on.
 		_left = 0.0
 		if stage == "pan":
@@ -237,16 +249,21 @@ func _intro(real: float) -> void:
 				plan.note(HIDE_NOTE)
 				stage = "hide"
 		"hide":
-			# Held till he's in the bush; then they carry on, and lose him.
+			# Held till he's in the bush; then they carry on, but they've lost him:
+			# confused where they stand, not coming to look.
 			if player.hiding_in != null:
 				_freeze(false)
+				for person in campsite.people:
+					person.lose_him()
 				spotlight.clear()
 				_hid_at = campsite.clock
 				plan.note(HIDDEN_NOTE)
 				stage = "hidden"
 		"hidden":
 			var confused: bool = _spotter != null and _spotter.state == S.SEARCH
-			if confused or campsite.clock - _hid_at > LOST_WAIT:
+			if campsite.clock - _hid_at < LOST_AFTER:
+				pass
+			elif confused or campsite.clock - _hid_at > LOST_WAIT:
 				if confused:
 					level.camera_focus = _spotter.global_position
 					_flash(LOST_LINE)
@@ -259,26 +276,20 @@ func _intro(real: float) -> void:
 			if _left <= 0.0 or (_spotter != null and _spotter.state != S.SEARCH):
 				level.camera_focus = null
 				spotlight.clear()
+				stage = "calming"
+		"calming":
+			# The roasting starts once they've all gone back to work.
+			if _all_calm():
 				_start_roasting()
 		"roast":
 			if player.hiding_in == null and plan.note_showing() == SNEAK_NOTE:
-				plan.note(WATCH_NOTE)
-		"food":
-			_left -= real
-			if _left <= 0.0:
-				level.camera_focus = null
-				spotlight.clear()
-				plan.note(WAIT_NOTE)
-				stage = "wait"
-		"wait":
-			if _roasting():
-				_flash(NOW_LINE)
-				plan.note(EAT_NOTE)
-				stage = "steal"
-		"steal":
-			if not _roasting() and campsite.camper.activity() != "roast":
-				plan.note(WAIT_NOTE)
-				stage = "wait"
+				plan.note("")
+		"escape":
+			# Once they've lost him and are all back at work, he may eat it (roast_plate.gd
+			# `can_eat`); a fright from now on is an ordinary one.
+			if _all_calm():
+				for person in campsite.people:
+					person.chase_next = false
 
 
 func _pan_next() -> void:
@@ -328,26 +339,43 @@ func _start_roasting() -> void:
 	if roast == null:
 		roast = RoastPlate.new()
 		roast.camp = campsite
+		roast.player = player
+		roast.can_eat = func() -> bool: return stage == "escape" and _all_calm()
 		campsite.add_child(roast)
 		roast.served.connect(_on_served)
+		roast.taken.connect(_on_taken)
 		roast.eaten.connect(_on_eaten)
 	roast.start()
-	plan.note(SNEAK_NOTE if player.hiding_in != null else WATCH_NOTE)
+	plan.note(SNEAK_NOTE if player.hiding_in != null else "")
 	stage = "roast"
 
 
-## A roasted marshmallow's on the plate: the first time, the camera's on it, sparkling,
-## and he's hungry.
+## A roasted marshmallow's on the plate: the first time, as for the hide, the campers
+## freeze and it's lit under the dark layer, and he's hungry. No words.
 func _on_served() -> void:
 	if step != Step.INTRO or stage != "roast":
 		return
-	var at := roast.plate_point()
-	level.camera_focus = at
-	spotlight.point(at, 110.0, FOOD_LINE, "", 0.0, PAN_DARK)
+	_freeze(true)
+	spotlight.point(roast.plate_point(), PLATE_RADIUS, "", "", 0.0, HIDE_DARK)
 	if level.get("bubbles"):
-		level.bubbles.pop("hungry", FOOD_SHOW + 1.0)
-	_left = FOOD_SHOW
-	stage = "food"
+		level.bubbles.pop("hungry", HUNGRY_HOLD)
+	plan.note("")
+	stage = "grab"
+
+
+## He's taken it: they come to, the camper turned to the plate spots him, the others
+## catch the fright, and the men chase him.
+func _on_taken() -> void:
+	if step != Step.INTRO or stage != "grab":
+		return
+	_freeze(false)
+	spotlight.clear()
+	if level.get("bubbles"):
+		level.bubbles.clear("hungry")
+	for person in campsite.people:
+		person.chase_next = true
+	campsite.camper.alert()
+	stage = "escape"
 
 
 func _on_eaten() -> void:
@@ -360,15 +388,10 @@ func _on_eaten() -> void:
 	step = Step.TASKS
 
 
-## True while the camper sits roasting, calm, turned all the way back to the fire (his
-## back to the plate). He counts as at it the moment he's there, while still turning
-## round from the plate; in the first run, "Now!" came then, and his cone swept over the
-## raccoon as he turned.
-func _roasting() -> bool:
-	var camper = campsite.camper
-	if not (camper.activity() == "roast" and camper.at_activity() and camper.state == S.WORK):
-		return false
-	return absf(angle_difference(camper.rotation.y, camper.activity_facing())) < 0.2
+## True while all of them are at work on their routines: none alarmed, none on the way
+## back.
+func _all_calm() -> bool:
+	return campsite.people.all(func(person) -> bool: return person.state == S.WORK)
 
 
 # --- The list --------------------------------------------------------------------
