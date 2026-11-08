@@ -1,15 +1,13 @@
 ## Project context
 
-- **Engine:** Godot 4.7.2 stable: `config/features` says `"4.7"` (`project.godot`), and the wrapper looks for
-  `Godot_v4.7.2-stable_win64_console.exe` (`scripts/run-test.sh`; `README.md`, "Run it"). GDScript throughout.
-- **Renderer:** Forward+ (`project.godot`, `"Forward Plus"`). The project is the repo root, not `godot/`
-  (`scripts/run-test.sh`, header comment).
+- **Engine:** Godot 4.7.2 stable: `config/features` says `"4.7"` and `"Forward Plus"` (`project.godot`); the wrapper
+  looks for `Godot_v4.7.2-stable_win64_console.exe` (`scripts/run-test.sh`). GDScript. The project is the repo root.
 
 ### The effects (`CHANGE-BRIEF.md`, "The effects")
 - **Effect A, the leaf burst:** two `GPUParticles3D`, **Leaves** and **Puff**, under one `Node3D` root, each with a
   `ParticleProcessMaterial` and a `StandardMaterial3D` draw material (`CHANGE-BRIEF.md`, "The settings").
-  A fresh copy of the effect's scene per event, placed at the bush, freed when both emitters are done; the hop-out
-  copy has `amount_ratio` 0.5 (same section).
+  A fresh copy of the effect's scene per event, placed at the bush, freed when both emitters are done (by a timer:
+  see Headless facts); the hop-out copy has `amount_ratio` 0.5 (same section).
 - **Effect B:** not defined yet; it comes in a dated revision (`CHANGE-BRIEF.md`, "Status"). No node type.
 
 ### What owns Effect A's event
@@ -26,9 +24,8 @@
     `DIVE_OUT` 1.5 m, then `DIVE_AGAIN` 0.6 s before he can dive again), `place()` (tests) and `startle()`.
 
 ### The scenes the effects appear in
-- `res://main.tscn` (`project.godot`, `run/main_scene`): one `Node3D` running `scripts/main.gd` (`main.tscn`).
-  `main.gd` builds the camp with `Campsite.new()` unless `--bubble-demo` is on (`scripts/main.gd`, `_ready()`).
-- The tutorial's "Hide!" step makes him dive in once (`scripts/camp_tutorial.gd`, header, step 3).
+- `res://main.tscn` (`project.godot`, `run/main_scene`), one `Node3D` running `scripts/main.gd`, which builds the camp
+  with `Campsite.new()` (`_ready()`). The tutorial's "Hide!" makes him dive in once (`scripts/camp_tutorial.gd`).
 - The effect's own scene(s) go in `effects/` (see Ownership). That folder doesn't exist yet.
 
 ### Tests: always through `scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
@@ -55,12 +52,18 @@ bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; 
 bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; fails 51 of 52 at 60 fps
 ```
 - Flags are parsed in `scripts/main.gd` (header comment); `--title-test` in `scripts/title_screen.gd`.
-- The baseline before any effect (`TEST-REPORT.md`, "Step 0", at `ed05ada`, logs in `logs/a6-step0/`): 87, 31, 43,
-  19 and 21 of each; cones 43 and cone shader 93 at 30, 60 and 144; waves 13 of 13 and title all in realtime.
-  The two `--fixed-fps` failures are recorded and expected: don't "fix" them.
-- Headless runs use a dummy renderer and draw nothing, so no test can show the look; the GPU particle process
-  doesn't run either (`CHANGE-BRIEF.md`, short answer 4). Look and GPU cost are checked by the frame strip, the
-  author's eyes and the Visual Profiler (`CHANGE-BRIEF.md`, "The evidence split").
+- The baseline before any effect (`TEST-REPORT.md`, "Step 0", at `ed05ada`, logs in `logs/a6-step0/`): bubbles 87,
+  camp 31, tasks 43, plan 19, tutorial 21; cones 43 and cone shader 93 at 30, 60 and 144; waves 13 of 13 and
+  title all in realtime. Their `--fixed-fps` failures (12 of 13, 51 of 52) are recorded and expected: don't "fix" them.
+
+## Headless facts
+- A headless run uses a dummy renderer (it reports no video adapter): it draws no particles and runs no GPU
+  particle process. Node state (emitting, one_shot, amount_ratio, visibility, instance counts) is observable; the
+  look is not. On 4.7.2 a one-shot `GPUParticles3D` turns `emitting` off within a few frames and never emits
+  `finished` (read back on 7 Nov 2026), so nothing may wait on `finished`: free a burst on a timer.
+- A GPU effect's headless CPU price is near zero by construction.
+- Frame strips come from a windowed Movie Maker run, which I start.
+- Under `--fixed-fps`, game time follows frames, not the clock; physics runs at 60 ticks a second at every rate.
 
 ## Current change
 @CHANGE-BRIEF.md
@@ -82,15 +85,15 @@ Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUP
 - **Seen working on 4.7.2 in this repo** (`scripts/campsite.gd`, the fire's sparks): `CPUParticles3D`,
   `StandardMaterial3D`, `BaseMaterial3D.SHADING_MODE_UNSHADED`, `.TRANSPARENCY_ALPHA`, `.BLEND_MODE_ADD`,
   `.BILLBOARD_PARTICLES`, `vertex_color_use_as_albedo`, `billboard_mode`, `blend_mode`, `QuadMesh.size`, `Gradient`.
-- **From the Godot 4 class reference, not yet seen on this build** (no file in the repo uses them):
-  - `GPUParticles3D`: `amount`, `amount_ratio`, `one_shot`, `explosiveness`, `randomness`, `lifetime`,
-    `preprocess`, `local_coords`, `visibility_aabb`, `process_material`, `draw_pass_1`, `emitting`,
-    `restart()`, signal `finished`.
-  - `ParticleProcessMaterial`: `emission_shape` (`EMISSION_SHAPE_SPHERE`), `emission_sphere_radius`, `direction`,
-    `spread`, `initial_velocity_min`/`_max`, `gravity`, `damping_min`/`_max`, `angle_min`/`_max`,
-    `scale_min`/`_max`, `lifetime_randomness`, `color_ramp`, `color_initial_ramp`.
-  - Unsure: `emission_shape_offset` (one way to put the sphere "0.5 m up the bush"; the node's position is the other).
-  - Its `color_ramp` and `color_initial_ramp` take a `Texture2D` (`GradientTexture1D`), not a `Gradient`. Confirm.
+- **Read back from ClassDB on 4.7.2** (7 Nov 2026, a scratch script, not in the repo): `GPUParticles3D` has
+  `amount`, `amount_ratio`, `one_shot`, `explosiveness`, `randomness`, `lifetime`, `preprocess`, `local_coords`,
+  `visibility_aabb`, `process_material`, `draw_pass_1`, `emitting`, `use_fixed_seed`, `seed`, `restart()`, signal
+  `finished`. `ParticleProcessMaterial` has `emission_shape` (`EMISSION_SHAPE_SPHERE`), `emission_sphere_radius`,
+  `emission_shape_offset`, `direction`, `spread`, `initial_velocity_min`/`_max`, `gravity`, `damping_min`/`_max`,
+  `angle_min`/`_max`, `scale_min`/`_max`, `lifetime_randomness`, `color_ramp`, `color_initial_ramp` (both take a
+  `GradientTexture1D`, not a `Gradient`). `StandardMaterial3D` has `disable_fog`.
+- Godot 3's `scale_random`, `flags_unshaded` and `params_billboard_mode` don't exist. `initial_velocity` and `scale`
+  exist only as editor-side `Vector2` pairs, not stored: a number set there is ignored and the min/max stay 0.
 - The node's `randomness` (emission timing) is not the process material's `lifetime_randomness` (the brief's).
 
 ## Out of scope
@@ -102,16 +105,13 @@ Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUP
 - Every other look: the bush's rustle and peeking eyes, the fire and its sparks, cones, cooler, trees, icons,
   waves, and everything in `shaders/`.
 - What any existing test expects. A test may change how it measures only with the same expected value.
-- The renderer, `project.godot`, `Engine.time_scale` in game code, and the bush's mesh, size and place.
-- Effect B, until the brief's dated revision defines it.
+- The renderer, `project.godot`, the bush's mesh, size and place, and Effect B until the brief defines it.
+  `Engine.time_scale`: only the tutorial changes it, while it holds the game (`scripts/camp_tutorial.gd`).
 
 ## Unconfirmed
 
-- The `GPUParticles3D` and `ParticleProcessMaterial` names above haven't been read back from 4.7.2 here; a
-  ClassDB query needed approval this session couldn't give. The configuration test should read each one.
-- Whether `GPUParticles3D.finished` fires, or `emitting` turns off, in a headless run with the dummy renderer;
-  the "freed once both are done" rule and the state test depend on it.
-- What `amount_ratio` 0.5 does to a one-shot burst on this build (`CHANGE-BRIEF.md`, short answer 1, says unseen).
+- What `amount_ratio` 0.5 does to a one-shot burst's count on this build: headless reads only the value; the frame
+  strip shows the count (`CHANGE-BRIEF.md`, short answer 1).
 - The signal's name and arguments, the effect scene's file name in `effects/`, and the new tests' names and
   commands: none exist yet.
 - The test counts were last measured on 7 Nov 2026 at `ed05ada` (`TEST-REPORT.md`, "Step 0"); rerun before trusting.
