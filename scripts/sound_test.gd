@@ -74,11 +74,13 @@ func _ready() -> void:
 	_at(705, Input.action_release.bind("move_back"))
 	_at(860, _check_awake)
 
-	# Tasks (level 1's, camp_tasks.gd; the camp's puzzles tick them off): the other two
+	# Tasks (level 1's, camp_tasks.gd; the camp's puzzles tick them off): the others
 	# ticked off in the same frame, for one laugh (the first was ticked off in his sleep).
+	# Dismantle the tent, added on 8 Nov 2026, is ticked off with them.
 	_at(940, func() -> void:
 		level.tasks.done("music")
-		level.tasks.done("cooler"))
+		level.tasks.done("cooler")
+		level.tasks.done("tent"))
 
 	# Pause and mute: switched on and off again; the game mustn't care.
 	_at(1000, _check_pause_and_mute)
@@ -160,7 +162,7 @@ func _finish() -> void:
 	_check("SFX-CHITTER: 5 quick presses + 1 held press", 6, counts.get("SFX-CHITTER", 0))
 	_check("SFX-RUN: 2 runs, Shift tapped during the first", 2, counts.get("SFX-RUN", 0))
 	_check("SFX-CLIMB: 2 climbs, clinging still between", 2, counts.get("SFX-CLIMB", 0))
-	_check("SFX-TASK-LAUGH: 2 tasks in a frame, not in his sleep", 1, counts.get("SFX-TASK-LAUGH", 0))
+	_check("SFX-TASK-LAUGH: 3 tasks in a frame, not in his sleep", 1, counts.get("SFX-TASK-LAUGH", 0))
 	_check("Every task done", true, level.tasks.all_done())
 	_check("No ending yet: the music carries on", true, level._music.playing)
 	for path: String in ["res://assets/audio/music/forest-loop.wav", "res://assets/audio/sfx/run-loop.wav", "res://assets/audio/sfx/climb-loop.wav"]:

@@ -52,7 +52,6 @@ const TRIES := [
 	["shiny", "Shiny: walk near the coins, keys and foil"],
 	["hungry", "Hungry: face the cooler or the trash bin up close"],
 	["alert", "Alert: let the camper see you"],
-	["hiding", "Hiding: duck into the bush while he's looking"],
 	["idea", "Idea: pick up the keys or the hose, then use it"],
 	["frustrated", "Frustrated: walk into a wall, try the shed door\n    without the keys, or get caught with loot"],
 	["bored", "Bored: stand still for a few seconds"],

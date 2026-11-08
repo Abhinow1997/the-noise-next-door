@@ -33,6 +33,13 @@ extends Node3D
 ## (tests/cone_shader_test.gd, cone_driver.gd), through the tutorial as --cones-test.
 ## `-- --leaf-burst-test` checks when and where Effect A, the leaf burst, fires as he dives
 ## into the bush and out (tests/leaf_burst_state_test.gd), with the tutorial skipped.
+## `-- --fire-test` checks the campfire's life in the open world: the keeper building it,
+## the bucket tipped with E, the fire lit again, and being seen further standing in its
+## light (scripts/fire_test.gd, camp_fire.gd).
+## `-- --tent-test` checks Dismantle the tent: its four pegs pulled with E, the tent
+## falling, and the camper pitching it again (scripts/tent_test.gd, camp_tent.gd).
+## `-- --dev-start=<point>` starts at a point of the developer menu (F1, dev_menu.gd):
+## den, camp, roast, free (the fire out) or fire (burning); F9 turns vsync off and on.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -51,6 +58,8 @@ const BubbleDemo := preload("res://scripts/bubble_demo.gd")
 const BubbleTest := preload("res://scripts/bubble_test.gd")
 const CampTest := preload("res://scripts/camp_test.gd")
 const TasksTest := preload("res://scripts/tasks_test.gd")
+const FireTest := preload("res://scripts/fire_test.gd")
+const TentTest := preload("res://scripts/tent_test.gd")
 const WavesTest := preload("res://scripts/waves_test.gd")
 const PlanTest := preload("res://scripts/plan_test.gd")
 const ConesTest := preload("res://scripts/cones_test.gd")
@@ -72,6 +81,10 @@ const PlanNote := preload("res://scripts/plan_note.gd")
 const CampTutorial := preload("res://scripts/camp_tutorial.gd")
 ## Effect A, the leaves bursting out of the bush as he dives in or out (leaf_bursts.gd).
 const LeafBursts := preload("res://scripts/leaf_bursts.gd")
+## The developer menu (F1) and its start points (dev_menu.gd), and where each puts him.
+const DevMenu := preload("res://scripts/dev_menu.gd")
+const DEV_STARTS := {"camp": Vector3(26.0, 0.02, 6.0), "roast": Vector3(35.0, 0.02, 5.0),
+	"free": Vector3(33.5, 0.02, 4.8), "fire": Vector3(33.5, 0.02, 4.8)}
 ## The level is at night, as the title screen is: the author asked for the game to be at
 ## night too on 21 Oct 2026. Off, it's the daylight it had before.
 const NIGHT := true
@@ -339,6 +352,8 @@ func _ready() -> void:
 	var tutorial_test := false
 	var tutorial_shots := ""
 	var leaf_burst_test := false
+	var fire_test := false
+	var tent_test := false
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -402,6 +417,17 @@ func _ready() -> void:
 			tutorial_shots = arg.get_slice("=", 1)
 		elif arg == "--leaf-burst-test":
 			leaf_burst_test = true
+		elif arg == "--fire-test":
+			fire_test = true
+		elif arg == "--tent-test":
+			tent_test = true
+	# A start point from the developer menu or `--dev-start=` (dev_menu.gd): no title.
+	var dev_point := DevMenu.take_point()
+	# The fire's check starts as the open world does, the fire cold.
+	if fire_test:
+		dev_point = "free"
+	if dev_point != "":
+		title_mode = false
 	_rng.seed = 7
 	if title_mode and not MUSIC_ON_AT_START and not Array(OS.get_cmdline_user_args()).any(
 			func(arg: String) -> bool: return arg.ends_with("-test")):
@@ -429,11 +455,17 @@ func _ready() -> void:
 		var leaf_bursts := LeafBursts.new()
 		leaf_bursts.bush = campsite.bush
 		add_child(leaf_bursts)
-		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test:
+		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test or tent_test \
+				or dev_point in ["free", "fire"]:
 			# These skip the tutorial at the camp: everything's as it is after it.
 			tasks.reveal()
 			campsite.cones_on = true
-	tasks.ticked.connect(func(_id: String) -> void: _ticked += 1)
+	tasks.ticked.connect(_on_task_ticked)
+	if campsite and dev_point in ["roast", "free", "fire"]:
+		tasks.done("investigate")
+	if campsite and dev_point in ["free", "fire"]:
+		# The open world: the fire cold, as after the tutorial, or burning (camp_fire.gd).
+		campsite.campfire.start_cycle(dev_point == "free")
 
 	camera = Camera3D.new()
 	camera.fov = CAMERA_FOV
@@ -449,6 +481,10 @@ func _ready() -> void:
 	player.position = Forest.START
 	# Side-on to the camera and turned a little toward it, so his pose reads at once.
 	player.rotation.y = deg_to_rad(-122.0)
+	if DEV_STARTS.has(dev_point):
+		# Facing east, toward the camp.
+		player.position = DEV_STARTS[dev_point]
+		player.rotation.y = deg_to_rad(-90.0)
 	player.camera = camera
 	player.trees = forest.climbable
 	add_child(player)
@@ -509,6 +545,12 @@ func _ready() -> void:
 		_tutorial.ui_layer = _ui_layer
 		_tutorial.level = self
 		add_child(_tutorial)
+		if dev_point == "roast":
+			_tutorial.dev_roast()
+	if OS.is_debug_build():
+		var dev := DevMenu.new()
+		dev.level = self
+		add_child(dev)
 	_start_music()
 	if campsite:
 		campsite.music = _music
@@ -525,6 +567,14 @@ func _ready() -> void:
 		camp_check.level = self
 		camp_check.shots = camp_shots
 		add_child(camp_check)
+	if tent_test and campsite:
+		var tent_check := TentTest.new()
+		tent_check.level = self
+		add_child(tent_check)
+	if fire_test and campsite:
+		var fire_check := FireTest.new()
+		fire_check.level = self
+		add_child(fire_check)
 	if tasks_test and campsite:
 		var tasks_check := TasksTest.new()
 		tasks_check.level = self
@@ -936,6 +986,14 @@ func _check_tasks(delta: float) -> void:
 		if not player.resting:
 			_play_task_laugh()
 		_ticked = 0
+
+
+## A task ticked off: it laughs (above), but not for following the music to the camp,
+## so there's no laugh as he gets there (the author, 8 Nov 2026: "remove the laugh as
+## well when he reaches the camp").
+func _on_task_ticked(id: String) -> void:
+	if id != "investigate":
+		_ticked += 1
 
 
 ## The den is the ground round the roots of the home pine.

@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Campfire check, 2026-11-08T14:47:58
+  pass  Start: the cycle on, the fire out                            expected true 0.00      got true 0.00
+  pass  Start: no flames, no light                                   expected false 0.00     got false 0.00
+  pass  Start: the bucket doesn't twinkle with the fire out          expected true           got true
+  pass  The keeper sets off to tend it on his own                    expected TEND           got TEND
+  pass  He lights it: lit once, flaring                              expected 1 true         got 1 true
+  pass  Lit: flames and light                                        expected true true      got true true
+  pass  He builds it up, then goes back to his routine               expected true true      got true true
+  pass  It burns down slowly unfed                                   expected true           got true
+  pass  Near the bucket, it twinkles                                 expected true           got true
+  pass  Holding E tips it over: doused once                          expected 1 true         got 1 true
+  pass  The fire's out, the flames gone                              expected 0.00 false     got 0.00 false
+  pass  The bucket's over: no twinkle                                expected true           got true
+  pass  The hiss is heard: someone stops to wonder                   expected true           got true
+  pass  The keeper sets the bucket back up                           expected false TEND     got false TEND
+  pass  And lights it again                                          expected 2              got 2
+RESULT: all checks passed (15 checks)

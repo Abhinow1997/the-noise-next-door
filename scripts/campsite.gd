@@ -45,6 +45,8 @@ const VisionCone := preload("res://scripts/vision_cone.gd")
 const Player := preload("res://scripts/player.gd")
 const CampTasks := preload("res://scripts/camp_tasks.gd")
 const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
+const CampFire := preload("res://scripts/camp_fire.gd")
+const CampTent := preload("res://scripts/camp_tent.gd")
 const CampInput := preload("res://scripts/camp_input.gd")
 const SoundWaves := preload("res://scripts/sound_waves.gd")
 const ConeDriver := preload("res://scripts/cone_driver.gd")
@@ -210,6 +212,8 @@ const FLAMES := [Color("fff0a0"), Color("ffc24a"), Color("ff8a24"), Color("e4501
 const FIRE_LIGHT := Color("ff9b4a")
 const FIRE_ENERGY := 3.2
 const FIRE_RANGE := 8.0
+## How much of the light's reach counts as being in the firelight (in_firelight).
+const FIRELIGHT := 0.8
 const WIRE := Color("2a2a2c")
 const BULBS := [Color("ffd27a"), Color("ffb066"), Color("fff0c4"), Color("ff8c5c")]
 const BULB_GLOW := 3.0
@@ -262,6 +266,11 @@ var party: AudioStreamPlayer3D
 var beat := 0.0
 ## Level 1's puzzles (camp_puzzles.gd).
 var puzzles: CampPuzzles
+## The fire's life in the open world: its strength, the woodpile and the bucket
+## (camp_fire.gd, 8 Nov 2026). The flames, light and sparks follow its strength.
+var campfire: CampFire
+## Dismantle the tent: the camper's tent's four pegs (camp_tent.gd, 8 Nov 2026).
+var tent_pegs: CampTent
 ## True while the speaker's plugged in (the party's music can play).
 var music_on: bool:
 	get:
@@ -269,6 +278,7 @@ var music_on: bool:
 
 var _t := 0.0
 var _fire_light: OmniLight3D
+var _sparks: CPUParticles3D
 var _flames: Array[Dictionary] = []
 var _dance_players: Array[AnimationPlayer] = []
 var _woofer: MeshInstance3D
@@ -333,6 +343,17 @@ func _ready() -> void:
 	puzzles.speaker = speaker
 	puzzles.table = table
 	add_child(puzzles)
+	# Before the walkways are baked, so the people go round the woodpile and the bucket.
+	campfire = CampFire.new()
+	campfire.camp = self
+	campfire.position = _v3(FIRE)
+	campfire.stoke_at = _v3(FIRE + STOKE)
+	add_child(campfire)
+	tent_pegs = CampTent.new()
+	tent_pegs.camp = self
+	tent_pegs.tent = tent
+	tent_pegs.peg_mesh = _peg_mesh()
+	add_child(tent_pegs)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
 	var driver := ConeDriver.new()
 	driver.camp = self
@@ -412,6 +433,16 @@ func seen_within(seconds: float) -> bool:
 	return clock - last_seen <= seconds
 
 
+## True if `at` is in the fire's light while it burns in the open world (camp_fire.gd
+## `cycle`), where the people see him further unless he crouches (camp_person.gd
+## FIRELIT_SIGHT): within FIRELIGHT of its light's reach, which shrinks as it burns down.
+func in_firelight(at: Vector3) -> bool:
+	if campfire == null or not campfire.cycle or not campfire.burning():
+		return false
+	var d := Vector2(at.x - FIRE.x, at.z - FIRE.y).length()
+	return d < _fire_light.omni_range * FIRELIGHT
+
+
 ## True if `at` is in the camp, give or take `margin` metres.
 func in_camp(at: Vector3, margin := 0.0) -> bool:
 	return Vector2(at.x, at.z).distance_to(Forest.CAMP) < CAMP_ZONE + margin
@@ -482,13 +513,22 @@ func socket_at() -> Vector3:
 func _process(delta: float) -> void:
 	_t += delta
 	var n := sin(_t * 7.3) * 0.5 + sin(_t * 13.1 + 1.7) * 0.3 + sin(_t * 23.7 + 0.4) * 0.2
-	_fire_light.light_energy = FIRE_ENERGY * (1.0 + 0.12 * n)
+	# By the fire's strength (camp_fire.gd): at full, as it always was; lower, smaller
+	# flames, a dimmer light that reaches less far; out, none; lit from cold, a flare.
+	var s: float = campfire.strength if campfire else 1.0
+	var flare: float = campfire.flare if campfire else 0.0
+	var tall := (0.35 + 0.65 * s) * (1.0 + 0.9 * flare)
+	var wide := (0.6 + 0.4 * s) * (1.0 + 0.5 * flare)
+	_fire_light.light_energy = FIRE_ENERGY * (1.0 + 0.12 * n) * (pow(s, 0.8) + 1.2 * flare)
+	_fire_light.omni_range = FIRE_RANGE * (0.45 + 0.55 * s)
+	_sparks.emitting = s > 0.25
 	for flame: Dictionary in _flames:
 		var ph: float = flame.phase
 		var node: MeshInstance3D = flame.node
+		node.visible = s > 0.0
 		var lick := 1.0 + 0.22 * sin(_t * flame.rate + ph) + 0.1 * sin(_t * 17.0 + ph * 2.0)
 		var width := 1.0 + 0.08 * sin(_t * 9.0 + ph)
-		node.scale = Vector3(flame.size * width, flame.height * lick, flame.size * width)
+		node.scale = Vector3(flame.size * width * wide, flame.height * lick * tall, flame.size * width * wide)
 		node.rotation = Vector3(0.14 * sin(_t * 3.1 + ph), flame.yaw, 0.14 * sin(_t * 2.7 + ph * 1.3))
 	_keep_the_beat()
 	if _mallet_hand:
@@ -624,6 +664,7 @@ func _build_fire() -> void:
 	dot.material = glow
 	sparks.mesh = dot
 	pit.add_child(sparks)
+	_sparks = sparks
 
 
 ## One flame, 1 m tall and 1 m round, scaled by each: a bulb that licks up to a point,

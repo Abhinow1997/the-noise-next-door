@@ -26,6 +26,12 @@ extends CharacterBody3D
 ##     the foot of it a while, then give up.
 ##   - When the music's plug is pulled, the low-poly man goes to find the plug and puts
 ##     it back (FIX).
+##   - In the open world, since 8 Nov 2026, the fire keeper tends the fire (TEND,
+##     camp_fire.gd): when it burns low or is out he fetches a log from the woodpile and
+##     puts it on, and if the bucket's been tipped over he sets it back up first.
+##   - The camper, since 8 Nov 2026, pitches his tent again (PITCH, camp_tent.gd): with
+##     it down, or with them having seen the raccoon at its pegs, he goes round with his
+##     mallet and hammers each one back in.
 ##   - Once he's out of the camp or out of sight a while, they walk back (`walk`) to
 ##     where their routine had got to, and carry on.
 ##   - Since 26 Oct 2026, before they walk back they're confused (SEARCH): "??" over
@@ -51,7 +57,7 @@ signal state_changed(state: int)
 const VisionCone := preload("res://scripts/vision_cone.gd")
 const Player := preload("res://scripts/player.gd")
 
-enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX, SEARCH }
+enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX, SEARCH, TEND, PITCH }
 
 ## How far they see while calm (times SNEAK_SIGHT while he sneaks), while wondering
 ## about a noise, and once alarmed, and how wide; where their eyes are.
@@ -63,6 +69,11 @@ const SIGHT_ANGLE := 110.0
 const EYES := Vector3(0, 1.55, 0.12)
 ## Dancing, they're lost in the music and see only this much as far.
 const DANCE_SIGHT := 0.6
+## Standing in the lit fire's light in the open world (campsite.gd `in_firelight`), he's
+## seen this much further; crouching, he isn't. The author, 8 Nov 2026: "when the fire is
+## lit, the ... raccoon has to always ... crouch, or else he'll be detected more quickly
+## if the fire is up and he goes in the camp or like near the camp".
+const FIRELIT_SIGHT := 1.5
 ## His running this near them is heard (campsite.gd hears his chitters and other noises).
 const HEAR_RUN := 4.0
 ## Wondering about a noise: how long the "huh?" lasts, how short of where it came from
@@ -168,6 +179,13 @@ var _treed := false
 var _fix_stage := 0
 var _fix_t := 0.0
 var _plug: Node3D
+## Tending the fire: the fire (camp_fire.gd), where he's got to, and the log in his hand.
+var _fire
+var _tend_stage := 0
+var _log: Node3D
+## Pitching his tent again: the tent (camp_tent.gd), and the peg he's going to.
+var _tent
+var _peg := -1
 var _hand: BoneAttachment3D
 var _stuck := 0.0
 var _side := 0.0
@@ -232,11 +250,13 @@ func _physics_process(delta: float) -> void:
 			return
 	_t += delta
 	eyes.blind = not camp.cones_on
-	var calm := state in [State.WORK, State.RETURN, State.FIX]
+	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH]
 	if calm:
 		eyes.reach = SIGHT * (SNEAK_SIGHT if player.sneaking else 1.0)
 		if anim and anim.current_animation == "dance":
 			eyes.reach *= DANCE_SIGHT
+		if not player.sneaking and camp.in_firelight(player.global_position):
+			eyes.reach *= FIRELIT_SIGHT
 	elif state in [State.INVESTIGATE, State.SEARCH]:
 		eyes.reach = CURIOUS_SIGHT * (SNEAK_SIGHT if player.sneaking else 1.0)
 	else:
@@ -306,6 +326,10 @@ func _physics_process(delta: float) -> void:
 			_investigate(delta)
 		State.FIX:
 			_fix(delta)
+		State.TEND:
+			_tend(delta)
+		State.PITCH:
+			_pitch(delta)
 		State.SEARCH:
 			_search(delta)
 	var meant := velocity.length()
@@ -330,7 +354,7 @@ func _physics_process(delta: float) -> void:
 ## Dancing, a `freeze` (the music cutting out) catches them mid-move that many seconds
 ## before they turn to look.
 func hear(at: Vector3, freeze := 0.0) -> void:
-	if state in [State.WORK, State.RETURN, State.FIX] and not camp.let_be():
+	if state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH] and not camp.let_be():
 		_frozen = freeze > 0.0 and anim != null and anim.current_animation == "dance"
 		_huh = freeze if _frozen else HUH
 		_noise_at = at
@@ -371,6 +395,108 @@ func fix(plug: Node3D) -> void:
 		_plug = plug
 		_fix_stage = 0
 		_to_state(State.FIX)
+
+
+## Goes to tend the fire (camp_fire.gd), if they're at their routine: the bucket first,
+## if it's over, then a log.
+func tend(fire) -> void:
+	if state == State.WORK:
+		_fire = fire
+		_tend_stage = 0 if fire.bucket_tipped else 2
+		_fix_t = 0.0
+		_to_state(State.TEND)
+
+
+## Tending the fire: to the bucket and down to set it up, if it's over; to the woodpile
+## and down for a log; to the pit, and down to put it on.
+func _tend(delta: float) -> void:
+	if eyes.seeing and not camp.let_be():
+		_startle(true)
+		return
+	var to: Vector3 = [_fire.bucket_spot(), _fire.bucket_spot(), _fire.woodpile_spot(),
+		_fire.woodpile_spot(), _fire.stoke_at, _fire.stoke_at][_tend_stage]
+	var look: Vector3 = [_fire.bucket.global_position, _fire.bucket.global_position,
+		_fire.woodpile.global_position, _fire.woodpile.global_position, _fire.global_position,
+		_fire.global_position][_tend_stage]
+	if _tend_stage % 2 == 0:
+		if _flat(to - global_position).length() > 0.3:
+			_go(to, WALK * 1.2, delta, "walk", WALK * 1.2 / walk_natural)
+		else:
+			_tend_stage += 1
+			_fix_t = 0.0
+		return
+	_play("bend", 1.0, 0.15)
+	_face(look, delta)
+	_fix_t += delta
+	if _fix_t < FIX_BEND:
+		return
+	match _tend_stage:
+		1:
+			_fire.set_bucket_upright()
+			_tend_stage = 2
+		3:
+			_take_log()
+			_tend_stage = 4
+		5:
+			_drop_log()
+			_fire.add_log()
+			# Not built up yet: straight back for another; otherwise back to his routine.
+			if _fire.wants_more():
+				_tend_stage = 0 if _fire.bucket_tipped else 2
+			else:
+				_to_state(State.RETURN)
+
+
+## Goes to pitch his tent again (camp_tent.gd), if he's at his routine.
+func pitch(tent) -> void:
+	if state == State.WORK:
+		_tent = tent
+		_peg = tent.next_out()
+		_fix_t = 0.0
+		_to_state(State.PITCH)
+
+
+## Pitching it: to each peg that's out, and the mallet on it till it's in; then back.
+func _pitch(delta: float) -> void:
+	if eyes.seeing and not camp.let_be():
+		_startle(true)
+		return
+	if _peg < 0:
+		_to_state(State.RETURN)
+		return
+	var to: Vector3 = _tent.stand_spot(_peg)
+	if _fix_t == 0.0 and _flat(to - global_position).length() > 0.3:
+		_go(to, WALK * 1.2, delta, "walk", WALK * 1.2 / walk_natural)
+		return
+	_play("hammer", 1.0, 0.15)
+	_face(_tent.pegs[_peg].at, delta)
+	_fix_t += delta
+	if _fix_t >= FIX_BEND:
+		_tent.peg_back(_peg)
+		_peg = _tent.next_out()
+		_fix_t = 0.0
+
+
+## A log from the woodpile, in his right hand.
+func _take_log() -> void:
+	if _hand == null:
+		var skeletons := find_children("*", "Skeleton3D", true, false)
+		if skeletons.is_empty():
+			return
+		_hand = BoneAttachment3D.new()
+		_hand.bone_name = "mano_L"
+		skeletons[0].add_child(_hand)
+	_log = MeshInstance3D.new()
+	_log.mesh = _fire.woodpile.get_child(0).mesh
+	_log.scale = Vector3.ONE * 0.45
+	_hand.add_child(_log)
+	_log.position = hand_grip
+
+
+func _drop_log() -> void:
+	if _log:
+		_log.queue_free()
+		_log = null
 
 
 ## Their routine: to the current activity's place, then at it until its time's up,
@@ -604,6 +730,9 @@ func _to_state(to: State) -> void:
 		_arrived = false
 	if to == State.INVESTIGATE:
 		_look_t = -1.0
+	if to != State.TEND:
+		# Interrupted with a log: it's dropped back on the pile.
+		_drop_log()
 	if carrying and to != State.TAKE and to != State.FIX:
 		# Interrupted with something in hand (a fright while putting the plug back): put it down.
 		var item := carrying

@@ -1113,3 +1113,107 @@ No `SCRIPT ERROR` in any log, and no new engine errors or warnings in the tutori
 Those are the frame strips, the author's eyes in play, and the Visual Profiler.
 
 **Not driven:** the `startle()` and `place()` out paths (the same `dived()` and signal), and the tutorial's slowed `time_scale`. The tutorial check dives with the listener in, and still passes 28 of 28.
+
+### Arriving at the camp: no laugh, no food thought (8 Nov 2026)
+
+The author asked: "remove the food bubble when the raccoon reaches the campsite / remove the laugh as well when he reaches the camp as well". Their picks from Claude Code's options:
+- **The laugh:** the recorded task laugh as "Investigate the music" is crossed off on reaching the camp is gone (`scripts/main.gd`, `_on_task_ticked`). Other tasks still laugh when ticked off. The chitter after the pan stays, since it is what makes a camper come and spot him.
+- **The food thought:** it came from facing the cooler at the trail's end. While the tutorial at the camp is on, facing food shows nothing (`scripts/thought_bubbles.gd`, `food_thoughts`, set by `scripts/camp_tutorial.gd`). The plate's hungry thought, which the tutorial pops itself, still shows. In free play, facing food shows it as before.
+
+Logs: [logs/a6-arrival/](logs/a6-arrival/), run on the working tree over `1667891`, with Effect A's r1 change in it.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Every check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19, tutorial 28; cones 43 and cone shader 93 at 30, 60 and 144; waves 13 of 13 and title all in realtime, each failing only its recorded check at 60 fps; sound, asset, materials and calibration clean; Effect A's configuration and state (37) passing | No |
+
+No `SCRIPT ERROR` in any log.
+
+**Checked by a scratch probe (not in the repo), not by a test:** walking him into the camp off the trail with real move keys, toward the cooler, then the other way. Before the change the task laugh played as he entered and the hungry thought came up as he walked toward the cooler; after it, neither did, and the pan, the chitter and "Hide!" came as before. No test reads the arrival's laugh or thought, so none needed changing.
+
+### The campfire in the open world, and the developer menu (8 Nov 2026)
+
+This is game work, not part of an effect. The author asked for it before Effect B's brief, so that the smoke has a fire to follow:
+- "we can see ... a couple of guys are working towards the campfire ... they are like getting logs ... adding logs to it so that it can stay like lit ... and then eventually ... dousing the fire";
+- "naturally, rather than like forcing it ... everything with E, and like a twinkle";
+- "some element of like a developer tool ... rather than me playing right from the start".
+
+What was built:
+- **The fire's strength** (`scripts/camp_fire.gd`): 0 is out and 1 is burning well. The flames, light and sparks follow it (`scripts/campsite.gd`); at full strength they look as they always did.
+- **Through the tutorial** the fire burns steadily. It dies during the chase after the steal, so the open world opens on a cold pit.
+- **The fire keeper** (`scripts/camp_person.gd`, the new state `TEND`) fetches logs from a woodpile about 3.4 m off, lights the fire (it flares) and builds it up. It burns down, and he feeds it again when it's low.
+- **The bucket by the pit** twinkles as loot does while the fire burns. Holding E tips it: the fire goes out, the campers hear the hiss, and the keeper sets the bucket back up and relights the fire. There's no task and no note.
+- **The developer menu** (`scripts/dev_menu.gd`): F1, in debug runs only. It restarts at a point (the den, arriving at the camp, the tutorial's roasting, free play with the fire out or burning), the same points as `-- --dev-start=<point>`. F9 turns vsync off and on.
+
+Logs: [logs/a6-campfire/](logs/a6-campfire/), on the working tree over `1667891`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| **New: the campfire** (`bash scripts/run-test.sh --fire-test 60`) | Pass, 15 of 15. The level starts as the open world does, with the fire cold. The keeper sets off on his own, lights it (one flare), builds it up and goes back to his routine; it burns down slowly. Near the bucket it twinkles; a real held E tips it, the fire is out in 0.5 s and someone stops to wonder; the keeper sets the bucket back up and lights the fire again. For the bucket the campers' cones are off, so being seen doesn't get in the way. | New |
+| Every check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19, tutorial 28; cones 43 and cone shader 93 at 30, 60 and 144; waves 13 of 13 and title all in realtime, each failing only its recorded check at 60 fps; sound, asset, materials and calibration clean; Effect A's configuration and state (37) passing | No |
+
+No `SCRIPT ERROR` in any log.
+
+**Looked at in a window** (a scratch script, not in the repo; pictures not kept): the fire burning with the bucket beside it, then doused (bucket over, flames gone, charred logs left); the keeper carrying an armful of logs from the woodpile and bending at the pit. The bucket's twinkle first landed on the flames and read as the fire's sparks, so the bucket moved to the pit's west side and its twinkle down to its foot; now it shows just above the bucket.
+
+**Not checked:** how it plays. The author still has to play it, with F1.
+
+### Hidden: no z's, and no boredom (8 Nov 2026)
+
+The author asked: "when hiding there is no need for the 'zzz' also the 'boring' state to trigger for the raccoon".
+- Slipping into cover still ends the alert, but no longer floats z's up off the spot (`scripts/thought_bubbles.gd`, `_watch_hiding`).
+- While he's hidden, the bored thought and its sigh don't come up (`_watch_bored`), however long he keeps still. Out of cover, standing still, he gets bored as before.
+- The bubble demo's "try these" list drops its hiding item, which can't show now (`scripts/bubble_demo.gd`).
+
+Logs: [logs/a6-hiding/](logs/a6-hiding/), on the working tree over `1667891`, with the arrival and campfire changes in it.
+
+| Check | Result | Changed? |
+|---|---|---|
+| The thought bubbles (`--bubble-test 60`) | Pass, 87 of 87 | **Expected values changed, with the author's change of design.** Five checks expected the z's: they now expect nothing over him ("Hiding: into the bush while seen, no z's", "Hiding: nothing over him", "Hiding: still nothing after 1.5 s", "Hiding: still nothing after 2 s", "Hiding: from him again, no z's"). The one that measured where the z's rose now checks he's in the bush. The count is the same. |
+| Every other check in CLAUDE.md's list, and the campfire's | The recorded counts, waves and title failing only their recorded check at 60 fps; Effect A's state 37, the campfire 15 | No |
+
+No `SCRIPT ERROR` in any log.
+
+**Checked by a scratch probe (not in the repo):** he walks into the bush and keeps still in it for 10 s, past the 5.5 s it takes to get bored: nothing shows over him.
+
+### Dismantle the tent (8 Nov 2026)
+
+A fourth task under Rock the party, asked for by the author. They first wrote: "Dismantle the tent: The player must sneak around the perimeter and pull out three structural tent pegs. Once the last peg is removed, the tent collapses ...". Then: "we can do 4 pegs ... an E action for our raccoon to dismantle it. So if somebody sees him then ... they shoo him away and ... the chubby guy tries to fit the tent back in ... just dismantle one tent ... don't give any additional details on it. If the user is closer to the peg, let the peg have a tinkle on it ... the tent collapses and then all the NPCs are alerted".
+
+What was built (`scripts/camp_tent.gd`, the camper's `PITCH` in `scripts/camp_person.gd`):
+- **The pegs:** the camper's tent has four pegs, one at each corner. Each twinkles within 2 m, and holding E for 1 s pulls it, a little noisily. It lies by its hole, and the tent sags a little more with each one out. The pegs can be pulled only once the TO DO list is on the page, after the tutorial.
+- **The collapse:** the fourth out drops the tent flat, every camper is alerted to him (`alert`), and the task's done.
+- **Re-pitching:** seen with a peg out, or with the tent down, the camper, once calm, goes round with his mallet and hammers each peg back in. Pulled unseen, they stay out.
+- **The list:** it shows "Dismantle the tent" with no hint. Rock the party's hint now says "do the tasks under it" (it said "the three tasks").
+
+Logs: [logs/a6-tent/](logs/a6-tent/), on the working tree over `1667891`, with the arrival, campfire and hiding changes in it.
+
+| Check | Result | Changed? |
+|---|---|---|
+| **New: the tent** (`bash scripts/run-test.sh --tent-test 60 300`) | Pass, 16 of 16. Near a peg it twinkles; a real held E pulls it, and the tent sags; a peg pulled unseen is still out 15 s later; seen with it out, the camper calms down and hammers it back in. With all four out the tent falls flat, every camper is alerted and the task's done; calm again, the camper pitches it. While he pulls, the campers' cones are off, except where being seen is the point. | New |
+| Sound (`--sound-test 60`) | Pass | **How it measures:** the tent is ticked off in the same frame as the music and the cooler, so "Every task done" still expects true. The laugh check still expects one laugh, now for 3 tasks in a frame, and its name says so. |
+| Camp tasks (`--tasks-test 60`) | Pass, 43 of 43 | **Expected value changed with the design:** the list is now "investigate party marshmallows music cooler tent". **How it measures:** the tent is ticked off before "All five tasks done" (it was "All four"), which still expects true. The tent is played through in its own check. |
+| Cones (`--cones-test` at 30, 60 and 144) | Pass, 43 of 43 at each | **Expected value changed with the design:** the list shown in the tutorial gains "tent". **How it measures:** the tent is ticked off before "All four done: Rock the party is ticked off" (it was "All three"), which still expects true. |
+| Tutorial (`--tutorial-test 60`) | Pass, 28 of 28 | **Expected value changed with the design:** the list on Tab gains "tent". |
+| Every other check in CLAUDE.md's list, and the campfire's | The recorded counts; waves and title failing only their recorded check at 60 fps; Effect A's state 37, the campfire 15 | No |
+
+No `SCRIPT ERROR` in any log. The first run, before the checks above were updated, failed exactly those six: sound, tasks, tutorial, and cones at 30, 60 and 144, each on the fourth task.
+
+**Looked at in a window** (a scratch script, not in the repo; pictures not kept): the tent up with its pegs, a twinkle at a peg, two pegs out, and the tent flat with the camper's "!". The pegs read small, so they're drawn half as big again as the guy ropes' pegs.
+
+**Not checked:** how it plays, and how easy it is to do unseen. The author still has to play it: F1, "Free play: the fire burning", and the camper's tent is east of the fire.
+
+### The firelight (8 Nov 2026)
+
+The author, giving Effect B's job: "if he is under the fire cone's vision, when the fire is lit, the user or the raccoon has to always like crouch, or else he'll be detected more quickly if the fire is up and he goes in the camp or like near the camp". This is game work, done before Effect B's brief revision, so that the smoke has something to signal.
+- While the fire burns in the open world (its `cycle` on), and he's within 0.8 of its light's reach (6.4 m at full, less as it burns down), standing, the campers see him half as far again (`in_firelight` in `scripts/campsite.gd`, `FIRELIT_SIGHT` in `scripts/camp_person.gd`). Their cones are drawn that much longer.
+- Crouching (sneaking) cancels it, so they see him only as far as they always did while he sneaks.
+- In the tutorial and in every check that skips it, the cycle is off, so nothing there changes.
+
+Logs: [logs/a6-firelight/](logs/a6-firelight/), on the working tree over `1667891`, with the arrival, campfire, hiding and tent changes in it.
+
+| Check | Result | Changed? |
+|---|---|---|
+| The campfire (`--fire-test 60`) | Pass, 17 of 17 | Two checks added, read off the camper's eyes: standing in the firelight he's seen half as far again (ratio 1.50); crouching in it, only as far as while sneaking (0.55). |
+| Every other check in CLAUDE.md's list | The recorded counts; waves and title failing only their recorded check at 60 fps; tent 16, Effect A's state 37 | No |
+
+No `SCRIPT ERROR` in any log.

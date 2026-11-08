@@ -222,7 +222,7 @@ func _run() -> void:
 	_key(KEY_TAB)
 	await _real(1.0)
 	_shot("09_to_do")
-	_check("Tab: the TO DO list up to read, the camp's tasks on it, slowed", "true investigate party marshmallows music cooler true",
+	_check("Tab: the TO DO list up to read, the camp's tasks on it, slowed", "true investigate party marshmallows music cooler tent true",
 		"%s %s %s" % [_plan.open and _plan.up() >= 1.0,
 			" ".join(level.tasks.shown().map(func(t: Dictionary) -> String: return t.id)), Engine.time_scale <= CampTutorial.SLOW + 0.01])
 	_key(KEY_TAB)

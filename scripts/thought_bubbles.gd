@@ -10,7 +10,8 @@ extends Node
 ##               again while the level wants him to find food (hungry_objective)
 ##   alert       a crooked white "!" while an NPC can see him (vision_cone.gd)
 ##   hiding      z's floating up off a hiding spot (hide_spot.gd) he's just slipped into
-##               with an NPC about; they go after 2 seconds
+##               with an NPC about; they go after 2 seconds. Not shown since 8 Nov 2026
+##               (the author asked for none); the kind stays for anything that pops it.
 ##   idea        a white bulb when he picks up the very thing a puzzle near him needs
 ##               (the "puzzle" group, whose "needs" meta names a group the thing is in),
 ##               and when a puzzle is solved (its "solved" meta turns true)
@@ -112,6 +113,11 @@ var player: Player
 var camera: Camera3D
 ## Set by the level while one of its tasks is to find food.
 var hungry_objective := false: set = set_hungry_objective
+## Off while the tutorial at the camp is on (camp_tutorial.gd): facing food then shows
+## nothing, so there's no food thought as he gets to the camp (the author, 8 Nov 2026:
+## "remove the food bubble when the raccoon reaches the campsite"). Popped by the level
+## (the tutorial's plate), it still shows.
+var food_thoughts := true
 
 var _layer: CanvasLayer
 var _bubble: Bubble
@@ -345,7 +351,7 @@ func _glint_near(point: Vector3) -> bool:
 
 ## Facing food or a trash bin up close, he thinks of food.
 func _watch_food() -> void:
-	if player.resting or player.climbing:
+	if not food_thoughts or player.resting or player.climbing:
 		return
 	var here := player.global_position
 	var ahead := -player.global_basis.z
@@ -376,15 +382,18 @@ func _watch_sight() -> void:
 
 
 ## Slipping into a hiding spot with an NPC about, or just after being seen, ends the
-## alert and floats z's up off the spot.
+## alert. It floated z's up off the spot until 8 Nov 2026, when the author asked for none
+## ("when hiding there is no need for the 'zzz'"); and hidden, he doesn't get bored
+## (_watch_bored).
 func _watch_hiding() -> void:
 	var cover := HideSpot.cover_for(player)
 	var hidden := cover != null
 	if hidden and not _hidden and (_time - _last_seen < SEEN_RECENTLY or _watcher_near()):
 		clear("alert")
 		_cover = cover
-		pop("hiding")
 	_hidden = hidden
+	if hidden:
+		clear("bored")
 
 
 func _watcher_near() -> bool:
@@ -422,7 +431,7 @@ func _watch_stuck(delta: float) -> void:
 
 ## Bored: the same wait for it as the model's bored pose.
 func _watch_bored() -> void:
-	if not player.resting and player.model._still > player.model.BORED_AFTER:
+	if not player.resting and player.hiding_in == null and player.model._still > player.model.BORED_AFTER:
 		pop("bored")
 
 

@@ -144,15 +144,15 @@ func _ready() -> void:
 	_at(430, func() -> void: _go(demo.bush.global_position))
 	_at(436, func() -> void:
 		_check("Camper: he can't see him in the bush", false, demo.camper.eyes.seeing)
-		_expect("Hiding: into the bush while seen", "hiding")
-		_check("Hiding: the z's", "zzz", _bubble.current())
+		# No z's since 8 Nov 2026: the author, "when hiding there is no need for the 'zzz'".
+		_expect("Hiding: into the bush while seen, no z's", "")
+		_check("Hiding: nothing over him", "", _bubble.current())
 		_check("Hiding: the alert has ended", false, _bubbles._until.has("alert"))
-		var top: Vector2 = level.camera.unproject_position(demo.bush.top())
-		_check("Hiding: the z's rise off the top of the bush", true, _bubble.anchor.distance_to(top) < 3.0))
+		_check("Hiding: he's in the bush", true, HideSpot.is_hidden(_player)))
 	_at(470, _shot.bind("04_hiding"))
-	_at(526, _expect.bind("Hiding: still up after 1.5 s", "hiding"))
+	_at(526, _expect.bind("Hiding: still nothing after 1.5 s", ""))
 	_at(571, func() -> void:
-		_expect("Hiding: gone after 2 s, though he's still hidden", "")
+		_expect("Hiding: still nothing after 2 s", "")
 		_check("Hiding: he's still in the bush", true, HideSpot.is_hidden(_player)))
 	_at(580, func() -> void:
 		demo.camper.rotation.y = demo.camper.facing
@@ -248,7 +248,7 @@ func _ready() -> void:
 	_at(1210, _shot.bind("07_taken_back"))
 	_at(1306, _expect.bind("Alert: back once the frustration's over, still seen", "alert"))
 	_at(1310, func() -> void: _go(demo.bush.global_position))
-	_at(1316, _expect.bind("Hiding: from him again", "hiding"))
+	_at(1316, _expect.bind("Hiding: from him again, no z's", ""))
 
 	# Bored: standing still as long as the bored pose takes; moving ends it.
 	_at(1330, func() -> void:

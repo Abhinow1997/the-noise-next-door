@@ -16,7 +16,10 @@ extends Node
 ## during the hiding ... no need for the word hints ... just give the raccon the food
 ## bubble ... after steling it make him run away making the npcs altered and we need
 ## eating for the stole marshmellow"; their picks: alerted, the men chase him; he eats
-## it once they've calmed.
+## it once they've calmed. On 8 Nov 2026: "remove the food bubble when the raccoon
+## reaches the campsite / remove the laugh as well when he reaches the camp"; their
+## picks: no laugh for the music's task (main.gd), and no food thought from facing food
+## till the tutorial's done (thought_bubbles.gd `food_thoughts`); the chitter stays.
 ##   1. The pan: once he can see the party (main.gd), the game slows right down (SLOW)
 ##      behind a dark layer (spotlight.gd) and the camera pans over the campers, the
 ##      marshmallows and the cooler (main.gd `camera_focus`), a word or two on each.
@@ -164,6 +167,15 @@ func running() -> bool:
 		or (roast != null and roast.eating())
 
 
+## The developer menu (dev_menu.gd): straight to the roasting, as once they've lost him
+## in the bush and gone back to work.
+func dev_roast() -> void:
+	campsite.cones_on = true
+	_laughed_at = campsite.clock
+	step = Step.INTRO
+	stage = "calming"
+
+
 ## He's seen the party (main.gd): it starts START_AFTER seconds of play later.
 func begin() -> void:
 	if step == Step.WAITING and _wait == INF:
@@ -193,6 +205,10 @@ func _process(delta: float) -> void:
 			_intro(real)
 	if player:
 		player.input_locked = running()
+	# No food thought from facing food till it's done: none as he gets to the camp (the
+	# author, 8 Nov 2026), and the plate's, which it pops itself, is the one he has.
+	if level and level.get("bubbles"):
+		level.bubbles.food_thoughts = not intro or step == Step.DONE
 
 
 func _input(event: InputEvent) -> void:
@@ -375,6 +391,10 @@ func _on_taken() -> void:
 	for person in campsite.people:
 		person.chase_next = true
 	campsite.camper.alert()
+	# Nobody tends the fire through the chase: it dies, and the open world opens on a
+	# cold pit that the keeper builds up again (camp_fire.gd, the author, 8 Nov 2026).
+	if campsite.campfire:
+		campsite.campfire.die_out()
 	stage = "escape"
 
 
@@ -428,6 +448,9 @@ func _close_list() -> void:
 	plan.note("")
 	_hold(false)
 	step = Step.DONE
+	# The open world: the fire's cycle starts (camp_fire.gd), from a cold pit.
+	if campsite.campfire:
+		campsite.campfire.start_cycle(true)
 	finished.emit()
 
 

@@ -103,7 +103,7 @@ func _ready() -> void:
 	_at(3.4, func() -> void:
 		_check("Tutorial: Tab brings up the TO DO list", true, _plan.open and _plan.up() >= 1.0)
 		_check("Tutorial: the list shows Rock the party and its tasks",
-			"investigate party marshmallows music cooler", _shown_ids())
+			"investigate party marshmallows music cooler tent", _shown_ids())
 		_check("Tutorial: the note says to pick one, the marshmallows marked",
 			CampTutorial.PICK_NOTE + " / marshmallows", _plan.note_showing() + " / " + _plan.highlighted())
 		_check("Tutorial: still slowed down while he reads", true, Engine.time_scale <= CampTutorial.SLOW + 0.01)
@@ -152,7 +152,9 @@ func _ready() -> void:
 			_tasks.done(id)
 		_check("Two of its tasks done: Rock the party isn't", false, _tasks.is_done("party"))
 		_tasks.done("cooler")
-		_check("All three done: Rock the party is ticked off", true, _tasks.is_done("party")))
+		# Dismantle the tent, added on 8 Nov 2026, is the fourth.
+		_tasks.done("tent")
+		_check("All four done: Rock the party is ticked off", true, _tasks.is_done("party")))
 	_at(45.5, _finish)
 
 

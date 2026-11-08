@@ -1,0 +1,63 @@
+Run at 1667891 on assignment-6 (working tree: 41 changed), Sun Nov  8 14:46:01 PST 2026
+=== a3_asset_check.gd 60  exit=0
+PASS: 0 check(s) failed
+=== --sound-test 60  exit=1
+  FAIL  Every task done                                      expected true   got false
+RESULT: SOME CHECKS FAILED
+=== --bubble-test 60  exit=0
+RESULT: all checks passed (87 checks)
+=== --camp-test 60  exit=0
+RESULT: all checks passed (31 checks)
+=== --tasks-test 60  exit=1
+  FAIL  The to-do list: the music, then Rock the party and its three       expected investigate party marshmallows music cooler got investigate party marshmallows music cooler tent
+  FAIL  All four tasks done                                                expected true             got false
+RESULT: SOME CHECKS FAILED (43 checks)
+=== --waves-test 60  exit=1
+  FAIL  On the beat: a set every 2 beats (1.31 s): 4 in 5.22 s, give or take one expected true   got false
+RESULT: SOME CHECKS FAILED (13 checks)
+=== --plan-test 60  exit=0
+RESULT: all checks passed (19 checks)
+=== --title-test 60  exit=1
+  FAIL  In: the party's sound waves are rolling out                expected true       got false
+RESULT: SOME CHECKS FAILED
+=== --waves-test realtime  exit=0
+RESULT: all checks passed (13 checks)
+=== --title-test realtime  exit=0
+RESULT: all checks passed
+=== --cones-test 30  exit=1
+  FAIL  Tutorial: the list shows Rock the party and its tasks          expected investigate party marshmallows music cooler got investigate party marshmallows music cooler tent
+  FAIL  All three done: Rock the party is ticked off                   expected true             got false
+RESULT: SOME CHECKS FAILED (43 checks)
+=== --cones-test 60  exit=1
+  FAIL  Tutorial: the list shows Rock the party and its tasks          expected investigate party marshmallows music cooler got investigate party marshmallows music cooler tent
+  FAIL  All three done: Rock the party is ticked off                   expected true             got false
+RESULT: SOME CHECKS FAILED (43 checks)
+=== --cones-test 144  exit=1
+  FAIL  Tutorial: the list shows Rock the party and its tasks          expected investigate party marshmallows music cooler got investigate party marshmallows music cooler tent
+  FAIL  All three done: Rock the party is ticked off                   expected true             got false
+RESULT: SOME CHECKS FAILED (43 checks)
+=== --cone-shader-test 30  exit=0
+RESULT: all checks passed (93 of 93 checks passed)
+=== --cone-shader-test 60  exit=0
+RESULT: all checks passed (93 of 93 checks passed)
+=== --cone-shader-test 144  exit=0
+RESULT: all checks passed (93 of 93 checks passed)
+=== --tutorial-test 60  exit=1
+  FAIL  Tab: the TO DO list up to read, the camp's tasks on it, slowed expected true investigate party marshmallows music cooler true got true investigate party marshmallows music cooler tent true
+RESULT: SOME CHECKS FAILED (28 checks)
+=== normal_map_calibration.gd 60  exit=0
+=== test_materials.gd 60  exit=0
+PASS: 0 check(s) failed
+=== test_leaf_burst_config.gd 60  exit=0
+PASS  Leaves: transparency (ALPHA, predicted failure 2) = 1 (got 1)
+PASS  Puff: vertex_color_use_as_albedo (predicted failure 1) = true (got true)
+PASS  Puff: transparency (ALPHA, predicted failure 2) = 1 (got 1)
+PASS: 0 check(s) failed
+=== --leaf-burst-test 60  exit=0
+RESULT: all checks passed (37 checks)
+=== --fire-test 60  exit=0
+RESULT: all checks passed (15 checks)
+=== --tent-test 60  exit=0
+RESULT: all checks passed (16 checks)
+DONE
+Rerun after the task-list checks were updated (sound, tasks, tutorial, cones at 30/60/144): all pass, Sun Nov  8 14:49:32 PST 2026

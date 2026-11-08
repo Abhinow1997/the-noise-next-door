@@ -66,8 +66,9 @@ func _physics_process(_delta: float) -> void:
 func _run() -> void:
 	await _wait(1.0)
 	# Since 26 Oct 2026 the camp's three are the sub-tasks of one main task, Rock the party.
-	_check("The to-do list: the music, then Rock the party and its three",
-		"investigate party marshmallows music cooler",
+	# Dismantle the tent joined them on 8 Nov 2026 (camp_tent.gd).
+	_check("The to-do list: the music, then Rock the party and its four",
+		"investigate party marshmallows music cooler tent",
 		" ".join(level.tasks.list.map(func(t: Dictionary) -> String: return t.id)))
 	_check("Routines: the camper starts pegging out his tent", "peg", _camper.activity())
 	_check("Routines: the low-poly man starts dancing", "dance", _man.activity())
@@ -217,7 +218,10 @@ func _run() -> void:
 	await _press_e(0.0)
 	await _wait(0.8)
 	_check("Cooler: dropped in his stash, the task's done", true, level.tasks.is_done("cooler"))
-	_check("All four tasks done", true, level.tasks.all_done())
+	# The tent (8 Nov 2026) is played through in tent_test.gd; here it's ticked off, so this
+	# still checks the list is done once every task is.
+	level.tasks.done("tent")
+	_check("All five tasks done", true, level.tasks.all_done())
 	await _wait(1.0)
 	_shot("07_loot_in_his_stash_all_ticked_by-claude")
 

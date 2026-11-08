@@ -28,13 +28,16 @@ var list: Array[Dictionary] = [
 	{"id": "investigate", "text": "Investigate the music", "done": false, "key": true,
 		"hint": "Follow the music's waves through the forest to the party."},
 	{"id": "party", "text": "Rock the party", "done": false, "main": true,
-		"hint": "Spoil their party: do the three tasks under it."},
+		"hint": "Spoil their party: do the tasks under it."},
 	{"id": "marshmallows", "text": "Steal the marshmallows", "done": false, "parent": "party",
 		"hint": "His backpack's on the log by the fire. Unzip it (hold E) while his back is turned, and take the bag home."},
 	{"id": "music", "text": "Turn the music off", "done": false, "parent": "party",
 		"hint": "The plug's under the table. Tug it out with your teeth (hold E), then get away while they stand frozen."},
 	{"id": "cooler", "text": "Raid the cooler", "done": false, "parent": "party",
 		"hint": "It's by the table. Nose the lid open (hold E), or wait for it to be left open, and take the sausages home."},
+	# Added on 8 Nov 2026 (camp_tent.gd). No hint: the author, "don't give any additional
+	# details on it".
+	{"id": "tent", "text": "Dismantle the tent", "done": false, "parent": "party", "hint": ""},
 ]
 ## Whether the main task and its sub-tasks are on the list yet.
 var revealed := false
