@@ -996,3 +996,27 @@ The tutorial's second half remade: the campers freeze until he hides, the camera
 **What the new check caught:** in the first runs everyone took fright as he ate. First the plate was on the table, in the camper's sight from the fire and behind a dancer; it moved to the log behind the camper. Then "Now!" came while the camper was still turning round from the plate, and his cone swept over the raccoon; "Now!" now waits until he faces the fire. The run before those fixes passed every other check, so without this one the problem wouldn't have shown.
 
 **Looked at in a window:** the campers frozen with the bush lit and "Hide!"; the first roasted marshmallow on the plate, lit and sparkling, the camper beside it and the raccoon's hungry thought over the bush with his eyes in it; and him eating at the log behind the camper's back, nobody alarmed.
+
+### Step 0: the course's wrapper, and the baseline through it (7 Nov 2026)
+
+`scripts/run-test.sh` is now the course's Assignment 6 wrapper merged with ours (`ed05ada`): it adds `realtime` in place of a frame rate and an optional timeout, and keeps the repo-root project, the Godot finder and the flag mode. Before committing it, Claude Code tried each part: script mode at 60 fps (the Assignment 3 check passes), flag mode in realtime (below), and a 5 s timeout on the cones check, which exited 124.
+
+**The baseline for the effects**, at `ed05ada`, through the new wrapper. Logs: [logs/a6-step0/](logs/a6-step0/).
+
+| Check | Mode | Result |
+|---|---|---|
+| Assignment 3's assets, sounds, materials | 60 fps | Pass |
+| Thought icons | 60 fps | Pass, 87 of 87 |
+| Campers' reactions | 60 fps | Pass, 31 of 31 |
+| Camp tasks | 60 fps | Pass, 43 of 43 |
+| THE PLAN (TO DO) | 60 fps | Pass, 19 of 19 |
+| The cones | 30, 60 and 144 fps | Pass, 43 of 43 at each |
+| The cones' shader | 30, 60 and 144 fps | Pass, 93 of 93 at each |
+| The tutorial | 60 fps | Pass, 21 of 21 |
+| Normal-map calibration | 60 fps | Ran, exit 0 |
+| Sound waves | 60 fps | Fail, 12 of 13, the recorded `--fixed-fps` failure |
+| Sound waves | **realtime** | Pass, 13 of 13 |
+| Title screen | 60 fps | Fail, 51 of 52, the recorded `--fixed-fps` failure |
+| Title screen | **realtime** | Pass, all checks |
+
+The same counts as the run before the wrapper changed (`logs/a6-after-roast/`). The realtime runs agree with Assignment 5's report, that both pass without `--fixed-fps`.
