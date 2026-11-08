@@ -27,7 +27,7 @@ const PROCESS := {
 		"emission_sphere_radius": 0.55, "emission_shape_offset": Vector3(0, 0.5, 0),
 		"direction": Vector3(0, 1, 0), "spread": 70.0,
 		"initial_velocity_min": 2.0, "initial_velocity_max": 3.2,
-		"gravity": Vector3(0, -3.5, 0), "damping_min": 2.0, "damping_max": 3.0,
+		"gravity": Vector3(0, -6.0, 0), "damping_min": 2.0, "damping_max": 3.0,
 		"angle_min": 0.0, "angle_max": 360.0, "scale_min": 1.0, "scale_max": 1.0},
 	"Puff": {"lifetime_randomness": 0.0,
 		"emission_shape": ParticleProcessMaterial.EMISSION_SHAPE_SPHERE,

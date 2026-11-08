@@ -1,0 +1,5 @@
+Approved: Leaves gravity Vector3(0, -3.5, 0) to Vector3(0, -6.0, 0).
+Make only that change in effects/leaf_burst.tscn, update the
+configuration test's expected value to match, run the configuration
+test with bash scripts/run-test.sh at 60, show the real output, and
+stop so I can recapture. Do not commit.

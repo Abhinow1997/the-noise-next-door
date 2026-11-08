@@ -197,3 +197,12 @@ Step 3's plan (a `claude -p` session, `design/a6/session-3.jsonl`) needs things 
 - **Freeing a burst:** after its emitters' own lifetimes, read from the copy, plus a little, so the code holds no lifetime of its own.
 
 (Picked by me on 7 Nov 2026 from Claude Code's options: the name; the wiring, with this revision on record; and the lifetimes read from the scene. The rest of the plan is the session's.)
+
+---
+
+### Revised 8 Nov 2026: Effect A's leaves fall faster (tuning r1)
+
+- **Leaves `gravity`:** (0, −6.0, 0); it was (0, −3.5, 0). With the leaves' damping (2.0–3.0), −3.5 left them hanging where they stopped. At −6.0 they drift down after the burst, as the intent asks: "the leaves flutter down and fade".
+- The settings table above keeps the first value, as the original text stays; this revision replaces it. The scene (`effects/leaf_burst.tscn`) and the configuration test have the new value.
+
+(Kept by me on 8 Nov 2026 after play at 1280 × 720, from Claude Code's proposal in Step 4: TUNING.md, revision r1.)

@@ -1,0 +1,20 @@
+Read CLAUDE.md first. Effect A's intent is in CHANGE-BRIEF.md.
+The current frame strip is in captures/leaf_burst/r0/, and the frames
+to read are listed in the brief. What I saw in the running game (the
+preview, previews/leaf_burst_preview.tscn, windowed at 1280 x 720, which
+is the real level on the real renderer):
+
+The light green and orange pieces show up clearly against the dark grass and bush. At a glance, though, they read more like small square confetti than leaves. The first beat is a few small pieces at the bush rather than a strong burst; afterward, they gather just above and around it. I don't get a clear sense of tumbling or fluttering down.
+
+The second burst is visible while the first is still in the air, and the pieces are gone by the last frame. Overall, the color contrast works, but the burst feels small and contained, with a weak leaf identity. The fire's bright white sparks also draw attention nearby.
+
+Read those frames and say how they compare to the intent, frame by
+frame. Then propose one change to one setting (a curve or colour ramp
+counts as one setting). Before editing, give the setting, its old and
+new value, and what each frame of the strip should look like
+afterward. Do not edit yet.
+
+After I approve, make only that change in the effect's scene file,
+update the configuration test's expected value to match, run the
+configuration test with bash scripts/run-test.sh at 60, and stop so I can
+recapture. Do not commit.

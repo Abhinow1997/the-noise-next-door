@@ -27,3 +27,9 @@ desktop.ini
 # Step 2's full claude -p transcript: 2.7 MB, over the course's 1 MB, so it stays out of git.
 # The committed excerpt, session-3-excerpt.jsonl, records its size and SHA-256 in its first line.
 /session-3.jsonl
+
+# Assignment 6, Step 4's full claude -p transcripts: 3.1 MB and 4.5 MB (the frames it read), over the
+# course's 1 MB. The committed excerpts, session-4-excerpt.jsonl and session-4-compare-excerpt.jsonl,
+# record each one's size and SHA-256 in their first line.
+/design/a6/session-4.jsonl
+/design/a6/session-4-compare.jsonl

@@ -31,3 +31,47 @@ Read after the verdict above was written. The strip is `captures/leaf_burst/r0/`
 - The bush in the strip is half see-through: the level's see-through window dithers it. In play, while he's hidden, the window is off (`scripts/main.gd`, `radius` 0 while `hiding_in`), so at the dive-in the bush is solid. The leaves still inside it, stippled in frames 10–20, would be hidden then.
 - The burst's emission sphere (0.55 m round a point 0.5 m up) lies inside the bush, which is about 1 m tall and 1.3 m across. So in play the first frames are likely weaker than the strip shows.
 - Before the next strip, the preview should turn that window off as play does, and r0 should be recaptured with it off, so that r0 and r1 compare the effect on the same background.
+
+## 8 Nov 2026 — Effect A, revision r1
+
+**What I saw** (the preview, `previews/leaf_burst_preview.tscn`, windowed at 1280 × 720: the real level on the real renderer): my r0 verdict above. The part this revision answers: "afterward, they gather just above and around it. I don't get a clear sense of tumbling or fluttering down."
+
+**Claude's reading of r0** (a read-only `claude -p` session, 7 Nov 2026: `design/a6/prompt-4.txt`, `design/a6/session-4.jsonl`):
+- **Frame 10:** 3 leaves and about 5 tiny flecks, about 70 px across. Weak: `explosiveness` 0.9 spreads the leaves over about 0.09 s, and the 0.04 m flecks are about 6 px.
+- **Frame 12:** about 10 leaves, about 100 px across. The flecks don't read as a puff.
+- **Frame 15:** leaves about 0.5 m out, about 160 px wide. Close to the intent.
+- **Frame 20:** the widest so far, about 220 px (1.55 m) against the intended 340 px (2.4 m). The leaves have stopped but aren't falling. The hop-out burst starts at the bush.
+- **Frame 30:** the leaves almost exactly where they were at frame 20. Off: they hang in the air instead of drifting down.
+- **Frame 50:** empty, as intended.
+- **Why they hang:** `damping` is a linear brake on the whole speed, on the way down too. Gravity's 3.5 m/s² against damping's 2–3 m/s² leaves 0.5–1.5 m/s² downward, so a leaf drops only about 0.1 m by the end of its life.
+
+**Change:** Leaves `gravity` (on its `ParticleProcessMaterial`, `effects/leaf_burst.tscn`), `Vector3(0, -3.5, 0)` → `Vector3(0, -6.0, 0)`, approved by me ("Approve r1", 7 Nov 2026). The same session made it, with the configuration test's expected value (`design/a6/prompt-4-approve.txt`, `design/a6/session-4-change.jsonl`). The configuration test passed (`logs/a6-step4/r1_config_60fps.log`).
+
+**Claude's prediction for r1** (before the change): a net 3–4 m/s² down. A leaf thrown straight up peaks at about 0.3 s and 0.4 m, then falls about 0.6 m before it dies.
+
+| Frame | Predicted |
+|---|---|
+| 10 | No visible change |
+| 12 | Almost the same; the upward leaves a few pixels lower |
+| 15 | The fast phase ends sooner; the cluster slightly squatter |
+| 20 | About the same width (about 220 px); most leaves at or just past their peak, starting down; the hop-out burst starting at the bush |
+| 30 | The main difference: the first burst's leaves about 0.2 m (25–30 px) lower than at frame 20, spread out vertically, starting to fade |
+| 50 | Nothing left |
+
+It said the change wouldn't fix the width, the weak first beat or the confetti look, and that a low leaf might sink into the grass at frames 36–37.
+
+**Claude's comparison of r1 with its prediction** (8 Nov 2026: `design/a6/prompt-4-compare.txt`, `design/a6/session-4-compare.jsonl`):
+- **Matches:** both strips use the preview's fixed seed, so the same leaf can be found in each. Every leaf that shows fell as predicted: lower than in r0 by about 4 px at frame 15, about 15 px at frame 20 and about 42 px at frame 30. So it fell about 27 px (about 0.2 m) further between frames 20 and 30. Frame 50 is empty.
+- **Doesn't match:** frames 10 and 12, and the hop-out burst at frame 20, show far less than r0 (frame 10 shows nothing). The bush is solid in r1 and half see-through in r0, and everything still inside it is hidden. The session couldn't tell from the files why the two captures differ.
+- **Its conclusion:** r1 is closer to play, where the bush is solid while he's hidden. It makes the weak first beat worse than r0 showed: most of the burst starts inside the bush and is hidden for its first 0.1–0.2 s. It points at the emission shape (its 0.5 m offset and its radius) as the next thing to look at.
+- **Unchecked:** a low leaf at frame 36 may be passing through the ground. The session wasn't sure.
+
+**Claude Code's check of that comparison** (8 Nov 2026):
+- **The matched leaves:** I measured five. They're 13–15 px lower than in r0 at frame 20 and 41–44 px lower at frame 30. The comparison holds.
+- **Why the backgrounds differ:** the bush's see-through window cuts only scenery nearer the camera than the raccoon, less 0.8 m (`scripts/see_through.gdshader`, set by `scripts/main.gd`). Run headless, the preview gives the same window at r0's commit and at today's: 18.8 m deep, which cuts only the bush's front, as in r1. One scroll-wheel step of zoom makes it 21.6 m, which cuts the whole bush, as in r0. The likeliest cause is a stray scroll during the r0 capture, but that isn't proven. Either way, r1 shows the default view.
+
+**My verdict** (running game, 1280 × 720): kept, because <in my own words>
+
+**Strips** (fixture captures): `captures/leaf_burst/r0/`, `captures/leaf_burst/r1/`
+
+**Commits:**
