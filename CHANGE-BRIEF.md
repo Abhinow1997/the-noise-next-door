@@ -206,3 +206,110 @@ Step 3's plan (a `claude -p` session, `design/a6/session-3.jsonl`) needs things 
 - The settings table above keeps the first value, as the original text stays; this revision replaces it. The scene (`effects/leaf_burst.tscn`) and the configuration test have the new value.
 
 (Kept by me on 8 Nov 2026 after play at 1280 × 720, from Claude Code's proposal in Step 4: TUNING.md, revision r1.)
+
+---
+
+### Revised 8 Nov 2026: Effect B, the campfire smoke
+
+**Before this revision** (8 Nov 2026, game work, not part of the effects; TEST-REPORT.md has each):
+- the campfire's life in the open world: its strength from 0 to 1, the keeper feeding it from a woodpile, and the bucket to douse it with E (`scripts/camp_fire.gd`);
+- the firelight: while it burns, standing in its light, he's seen half as far again, and crouching cancels it (`in_firelight` in `scripts/campsite.gd`, FIRELIT_SIGHT in `scripts/camp_person.gd`);
+- Dismantle the tent (`scripts/camp_tent.gd`);
+- no laugh or food thought on reaching the camp, and no z's or boredom while hidden;
+- the developer menu (F1, `scripts/dev_menu.gd`).
+
+#### The job
+- **What the effect tells the player, and why the player needs it:** The fire's smoke is the signal for an alert system, like the vision cones: if the fire is up, the smoke starts. When the fire is lit and the raccoon comes into the camp or near the fireplace, he has to crouch the whole time, or else he'll be detected more quickly.
+
+  (My answer, 8 Nov 2026, in my own words. Claude Code fixed the spelling and commas and tightened the wording a little.)
+- **Its condition:** the fire's `strength`, 0 (out) to 1, in `scripts/camp_fire.gd`; its signals `lit` and `doused`. The keeper raises it a log at a time, it burns down by itself, and the bucket puts it out.
+- **Which job:** a feedback loop that follows a game value: `amount_ratio` follows `strength`.
+- **The feature Effect A doesn't use:** the value-driven `amount_ratio`. It also uses turbulence, a scale curve (the puffs grow), a box emission shape, `preprocess` and a soft round texture, none of which Effect A has.
+
+#### The intent block
+- **Timing:** continuous while the fire burns. Each puff rises about 1.6 m over 3.5 s, slowing and spreading. Lit from cold, the column builds up over about 3 s. Doused, no new puffs come, and what's in the air rises away and is gone within 3.5 s.
+- **Contrast against the background** (the night grass and the dark trees behind the fire): pale warm grey near the flames, cooling to blue-grey as it rises, at low alpha (at most 0.45). It's lighter than both, so it reads as a soft haze, not a solid column.
+- **Scale against the character:** about 0.5 m wide at the pit, about 1.5 m wide at the top and about 2 m tall: taller than a camper, about three times the raccoon's height.
+- **Change over life:** it grows (scale 0.4 → 1.6), fades in, then out (alpha 0 → 0.45 at 15% → 0), and goes from warm grey to blue-grey.
+- **Variation:** a random start angle, size and speed; turbulence makes each puff drift differently.
+- **Emitters:** one, **Smoke**.
+
+#### The settings
+- **The node type:** `GPUParticles3D`, because turbulence exists only on GPU particles, and its `ParticleProcessMaterial` is priced on GPU time like Effect A's.
+
+| Setting | Smoke |
+|---|---|
+| `amount` | 40 |
+| `one_shot` | off |
+| `explosiveness` | 0 |
+| `lifetime` | 3.5 s |
+| `preprocess` | 3.5 s (a burning fire has its column on the first frame) |
+| `lifetime_randomness` (on the process material) | 0.2 |
+| Emission shape | box, extents 0.25 × 0.05 × 0.25 m, 0.35 m up the pit |
+| `direction`, `spread` | up (0, 1, 0), 12° |
+| `initial_velocity_min` / `_max` | 0.35 / 0.6 m/s |
+| `gravity` | (0, 0.12, 0): it rises on its own heat |
+| `damping_min` / `_max` | 0.1 / 0.2 |
+| `turbulence_enabled`, `turbulence_noise_strength`, `turbulence_noise_scale` | on, 0.6, 2.0 |
+| `angle_min` / `_max` | 0° / 360° |
+| `scale_min` / `_max` | 0.8 / 1.2 |
+| `scale_curve` | 0.4 → 1.6 over its life |
+| `color_ramp` | alpha 0 → 0.45 at 15% → 0; warm grey `#9b938a` → blue-grey `#6f7a85` |
+| Mesh | a 0.5 m quad |
+
+- **Draw:** a `StandardMaterial3D`, unshaded, with `vertex_color_use_as_albedo` on, alpha transparency, mix blending and `BILLBOARD_PARTICLES`. Its `albedo_texture` is a soft disc, a radial `GradientTexture2D` written in the scene file (no image file).
+- **`local_coords`:** off. The pit doesn't move, and smoke already in the air stays where it rose.
+- **`visibility_aabb`:** 3 × 4 × 3 m round the pit: set, and checked in the strip and in play near the screen's edge.
+- **The feedback:** every frame, `amount_ratio` = the fire's `strength`. `amount` never changes after load.
+- **Where:** at the fire pit, placed by presentation code that reads `strength` and writes nothing but the effect.
+
+#### Observable rules
+- It follows the fire: `amount_ratio` equals `strength`, so it's 0 out (no new smoke), 0.3 on one log, and 1 at full.
+- It starts when the fire's lit and stops when it's out (doused, or burnt down). A stop lets the air clear; it doesn't cut the smoke off.
+- At scene load: a burning fire has its column (`preprocess`); a cold fire has none.
+- While the tree is paused: frozen in the air, and it carries on afterwards.
+- While it's hidden: not drawn, and its settings and `amount_ratio` don't change. Whether the GPU keeps simulating it while hidden can't be seen headless; that's for my eyes in play.
+
+#### The evidence split
+| Rule | Checked by | How |
+|---|---|---|
+| `amount_ratio` follows `strength`, at two values at least, and `amount` never changes | A headless state test | Through the game: the keeper lighting and building the fire, and the bucket tipped with E |
+| It starts when the fire's lit and stops when it's out | A headless state test | Reads `amount_ratio` and `emitting` across the same events |
+| Paused and hidden | A headless state test, then my eyes | Reads the node's state; the look in play |
+| Every setting as this brief says, the feature included | A headless configuration test | Loads the scene and reads each setting back |
+| How it reads: timing, contrast and size; at scene load | The frame strip, then my eyes | The strip against the table below; then in the running game at 1280 × 720 |
+| The price | The cost script and the Visual Profiler | As for Effect A |
+
+#### The frame strip
+- **The preview's background:** the real fire pit at the game camera's angle and distance, as in play.
+- **The condition:** the fire lit from cold at frame 10 (three logs: strength 0.9), and doused at frame 100. The frames to read are 10, 25, 55, 100, 110 and 160, at 30 fps, captured with `--quit-after 180`.
+
+| Frame | Time | What it should show |
+|---|---|---|
+| 10 | lit | The first puffs at the pit |
+| 25 | 0.5 s | A short column starting to rise |
+| 55 | 1.5 s | The column building, puffs growing as they rise |
+| 100 | 3 s, doused | The full column, about 2 m; the fire goes out |
+| 110 | 0.33 s after | No new puffs at the pit; the column rising away |
+| 160 | 2 s after | The last puffs high up, faint |
+
+#### Predicted failures (Effect B)
+| # | What could go wrong | The check that would catch it |
+|---|---|---|
+| 4 | The popping loop: the code changes `amount`, not `amount_ratio`, so the smoke vanishes and re-emits at every change | The state test asserts `amount` never changes |
+| 5 | Turbulence isn't on (left off, or a name the class doesn't have), so the puffs rise in straight lines | The configuration test reads `turbulence_enabled`; the strip |
+| 6 | The texture's null, so each puff is a hard grey square | The configuration test reads the texture; the strip |
+| 7 | `preprocess` is 0, so a burning fire at scene load has no column for 3.5 s | The configuration test; my eyes at scene load |
+
+#### Price
+| Effect | Peak particle count | Predicted headless CPU price | Predicted GPU time | Budget | Compared on |
+|---|---|---|---|---|---|
+| B: campfire smoke | 40 | The same as the empty-scene control, within its spread | Under 0.1 ms (40 soft, see-through quads that overlap) | 0.3 ms of GPU time | GPU time, from the Visual Profiler |
+
+#### Short answers, for Effect B
+1. **Node type, and features it lacks:** `GPUParticles3D`, as for Effect A. Every feature this brief uses (turbulence, the scale curve, the box shape, `preprocess`, `amount_ratio`, `visibility_aabb`) is one it has.
+4. **The headless cost:** close to nothing, for the same reason as Effect A: the dummy renderer runs no GPU particle process. With vsync on, FPS reads the refresh rate with it off and on.
+5. **What it shows on the first frame after its scene loads, with `preprocess` and without; while paused; while hidden:** with `preprocess`, over a burning fire, the full column; without it, nothing, filling in over 3.5 s. Paused: frozen. Hidden: not drawn.
+6. **Emission, process and draw:** emission is `amount`, `one_shot`, `explosiveness`, `lifetime`, `preprocess` and the `amount_ratio` it's driven by. Process is the box shape and offset, `direction`, `spread`, the velocities, `gravity`, damping, turbulence, the angles, the scales and `scale_curve`, `lifetime_randomness`, `color_ramp` and `local_coords`. Draw is the quad, its `StandardMaterial3D` and texture, and `visibility_aabb`.
+
+(The job is my own words. The rest is Claude Code's options from 8 Nov 2026, used at my word.)

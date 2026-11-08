@@ -3,38 +3,36 @@
 - **Engine:** Godot 4.7.2 stable: `config/features` says `"4.7"` and `"Forward Plus"` (`project.godot`); the wrapper
   looks for `Godot_v4.7.2-stable_win64_console.exe` (`scripts/run-test.sh`). GDScript. The project is the repo root.
 
-### The effects (`CHANGE-BRIEF.md`, "The effects")
+### The effects (`CHANGE-BRIEF.md`, "The effects", and its 8 Nov 2026 revisions)
 - **Effect A, the leaf burst:** two `GPUParticles3D`, **Leaves** and **Puff**, under one `Node3D` root, each with a
-  `ParticleProcessMaterial` and a `StandardMaterial3D` draw material (`CHANGE-BRIEF.md`, "The settings").
-  A fresh copy of the effect's scene per event, placed at the bush, freed when both emitters are done (by a timer:
-  see Headless facts); the hop-out copy has `amount_ratio` 0.5 (same section).
-- **Effect B:** not defined yet; it comes in a dated revision (`CHANGE-BRIEF.md`, "Status"). No node type.
+  `ParticleProcessMaterial` and a `StandardMaterial3D`. A fresh copy per event, placed at the bush, freed by a timer
+  (see Headless facts); the hop-out copy has `amount_ratio` 0.5. Leaves' gravity is −6.0 since tuning r1.
+- **Effect B, the campfire smoke:** one `GPUParticles3D`, **Smoke** (`ParticleProcessMaterial`, `StandardMaterial3D`)
+  at the fire pit; a feedback loop: `amount_ratio` follows the fire's `strength` (the brief's 8 Nov B revision).
 
 ### What owns Effect A's event
-- **The bush:** `bush`, an `Area3D` running `scripts/hide_spot.gd` (`var bush: Area3D`, `scripts/campsite.gd`),
-  built by `_build_bush()` at `FIRE + BUSH`, `BUSH := Vector2(-3.5, 3.0)`, with `dive = true` (`scripts/campsite.gd`).
-  It is never freed (`CHANGE-BRIEF.md`, "Facts from the code").
-- **The event:** `dived(inside: bool)` in `scripts/hide_spot.gd`, which starts the rustle, ends by emitting
-  `hiding_changed(inside: bool)`; `scripts/leaf_bursts.gd` listens, added in `scripts/main.gd` (`CHANGE-BRIEF.md`,
-  "Revised 7 Nov 2026: the signal's name, and the wiring Step 3 needs").
-- **Its callers** (`scripts/player.gd`):
-  - in: walking into the bush, `_on_body_entered()` (`hide_spot.gd`) defers `dive_into()`, a `DIVE_TIME` 0.32 s hop;
-    on landing `_hidden_in()` calls `spot.call("dived", true)`;
-  - out: `_stop_hiding()` calls `spot.call("dived", false)`. It is called from `_hide_process()` (a move key, hop of
-    `DIVE_OUT` 1.5 m, then `DIVE_AGAIN` 0.6 s before he can dive again), `place()` (tests) and `startle()`.
-
+- **The bush:** `bush`, an `Area3D` running `scripts/hide_spot.gd`, `_build_bush()` (`scripts/campsite.gd`); never freed.
+- **The event:** `dived(inside: bool)` in `scripts/hide_spot.gd` ends by emitting `hiding_changed(inside: bool)`;
+  `scripts/leaf_bursts.gd` listens, added in `scripts/main.gd`. Callers (`scripts/player.gd`): `_hidden_in()` on
+  landing a `dive_into()` hop (in); `_stop_hiding()` from `_hide_process()` (a move key), `place()` and `startle()` (out).
+### What owns Effect B's condition
+- **The value:** `strength` (0 out, 1 burning well) in `scripts/camp_fire.gd`, with `burning()` and the signals
+  `lit` and `doused`; the node is `campfire` (`var campfire: CampFire`, `scripts/campsite.gd`), at `FIRE`, built in
+  `_ready()`. The flames, light and sparks follow `strength` (`_process()` in `scripts/campsite.gd`).
+- **What moves it:** `start_cycle()` when the tutorial's done (`_close_list()`, `scripts/camp_tutorial.gd`), then it
+  burns down by `BURN`; `die_out()` at the steal; the keeper's `add_log()` (`TEND`, `scripts/camp_person.gd`);
+  `douse()` (the bucket, E). Cycle off (the tutorial, the checks that skip it): `strength` stays 1. Starts:
+  `-- --dev-start=fire` (burning) or `free` (cold), `scripts/dev_menu.gd` (F1 in debug runs).
 ### The scenes the effects appear in
-- `res://main.tscn` (`project.godot`, `run/main_scene`), one `Node3D` running `scripts/main.gd`, which builds the camp
-  with `Campsite.new()` (`_ready()`). The tutorial's "Hide!" makes him dive in once (`scripts/camp_tutorial.gd`).
-- Effect A: `effects/leaf_burst.tscn` (see Ownership); `previews/leaf_burst_preview.tscn`; `tests/test_leaf_burst_config.gd` (at 60).
+- `res://main.tscn` (`project.godot`, `run/main_scene`), running `scripts/main.gd`, which adds `Campsite.new()`.
+- A: `effects/leaf_burst.tscn`, `previews/leaf_burst_preview.tscn`, `tests/test_leaf_burst_config.gd`,
+  `tests/leaf_burst_state_test.gd`. B, to be built: `effects/campfire_smoke.tscn`, `previews/campfire_smoke_preview.tscn`.
 
 ### Tests: always through `scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
-- An argument starting with `--` runs `main.tscn` with that flag (`-- <flag>`); anything else runs
-  `res://tests/<file>` with `--script`. Every run is headless (`scripts/run-test.sh`).
-- `<fps>` adds `--fixed-fps <fps>`; **`realtime`** leaves it out, for checks that wait on audio or the clock.
-  The optional third argument is the `timeout` in seconds, 120 by default (`scripts/run-test.sh`, header).
-- Log: `logs/<name>_<fps>fps.log` or `logs/<name>_realtime.log`. Exit 1 on `SHADER ERROR` or `SCRIPT ERROR`
-  in the log, 124 on timeout. Godot: `GODOT`, then `godot` on the PATH, then `../Godot/` (`scripts/run-test.sh`).
+- An argument starting with `--` runs `main.tscn` with that flag; anything else runs `res://tests/<file>` with
+  `--script`. Every run is headless. `<fps>` adds `--fixed-fps`; `realtime` leaves it out (audio, the clock). The
+  third argument is the timeout, 120 s by default. Log: `logs/<name>_<fps>fps.log` or `_realtime.log`; exit 1 on
+  `SHADER ERROR` or `SCRIPT ERROR`, 124 on timeout. Godot: `GODOT`, the PATH, then `../Godot/` (`scripts/run-test.sh`).
 
 ```
 bash scripts/run-test.sh a3_asset_check.gd 60          # tests/a3_asset_check.gd
@@ -48,15 +46,17 @@ bash scripts/run-test.sh --plan-test 60                # scripts/plan_test.gd
 bash scripts/run-test.sh --tutorial-test 60            # scripts/tutorial_test.gd (dives into the bush)
 bash scripts/run-test.sh --cones-test 30               # scripts/cones_test.gd; also 60 and 144
 bash scripts/run-test.sh --cone-shader-test 30         # tests/cone_shader_test.gd; also 60 and 144
+bash scripts/run-test.sh --fire-test 60                # scripts/fire_test.gd (the campfire, the firelight)
+bash scripts/run-test.sh --tent-test 60 300            # scripts/tent_test.gd (Dismantle the tent)
 bash scripts/run-test.sh test_leaf_burst_config.gd 60  # tests/test_leaf_burst_config.gd (Effect A's settings)
 bash scripts/run-test.sh --leaf-burst-test 60          # tests/leaf_burst_state_test.gd (Effect A's state)
 bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; fails 12 of 13 at 60 fps
 bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; fails 51 of 52 at 60 fps
 ```
 - Flags are parsed in `scripts/main.gd` (header comment); `--title-test` in `scripts/title_screen.gd`.
-- The baseline before any effect (`TEST-REPORT.md`, "Step 0", `ed05ada`, `logs/a6-step0/`): bubbles 87, camp 31,
-  tasks 43, plan 19, tutorial 21 (**28** since its 7 Nov remake, `logs/a6-after-steal/`); cones 43, cone shader 93
-  at 30, 60, 144; waves 13/13, title all in realtime; their `--fixed-fps` failures (12/13, 51/52) are expected: don't "fix" them.
+- Counts (`TEST-REPORT.md`, 8 Nov 2026, `logs/a6-firelight/`): bubbles 87, camp 31, tasks 43, plan 19, tutorial 28;
+  cones 43 and cone shader 93 at 30, 60, 144; fire 17, tent 16, leaf burst state 37; waves 13/13 and title all in
+  realtime; their `--fixed-fps` failures (12/13, 51/52) are expected: don't "fix" them.
 
 ## Headless facts
 - A headless run uses a dummy renderer (it reports no video adapter): it draws no particles and runs no GPU
@@ -71,49 +71,49 @@ bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; 
 @CHANGE-BRIEF.md
 
 ## Ownership
-
 Every file in `shaders/` is hand-written by the human and is never edited by an agent: not
 created, rewritten, reformatted or "fixed". If a shader looks wrong, report it and stop.
 
-Effect settings live in scene files in `effects/` (`.tscn`, with their materials as sub-resources or `.tres`
-beside them), not in code. Scripts may instance an effect, place it, set `amount_ratio` for the hop-out and
-free it; they don't set `amount`, lifetimes, velocities, ramps or materials. The brief's settings table is the
-source of each value; a change to one starts as a dated revision of `CHANGE-BRIEF.md`, made by the human.
+Effect settings live in scene files in `effects/` (`.tscn`, with their materials, curves and textures as
+sub-resources or `.tres` beside them), not in code. Scripts may instance an effect, place it, set `amount_ratio`
+(Effect A's hop-out; Effect B's feedback) and free it; they don't set `amount`, lifetimes, velocities, ramps or
+materials. The brief's settings tables are the source of each value; a change to one starts as a dated revision
+of `CHANGE-BRIEF.md`, made by the human.
 
 ## Godot 4 names
-
 Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUParticles` (no `3D`),
 `SpatialMaterial`, `Spatial`, `flags_unshaded`, `params_billboard_mode`, `flags_transparent`.
-- **Seen working on 4.7.2 in this repo** (`scripts/campsite.gd`, the fire's sparks): `CPUParticles3D`,
-  `StandardMaterial3D`, `BaseMaterial3D.SHADING_MODE_UNSHADED`, `.TRANSPARENCY_ALPHA`, `.BLEND_MODE_ADD`,
-  `.BILLBOARD_PARTICLES`, `vertex_color_use_as_albedo`, `billboard_mode`, `blend_mode`, `QuadMesh.size`, `Gradient`.
-- **Read back from ClassDB on 4.7.2** (7 Nov 2026, a scratch script, not in the repo): `GPUParticles3D` has
-  `amount`, `amount_ratio`, `one_shot`, `explosiveness`, `randomness`, `lifetime`, `preprocess`, `local_coords`,
-  `visibility_aabb`, `process_material`, `draw_pass_1`, `emitting`, `use_fixed_seed`, `seed`, `restart()`, signal
-  `finished`. `ParticleProcessMaterial` has `emission_shape` (`EMISSION_SHAPE_SPHERE`), `emission_sphere_radius`,
-  `emission_shape_offset`, `direction`, `spread`, `initial_velocity_min`/`_max`, `gravity`, `damping_min`/`_max`,
-  `angle_min`/`_max`, `scale_min`/`_max`, `lifetime_randomness`, `color_ramp`, `color_initial_ramp` (both take a
-  `GradientTexture1D`, not a `Gradient`). `StandardMaterial3D` has `disable_fog`.
+- **Seen working on 4.7.2 in this repo:** `CPUParticles3D`, `StandardMaterial3D`, `BaseMaterial3D.SHADING_MODE_UNSHADED`,
+  `.TRANSPARENCY_ALPHA`, `.BLEND_MODE_ADD`, `.BILLBOARD_PARTICLES`, `vertex_color_use_as_albedo`, `QuadMesh.size`
+  (`scripts/campsite.gd`, the sparks); and Effect A's scene, `effects/leaf_burst.tscn`.
+- **Read back from ClassDB on 4.7.2** (7 and 8 Nov, scratch scripts): `GPUParticles3D` has `amount`, `amount_ratio`,
+  `one_shot`, `explosiveness`, `randomness`, `lifetime`, `preprocess`, `local_coords`, `visibility_aabb`,
+  `process_material`, `draw_pass_1`, `emitting`, `use_fixed_seed`, `seed`, `restart()`, `finished`.
+  `ParticleProcessMaterial` has `emission_shape` (`EMISSION_SHAPE_SPHERE`; `_BOX` = 3), `emission_sphere_radius`,
+  `emission_box_extents`, `emission_shape_offset`, `direction`, `spread`, `initial_velocity_min`/`_max`, `gravity`,
+  `damping_min`/`_max`, `angle_min`/`_max`, `scale_min`/`_max`, `scale_curve`, `alpha_curve`, `lifetime_randomness`,
+  `color_ramp`, `color_initial_ramp` (ramps take a `GradientTexture1D`), `turbulence_enabled`, `turbulence_noise_`
+  `strength`/`_scale`/`_speed`. `GradientTexture2D`: `fill` (`FILL_RADIAL` = 1), `gradient`, `width`, `height`.
+  `StandardMaterial3D`: `albedo_texture`, `disable_fog`.
 - Godot 3's `scale_random`, `flags_unshaded` and `params_billboard_mode` don't exist. `initial_velocity` and `scale`
   exist only as editor-side `Vector2` pairs, not stored: a number set there is ignored and the min/max stay 0.
 - The node's `randomness` (emission timing) is not the process material's `lifetime_randomness` (the brief's).
 
 ## Out of scope
-
 - The raccoon's movement, collision, input and key bindings, including the dive, its hop and its timings.
 - The campers: what they see, their states, routines and timings. The tutorial's steps and wording.
-- Game code beyond the signal from `dived()` and the wiring the brief's 7 Nov revision allows (in `main.gd`). The
-  effect listens; it never writes game state, and nothing in the game reads it.
-- Every other look: the bush's rustle and peeking eyes, the fire and its sparks, cones, cooler, trees, icons,
-  waves, and everything in `shaders/`.
+- Game code: the fire's life (`scripts/camp_fire.gd`), the keeper's tending, the bucket, the firelight, the tent,
+  the developer menu. Beyond the 7 Nov wiring, the effects listen and read (`hiding_changed`, `strength`); they
+  never write game state, and nothing in the game reads them.
+- Every other look: the bush's rustle and peeking eyes, the fire's flames, light and sparks, cones, cooler, trees,
+  icons, waves, and everything in `shaders/`.
 - What any existing test expects. A test may change how it measures only with the same expected value.
-- The renderer, `project.godot`, the bush's mesh, size and place, and Effect B until the brief defines it.
-  `Engine.time_scale`: only the tutorial changes it, while it holds the game (`scripts/camp_tutorial.gd`).
+- The renderer, `project.godot`, and the bush's and the fire pit's meshes, sizes and places. `Engine.time_scale`:
+  only the tutorial changes it, while it holds the game (`scripts/camp_tutorial.gd`).
 
 ## Unconfirmed
-
 - What `amount_ratio` 0.5 does to a one-shot burst's count on this build: headless reads only the value; the frame
   strip shows the count (`CHANGE-BRIEF.md`, short answer 1).
-- The test counts were last measured on 7 Nov 2026 at `ed05ada` (`TEST-REPORT.md`, "Step 0"); rerun before trusting.
-- `run-test.sh` takes a third argument only as the timeout, so `a3_asset_check.gd -- --mutate` and the
-  `--*-shots=<folder>` options still can't go through it.
+- Whether a hidden `GPUParticles3D` keeps simulating on this build: headless can't show it (Effect B, hidden).
+- The counts above were measured on 8 Nov 2026 (`logs/a6-firelight/`); rerun before trusting. `run-test.sh`'s third
+  argument is only the timeout, so `--*-shots=<folder>` options can't go through it.
