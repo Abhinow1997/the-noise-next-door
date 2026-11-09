@@ -293,7 +293,7 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 
 ### 8 Nov 2026: a script for the film
 
-- "can u summarzie me a script tot explain me what has happened and waht we have developed". Claude Code wrote `design/a6/film-script.md`: nine scenes, what to show and what to say, covering what the course's film must show. Not committed.
+- "can u summarzie me a script tot explain me what has happened and waht we have developed". Claude Code wrote `design/a6/film-script.md`: nine scenes, what to show and what to say, covering what the course's film must show. Never committed; removed at my request once both videos were made (below).
 
 ### 8 Nov 2026: the home pine cleared, a plain TO DO list, short hints, and dropped loot
 
@@ -320,6 +320,9 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
   - the film;
   - the `a6` tag.
 - "yes do that", for these entries.
+- **The NotebookLM explainer:** "also give me a prompt to generate the notebookllm for the assignment 6 works explainer", then "have the prompt all the details so explain it properly". Claude Code drafted a prompt for a Video Overview, with the sources to add. NotebookLM's own producer notes covered my earlier assignments (the cast, the AI art pipeline, the vision cones), so I asked: "these are the producer notes provided for notebookllm make these better for assignement 6 focused". Claude Code rewrote them as nine Assignment 6 beats, and suggested keeping the notebook to the Assignment 6 sources.
+- **The Visual Profiler:** "give me exact steps for the same". I ran it from the editor; Godot's Output named the RTX 4050. I sent a screenshot of frame #22184 and the template with the per-state readings left blank, and my note: "still the game play is cluncky but the effects feel fine and can be worked with". TEST-REPORT.md has the frame (`74dde66`).
+- **The videos:** "i have updated both videos i will update the links for them just have the links placeholder i will update the same along with it remove the scripts and update the submission file". Claude Code removed the film script and the NotebookLM prompt (neither was committed), and wrote SUBMISSION.md for Assignment 6 with placeholders for the two films' links, filenames and SHA-256, which I fill in.
 
 ---
 

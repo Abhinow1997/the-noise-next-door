@@ -166,7 +166,7 @@ The docs, each with an Assignment 6 section:
 - the log, [FRICTIONAL.md](FRICTIONAL.md#assignment-6-particle-effects-and-the-bigger-camp);
 - the provenance, [SOURCES.md](SOURCES.md#assignment-6-the-bigger-camp-and-particle-effects).
 
-The `claude -p` prompts and transcripts are in [design/a6/](design/a6/). Neither effect uses a sourced or generated texture: the smoke's soft disc is a `GradientTexture2D` written in its scene file.
+The `claude -p` prompts and transcripts are in [design/a6/](design/a6/). The films, mine and a NotebookLM explainer, are linked in [SUBMISSION.md](SUBMISSION.md). Neither effect uses a sourced or generated texture: the smoke's soft disc is a `GradientTexture2D` written in its scene file.
 
 ## Assignment 5: shaders and materials
 
