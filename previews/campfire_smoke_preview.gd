@@ -42,6 +42,8 @@ func _ready() -> void:
 	# Cold at load, as the strip starts. The cycle stays off, so nothing burns it down and
 	# the keeper doesn't come to light it.
 	fire.strength = 0.0
+	# The game's own copy (main.gd, campfire_smoke.gd) goes: the strip shows only this one.
+	level.campfire_smoke.queue_free()
 	var root := CampfireSmoke.instantiate() as Node3D
 	smoke = root.get_node("Smoke") as GPUParticles3D
 	smoke.use_fixed_seed = true

@@ -33,6 +33,8 @@ extends Node3D
 ## (tests/cone_shader_test.gd, cone_driver.gd), through the tutorial as --cones-test.
 ## `-- --leaf-burst-test` checks when and where Effect A, the leaf burst, fires as he dives
 ## into the bush and out (tests/leaf_burst_state_test.gd), with the tutorial skipped.
+## `-- --smoke-test` checks Effect B, the campfire smoke, following the fire from cold
+## (tests/campfire_smoke_state_test.gd); `-- --smoke-load-test` with it burning at load.
 ## `-- --fire-test` checks the campfire's life in the open world: the keeper building it,
 ## the bucket tipped with E, the fire lit again, and being seen further standing in its
 ## light (scripts/fire_test.gd, camp_fire.gd).
@@ -81,6 +83,8 @@ const PlanNote := preload("res://scripts/plan_note.gd")
 const CampTutorial := preload("res://scripts/camp_tutorial.gd")
 ## Effect A, the leaves bursting out of the bush as he dives in or out (leaf_bursts.gd).
 const LeafBursts := preload("res://scripts/leaf_bursts.gd")
+## Effect B, the smoke over the campfire, following its strength (campfire_smoke.gd).
+const CampfireSmokeDriver := preload("res://scripts/campfire_smoke.gd")
 ## The developer menu (F1) and its start points (dev_menu.gd), and where each puts him.
 const DevMenu := preload("res://scripts/dev_menu.gd")
 const DEV_STARTS := {"camp": Vector3(26.0, 0.02, 6.0), "roast": Vector3(35.0, 0.02, 5.0),
@@ -207,6 +211,8 @@ var player: Player
 var camera: Camera3D
 var forest: Forest
 var campsite: Campsite
+## Effect B's driver (campfire_smoke.gd), or null without the campsite.
+var campfire_smoke: CampfireSmokeDriver
 ## What the game hears through: on the raccoon, turned as the camera is, so sounds in
 ## the world (the party's music, campsite.gd) are as loud as they are where he is, and
 ## what's on the right of the screen is heard on the right.
@@ -354,6 +360,8 @@ func _ready() -> void:
 	var leaf_burst_test := false
 	var fire_test := false
 	var tent_test := false
+	var smoke_test := false
+	var smoke_load_test := false
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -421,11 +429,20 @@ func _ready() -> void:
 			fire_test = true
 		elif arg == "--tent-test":
 			tent_test = true
+		elif arg == "--smoke-test":
+			smoke_test = true
+		elif arg == "--smoke-load-test":
+			smoke_load_test = true
 	# A start point from the developer menu or `--dev-start=` (dev_menu.gd): no title.
 	var dev_point := DevMenu.take_point()
 	# The fire's check starts as the open world does, the fire cold.
 	if fire_test:
 		dev_point = "free"
+	# The smoke's checks: from cold, as the fire's, or burning at load.
+	if smoke_test:
+		dev_point = "free"
+	elif smoke_load_test:
+		dev_point = "fire"
 	if dev_point != "":
 		title_mode = false
 	_rng.seed = 7
@@ -466,6 +483,13 @@ func _ready() -> void:
 	if campsite and dev_point in ["free", "fire"]:
 		# The open world: the fire cold, as after the tutorial, or burning (camp_fire.gd).
 		campsite.campfire.start_cycle(dev_point == "free")
+	if campsite:
+		# The smoke reads the fire; it writes no game state. After the start points, so a
+		# cold start preprocesses no column (CHANGE-BRIEF.md, revised 8 Nov 2026: Effect B's
+		# wiring, for Step 3).
+		campfire_smoke = CampfireSmokeDriver.new()
+		campfire_smoke.fire = campsite.campfire
+		add_child(campfire_smoke)
 
 	camera = Camera3D.new()
 	camera.fov = CAMERA_FOV
@@ -610,6 +634,12 @@ func _ready() -> void:
 		var burst_check = load("res://tests/leaf_burst_state_test.gd").new()
 		burst_check.level = self
 		add_child(burst_check)
+	if (smoke_test or smoke_load_test) and campsite:
+		# Loaded only under its flag, as the leaf burst's check.
+		var smoke_check = load("res://tests/campfire_smoke_state_test.gd").new()
+		smoke_check.level = self
+		smoke_check.mode = "load" if smoke_load_test else "cold"
+		add_child(smoke_check)
 	if bubble_demo:
 		var demo := BubbleDemo.new()
 		demo.level = self
