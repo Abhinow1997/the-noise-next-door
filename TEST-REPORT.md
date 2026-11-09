@@ -1368,7 +1368,8 @@ The author's words, from their dictated notes; Claude Code only arranged them.
 | **Scene load, paused and hidden: Effect B** | Named as checked ("smoke on loading, pause, escape, and hidden"); no observation recorded yet. |
 | **Size at 1280 × 720, both** | The verdicts in TUNING.md: A's leaves fall after the burst (r1); B reads as grey haze (r1), with its column's top now too faint to see. |
 | **The boundaries holding** | Not reported separately. Every earlier suite holds its recorded counts (logs/a6-firelight/, logs/a6-step6-build/). |
-| **GPU price** | Measured by Claude Code at the author's request ("can u check for me"), not read off the Visual Profiler: see below. |
+| **GPU price** | Read off the Visual Profiler by the author for one frame, and measured state by state by Claude Code's script at the author's request ("can u check for me"): see below. |
+| **In play, overall** (the author, after the Visual Profiler run) | "still the game play is cluncky but the effects feel fine and can be worked with" |
 
 **Claude against me:** "I don't think the second effects has been created or designed well. I will need to rework on the same for some time." This is where the author and Claude differ. Claude's readings of Effect B's strips found r1 close to the intent (the glow gone, the column short at the top), while the author's view in play is that the smoke as designed isn't right yet and needs reworking. Their verdict in the running game decides.
 
@@ -1400,8 +1401,25 @@ Each block is 200 frames.
 
 **A first try**, without rounds ([logs/a6-gpu/gpu_time_first_try_rtx4050_windowed.log](logs/a6-gpu/gpu_time_first_try_rtx4050_windowed.log)), put Effect B 0.1 ms *below* off. It was measured first, so the GPU's clock state, not the smoke, set the difference. That's why the run above alternates.
 
+**The Visual Profiler** (the author's reading, 8 Nov 2026, about 9 pm). A windowed run from the editor, with Godot's Output naming the GPU: "Vulkan 1.4.312 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4050 Laptop GPU". The author sent a screenshot of the Visual Profiler (Measure: Frame Time (ms)) at frame #22184: [logs/a6-gpu/visual_profiler_frame_22184_rtx4050.webp](logs/a6-gpu/visual_profiler_frame_22184_rtx4050.webp).
+
+| Row (as the profiler names it) | CPU | GPU |
+|---|---|---|
+| Prepare Render Frame | 0.09 ms | 0.0 ms |
+| **Update GPUParticles** | 0.01 ms | **0.01 ms** |
+| Render Viewports (the frame's total) | 1.31 ms | **2.96 ms** |
+| Render Viewport 0 | 1.31 ms | 2.96 ms |
+| Render 3D Scene | 1.13 ms | 2.91 ms |
+
+**What this shows** (Claude Code's reading of the screenshot):
+- **"Update GPUParticles"** is the step where Godot runs the GPU particles' process shaders: the code it generates for each `ParticleProcessMaterial`, of which the smoke's is the one saved as `shaders/particles_generated.gdshader`. It took 0.01 ms of GPU time in that frame: the process part of the effects' price, far under both budgets. Drawing the quads falls inside "Render 3D Scene", which the rows in view don't split by effect.
+- **The frame's total GPU time,** 2.96 ms, is in the same range as the script's frames (median 3.33 ms; GPU time varies from frame to frame).
+- **The GPU graph** beside the table runs at about the same height throughout the stretch shown, well under the 16.67 ms line.
+
+**Not recorded:** which state that frame was in (the smoke on or hidden, bursts or none). The per-state readings in the steps (5 frames each: Effect B on, off, and Effect A's in-and-out) weren't sent. So the comparison against the budgets stands on the script's numbers above, and the Visual Profiler confirms the process step's share at 0.01 ms.
+
 **Not measured:**
-- the Visual Profiler itself, if the course wants its readout;
+- the Visual Profiler state by state (off, Effect A at its peak, Effect B on);
 - FPS with vsync off (F9);
 - the AMD Radeon 740M.
 

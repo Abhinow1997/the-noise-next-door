@@ -127,7 +127,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - **Price:** [tests/cost_effects.gd](tests/cost_effects.gd), the headless CPU price against an empty-scene control.
 - **The price:**
   - **Headless CPU:** 0.005 ms a frame for the empty scene, 1.016 for the game with both effects off, 1.018 with Effect A at its peak and 1.008 with Effect B at its heaviest. The two effects can't be told apart from "off", as predicted: a headless run draws nothing and runs no GPU particle process.
-  - **GPU, on an NVIDIA GeForce RTX 4050 Laptop GPU at 1280 × 720:** Effect A added +0.05 ms (budget 0.2 ms) and Effect B +0.03 ms (budget 0.3 ms), both within the noise. These were read with [tools/gpu_time_effects.gd](tools/gpu_time_effects.gd), a windowed script that reads the GPU timer the Visual Profiler shows ([TEST-REPORT.md](TEST-REPORT.md#the-gpu-price-8-nov-2026)).
+  - **GPU, on an NVIDIA GeForce RTX 4050 Laptop GPU at 1280 × 720:** Effect A added +0.05 ms (budget 0.2 ms) and Effect B +0.03 ms (budget 0.3 ms), both within the noise. These were read with [tools/gpu_time_effects.gd](tools/gpu_time_effects.gd), a windowed script that reads the GPU timer the Visual Profiler shows. In the Visual Profiler itself, one frame I read shows 2.96 ms of GPU time in all, with 0.01 ms for "Update GPUParticles", the particles' process step ([TEST-REPORT.md](TEST-REPORT.md#the-gpu-price-8-nov-2026)).
 - **The shader Godot generates for a `ParticleProcessMaterial`:** [shaders/particles_generated.gdshader](shaders/particles_generated.gdshader), converted in the editor from a copy of the smoke's process material. Nothing in the game uses it.
 
 ### For the grader: seeing it
@@ -153,7 +153,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 ### Known limitations (Assignment 6)
 
 - **Effect B needs more work, in my view:** "I don't think the second effects has been created or designed well. I will need to rework on the same for some time." Since its tuning, the top half of the column is too faint to see, so it reads about half as tall as the brief's 2 m.
-- **The GPU price wasn't read off the Visual Profiler.** It came from a script that reads the same GPU timer, and the AMD Radeon 740M and FPS with vsync off weren't measured.
+- **The GPU price, effect by effect, came from a script** that reads the Visual Profiler's GPU timer. From the Visual Profiler itself I read one frame, whose effect state wasn't recorded. The AMD Radeon 740M and FPS with vsync off weren't measured.
 - **No headless run can show the look.** What the burst and the smoke look like is checked only by the strips and my eyes. These remain unconfirmed on this build:
   - how many particles `amount_ratio` 0.5 gives a one-shot burst;
   - whether a hidden `GPUParticles3D` keeps simulating.
