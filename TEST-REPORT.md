@@ -1288,6 +1288,39 @@ These are for the strip and the author's eyes.
 - **Burning down to out:** in free play the keeper never lets the fire reach 0 on its own.
 - **Hiding:** the test hides the smoke itself, because nothing in the game does.
 
+### The process shader (Step 6, 8 Nov 2026)
+
+**The file:** [shaders/particles_generated.gdshader](shaders/particles_generated.gdshader), 473 lines. The author converted it in the Godot editor from a copy of Effect B's `ParticleProcessMaterial`, with Box emission and Turbulence checked on in the Inspector first. Nothing in the game uses it, and no agent edited it.
+- **How it got there:** Claude Code set up a scratch scene holding a copy of the smoke's material and opened the editor on it. It then deleted the scratch scene.
+- **The first two saves were wrong:** the first was Godot's empty template; the second was converted from a default material, so it had no ramp, curve, box or turbulence (FRICTIONAL.md, 8 Nov 2026, "Step 6").
+
+**The author's notes,** as they sent them:
+
+- **shader_type:** line 3
+- **start():** lines 313–363; **process():** lines 366–472
+- **initial velocity set from its min and max:** line 232 chooses a value between the min and max; line 355 applies it to the particle’s initial velocity.
+- **gravity changes velocity:** lines 399 and 412
+- **colour over life sampled:** line 255
+- **scale over life applied:** line 254
+- **A line tied to my brief:** line 325, `AMOUNT_RATIO`, which corresponds to my brief’s Effect B feedback, `amount_ratio` = fire `strength`.
+
+**Which of my brief’s settings live in this shader, and which belong to the draw step:** The process shader handles particle placement and motion—including initial velocity, gravity, damping and turbulence—and applies the colour ramp and scale curve over each particle’s life. The draw step uses the mesh and `StandardMaterial3D` settings, such as the texture, transparency, blending, vertex-colour use and billboarding, to determine how particles look. Node settings like `amount`, `emitting`, `preprocess` and `amount_ratio` control the particle system rather than the draw material; `visibility_aabb` controls culling.
+
+**Help I had:** "Myslef croschecking and other ai tools like Copilot helped verify the line numbers and explain the difference between process-shader and draw-step settings."
+
+**Claude Code's check of the line references:** each one points at the code the notes describe.
+
+| Note | The line(s) | Holds? |
+|---|---|---|
+| `shader_type` | 3: `shader_type particles;` | Yes |
+| `start()` | 313: `void start() {` | Yes. Its closing brace is line 364; 363 is its last statement. |
+| `process()` | 366: `void process() {` | Yes. Its closing brace is line 473, the file's last line; 472 closes the `if` inside it. |
+| Initial velocity from min and max | 232: `params.initial_velocity_multiplier = mix(initial_linear_velocity_min, initial_linear_velocity_max, rand_from_seed(alt_seed));` and 355: the velocity set from the spread direction times that multiplier | Yes |
+| Gravity changes velocity | 399: `force = gravity;` and 412: `USERDATA1.xyz += force * DELTA;` (`USERDATA1` holds the velocity) | Yes |
+| Colour over life | 255: `parameters.color *= texture(color_ramp, vec2(lifetime));` | Yes. It's in `process_display_param()` (line 252), which `process()` calls with the particle's life fraction at line 443. |
+| Scale over life | 254: `parameters.scale *= texture(scale_curve, vec2(lifetime)).rgb;` | Yes, in the same function. The scale then reaches the particle's transform at lines 458–466. |
+| The brief line | 325: `if (rand_from_seed(alt_seed) > AMOUNT_RATIO) {`, and 326, `ACTIVE = false;` | Yes. Each new particle is kept only if a random number is at or below `amount_ratio`, which the driver sets to the fire's `strength`. The course asks for the setting's value. The note gives none, since this one follows the fire: the brief's rules give 0 out, 0.3 on one log and 1 at full. |
+
 ### Step 7: the headless CPU price (8 Nov 2026)
 
 **How it was made:** a `claude -p` session with the edit allowlist, barred from `effects/`, `scripts/` and `shaders/` (`design/a6/prompt-8.txt`, transcript `design/a6/session-8.jsonl`). There's no copy of the chapter's Example 09 here, so it wrote `tests/cost_effects.gd` in that manner. Its one refused command was a Python edit; it edited with its own tools instead.
