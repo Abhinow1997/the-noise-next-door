@@ -1388,3 +1388,37 @@ Logs: [logs/a6-chase-drop/](logs/a6-chase-drop/), on the working tree over `a12f
 | Camp tasks (`--tasks-test 60`) | Pass, 43 of 43 | **How it measures:** after he's caught with the bag, it waits until the backpack's zipped up again, rather than a fixed 2.3 s, since the bag is now carried home first. The expected values are the same. |
 | Tutorial (`--tutorial-test 60`) | Pass, 28 of 28 | No: the pan's first word and the chase are read from the code's own constants and states |
 | Every other check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, plan 19; cones 43 and cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; sound and both configuration tests clean; waves and title failing only their recorded check at 60 fps. No `SCRIPT ERROR`. | No |
+
+### The tutorial's pan: a slow glide round the camp, with no words (8 Nov 2026)
+
+This is game work. The author: "remove the the word hints humans and food looks werid just do a slow pan around the camp its looking werid to me".
+- **The pan** (`scripts/camp_tutorial.gd`, `PAN`, `PAN_TIME`, `_pan_at`): the camera glides from him past the cooler, the campers and the camper's tent to the fire, 8 s of real time, eased on each leg. Then it's back on him for the laugh.
+- **What's gone:** the words, the lit circles and the dark layer. Before, it stopped on the campers, the marshmallows and the cooler, a word on each.
+- **Unchanged:** the game stays slowed and he's held while it pans; any key still skips it.
+- **Looked at in a window** (a scratch script, not in the repo): four frames through it showed him by the bush, the cooler and the campers, the dancers under the string lights, and the camper at his tent.
+
+Logs: [logs/a6-slow-pan/](logs/a6-slow-pan/), on the working tree over `a2328b6`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Tutorial (`--tutorial-test 60`) | Pass, 28 of 28 | **Expected value changed with the design:** "The pan: slowed, the camera panning, no words" now expects no line on screen. It was "two words", the first stop's word. |
+| Every other check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19; cones 43 and cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; sound and both configuration tests clean; waves and title failing only their recorded check at 60 fps. No `SCRIPT ERROR`. | No |
+
+### The fire out at the tutorial's start, and "You've been caught!" (8 Nov 2026)
+
+This is game work. The author: "from the start of the tutorial the fire should be off its on in the tutorial", then "the alerting in the tutorial after stealing should be a bit slower like the blackout thing explaing in conicse 5 or less words 'u have been caught!' 'runnn!'".
+
+**The fire:**
+- **Out from the start:** with the tutorial to come, the fire is out as the level loads, under the title too (`start_out` in `scripts/camp_fire.gd`, from `scripts/main.gd`).
+- **Built during the pan:** as the tutorial's pan starts, the keeper sets about building it (`start_building`). The roasting waits until it's lit. It no longer dies out at the steal.
+- **Tending counts as routine:** the tutorial's "all back at work" (`_all_calm`) counts the keeper tending the fire.
+- **The open world's parts wait for the tutorial's end** (`open`): the circle of sight, the firelight and the bucket.
+
+**The steal:** he's caught first. The campers stay frozen under the dark layer with "You've been caught!" (1.4 s), then "Runnn!" (1 s), and then the chase starts (`CAUGHT_LINE`, `RUN_LINE`, stage `caught` in `scripts/camp_tutorial.gd`). He's held still while it shows.
+
+Logs: [logs/a6-fire-off-caught/](logs/a6-fire-off-caught/), on the working tree over `a2328b6`, with the slow pan in it.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Tutorial (`--tutorial-test 60`) | Pass, 28 of 28 | **How it measures:** "alarmed" and "calm" don't count the keeper tending the fire as alarm (it's his work), with the same expected values. **Expected values changed with the design:** right after the steal, "caught, frozen, under the dark layer" with "You've been caught!" (it was "the campers come to, the dark layer gone"); then "Then 'Runnn!': they come to, the camper spots him, the men chase him". |
+| Every other check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19; cones 43 and cone shader 93 at 30, 60 and 144 (the fire out there now, the intro being off); fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; waves 13/13 and title all in realtime (the title over a cold fire), each failing only its recorded check at 60 fps. No `SCRIPT ERROR`. | No |

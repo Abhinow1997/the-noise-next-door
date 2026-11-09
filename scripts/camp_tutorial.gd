@@ -21,8 +21,8 @@ extends Node
 ## picks: no laugh for the music's task (main.gd), and no food thought from facing food
 ## till the tutorial's done (thought_bubbles.gd `food_thoughts`); the chitter stays.
 ##   1. The pan: once he can see the party (main.gd), the game slows right down (SLOW)
-##      behind a dark layer (spotlight.gd) and the camera pans over the campers, the
-##      marshmallows and the cooler (main.gd `camera_focus`), a word or two on each.
+##      and the camera glides slowly round the camp, past the cooler, the campers and the
+##      camper's tent to the fire (main.gd `camera_focus`), with no words (8 Nov 2026).
 ##   2. The laugh: back on him, he chitters, the cones come on, and the nearest camper
 ##      hears it and comes to look. He's held still till he's seen (or a few seconds).
 ##   3. Hide: the campers freeze where they are (their nodes stop), the bush is lit
@@ -71,14 +71,12 @@ const START_AFTER := 1.2
 ## seconds).
 const SLOW := 0.15
 const SLOW_IN := 0.5
-## The pan: what it shows, with its words; how long on each (real seconds); how wide
-## each is lit, and how dark the rest.
-## The author's words on 8 Nov 2026: "pan on the humans and then just the food and then the
-## laugh ... 1. Humans 2. Food 3. Food"; and every hint 5 words at most.
-const PAN := [["campers", "Humans"], ["backpack", "Food"], ["cooler", "Food"]]
-const PAN_DWELL := 1.4
-const PAN_RADIUS := 210.0
-const PAN_DARK := 0.55
+## The pan: a slow glide round the camp from him, past these, ending on the fire, with no
+## words and nothing lit, and how long it takes (real seconds). The author, 8 Nov 2026:
+## "remove the the word hints humans and food looks werid just do a slow pan around the
+## camp" (it had stopped on the campers, the marshmallows and the cooler with a word each).
+const PAN := ["cooler", "campers", "tent", "fire"]
+const PAN_TIME := 8.0
 ## Back on him, how long before he laughs (real seconds); and how long the campers have
 ## to see him before it goes on anyway (game seconds).
 const LAUGH_AFTER := 0.7
@@ -109,6 +107,14 @@ const HIDDEN_NOTE := "Wait till they look away"
 const LOST_LINE := "He lost you"
 const SNEAK_NOTE := "Sneak out: hold Ctrl"
 const YUM_LINE := "Yum!"
+## Caught taking the roasted marshmallow (8 Nov 2026, the author: "the alerting in the
+## tutorial after stealing should be a bit slower like the blackout thing explaing in conicse
+## 5 or less words 'u have been caught!' 'runnn!'"): held under the dark layer with the first
+## line, then the second, then the chase; how long each shows (real seconds).
+const CAUGHT_LINE := "You've been caught!"
+const RUN_LINE := "Runnn!"
+const CAUGHT_TIME := 1.4
+const RUN_TIME := 1.0
 
 ## Set before it's added (main.gd): the TO DO list, the tasks, the camp, the raccoon,
 ## the camera, the UI layer the dark layer goes in (under the list), and the level (for
@@ -136,7 +142,8 @@ var _owns_time := false
 ## Real seconds left of a pan stop or a moment, and of a flash.
 var _left := 0.0
 var _flash_left := 0.0
-var _pan_i := 0
+var _pan_t := 0.0
+var _pan_from := Vector3.ZERO
 ## On the camp's clock: when he laughed, and when he hid. Who heard him laugh, and who
 ## saw him.
 var _laughed_at := -INF
@@ -165,7 +172,7 @@ func _ready() -> void:
 ## shows the one who lost him, and the list; and him, while he sits eating.
 func running() -> bool:
 	return step in [Step.ARRIVAL, Step.PICKING, Step.LIST] \
-		or (step == Step.INTRO and stage in ["pan", "laugh", "seen", "lost"]) \
+		or (step == Step.INTRO and stage in ["pan", "laugh", "seen", "lost", "caught"]) \
 		or (roast != null and roast.eating())
 
 
@@ -173,6 +180,7 @@ func running() -> bool:
 ## in the bush and gone back to work.
 func dev_roast() -> void:
 	campsite.cones_on = true
+	campsite.campfire.start_building()
 	_laughed_at = campsite.clock
 	step = Step.INTRO
 	stage = "calming"
@@ -192,7 +200,7 @@ func _process(delta: float) -> void:
 		Engine.time_scale = move_toward(Engine.time_scale, SLOW, real * (1.0 - SLOW) / SLOW_IN)
 	if _flash_left > 0.0:
 		_flash_left -= real
-		if _flash_left <= 0.0 and stage not in ["pan", "hide", "grab"]:
+		if _flash_left <= 0.0 and stage not in ["pan", "hide", "grab", "caught"]:
 			spotlight.clear()
 	match step:
 		Step.WAITING:
@@ -235,7 +243,7 @@ func _input(event: InputEvent) -> void:
 		# Any key or a click goes on.
 		_left = 0.0
 		if stage == "pan":
-			_pan_i = PAN.size()
+			_pan_t = PAN_TIME
 		get_viewport().set_input_as_handled()
 
 
@@ -244,17 +252,25 @@ func _input(event: InputEvent) -> void:
 func _start_intro() -> void:
 	step = Step.INTRO
 	stage = "pan"
-	_pan_i = 0
+	_pan_t = 0.0
+	_pan_from = player.global_position + Vector3.UP * 0.3
+	spotlight.clear()
 	_hold(true)
 	_left = 0.0
+	# The fire's out till now; the keeper sets about building it as the camera pans.
+	if campsite.campfire:
+		campsite.campfire.start_building()
 
 
 func _intro(real: float) -> void:
 	match stage:
 		"pan":
-			_left -= real
-			if _left <= 0.0:
-				_pan_next()
+			_pan_t += real
+			level.camera_focus = _pan_at(_pan_t)
+			if _pan_t >= PAN_TIME:
+				level.camera_focus = null
+				stage = "laugh"
+				_left = LAUGH_AFTER
 		"laugh":
 			_left -= real
 			if _left <= 0.0:
@@ -296,9 +312,20 @@ func _intro(real: float) -> void:
 				spotlight.clear()
 				stage = "calming"
 		"calming":
-			# The roasting starts once they've all gone back to work.
-			if _all_calm():
+			# The roasting starts once they've all gone back to work, and the keeper has the
+			# fire lit (he builds it from the pan on, camp_fire.gd).
+			if _all_calm() and campsite.campfire.burning():
 				_start_roasting()
+		"caught":
+			_left -= real
+			if _left <= RUN_TIME and spotlight.line() == CAUGHT_LINE:
+				spotlight.point(player, 150.0, RUN_LINE, "", 0.3, HIDE_DARK)
+			if _left <= 0.0:
+				_freeze(false)
+				spotlight.clear()
+				for person in campsite.people:
+					person.chase_now()
+				stage = "escape"
 		"roast":
 			if player.hiding_in == null and plan.note_showing() == SNEAK_NOTE:
 				plan.note("")
@@ -310,18 +337,16 @@ func _intro(real: float) -> void:
 					person.chase_next = false
 
 
-func _pan_next() -> void:
-	if _pan_i < PAN.size():
-		var at := _pan_point(PAN[_pan_i][0])
-		level.camera_focus = at
-		spotlight.point(at, PAN_RADIUS, PAN[_pan_i][1], "", 0.0, PAN_DARK)
-		_left = PAN_DWELL
-		_pan_i += 1
-	else:
-		level.camera_focus = null
-		spotlight.clear()
-		stage = "laugh"
-		_left = LAUGH_AFTER
+## Where the pan looks `t` real seconds in: from him through PAN's places in turn, an equal
+## share of PAN_TIME to each leg, eased in and out on each.
+func _pan_at(t: float) -> Vector3:
+	var points: Array[Vector3] = [_pan_from]
+	for what: String in PAN:
+		points.append(_pan_point(what))
+	var leg := PAN_TIME / PAN.size()
+	var i := clampi(int(t / leg), 0, PAN.size() - 1)
+	var f := smoothstep(0.0, 1.0, clampf((t - i * leg) / leg, 0.0, 1.0))
+	return points[i].lerp(points[i + 1], f)
 
 
 ## He laughs: the cones come on, and the nearest calm camper hears it and comes to look
@@ -387,17 +412,13 @@ func _on_served() -> void:
 func _on_taken() -> void:
 	if step != Step.INTRO or stage != "grab":
 		return
-	_freeze(false)
-	spotlight.clear()
 	if level.get("bubbles"):
 		level.bubbles.clear("hungry")
-	for person in campsite.people:
-		person.chase_now()
-	# Nobody tends the fire through the chase: it dies, and the open world opens on a
-	# cold pit that the keeper builds up again (camp_fire.gd, the author, 8 Nov 2026).
-	if campsite.campfire:
-		campsite.campfire.die_out()
-	stage = "escape"
+	# Still frozen from the plate: caught, under the dark layer, then "Runnn!", then the
+	# chase ("caught" in _intro).
+	spotlight.point(player, 150.0, CAUGHT_LINE, "", 0.3, HIDE_DARK)
+	stage = "caught"
+	_left = CAUGHT_TIME + RUN_TIME
 
 
 func _on_eaten() -> void:
@@ -413,7 +434,8 @@ func _on_eaten() -> void:
 ## True while all of them are at work on their routines: none alarmed, none on the way
 ## back.
 func _all_calm() -> bool:
-	return campsite.people.all(func(person) -> bool: return person.state == S.WORK)
+	# Tending the fire is the keeper's routine work too (8 Nov 2026).
+	return campsite.people.all(func(person) -> bool: return person.state == S.WORK or person.state == S.TEND)
 
 
 # --- The list --------------------------------------------------------------------
@@ -450,9 +472,9 @@ func _close_list() -> void:
 	plan.note("")
 	_hold(false)
 	step = Step.DONE
-	# The open world: the fire's cycle starts (camp_fire.gd), from a cold pit.
+	# The open world: the fire's circle, firelight and bucket start working (camp_fire.gd).
 	if campsite.campfire:
-		campsite.campfire.start_cycle(true)
+		campsite.campfire.open()
 	finished.emit()
 
 
@@ -501,4 +523,8 @@ func _pan_point(what: String) -> Vector3:
 			return campsite.puzzles._backpack.global_position + Vector3.UP * 0.3
 		"cooler":
 			return campsite.puzzles.cooler.global_position + Vector3.UP * 0.3
+		"tent":
+			return campsite.tent_pegs.tent.global_position + Vector3.UP * 0.5
+		"fire":
+			return campsite.campfire.global_position + Vector3.UP * 0.5
 	return player.global_position

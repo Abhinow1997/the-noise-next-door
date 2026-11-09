@@ -7,12 +7,14 @@ extends Node3D
 ## can see, that you can interact with ... everything with E, and ... a small twinkle".
 ##   - `strength`, 0 (out: ash and charred logs, no light) to 1 (burning well), is the
 ##     game value the fire's look follows, and the one Effect B's smoke is to follow.
-##   - Through the tutorial at the camp it burns steadily, as it always did. As he steals
-##     the roasted marshmallow it starts dying (`die_out`): nobody tends it through the
-##     chase, and it's out within DIE seconds' worth. Once the tutorial's done
-##     (camp_tutorial.gd), its `cycle` starts: it burns down by BURN a second, and the fire
-##     keeper (camp_person.gd `tend`) fetches a log from the woodpile whenever it's below
-##     FEED_BELOW, lighting it if it's out: it flares up (`flare`), then settles.
+##   - With the tutorial to come, it's out from the start (`start_out`; the author, 8 Nov
+##     2026: "from the start of the tutorial the fire should be off"). As the tutorial's pan
+##     starts, its `cycle` does (`start_building`): it burns down by BURN a second, and the
+##     fire keeper (camp_person.gd `tend`) fetches a log from the woodpile whenever it's
+##     below FEED_BELOW, lighting it if it's out: it flares up (`flare`), then settles. The
+##     roasting waits till it's lit. The open world's parts (the circle of sight, the
+##     firelight, the bucket) wait for the tutorial's end (`open`). In the checks that skip
+##     the tutorial the cycle's off and it burns steadily, as it always did.
 ##   - The bucket of water by the pit twinkles as loot does (thought_bubbles.gd, "shiny")
 ##     while he could tip it: once the open world's on and the fire's lit. Holding E at it
 ##     (interactable.gd) noses it over: the water floods the pit with a hiss the campers
@@ -78,6 +80,10 @@ var stoke_at := Vector3.ZERO
 var strength := 1.0
 var cycle := false
 var dying := false
+## The open world's on (after the tutorial, or a developer start): the circle of sight, the
+## firelight (campsite.gd `in_firelight`) and the bucket work only then, so they can't upset
+## the tutorial's beats while the keeper builds the fire during it.
+var open_world := false
 ## 1 as it's lit from cold, easing to 0 over FLARE_TIME.
 var flare := 0.0
 var bucket_tipped := false
@@ -113,13 +119,33 @@ func die_out() -> void:
 	dying = true
 
 
-## The open world's on (camp_tutorial.gd, or the dev menu): it burns down and is fed.
-## `out` starts it cold, as after the tutorial.
+## The open world's on (the dev menu, the checks): it burns down and is fed, and the
+## circle, the firelight and the bucket work. `out` starts it cold.
 func start_cycle(out := false) -> void:
 	cycle = true
+	open_world = true
 	if out:
 		strength = 0.0
 		dying = false
+
+
+## Out, as the level loads when the tutorial's to run (main.gd): the author, 8 Nov 2026,
+## "from the start of the tutorial the fire should be off".
+func start_out() -> void:
+	strength = 0.0
+	dying = false
+
+
+## The tutorial's pan starts (camp_tutorial.gd): the keeper sets about building it, and it
+## burns down and is fed from now on; the open world's parts wait for `open`.
+func start_building() -> void:
+	cycle = true
+
+
+## The tutorial's done (camp_tutorial.gd): the circle, the firelight and the bucket work.
+func open() -> void:
+	cycle = true
+	open_world = true
 
 
 ## True while it's burning at all.
@@ -155,7 +181,7 @@ func set_bucket_upright() -> void:
 
 ## True while he could tip the bucket over.
 func can_tip() -> bool:
-	return cycle and not dying and not _dousing and not bucket_tipped and strength > 0.0
+	return open_world and cycle and not dying and not _dousing and not bucket_tipped and strength > 0.0
 
 
 ## Where the keeper stands to take a log, and to set the bucket up.
@@ -188,7 +214,7 @@ func _physics_process(delta: float) -> void:
 
 ## True while the circle of sight is up: burning in the open world, the cones on.
 func watching() -> bool:
-	return cycle and burning() and camp != null and camp.cones_on
+	return open_world and burning() and camp != null and camp.cones_on
 
 
 ## The circle of sight: as far as the firelight reaches; moving in it upright, he's spotted.

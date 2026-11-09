@@ -64,7 +64,8 @@ func _run() -> void:
 	await _until(func() -> bool: return _tutorial.step == CampTutorial.Step.INTRO, 10.0)
 	await _real(0.8)
 	_shot("01_pan")
-	_check("The pan: slowed, the camera on the campers, two words", "true true %s" % CampTutorial.PAN[0][1],
+	# Since 8 Nov 2026 the pan is a slow glide round the camp with no words (the author).
+	_check("The pan: slowed, the camera panning, no words", "true true ",
 		"%s %s %s" % [Engine.time_scale <= CampTutorial.SLOW + 0.01, level.camera_focus != null, _tutorial.spotlight.line()])
 	_check("The pan: he's held still, and no cones", "true false", "%s %s" % [_player.input_locked, _camp.cones_on])
 
@@ -86,7 +87,8 @@ func _run() -> void:
 
 	# Into the bush. Whoever saw him or took fright is confused where they stand; nobody
 	# comes for him (the author: "dont let the npcs run to him").
-	var alarmed: Array = _camp.people.filter(func(p) -> bool: return p.state != S.WORK)
+	# Tending the fire (the keeper, through the tutorial since 8 Nov 2026) isn't alarm.
+	var alarmed: Array = _camp.people.filter(func(p) -> bool: return p.state != S.WORK and p.state != S.TEND)
 	_player.place(_camp.bush.global_position + Vector3(0, 0.02, 0))
 	await _until(func() -> bool: return _tutorial.stage == "hidden" and _player.hiding_in != null, 3.0)
 	var went_for_him := false
@@ -170,13 +172,16 @@ func _run() -> void:
 	await _press_e(RoastPlate.TAKE_TIME + 0.2)
 	Input.action_release("sneak")
 	await _wait(0.1)
-	_check("Taken: in his mouth, off the plate, the campers come to, the dark layer gone", "true 0 false false",
+	# Since 8 Nov 2026 he's caught first: held under the dark layer, "You've been caught!",
+	# then "Runnn!", then the chase (the author's design).
+	_check("Taken: in his mouth, off the plate, caught, frozen, under the dark layer", "true 0 true %s" % CampTutorial.CAUGHT_LINE,
 		"%s %s %s %s" % [_tutorial.roast.carrying(), _tutorial.roast.on_plate, _tutorial.frozen(),
-			_tutorial.spotlight.showing()])
+			_tutorial.spotlight.line()])
+	await _until_real(func() -> bool: return _tutorial.stage == "escape", 5.0)
 	await _until(func() -> bool: return _camp.people.any(func(p) -> bool: return p.state == S.CHASE), 4.0)
 	_shot("06_taken")
-	_check("Taken: the camper spots him, the men chase him", "true true",
-		"%s %s" % [_camp.spotted_at > spotted_before, _camp.people.any(func(p) -> bool: return p.state == S.CHASE)])
+	_check("Then 'Runnn!': they come to, the camper spots him, the men chase him", "false true true",
+		"%s %s %s" % [_tutorial.frozen(), _camp.spotted_at > spotted_before, _camp.people.any(func(p) -> bool: return p.state == S.CHASE)])
 	# Away out of the camp. A chaser may have shooed him already, and his leap may have
 	# landed him in the bush (a dive starts the tick after): it's all over first.
 	await _wait(0.6)
@@ -263,7 +268,8 @@ func _watch_calm(was: Dictionary) -> bool:
 
 ## True while all four are calm, at work on their routines.
 func _calm() -> bool:
-	return _camp.people.all(func(p: CampPerson) -> bool: return p.state == S.WORK)
+	# Tending the fire, which the keeper does through the tutorial since 8 Nov 2026, is work.
+	return _camp.people.all(func(p: CampPerson) -> bool: return p.state == S.WORK or p.state == S.TEND)
 
 
 func _sneak_to(at: Vector3, look: Vector3) -> void:

@@ -571,6 +571,8 @@ func _ready() -> void:
 		_tutorial.ui_layer = _ui_layer
 		_tutorial.level = self
 		add_child(_tutorial)
+		# With the tutorial to come, the fire's out from the start (camp_fire.gd).
+		campsite.campfire.start_out()
 		if dev_point == "roast":
 			_tutorial.dev_roast()
 	if OS.is_debug_build():

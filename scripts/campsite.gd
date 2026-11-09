@@ -437,7 +437,7 @@ func seen_within(seconds: float) -> bool:
 ## `cycle`), where the people see him further unless he crouches (camp_person.gd
 ## FIRELIT_SIGHT): within FIRELIGHT of its light's reach, which shrinks as it burns down.
 func in_firelight(at: Vector3) -> bool:
-	if campfire == null or not campfire.cycle or not campfire.burning():
+	if campfire == null or not campfire.open_world or not campfire.burning():
 		return false
 	var d := Vector2(at.x - FIRE.x, at.z - FIRE.y).length()
 	return d < _fire_light.omni_range * FIRELIGHT
