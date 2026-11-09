@@ -29,6 +29,10 @@ var _keeper: CampPerson
 var _player: Node3D
 var _lit := 0
 var _doused := 0
+## When each log went on (game seconds), read off the fire's strength jumping.
+var _log_times: Array[float] = []
+var _last_strength := 0.0
+var _clock := 0.0
 
 
 func _ready() -> void:
@@ -42,6 +46,13 @@ func _ready() -> void:
 	_run.call_deferred()
 
 
+func _physics_process(delta: float) -> void:
+	_clock += delta
+	if _fire.strength > _last_strength + CampFire.LOG_ADDS * 0.5:
+		_log_times.append(_clock)
+	_last_strength = _fire.strength
+
+
 func _run() -> void:
 	# Out of everyone's way while the keeper builds it.
 	_player.place(Vector3(20.0, 0.02, 6.5))
@@ -49,6 +60,7 @@ func _run() -> void:
 	_check("Start: the cycle on, the fire out", "true 0.00", "%s %.2f" % [_fire.cycle, _fire.strength])
 	_check("Start: no flames, no light", "false 0.00", "%s %.2f" % [_flames_showing(), _camp._fire_light.light_energy])
 	_check("Start: the bucket doesn't twinkle with the fire out", true, _fire._glint.get_meta("found"))
+	_check("Start: no circle of sight with the fire out", false, _fire.eyes.showing())
 	await _until(func() -> bool: return _keeper.state == S.TEND, 2.0)
 	_check("The keeper sets off to tend it on his own", "TEND", S.keys()[_keeper.state])
 
@@ -59,6 +71,11 @@ func _run() -> void:
 	await _until(func() -> bool: return _keeper.state != S.TEND, 60.0)
 	_check("He builds it up, then goes back to his routine", "true true",
 		"%s %s" % [_fire.strength >= CampFire.FEED_TO - CampFire.LOG_ADDS, _keeper.state in [S.RETURN, S.WORK]])
+	# The woodpile is far enough that a log takes him about 8 s (the author, 8 Nov 2026):
+	# from one log going on to the next, while he builds it up.
+	_check("A log takes him about 8 s (between the 2nd and 3rd)", true,
+		_log_times.size() >= 3 and absf(_log_times[2] - _log_times[1] - 8.0) <= 1.5)
+	print("log times: ", _log_times)
 	var before := _fire.strength
 	await _wait(5.0)
 	_check("It burns down slowly unfed", true, _fire.strength < before and _fire.strength > before - 0.1)
@@ -80,6 +97,37 @@ func _run() -> void:
 	_player.place(Vector3(20.0, 0.02, 6.5))
 	_camp.cones_on = true
 	await _wait(0.2)
+
+	# The circle of sight (camp_fire.gd `_watch`). The campers are frozen, their nodes
+	# stopped as the tutorial does, so only the circle can spot him.
+	for person in _camp.people:
+		person.process_mode = Node.PROCESS_MODE_DISABLED
+	await _wait(0.1)
+	_check("Burning: the circle shows, as far as the firelight", "true true", "%s %s" % [_fire.eyes.showing(),
+		absf(_fire.eyes.reach - _camp._fire_light.omni_range * _camp.FIRELIGHT) < 0.01])
+	var inside := _fire.global_position + Vector3(-0.2, 0.02, 2.6)
+	var unspotted := _fire.spotted_at
+	_player.place(inside)
+	Input.action_press("sneak")
+	Input.action_press("move_left")
+	await _wait(0.6)
+	# Stopped before standing up: still sliding upright would count as moving.
+	Input.action_release("move_left")
+	await _wait(0.4)
+	Input.action_release("sneak")
+	_check("In the circle, crouching and moving: not spotted", true, _fire.spotted_at == unspotted)
+	_player.place(inside)
+	await _wait(0.6)
+	_check("In the circle, standing still: not spotted", true, _fire.spotted_at == unspotted)
+	Input.action_press("move_left")
+	await _until(func() -> bool: return _fire.spotted_at > unspotted, 2.0)
+	Input.action_release("move_left")
+	_check("In the circle, walking upright: spotted, the nearest camper alerted", "true true",
+		"%s %s" % [_fire.spotted_at > unspotted, _camp.people.any(func(p) -> bool: return p.state == S.STARTLED)])
+	for person in _camp.people:
+		person.process_mode = Node.PROCESS_MODE_INHERIT
+	_player.place(Vector3(20.0, 0.02, 6.5))
+	await _until(func() -> bool: return _camp.people.all(func(p) -> bool: return p.state in [S.WORK, S.TEND]), 60.0)
 
 	# The bucket, with the campers blind to him (above).
 	_camp.cones_on = false

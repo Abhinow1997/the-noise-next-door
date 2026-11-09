@@ -18,6 +18,14 @@ extends Node3D
 ##     (interactable.gd) noses it over: the water floods the pit with a hiss the campers
 ##     hear (campsite.gd `noise`), and the fire goes out in DOUSE_TIME. The keeper, once
 ##     he's calm, sets the bucket back up and builds the fire again.
+##   - Its circle of sight (8 Nov 2026, the author: "the firepit and the surrounding campsite
+##     when the fire is lit should have the vision cone in circle ... where if the raccon runs
+##     or walks he gets spotted"): while it burns in the open world, a vision cone all the way
+##     round (vision_cone.gd, angle 360, drawn on the ground in the cones' own shader) covers
+##     its light (campsite.gd `in_firelight`'s reach), shrinking as it burns down. Moving in it
+##     without crouching, he's spotted: the nearest calm camper is alerted to him (camp_person.gd
+##     `alert`), and the circle turns red for the cones' RED_TIME. Crouching, or keeping still,
+##     he isn't. Hidden in the bush, it can't see him.
 ## No task on the list and no note: the author asked for no direct hint.
 ## In the checks that skip the tutorial its cycle is off, so the fire burns as before.
 
@@ -25,6 +33,7 @@ const LowPoly := preload("res://scripts/lowpoly.gd")
 const Forest := preload("res://scripts/forest.gd")
 const Interactable := preload("res://scripts/interactable.gd")
 const CampPerson := preload("res://scripts/camp_person.gd")
+const VisionCone := preload("res://scripts/vision_cone.gd")
 
 signal lit
 signal doused
@@ -40,9 +49,11 @@ const FEED_TO := 0.85
 ## Lit from cold, it flares up for this long; doused, it goes out in this long.
 const FLARE_TIME := 0.7
 const DOUSE_TIME := 0.5
-## From the fire (x, z): the woodpile, a little way off in the camp, and the bucket, to
-## one side of the pit as the camera sees it, so its twinkle isn't lost in the flames.
-const WOODPILE := Vector2(3.0, 1.6)
+## From the fire (x, z): the woodpile, a little way off in the camp (far enough that a log
+## takes the keeper about 8 s, the author asked on 8 Nov 2026; it was at (3.0, 1.6)), and
+## the bucket, to one side of the pit as the camera sees it, so its twinkle isn't lost in
+## the flames.
+const WOODPILE := Vector2(4.1, 2.2)
 const BUCKET := Vector2(-1.15, 1.25)
 ## Tipping the bucket: how long E is held, how far that's heard, and how far the hiss.
 const TIP_TIME := 1.0
@@ -50,6 +61,12 @@ const TIP_NOISE := 2.0
 const HISS := 9.0
 ## The bucket twinkles within this many metres.
 const GLINT_RANGE := 3.0
+## The circle's eyes: how high over the pit they look from, how fast he must be going to
+## count as moving (m/s; he sneaks at 1, walks at 2), and how long after the camp last saw
+## him before it can spot him again.
+const SIGHT_HEIGHT := 1.6
+const MOVING := 0.3
+const SPOT_AGAIN := 3.0
 const BUCKET_TIN := Color("8a9aa3")
 const BUCKET_RIM := Color("5f6d75")
 const WATER := Color("2f4d63")
@@ -72,11 +89,23 @@ var _bucket_mesh: Node3D
 var _wet: MeshInstance3D
 var _glint: Node3D
 var _tip: Interactable
+## The circle of sight, and when it last spotted him (camp clock).
+var eyes: VisionCone
+var spotted_at := -INF
 
 
 func _ready() -> void:
 	_build_woodpile()
 	_build_bucket()
+	eyes = VisionCone.new()
+	eyes.angle = 360.0
+	eyes.reach = 6.4
+	eyes.driven = true
+	eyes.position = Vector3(0, SIGHT_HEIGHT, 0)
+	add_child(eyes)
+	# Not one of the watchers the alert bubble follows (thought_bubbles.gd): it sees him
+	# crouching too, and only spots him moving upright (_watch).
+	eyes.remove_from_group("watcher")
 
 
 ## As he steals the roasted marshmallow (camp_tutorial.gd): nobody tends it now.
@@ -151,9 +180,43 @@ func _physics_process(delta: float) -> void:
 	elif cycle:
 		strength = move_toward(strength, 0.0, delta * BURN)
 	_glint.set_meta("found", not can_tip())
+	_watch()
 	var keeper = camp.keeper if camp else null
 	if keeper and keeper.state == CampPerson.State.WORK and needs_tending():
 		keeper.tend(self)
+
+
+## True while the circle of sight is up: burning in the open world, the cones on.
+func watching() -> bool:
+	return cycle and burning() and camp != null and camp.cones_on
+
+
+## The circle of sight: as far as the firelight reaches; moving in it upright, he's spotted.
+func _watch() -> void:
+	var on := watching()
+	eyes.blind = not on
+	eyes.show_on_ground(on)
+	if camp == null or camp._fire_light == null:
+		return
+	eyes.reach = maxf(camp._fire_light.omni_range * camp.FIRELIGHT, 0.1)
+	var red: bool = camp.clock < spotted_at + VisionCone.RED_TIME + VisionCone.FADE_OUT
+	eyes.set_look(1.0 if red else 0.0, 1.0)
+	var player = eyes.target
+	if not on or player == null or not eyes.seeing or player.sneaking:
+		return
+	if Vector2(player.velocity.x, player.velocity.z).length() < MOVING or camp.seen_within(SPOT_AGAIN):
+		return
+	var nearest = null
+	for person in camp.people:
+		if person.state in [CampPerson.State.WORK, CampPerson.State.RETURN, CampPerson.State.TEND,
+				CampPerson.State.PITCH, CampPerson.State.FIX] and (nearest == null
+				or person.global_position.distance_to(player.global_position)
+				< nearest.global_position.distance_to(player.global_position)):
+			nearest = person
+	spotted_at = camp.clock
+	camp.saw(player.global_position)
+	if nearest:
+		nearest.alert()
 
 
 ## Held E at the bucket (or a fixture, such as a preview): over it goes, toward the pit.
@@ -185,12 +248,8 @@ func _build_woodpile() -> void:
 				func(segment: int, _side: int, _n: Vector3) -> Color: return Forest.WOOD if segment != 0 else Forest.LOG)
 			st.append_from(log, 0, Transform3D.IDENTITY)
 	_add_mesh(LowPoly.commit(st), woodpile)
-	var col := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = Vector3(0.5, 0.28, 0.86)
-	col.shape = shape
-	col.position = Vector3(0, 0.14, 0)
-	woodpile.add_child(col)
+	# No collider: low enough to step over, and solid it rerouted the campers' walks round
+	# the camp, which the camp check times (it failed with the pile at its farther place).
 
 
 func _build_bucket() -> void:

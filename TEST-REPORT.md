@@ -1320,3 +1320,24 @@ Each block is 200 frames.
 - the Visual Profiler itself, if the course wants its readout;
 - FPS with vsync off (F9);
 - the AMD Radeon 740M.
+
+### The fire's circle of sight, and the woodpile further off (8 Nov 2026)
+
+This is game work. The author asked: "make the logs further away from the pit it should take the npc around 8 seconds to put the logs in", and "the firepit and the surrounding campsite when the fire is lit should have the vision cone in circle like i mentioned where if the raccon runs or walks he gets spotted".
+- **The woodpile** moved from 3.4 m to about 4.7 m from the pit (`WOODPILE` in `scripts/camp_fire.gd`). The keeper now puts a log on every 8.0 s while he builds the fire, read off the fire's strength in the fire check.
+  - The pile is now walk-through. At its farther place, solid, it rerouted the campers' walks round the camp, and the camp check failed two timing checks ("Calm again: all three back at their routines", and the men reaching a tree's foot). Without a collider it passes 31 of 31 again.
+- **The circle of sight** (`_watch` in `scripts/camp_fire.gd`): while the fire burns in the open world, a vision cone all the way round (`scripts/vision_cone.gd` at angle 360, drawn in the cones' own shader, unchanged) covers the firelight's reach, 6.4 m at full and shrinking as it burns down.
+  - **Moving upright inside it** (walking or running): he's spotted. The circle turns red for the cones' red time, and the nearest calm camper is alerted to him.
+  - **Crouching, or keeping still:** he isn't.
+  - **Hidden in the bush, or behind something solid:** it can't see him.
+  - **The alert bubble:** it isn't one of the watchers the "!" follows, so seeing him crouched doesn't pop it.
+  - **The tutorial:** the cycle is off there, so the circle doesn't show.
+
+Logs: [logs/a6-fire-circle/](logs/a6-fire-circle/), on the working tree over `cf9b7c3`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| The campfire (`--fire-test 60`) | Pass, 23 of 23 | Six checks added: no circle with the fire out; "A log takes him about 8 s (between the 2nd and 3rd)", 7.97 s; the circle shown as far as the firelight while it burns; in the circle, crouching and moving, not spotted; standing still, not spotted; walking upright, spotted, with the nearest camper alerted. For the circle the campers are frozen, as the tutorial does, so only the circle can spot him. |
+| Every other check in CLAUDE.md's list, and Effect B's | The recorded counts, waves and title failing only their recorded check at 60 fps; tent 16, Effect A's state 37, the smoke 20 and 8 | No |
+
+**Looked at in a window** (a scratch script, not in the repo): the circle reads clearly, a pale yellow disc of firelight round the pit like the campers' cones, turning red as he walks upright in it. At full size it washes most of the camp in yellow.
