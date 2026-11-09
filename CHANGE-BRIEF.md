@@ -326,3 +326,13 @@ Step 3's plan for Effect B (a `claude -p` session, `design/a6/session-6.jsonl`) 
 - **Hidden:** while the smoke is hidden, `amount_ratio` keeps following `strength`, so there's no jump when it's shown again. This replaces the rule above that hidden means `amount_ratio` doesn't change; its settings still don't.
 
 (Picked by me on 8 Nov 2026 from Claude Code's recommendations, "Approve all three": the hidden rule, this revision on record for the wiring, and the preview's line. The rest of the plan is the session's.)
+
+---
+
+### Revised 8 Nov 2026: Effect B's smoke is fainter (tuning r1)
+
+- **`color_ramp`:** alpha 0 → **0.25** at 15% → 0; it was 0.45. The colours, the stops and the linear blend stay as they were. At 0.45 the unshaded puffs stacked up into a glowing, near-white cloud over the pit; at 0.25 they read as a see-through grey haze, still lighter than the night grass.
+- **The intent's contrast line** ("at low alpha (at most 0.45)") still holds; the change of life's "alpha 0 → 0.45 at 15% → 0" is now 0.25. The settings table above keeps the first value, as the original text stays; this revision replaces it. The scene (`effects/campfire_smoke.tscn`) and the configuration test have the new value.
+- **Known cost:** the column's top half is now too faint to see, so it reads about half as tall as the intent's 2 m (TUNING.md, Effect B r1).
+
+(Kept by me on 8 Nov 2026 after play at 1280 × 720, from Claude Code's proposal in Step 4 for Effect B: TUNING.md, revision r1.)

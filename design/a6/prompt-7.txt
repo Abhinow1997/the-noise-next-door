@@ -1,0 +1,18 @@
+Read CLAUDE.md first. Effect B's intent is in CHANGE-BRIEF.md (its dated
+revisions of 8 Nov 2026). The current frame strip is in
+captures/campfire_smoke/r0/, and the frames to read are listed in the
+brief. What I saw in the running game (the preview, windowed at 1280 x
+720, which is the real level on the real renderer, and in play):
+
+The smoke is like filament, and it's like glowing. When the fire is up, I can see it; I saw it in the preview window, and in the gameplay as well. And it looks visibly well lit. Also, if we can update a little bit of the surrounding area with light, that will be a good indicator. At this point, it's just glow on the smoke, but if we can maybe increase the light or visibility of it, that can also play an effect in the gameplay: if the surrounding is a bit well lit, the area in which the NPCs can spot should be affected, and higher. So that is one input that I can see.
+
+Read those frames and say how they compare to the intent, frame by
+frame. Then propose one change to one setting (a curve or colour ramp
+counts as one setting). Before editing, give the setting, its old and
+new value, and what each frame of the strip should look like
+afterward. Do not edit yet.
+
+After I approve, make only that change in the effect's scene file,
+update the configuration test's expected value to match, run the
+configuration test with bash scripts/run-test.sh at 60, and stop so I can
+recapture. Do not commit.

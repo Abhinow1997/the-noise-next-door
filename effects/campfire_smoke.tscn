@@ -9,11 +9,11 @@
 ; 1.0 in the scene and amount never changes. No fixed seed here: the preview sets one on
 ; its own instance only. Written by Claude Code, 8 Nov 2026.
 
-; color_ramp: alpha 0 -> 0.45 at 15% of the life -> 0; colour warm grey #9b938a -> blue-grey
+; color_ramp: alpha 0 -> 0.25 at 15% of the life -> 0; colour warm grey #9b938a -> blue-grey
 ; #6f7a85 over the life (the 15% stop is that blend at 0.15, so the colour change is even).
 [sub_resource type="Gradient" id="Gradient_smoke_ramp"]
 offsets = PackedFloat32Array(0, 0.15, 1)
-colors = PackedColorArray(0.607843, 0.576471, 0.541176, 0, 0.581961, 0.561765, 0.538235, 0.45, 0.435294, 0.478431, 0.521569, 0)
+colors = PackedColorArray(0.607843, 0.576471, 0.541176, 0, 0.581961, 0.561765, 0.538235, 0.25, 0.435294, 0.478431, 0.521569, 0)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_smoke_ramp"]
 gradient = SubResource("Gradient_smoke_ramp")

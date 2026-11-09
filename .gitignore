@@ -36,3 +36,7 @@ desktop.ini
 # Effect B, Step 3's build transcript: 1.2 MB, over the 1 MB; its excerpt, session-6-build-excerpt.jsonl,
 # records its size and SHA-256 in its first line.
 /design/a6/session-6-build.jsonl
+# Effect B, Step 4's proposal and comparison transcripts: 4.0 and 3.9 MB (the frames they read); their
+# excerpts, session-7-excerpt.jsonl and session-7-compare-excerpt.jsonl, record each one's size and SHA-256.
+/design/a6/session-7.jsonl
+/design/a6/session-7-compare.jsonl

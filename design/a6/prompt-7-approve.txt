@@ -1,0 +1,6 @@
+Approved: color_ramp, the 15% stop's alpha 0.45 to 0.25; the stops,
+colours and interpolation stay as they are.
+Make only that change in effects/campfire_smoke.tscn, update the
+configuration test's expected value to match, run the configuration
+test with bash scripts/run-test.sh at 60, show the real output, and
+stop so I can recapture. Do not commit.

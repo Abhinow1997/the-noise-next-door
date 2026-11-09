@@ -33,8 +33,8 @@ const AABB_SIZE := Vector3(3, 4, 3)
 ## scale_curve: 0.4 -> 1.6 over the life.
 const SCALE_FROM := 0.4
 const SCALE_TO := 1.6
-## color_ramp: alpha 0 -> 0.45 at 15% -> 0; warm grey -> blue-grey.
-const ALPHA := [[0.0, 0.0], [0.15, 0.45], [1.0, 0.0]]
+## color_ramp: alpha 0 -> 0.25 at 15% -> 0; warm grey -> blue-grey.
+const ALPHA := [[0.0, 0.0], [0.15, 0.25], [1.0, 0.0]]
 const WARM := Color("9b938a")
 const COOL := Color("6f7a85")
 
@@ -135,7 +135,7 @@ func _check_scale_curve(m: ParticleProcessMaterial) -> void:
 		absf(mid - (SCALE_FROM + SCALE_TO) / 2.0) < 0.01)
 
 
-## color_ramp: alpha 0 -> 0.45 at 15% -> 0, linear; warm grey at the start, blue-grey at
+## color_ramp: alpha 0 -> 0.25 at 15% -> 0, linear; warm grey at the start, blue-grey at
 ## the end, and in between at 15%.
 func _check_color_ramp(m: ParticleProcessMaterial) -> void:
 	var t := m.color_ramp as GradientTexture1D

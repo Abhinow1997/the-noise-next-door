@@ -105,3 +105,44 @@ Read after the verdict above was written. The strip is `captures/campfire_smoke/
 - It reads as a cloud hanging over the pit more than a rising column. The puffs start only 0.35 m up, rise slowly (gravity 0.12, with damping) and spread, so they pool at about head height.
 - **About the surrounding light:** that's the fire's own light (`scripts/campsite.gd`), game code outside the effect. Where he's seen further already follows that light's reach: 0.8 of it, about 6.4 m at full. So a bigger, brighter lit area would change the fire's light, not the smoke's settings.
 - **About the fixture:** the preview doesn't place the raccoon, so his bored thought shows up in frame 160. The campers react to the douse's hiss in frames 110 and 160. Neither is part of the effect.
+
+
+## 8 Nov 2026 — Effect B, revision r1
+
+**What I saw** (the preview, `previews/campfire_smoke_preview.tscn`, windowed at 1280 × 720, and in play): my r0 verdict above. The part this revision answers: "The smoke is like filament, and it's like glowing ... it looks visibly well lit." (The rest of that paragraph, lighting the area round the fire, is game code and outside the effect.)
+
+**Claude's reading of r0** (a read-only `claude -p` session, 8 Nov 2026: `design/a6/prompt-7.txt`, `design/a6/session-7.jsonl`):
+- **Frame 10:** a cold pit, no smoke: the logs go on that frame, so emission starts after it's drawn.
+- **Frame 25:** only a faint pale haze, about right for 0.5 s.
+- **Frame 55:** the shape's right, but the wisps are too bright: they read as glowing, not as haze.
+- **Frame 100:** the base reads as a solid lit cloud, against the intent's "a soft haze, not a solid column".
+- **Frame 110:** the brightest frame, a big white cloud on the pit: partly the douse taking 0.5 s, partly the same brightness.
+- **Frame 160:** faint, nothing new at the pit. Matches.
+- **Why it glows:** the material is unshaded, so the night doesn't darken it, and where the 0.45-alpha puffs overlap they build up nearly to the full warm grey.
+
+**Change:** `color_ramp`, the 15% stop's alpha, 0.45 → 0.25 (the stops, colours and interpolation unchanged), approved by me ("Approve r1", 8 Nov 2026). The same session made it, with the configuration test's expected value (`design/a6/prompt-7-approve.txt`, `design/a6/session-7-change.jsonl`). The configuration test passed (`logs/a6-smoke-r1/r1_config_60fps.log`).
+
+**Claude's prediction for r1** (before the change):
+
+| Frame | Predicted |
+|---|---|
+| 10 | Unchanged: a cold pit, no smoke |
+| 25 | Only a hint of haze above the flame tip |
+| 55 | Thin, see-through grey wisps; no white core over the flame |
+| 100 | The same column shape and height, as a soft see-through grey haze |
+| 110 | Still a cloud low at the pit, but grey haze, not a bright white mass |
+| 160 | The last puffs barely visible; they might disappear |
+
+**Claude's comparison of r1 with its prediction** (8 Nov 2026: `design/a6/prompt-7-compare.txt`, `design/a6/session-7-compare.jsonl`; by eye: a pixel-measuring script it wrote wasn't allowed to run):
+- **Matches:** frames 10, 25, 55 and 160. The glowing, near-white core of frames 55–110 is gone, and the smoke reads as grey haze.
+- **Frame 100, partly:** the base is the soft haze predicted, but the column reads about half as tall. Its own miss: lowering the peak lowers the whole fade after it, so puffs past the middle of their life (the top of the column) fall below what shows against the dark grass. r0 overshot the intent at the bottom; r1 falls short at the top.
+- **Frame 110, partly:** dimmer than r0's white mass, but still a cloud more than a haze. That comes from the 0.5 s douse (the fire's still at about 0.2 and smoking) and the darker ground once the flames shrink, not from the alpha.
+- **Next, if wanted:** the shape of the alpha fade, not its peak.
+
+**Claude Code's check of that comparison** (8 Nov 2026): frames 55, 100 and 110 of r0 and r1 side by side. Both strips have the same background and seed, so the puffs match one for one. In r1 they're see-through: the ground and the dancer's shadow show through them at 100 and 110, the near-white mass is gone, and the upper puffs are fainter. The comparison holds.
+
+**My verdict** (running game, 1280 × 720): kept, because <in my own words>
+
+**Strips** (fixture captures): `captures/campfire_smoke/r0/`, `captures/campfire_smoke/r1/`
+
+**Commits:**
