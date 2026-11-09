@@ -22,8 +22,12 @@ extends CharacterBody3D
 ##     (`run`), slower than he runs but faster than he walks. One who gets to him stamps
 ##     and shoos (`shoo`): he leaps away (player.gd startle); if he's carrying one of the
 ##     camp's things, it's snatched back (`take_away`, TAKE) and its puzzle reset (the
-##     GDD: "the humans take it back" and "the puzzle resets"). Up a tree, they shoo at
-##     the foot of it a while, then give up.
+##     GDD). Since 8 Nov 2026 (the author: "when caught if he has anything in the mouth he
+##     drops it and the humans pick it back and get it back to the camp reseting the
+##     thing"), caught, he drops whatever he has; if it's theirs, the one who caught him
+##     walks to it, picks it up, carries it home and puts it back, and only then does its
+##     puzzle reset. Should he grab it again first, they're after him. Up a tree, they
+##     shoo at the foot of it a while, then give up.
 ##   - When the music's plug is pulled, the low-poly man goes to find the plug and puts
 ##     it back (FIX).
 ##   - In the open world, since 8 Nov 2026, the fire keeper tends the fire (TEND,
@@ -182,6 +186,9 @@ var _plug: Node3D
 ## Tending the fire: the fire (camp_fire.gd), where he's got to, and the log in his hand.
 var _fire
 var _tend_stage := 0
+## Taking something of theirs home: the thing, and where they've got to.
+var _take_item: Node3D
+var _take_stage := 0
 var _log: Node3D
 ## Pitching his tent again: the tent (camp_tent.gd), and the peg he's going to.
 var _tent
@@ -300,13 +307,7 @@ func _physics_process(delta: float) -> void:
 				else:
 					_to_state(State.SEARCH)
 		State.TAKE:
-			_play("take_away", 1.0, 0.15)
-			_face(camp.last_seen_at, delta)
-			if _t >= TAKE_TIME:
-				var item := carrying
-				_let_go()
-				camp.take_back(item)
-				_to_state(State.SEARCH)
+			_take(delta)
 		State.RETURN:
 			_return(delta)
 		State.FLEE:
@@ -371,6 +372,25 @@ func alert() -> void:
 	_startle(true)
 
 
+## The tutorial (camp_tutorial.gd), as he's caught stealing the roasted marshmallow: the
+## chase is forced. A man goes straight after him, with no flinch first, having spotted him;
+## the girl takes fright as she does on spotting him.
+func chase_now() -> void:
+	if player == null:
+		return
+	camp.saw(player.global_position)
+	if role == "girl":
+		_startle(true)
+		return
+	chase_next = false
+	_fright_at = INF
+	_fright_seen = camp.clock
+	_alarmed_at = camp.clock
+	camp.frighten()
+	camp.spot(self)
+	_to_state(State.CHASE)
+
+
 ## The tutorial (camp_tutorial.gd), as he dives into the bush: whoever's after him or
 ## frightened is confused where they stand ("??", SEARCH), looks about, and goes back to
 ## work, without coming to look. The author, 7 Nov 2026: "when the player jumps in the
@@ -395,6 +415,50 @@ func fix(plug: Node3D) -> void:
 		_plug = plug
 		_fix_stage = 0
 		_to_state(State.FIX)
+
+
+## Taking it home: to where he dropped it, down for it, home with it in hand, and down to
+## put it back, when its puzzle resets (camp_puzzles.gd `take_back`). If he's got it again
+## before they reach it, they're after him.
+func _take(delta: float) -> void:
+	var item := _take_item
+	if item == null or not is_instance_valid(item):
+		_to_state(State.SEARCH)
+		return
+	match _take_stage:
+		0:
+			if item == player.held:
+				camp.saw(player.global_position)
+				_to_state(State.CHASE)
+				return
+			if _flat(item.global_position - global_position).length() > 0.6:
+				_go(item.global_position, WALK * 1.4, delta, "walk", WALK * 1.4 / walk_natural)
+			else:
+				_take_stage = 1
+				_fix_t = 0.0
+		1:
+			_play("bend", 1.0, 0.15)
+			_face(item.global_position, delta)
+			_fix_t += delta
+			if _fix_t >= FIX_BEND:
+				_hold(item)
+				_take_stage = 2
+		2:
+			var home: Vector3 = camp.home_of(item)
+			if _flat(home - global_position).length() > 0.9:
+				_go(home, WALK * 1.2, delta, "walk", WALK * 1.2 / walk_natural)
+			else:
+				_take_stage = 3
+				_fix_t = 0.0
+		3:
+			_play("bend", 1.0, 0.15)
+			_face(camp.home_of(item), delta)
+			_fix_t += delta
+			if _fix_t >= FIX_BEND:
+				_let_go()
+				_take_item = null
+				camp.take_back(item)
+				_to_state(State.RETURN)
 
 
 ## Goes to tend the fire (camp_fire.gd), if they're at their routine: the bucket first,
@@ -621,10 +685,13 @@ func _chase(delta: float) -> void:
 			and not VisionCone.hidden(player):
 		_treed = false
 		var item: Node3D = player.held
-		if item and item.has_meta("camp_loot"):
-			# Caught with something of theirs: they snatch it back.
+		# Caught, he drops whatever's in his mouth (the author, 8 Nov 2026).
+		if item:
 			player._drop()
-			_hold(item)
+		if item and item.has_meta("camp_loot"):
+			# Something of theirs: they pick it up and take it home (_take).
+			_take_item = item
+			_take_stage = 0
 			player.startle(global_position)
 			_to_state(State.TAKE)
 		else:

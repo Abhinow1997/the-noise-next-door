@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+log times: [12.6500000000002, 20.6166666666668, 28.583333333333, 36.5499999999992]
+
+Campfire check, 2026-11-08T19:16:37
+  pass  Start: the cycle on, the fire out                            expected true 0.00      got true 0.00
+  pass  Start: no flames, no light                                   expected false 0.00     got false 0.00
+  pass  Start: the bucket doesn't twinkle with the fire out          expected true           got true
+  pass  Start: no circle of sight with the fire out                  expected false          got false
+  pass  The keeper sets off to tend it on his own                    expected TEND           got TEND
+  pass  He lights it: lit once, flaring                              expected 1 true         got 1 true
+  pass  Lit: flames and light                                        expected true true      got true true
+  pass  He builds it up, then goes back to his routine               expected true true      got true true
+  pass  A log takes him about 8 s (between the 2nd and 3rd)          expected true           got true
+  pass  It burns down slowly unfed                                   expected true           got true
+  pass  In the firelight, standing: seen half as far again           expected true 1.50      got true 1.50
+  pass  In it, crouching: only as far as while sneaking              expected 0.55           got 0.55
+  pass  Burning: the circle shows, as far as the firelight           expected true true      got true true
+  pass  In the circle, crouching and moving: not spotted             expected true           got true
+  pass  In the circle, standing still: not spotted                   expected true           got true
+  pass  In the circle, walking upright: spotted, the nearest camper alerted expected true true      got true true
+  pass  Near the bucket, it twinkles                                 expected true           got true
+  pass  Holding E tips it over: doused once                          expected 1 true         got 1 true
+  pass  The fire's out, the flames gone                              expected 0.00 false     got 0.00 false
+  pass  The bucket's over: no twinkle                                expected true           got true
+  pass  The hiss is heard: someone stops to wonder                   expected true           got true
+  pass  The keeper sets the bucket back up                           expected false TEND     got false TEND
+  pass  And lights it again                                          expected 2              got 2
+RESULT: all checks passed (23 checks)

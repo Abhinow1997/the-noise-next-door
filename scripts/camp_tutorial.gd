@@ -73,7 +73,9 @@ const SLOW := 0.15
 const SLOW_IN := 0.5
 ## The pan: what it shows, with its words; how long on each (real seconds); how wide
 ## each is lit, and how dark the rest.
-const PAN := [["campers", "The campers"], ["backpack", "Marshmallows"], ["cooler", "The cooler"]]
+## The author's words on 8 Nov 2026: "pan on the humans and then just the food and then the
+## laugh ... 1. Humans 2. Food 3. Food"; and every hint 5 words at most.
+const PAN := [["campers", "Humans"], ["backpack", "Food"], ["cooler", "Food"]]
 const PAN_DWELL := 1.4
 const PAN_RADIUS := 210.0
 const PAN_DARK := 0.55
@@ -379,8 +381,9 @@ func _on_served() -> void:
 	stage = "grab"
 
 
-## He's taken it: they come to, the camper turned to the plate spots him, the others
-## catch the fright, and the men chase him.
+## He's taken it: they come to, and the chase is forced (the author, 8 Nov 2026: "after he
+## has been caught stealing the marshmallows force the chase"): every man goes straight after
+## him, no flinch first, and the girl takes fright (camp_person.gd `chase_now`).
 func _on_taken() -> void:
 	if step != Step.INTRO or stage != "grab":
 		return
@@ -389,8 +392,7 @@ func _on_taken() -> void:
 	if level.get("bubbles"):
 		level.bubbles.clear("hungry")
 	for person in campsite.people:
-		person.chase_next = true
-	campsite.camper.alert()
+		person.chase_now()
 	# Nobody tends the fire through the chase: it dies, and the open world opens on a
 	# cold pit that the keeper builds up again (camp_fire.gd, the author, 8 Nov 2026).
 	if campsite.campfire:

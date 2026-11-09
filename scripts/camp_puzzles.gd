@@ -180,6 +180,21 @@ func put_down(item: RigidBody3D, at: Vector3) -> void:
 	item.reset_physics_interpolation()
 
 
+## Where a thing of theirs belongs, for carrying it home (camp_person.gd TAKE): the bag at
+## the backpack, the sausages at the cooler.
+func home_of(item: Node3D) -> Vector3:
+	if item == bag and _backpack:
+		return _backpack.global_position
+	if item == sausages and cooler:
+		return cooler.global_position
+	return fire_point()
+
+
+## The fire's place, for anything else of theirs.
+func fire_point() -> Vector3:
+	return Vector3(fire.x, 0.0, fire.y)
+
+
 ## Snatched back from him (camp_person.gd TAKE): it goes home and its puzzle resets.
 func take_back(item: RigidBody3D) -> void:
 	if item.get_parent() != camp:

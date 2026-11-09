@@ -121,7 +121,10 @@ func _run() -> void:
 	_check("Caught with the bag: it's out of his mouth", false, _player.held == _puzzles.bag)
 	await _wait(1.2)
 	_shot("01_caught_with_the_bag_snatched_back_by-claude")
-	await _wait(2.3)
+	# Since 8 Nov 2026 the bag's dropped and carried home before its puzzle resets, so the
+	# check waits for that rather than a fixed 2.3 s; the expected values are the same.
+	_player.place(AWAY)
+	await _until(func() -> bool: return not _puzzles._unzipped, 20.0)
 	_check("Caught: the backpack's zipped up again", false, _puzzles._unzipped)
 	_check("Caught: the bag's back inside", false, _puzzles.bag.visible)
 	_check("Caught: the task's still to do", false, level.tasks.is_done("marshmallows"))

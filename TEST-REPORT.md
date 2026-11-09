@@ -1341,3 +1341,50 @@ Logs: [logs/a6-fire-circle/](logs/a6-fire-circle/), on the working tree over `cf
 | Every other check in CLAUDE.md's list, and Effect B's | The recorded counts, waves and title failing only their recorded check at 60 fps; tent 16, Effect A's state 37, the smoke 20 and 8 | No |
 
 **Looked at in a window** (a scratch script, not in the repo): the circle reads clearly, a pale yellow disc of firelight round the pit like the campers' cones, turning red as he walks upright in it. At full size it washes most of the camp in yellow.
+
+### The props by the home pine, and a plainer TO DO list (8 Nov 2026)
+
+This is game work. The author asked: "remove all the bins and the small boxes near the house tree", and "in the tab plan there is too much words in the hints remove them also remove the rock the party section just normal listing of the tasks also reduce the font size for them".
+- **By the home pine:** the trash bin, its lid and the seven cans round it are gone (`scripts/main.gd`, `_build_props`). The gnome and the stump stay. Only the bubble demo's yard still builds them, because its check has him face the bin for the hungry thought. A window picture there shows the bench and bushes with no bin or cans, and the game counts 0 of each.
+- **The TO DO list on Tab** (`scripts/plan_note.gd`):
+  - no hints under the list (hovering still marks a task in chalk);
+  - no main task, Rock the party, on the page or on a scrap at the bottom;
+  - its tasks listed plainly, without an indent;
+  - the writing at 40 (it was 50), with the paw by the key task at 38 (it was 48).
+
+  The tasks themselves (`scripts/camp_tasks.gd`) are unchanged, so the checks that read the list keep their expected values. A window picture shows the five tasks, one per line.
+
+Logs: [logs/a6-props-todo/](logs/a6-props-todo/), on the working tree over `a12f234`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Every check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19, tutorial 28; cones 43 and cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; both configuration tests clean; waves and title failing only their recorded check at 60 fps. No `SCRIPT ERROR`. | No |
+
+A first full run, started between the two changes, caught the tutorial check in the minute between two edits to `plan_note.gd`: one removed a constant before the next removed its last use, so it hit a parse error. That run was discarded; the run above is on the finished files.
+
+### The tutorial's pan and chase, hints of 5 words, and dropping what he's caught with (8 Nov 2026)
+
+This is game work. The author asked:
+- "for the campsites phase starting for things to pan on the humans and then just the food and then the laugh ... 1. Humans 2. Food 3. Food";
+- "after he has been caught stealing the marshmallows force the chase";
+- "for the hints it should be concise not more than 5 words remember anywhere";
+- "when caught if he has anything in the mouth he drops it and the humans pick it back and get it back to the camp reseting the thing".
+
+What changed:
+- **The pan** (`PAN` in `scripts/camp_tutorial.gd`): "Humans" on the campers, "Food" on the marshmallows, "Food" on the cooler; then the laugh, and the rest as before.
+- **The chase:** as he takes the roasted marshmallow, every man goes straight after him, with no flinch first, having spotted him. The girl takes fright (`chase_now` in `scripts/camp_person.gd`).
+- **Hints of 5 words at most, everywhere:**
+  - the task hints (`scripts/camp_tasks.gd`, which the list no longer shows), e.g. "Pull the plug, get away.";
+  - the wake prompt, "Move to wake up" (it was "Press W, A, S or D to wake up");
+  - the camera panel's "Copied." and a developer-menu label.
+
+  Every tutorial note was already 5 words or fewer. Claude Code keeps it as a standing rule.
+- **Caught with something in his mouth:** he drops it. If it's theirs (the marshmallow bag, the sausages), the one who caught him walks to it, picks it up, carries it home and puts it back, and only then does its puzzle reset (`_take` in `scripts/camp_person.gd`; `home_of` in `scripts/camp_puzzles.gd`). If he grabs it again first, they're after him. Before, they snatched it from his mouth and it went home at once. The tutorial's roasted marshmallow is held differently (`scripts/roast_plate.gd`), and he still keeps it when caught, as the tutorial's eating beat needs.
+
+Logs: [logs/a6-chase-drop/](logs/a6-chase-drop/), on the working tree over `a12f234`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Camp tasks (`--tasks-test 60`) | Pass, 43 of 43 | **How it measures:** after he's caught with the bag, it waits until the backpack's zipped up again, rather than a fixed 2.3 s, since the bag is now carried home first. The expected values are the same. |
+| Tutorial (`--tutorial-test 60`) | Pass, 28 of 28 | No: the pan's first word and the chase are read from the code's own constants and states |
+| Every other check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, plan 19; cones 43 and cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; sound and both configuration tests clean; waves and title failing only their recorded check at 60 fps. No `SCRIPT ERROR`. | No |

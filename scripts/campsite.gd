@@ -498,6 +498,10 @@ func take_back(item: RigidBody3D) -> void:
 	puzzles.take_back(item)
 
 
+func home_of(item: Node3D) -> Vector3:
+	return puzzles.home_of(item)
+
+
 func plug_in(item: RigidBody3D) -> void:
 	puzzles.plug_in(item)
 

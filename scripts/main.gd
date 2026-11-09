@@ -193,7 +193,7 @@ const WAKE_FADE := 1.5
 const LULLABY_FADE_IN := 2.5
 const WAKE_PROMPT_AFTER := 2.5
 const UI_FADE := 0.8
-const WAKE_PROMPT := "Press W, A, S or D to wake up"
+const WAKE_PROMPT := "Move to wake up"
 
 const INPUTS := {
 	"move_forward": [KEY_W, KEY_UP],
@@ -231,8 +231,10 @@ var camera_distance := CAMERA_DISTANCE
 var camera_ahead := CAMERA_AHEAD
 
 ## Level 1's to-do list (camp_tasks.gd), ticked off by the puzzles at the campsite.
-## The prototype's bin, lid, cans and gnome are still about to play with, and he can
-## still nap in his den, but none of them is a task any more.
+## The prototype's gnome is still about to play with, and he can still nap in his den, but
+## neither is a task any more. Its bin, lid and cans by the home pine went on 8 Nov 2026 (the
+## author: "remove all the bins and the small boxes near the house tree"); only the bubble
+## demo's yard still has them, for its check (bubble_test.gd faces the bin).
 var tasks := CampTasks.new()
 ## How many naps he's had in the hollow (not counting the one under the title).
 var naps := 0
@@ -458,7 +460,7 @@ func _ready() -> void:
 	if NIGHT:
 		add_child(NightLife.new())
 	_texture_ground()
-	_build_props()
+	_build_props(bubble_demo)
 	# The bubble demo's yard of stand-ins stands where the campsite does.
 	if not bubble_demo:
 		campsite = Campsite.new()
@@ -707,7 +709,7 @@ func _process(delta: float) -> void:
 			Input.action_release("move_forward")
 		elif _rest_test and _frames == 1:
 			player.rest(forest.rest_spot, forest.rest_exit)
-		elif _tick_test and _frames == 1:
+		elif _tick_test and _frames == 1 and bin:
 			bin.rotation = Vector3(PI / 2, 0, 0)
 			bin.reset_physics_interpolation()
 		elif _jump_test and _frames == 1:
@@ -1103,7 +1105,18 @@ func _build_environment() -> void:
 
 # --- Props -------------------------------------------------------------------
 
-func _build_props() -> void:
+## The bin, its lid and the cans only in the bubble demo's yard (above); the gnome and the
+## stump always.
+func _build_props(with_bin := false) -> void:
+	if with_bin:
+		_build_bin_and_cans()
+	gnome = _prop(forest.gnome_spot + Vector3(0, 0.01, 0), 0.6, _cylinder(0.1, 0.44), Vector3(0, 0.22, 0),
+		["grabbable", "gnome"], 0.1, Vector3(0, -0.36, -0.07), Vector3(0.15, 0, 0))
+	_build_gnome(gnome)
+	_build_stump()
+
+
+func _build_bin_and_cans() -> void:
 	var spot := forest.bin_spot
 	# Facing it up close, he thinks of food (thought_bubbles.gd).
 	bin = _prop(spot, 3.0, _cylinder(0.28, 0.76), Vector3(0, 0.38, 0), ["bin", "food"])
@@ -1139,11 +1152,6 @@ func _build_props() -> void:
 			[Vector2(0.055, 0.055), Vector2(0.06, 0.06), Vector2(0.06, 0.06), Vector2(0.055, 0.055)],
 			8, _can_color), Vector3.ZERO, can)
 		cans.append(can)
-
-	gnome = _prop(forest.gnome_spot + Vector3(0, 0.01, 0), 0.6, _cylinder(0.1, 0.44), Vector3(0, 0.22, 0),
-		["grabbable", "gnome"], 0.1, Vector3(0, -0.36, -0.07), Vector3(0.15, 0, 0))
-	_build_gnome(gnome)
-	_build_stump()
 
 
 ## The stump: a flat image that always faces the camera, a collider he walks round,

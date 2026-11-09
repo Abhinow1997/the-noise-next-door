@@ -26,15 +26,15 @@ signal ticked(id: String)
 
 var list: Array[Dictionary] = [
 	{"id": "investigate", "text": "Investigate the music", "done": false, "key": true,
-		"hint": "Follow the music's waves through the forest to the party."},
+		"hint": "Follow the music's waves."},
 	{"id": "party", "text": "Rock the party", "done": false, "main": true,
-		"hint": "Spoil their party: do the tasks under it."},
+		"hint": "Do the tasks below."},
 	{"id": "marshmallows", "text": "Steal the marshmallows", "done": false, "parent": "party",
-		"hint": "His backpack's on the log by the fire. Unzip it (hold E) while his back is turned, and take the bag home."},
+		"hint": "Unzip the backpack, take it."},
 	{"id": "music", "text": "Turn the music off", "done": false, "parent": "party",
-		"hint": "The plug's under the table. Tug it out with your teeth (hold E), then get away while they stand frozen."},
+		"hint": "Pull the plug, get away."},
 	{"id": "cooler", "text": "Raid the cooler", "done": false, "parent": "party",
-		"hint": "It's by the table. Nose the lid open (hold E), or wait for it to be left open, and take the sausages home."},
+		"hint": "Open it, take the sausages."},
 	# Added on 8 Nov 2026 (camp_tent.gd). No hint: the author, "don't give any additional
 	# details on it".
 	{"id": "tent", "text": "Dismantle the tent", "done": false, "parent": "party", "hint": ""},

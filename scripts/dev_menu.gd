@@ -13,7 +13,7 @@ extends CanvasLayer
 const CampPerson := preload("res://scripts/camp_person.gd")
 const POINTS := [
 	["den", "From the den (no title)"],
-	["camp", "Arriving at the camp (the tutorial)"],
+	["camp", "Arriving at the camp"],
 	["roast", "The tutorial: the roasting"],
 	["free", "Free play: the fire out"],
 	["fire", "Free play: the fire burning"],

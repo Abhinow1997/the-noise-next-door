@@ -99,7 +99,7 @@ func _show(setting: Array) -> void:
 func _copy() -> void:
 	DisplayServer.clipboard_set(numbers())
 	print(numbers())
-	_note.text = "Copied. Paste it into the chat."
+	_note.text = "Copied."
 
 
 func _reset() -> void:

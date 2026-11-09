@@ -25,6 +25,11 @@ extends Control
 ##     picks it (`picked`).
 ##   - It runs on real time, so it comes up at its own speed while the tutorial has the
 ##     game slowed down.
+##   - Since 8 Nov 2026 (the author: "in the tab plan there is too much words in the hints
+##     remove them also remove the rock the party section just normal listing of the tasks
+##     also reduce the font size for them"): no hints under the list, no main task (Rock the
+##     party) on the page or on a scrap, its tasks listed plainly without an indent, and the
+##     writing smaller. The tasks themselves (camp_tasks.gd) are as they were.
 ## The page is laid out in the picture's own pixels (1024 × 572), turned straight, and
 ## scaled to fit the window.
 
@@ -86,10 +91,8 @@ const THIN := -0.35
 const UNDERLINE := [Vector2(381, 134), Vector2(520, 131.5), Vector2(660, 129)]
 ## The tasks: their size, how far the writing sits right of the margin and above its
 ## line, and how much a crossed-off one fades.
-const TASK_SIZE := 50
+const TASK_SIZE := 40
 const INDENT := 17.0
-## How much further in a sub-task starts than its main task.
-const SUB_INDENT := 46.0
 const ABOVE_RULE := 4.0
 const DONE_FADE := 0.8
 ## Patrick Hand's capitals are this share of the font size tall (as on the title).
@@ -103,7 +106,7 @@ const SQUARE := 28.0
 const CIRCLE := 30.0
 const STAMP := 37.0
 const PAW_GAP := 18.0
-const PAW_SIZE := 48.0
+const PAW_SIZE := 38.0
 ## The raccoon's dirty paw prints on the paper (where, and how big), and a scuff.
 const SMUDGES := [Vector3(757, 127, 26), Vector3(213, 392, 30), Vector3(212, 452, 32)]
 const SMUDGE := Color(0.29, 0.19, 0.105, 0.3)
@@ -129,13 +132,7 @@ const SCRAP_PAD := 20.0
 const SCRAP_GAP := 8.0
 const SCRAP_BOTTOM := 30.0
 const SCRAP_MOVE := 0.3
-## Hovering (7 Nov 2026): the size of the hint under the list, how wide it runs, how far
-## below the last task's line it starts, what it starts with on the task to start with,
-## and how far round a task's line the mouse counts as on it.
-const HINT_SIZE := 24
-const HINT_WIDTH := 590.0
-const HINT_DROP := 19.0
-const START_HERE := "Start here. "
+## Hovering (7 Nov 2026): how far round a task's line the mouse counts as on it.
 const HOVER_ABOVE := 46.0
 const HOVER_BELOW := 12.0
 
@@ -297,6 +294,15 @@ func highlighted() -> String:
 	return _hover
 
 
+## The tasks the page lists: those shown (camp_tasks.gd `shown`), without a main task.
+func listed() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for task: Dictionary in tasks.shown():
+		if not task.get("main", false):
+			out.append(task)
+	return out
+
+
 func _input(event: InputEvent) -> void:
 	if not open or _up < 0.9:
 		return
@@ -312,7 +318,7 @@ func _input(event: InputEvent) -> void:
 				picked.emit(at)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventKey and event.pressed and not event.echo and picking:
-		var ids: Array = tasks.shown().map(func(t: Dictionary) -> String: return t.id)
+		var ids: Array = listed().map(func(t: Dictionary) -> String: return t.id)
 		var i := ids.find(_hover)
 		if event.keycode == KEY_UP or event.keycode == KEY_DOWN:
 			i = clampi((i if i >= 0 else ids.find(pick_id)) + (1 if event.keycode == KEY_DOWN else -1), 0, ids.size() - 1)
@@ -328,7 +334,7 @@ func _input(event: InputEvent) -> void:
 ## The task whose line is under `point` (on the screen), or "".
 func _task_at(point: Vector2) -> String:
 	var local: Vector2 = _page.get_global_transform().affine_inverse() * point
-	var shown := tasks.shown()
+	var shown := listed()
 	var gap := RULE_GAP * minf(1.0, float(RULES) / shown.size())
 	for i in shown.size():
 		var rule := RULE_Y + i * gap
@@ -348,7 +354,7 @@ func _on_ticked(id: String) -> void:
 			scrap.leaves = _clock + STRIKE_TIME + HOLD
 			return
 	for task: Dictionary in tasks.list:
-		if task.id == id:
+		if task.id == id and not task.get("main", false):
 			var scrap := _add_scrap(task, false)
 			scrap.struck = _clock + STRIKE_WAIT
 			scrap.leaves = scrap.struck + STRIKE_TIME + HOLD
@@ -485,14 +491,12 @@ func _paint_page_chalk(item: CanvasItem) -> void:
 	item.draw_string_outline(_title_font, title_at, TITLE, HORIZONTAL_ALIGNMENT_LEFT, -1, TITLE_SIZE, TITLE_RIM, CHALK)
 	stroke(item, UNDERLINE, STROKE, CHALK, 1.0, 3)
 
-	var shown := tasks.shown()
+	var shown := listed()
 	var gap := RULE_GAP * minf(1.0, float(RULES) / shown.size())
 	for i in shown.size():
 		var task: Dictionary = shown[i]
 		var rule := RULE_Y + i * gap
 		var left := lerpf(MARGIN[0].x, MARGIN[1].x, inverse_lerp(MARGIN[0].y, MARGIN[1].y, rule)) + INDENT
-		if task.has("parent"):
-			left += SUB_INDENT
 		var struck: float = _struck.get(task.id, INF)
 		var done := clampf((_clock - struck) / STRIKE_TIME, 0.0, 1.0)
 		var right := write(item, task.text, Vector2(left, rule - ABOVE_RULE), TASK_SIZE,
@@ -515,20 +519,6 @@ func _paint_page_chalk(item: CanvasItem) -> void:
 			stamp(item, box, STAMP, _clock - struck - STRIKE_TIME)
 		else:
 			empty_box(item, box, i, hash(task.id))
-	# How the marked task is done, in the gap under the last task (clear of the scraps
-	# at the bottom of the screen); picking, the one to start with says so.
-	var hovered: Dictionary = {}
-	for task: Dictionary in shown:
-		if task.id == _hover:
-			hovered = task
-	if hovered.has("hint"):
-		var rule := RULE_Y + (shown.size() - 1) * gap + HINT_DROP
-		var left := lerpf(MARGIN[0].x, MARGIN[1].x, inverse_lerp(MARGIN[0].y, MARGIN[1].y, rule)) + INDENT
-		var hint: String = hovered.hint
-		if picking and hovered.id == pick_id:
-			hint = START_HERE + hint
-		item.draw_multiline_string(_hand, Vector2(left, rule), hint,
-			HORIZONTAL_ALIGNMENT_LEFT, HINT_WIDTH, HINT_SIZE, 2, Color(CHALK, 0.9))
 
 
 # --- The scraps ------------------------------------------------------------------
