@@ -1237,6 +1237,57 @@ No `SCRIPT ERROR` in any log.
 
 **Not yet:** the strip, the author's first verdict, the wiring and the state test.
 
+### Effect B, Step 3: the smoke wired, and its state test (8 Nov 2026)
+
+**How it was made:**
+- **The plan:** a read-only `claude -p` session (`design/a6/prompt-6.txt`, transcript `design/a6/session-6.jsonl`). The author approved its three open points ("Approve all three"), recorded first as a dated revision of the brief (`82c79df`):
+  - while hidden, `amount_ratio` keeps following `strength`;
+  - the wiring in `main.gd`;
+  - one line in the preview.
+- **The build:** the same session, resumed with the edit allowlist (`design/a6/prompt-6-approve.txt`; 61 turns, about 7.7 minutes). Committed unedited in `0286ea2`. The transcript is over 1 MB, so `design/a6/session-6-build-excerpt.jsonl` is committed and the full one is ignored.
+- **Refused commands:** its result event lists six: a script to run every test at once, a `sed` edit, and copying through the scratchpad. It ran each test on its own through `scripts/run-test.sh` instead.
+- **What it touched:** only the four files the plan named. `shaders/` and `effects/` are unchanged.
+
+**What was built:**
+- **The driver** (`scripts/campfire_smoke.gd`): one copy of `effects/campfire_smoke.tscn` at the fire pit. Every frame it sets the copy's `amount_ratio` to the fire's `strength`, and `emitting` to `burning()`. It sets both before the copy enters the tree, so a cold fire doesn't preprocess a column. It reads the fire and writes nothing but its copy; it never sets `amount`.
+- **The wiring** (`scripts/main.gd`): the driver is added after the developer start points have set the fire. Two flags start the state test in the real level: `--smoke-test` (the fire cold, the `free` start) and `--smoke-load-test` (burning, the `fire` start).
+- **The preview** (`previews/campfire_smoke_preview.gd`): one line frees the game's copy, so the strip shows only the preview's own.
+
+**What went wrong first** (from the session's report): its first runs failed on its own test, not on the driver. It changed three things before the green run:
+- **When it reads:** point checks now read just after the driver has run each frame. Right after a physics tick, `strength` had moved but the driver hadn't followed yet.
+- **Float precision:** "equal" now means within 0.000001, because the engine stores `amount_ratio` as a 32-bit float.
+- **Check #5's values:** it had guessed 0.3, 0.6 and 0.9 for three logs, but the fire burns down while the keeper fetches each log. The check now asserts that `amount_ratio` equals `strength` after each log, with two values or more.
+
+**The new checks** (`tests/campfire_smoke_state_test.gd`), all through the game: the keeper's logs, E held at the bucket, and a real Esc key event.
+
+| Check | Mode | Result |
+|---|---|---|
+| **From cold** (`bash scripts/run-test.sh --smoke-test 60`) | 60 fps | **Pass, 20 of 20.** At load: not emitting, `amount_ratio` 0. Lit by the keeper: emitting, 0.30, then 0.56, 0.82 and 1.0 as logs go on, equal to `strength` each time. Burning down unfed, it falls with `strength`. Esc pauses the tree and nothing changes; a second Esc and it follows again. Hidden 3 s, `amount_ratio` still follows `strength` and the settings don't change. Holding E at the bucket douses it: `strength` 0, `amount_ratio` 0, not emitting, and `emitting` stays on until the fire is out. Relit, it follows again. Every frame: `amount_ratio` within 0.000001 of `strength`, `amount` 40, `emitting` = `burning()`, and one copy of the smoke in the level. |
+| **Burning at load** (`bash scripts/run-test.sh --smoke-load-test 60`) | 60 fps | **Pass, 8 of 8.** At load: emitting, `amount_ratio` 1.00, `preprocess` 3.5 s on the copy; then burning down, still equal to `strength`. The same every-frame checks. |
+| **Mutation, predicted failure 4:** the driver writes `amount = maxi(1, roundi(40 * fire.strength))` instead of `amount_ratio` | 60 fps | **Fails, as it should** (exit 1), 13 of 20 failing. Check #7: `amount` wasn't 40 on 3,989 of 4,101 frames. The driver was restored byte for byte (the same hash) and the rerun passed 20 of 20 ([logs/smoke-mutation-1-amount_60fps.log](logs/smoke-mutation-1-amount_60fps.log)). |
+| Every earlier check, in the session's run | as pinned | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19, tutorial 28 (then); cones 43 and cone shader 93 at 30, 60 and 144; fire 17, tent 16, Effect A's state 37; waves 13 of 13 and title all in realtime; sound, asset, materials, both configuration tests and calibration clean. From the session's report; its logs for the checks with tracked logs are in [logs/a6-step6-build/](logs/a6-step6-build/). |
+
+**Claude Code's review:**
+- **The logs:** the session's runs overwrote the tracked top-level logs. Its copies are in `logs/a6-step6-build/`, and the tracked ones were put back.
+- **Reran both state tests:** 20 of 20 and 8 of 8, exit 0.
+- **Read the driver and the diff:** as the plan said.
+- **Ran the preview headless at 30 fps** ([logs/a6-step6-build/preview_headless_30fps.log](logs/a6-step6-build/preview_headless_30fps.log)): no `SCRIPT ERROR`, and the fire lit at frame 10 and doused at frame 100 as before.
+
+**Today's counts:** the state tests still pass 20 and 8 after the later game work ([logs/a6-caught-sync/](logs/a6-caught-sync/)). Check #6 now covers 4,653 frames, since the keeper's longer walk to the woodpile makes the run longer.
+
+**What a headless run can't show** (the session's list):
+- how many puffs fly at a given ratio, or how the smoke looks;
+- that turning `emitting` off lets the air clear, rather than cutting the smoke off;
+- that the GPU freezes the puffs while paused;
+- whether a hidden node keeps simulating;
+- that `preprocess` shows a column at load.
+
+These are for the strip and the author's eyes.
+
+**Not covered:**
+- **Burning down to out:** in free play the keeper never lets the fire reach 0 on its own.
+- **Hiding:** the test hides the smoke itself, because nothing in the game does.
+
 ### Step 7: the headless CPU price (8 Nov 2026)
 
 **How it was made:** a `claude -p` session with the edit allowlist, barred from `effects/`, `scripts/` and `shaders/` (`design/a6/prompt-8.txt`, transcript `design/a6/session-8.jsonl`). There's no copy of the chapter's Example 09 here, so it wrote `tests/cost_effects.gd` in that manner. Its one refused command was a Python edit; it edited with its own tools instead.

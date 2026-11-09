@@ -18,7 +18,7 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
 
 `the-noise-next-door` · CSYE 7270 · Assignment 6 · branch `assignment-6`
 
-**How these entries were written:** by Claude Code on 7 Nov 2026, from my chat messages and the test logs. My messages are quoted exactly as I typed them, typos included. The chat doesn't show times, so only dates are given. These are a record of what I asked and decided and what Claude Code did; what I tried and thought myself, I add in my own words.
+**How these entries were written:** by Claude Code on 7 Nov 2026, and the entries from Step 4 on, on 8 Nov 2026, from my chat messages, the commits and the test logs. My messages are quoted exactly as I typed them, typos included. The chat doesn't show times, so only dates are given. These are a record of what I asked and decided and what Claude Code did; what I tried and thought myself, I add in my own words.
 
 ### 6 Nov 2026: choosing the two effects
 
@@ -192,6 +192,133 @@ A dated log of the work as it happened: what I wanted, what I asked for, what ca
   - it reran both of Effect A's tests itself;
   - it put back the 15 tracked logs the session's runs had overwritten (its copies are in `logs/a6-step3-before/` and `logs/a6-step3-after/`).
 - **The Godot 3 name, now with the effect wired:** with `initial_velocity_min` renamed `initial_velocity`, the state test still passes 37 of 37. The burst still fires in the game, while only the configuration test fails, as the course says it would.
+
+### 7 and 8 Nov 2026: Step 4, Effect A's tuning r1
+
+- "Yes, commit both" put Step 3's build and its review in (`271687d`, `1667891`), and "keep goin then" started Step 4.
+- **The proposal:** a read-only `claude -p` session (`design/a6/prompt-4.txt`) read strip r0 against my verdict. It proposed one change, the leaves' gravity from −3.5 to −6.0. Its reason: damping brakes the fall as much as the rise, so at −3.5 the leaves hang where they stop. It predicted the difference frame by frame, mostly at frame 30. I said "Approve r1", and the same session made the change, with the configuration test's expected value.
+- **Strip r1:** I captured it the next day ("r1 is captured"). The session compared it with its prediction: the leaves fall as predicted, about 0.2 m further by frame 30. But r1's bush is solid where r0's was half see-through, which hides the first beat. Claude Code checked both claims. It traced the difference to the bush's see-through window, which one scroll step of zoom changes; a stray scroll during r0 is the likeliest cause, not proven.
+- **My verdict:** "Kept". My reason came later, with the smoke's: "It just felt right. Normally, I checked with anyone and it felt better. So it's just intuition of how the game was feeling with the respective effects."
+- Committed with the brief's dated revision for the new gravity (`872ed53`). TUNING.md has the revision in full.
+
+### 8 Nov 2026: arriving at the camp, with no laugh and no food thought
+
+- While Claude Code wrote up r1, I asked: "remove the food bubble when the raccoon reaches the campsite / remove the laugh as well when he reaches the camp as well".
+- From its two questions I picked "Task laugh on arrival (Recommended)": the laugh as "Investigate the music" is crossed off goes, and the chitter after the pan stays, since it's what makes a camper come and spot him. And "Off through the tutorial (Recommended)": facing food shows no thought while the tutorial's on; the plate's own hungry thought stays.
+- No check reads either, so Claude Code checked it with a scratch probe walking him in with real keys; every check kept its count (TEST-REPORT.md, "Arriving at the camp").
+
+### 8 Nov 2026: Effect B chosen, the campfire's life, and a developer menu
+
+- I asked: "ok look at the game we are trying to build and the rquirements we have and the aspect required for the assignement waht can we work on now". Claude Code listed what was left, and options for Effect B.
+- **My pick, and two asks**, in my words: "we can work with the campsite campfire smoke rather, that feels okay for me ... we need some element of like a developer tool in the game, because while playtesting it, I have to play it again from the start until the point we have made the change ... maybe some way we need to add that element of maybe dousing the campfire somehow."
+- Claude Code asked four questions (how he douses it, how the smoke follows the fire, what happens after, and the developer shortcut). I answered with messages instead of picks:
+  - "We can initially have no campfire, like maybe they're just setting up the campfire right there ... a couple of guys are working towards the campfire ... they are like getting logs ... adding logs to it so that it can stay like lit ... and then eventually we can have a like a element of, okay, I don't know, dousing the fire or something."
+  - "The whole point is like how we can like how in the world we can sort of give out the task naturally, rather than like forcing it ... just have everything with E, and like a twinkle, like a small twinkle, that we have for the items that you can interact with."
+- **Claude Code built it** (`scripts/camp_fire.gd`, the keeper's `TEND` in `scripts/camp_person.gd`, `scripts/dev_menu.gd`):
+  - the fire's strength, 0 to 1, which the flames, light and sparks follow;
+  - the keeper fetching logs from a woodpile, lighting the fire and feeding it as it burns down;
+  - a bucket by the pit that twinkles; held E tips it, and the fire goes out with a hiss;
+  - F1 in debug runs, a menu that restarts at a point (the den, the camp, the roasting, free play with the fire out or burning), the same points as `-- --dev-start=<point>`; and F9 for vsync.
+- **What went wrong first:** in a window, the bucket's twinkle landed on the flames and read as the fire's sparks. The bucket moved to the pit's west side and its twinkle to its foot.
+- **Checks:** a new fire check, 15 of 15, and every other check at its count.
+
+### 8 Nov 2026: hidden, with no z's and no boredom
+
+- "when hiding there is no need for the "zzz" also the "boring" state to trigger for the raccoon"
+- Claude Code took both off while he's hidden. Five checks in the bubbles check expected the z's; they now expect nothing over him, with my change of design, and it still has 87 checks.
+
+### 8 Nov 2026: Dismantle the tent
+
+- "lets add a task for : can we add the assignement 6 ? in the same ? / Dismantle the tent: The player must sneak around the perimeter and pull out three structural tent pegs. Once the last peg is removed, the tent collapses, temporarily trapping the camper inside and giving them an extended "??" confused state."
+- Claude Code asked how the camper ends up trapped, since he never goes in his tent. I answered with a message instead: "don't worry about the routine ... maybe we can do 4 pegs and what we can do is we can ask we can have a E action for our raccoon to dismantle it. So if somebody sees him then obviously they shoo him away ... the chubby guy tries to fit the tent back in ... the task should be just dismantle one tent completely. Right. So don't give any additional details on it. If the user is closer to the peg, let the peg have a tinkle on it ... the tent collapses and then all the NPCs are alerted."
+- **Claude Code built it** (`scripts/camp_tent.gd`, the camper's `PITCH`): four pegs that twinkle and pull with E, the tent sagging with each and falling flat with the fourth, every camper alerted, and the camper hammering pegs back in if he saw. The list shows the task with no hint.
+- **Checks:** a new tent check, 16 of 16. A fourth task changed what four checks expect (sound, tasks, cones and tutorial), each recorded in TEST-REPORT.md as a change of design or of how it measures.
+
+### 8 Nov 2026: Effect B's job, the firelight, and its brief
+
+- "what abt the assignemtn 6 ?", then "what u need from me ?". Claude Code had drafted Effect B's brief, all but its job.
+- **The job, in my words:** "Okay, the firework we can have in some sort of the effect should be like the vision cone, like when the fire is up, if the user comes near the camp or like around the campsite near the fireplace, there should be like alert system, like a vision cone level alerting system. Make the fire smoke be the signal for it ... if he is under the fire cone's vision, when the fire is lit, the user or the raccoon has to always like crouch, or else he'll be detected more quickly if the fire is up and he goes in the camp or like near the camp." The brief has it with the spelling and commas fixed, and says so.
+- **The firelight**, game work, so the smoke has something to signal: standing in the lit fire's light, he's seen half as far again, and crouching cancels it. The fire check has 17 checks.
+- The rest of Effect B's brief is Claude Code's options, used at my word. "Yes, commit and build": the game work (`766f07e`), Effect A's r1 (`872ed53`) and the brief's Effect B revision with CLAUDE.md (`f16a23e`).
+
+### 8 Nov 2026: Step 2 for Effect B, the smoke built
+
+- A `claude -p` session with the edit allowlist built the smoke's scene, its configuration test and its preview (`design/a6/prompt-5.txt`). Its refused commands were all ways of running Godot outside the wrapper, and it said so instead of printing made-up output.
+- **Claude Code's review:** the configuration test passes. The preview, run for the first time, didn't parse: it named the fire's script as a type, which has no `class_name`. One line fixed it. "Commit both": the build unedited (`9e81f79`), then the fix (`970744c`).
+
+### 8 Nov 2026: the smoke's strip r0, my verdict, and Claude's reading
+
+- I captured strip r0 and dictated my verdict before Claude Code read it: "The smoke is like filament and it like glowing ... it looks visibly well. Lit." In the same verdict I asked for more light round the fire, so the campers spot him further in it, and for more play with the bucket, "maybe the bucket can be filled in with water by dragging it to the nearby river".
+- Claude Code's reading agreed it shows clearly and looks lit, and added that it reads as a cloud over the pit more than a rising column. It noted that the lit area and the bucket are game code, outside the effect, and that the level's stream is about 18 m north of the camp. Neither is built.
+- "Yes, wire B next".
+
+### 8 Nov 2026: Step 3 for Effect B, the smoke wired
+
+- **The plan:** a read-only `claude -p` session (`design/a6/prompt-6.txt`) proposed a driver that sets `amount_ratio` from the fire's strength, the lines in `main.gd`, and a state test through real play. It asked three questions, and I said "Approve all three": `amount_ratio` keeps following the fire while the smoke is hidden; the wiring goes in the brief as a dated revision; the preview frees the game's copy. Committed with strip r0 and the verdicts (`82c79df`).
+- **The build:** the same session, resumed with the edit allowlist (`design/a6/prompt-6-approve.txt`), built `scripts/campfire_smoke.gd`, the lines and two flags in `main.gd`, the preview's line and `tests/campfire_smoke_state_test.gd`: 20 checks from cold and 8 with the fire burning at load, through the keeper's logs, E held at the bucket and a real Esc. Its driver broken to write `amount` instead of `amount_ratio` fails the test. Committed unedited (`0286ea2`); Claude Code's rerun of the state tests passed.
+
+### 8 Nov 2026: Step 6, the process shader, in three tries
+
+- I asked: "do it for me open "Make a new scratch scene with a GPUParticles3D." a session for me". Claude Code wouldn't make the shader file, since CLAUDE.md says every file in `shaders/` is mine. It made a scratch scene with its own copy of the smoke's process material and opened the editor on it, for me to convert and save.
+- **First try:** the saved file was Godot's empty template.
+- **Second try:** 362 lines. I sent line references, which Claude Code found all pointed where I said. But I'd noticed there was no colour ramp or scale curve, and Claude Code found no box emission or turbulence either: it was converted from a default material, not the smoke's.
+- **Third try:** "i checked emssion is box and turbulence is also on", with two screenshots of the Inspector. The file is 473 lines, with the turbulence, the colour ramp, the scale curve and the box emission. Claude Code deleted the scratch scene.
+- **My line references for it:** I pasted references and a process-versus-draw answer that came from another AI assistant's session; the paste includes its file reads and terminal commands. Claude Code checked that each points where it says. Not yet in my notes: where initial velocity comes from its min and max, where gravity changes velocity, and a line tied to a brief setting with its value. The shader and my notes aren't committed yet.
+
+### 8 Nov 2026: Effect B's tuning r1
+
+- A read-only `claude -p` session (`design/a6/prompt-7.txt`) proposed one change: the colour ramp's peak alpha from 0.45 to 0.25. Its reason: the puffs are unshaded, so where they overlap they build up to a glowing near-white cloud. "Approve r1", and the same session made it.
+- I captured strip r1 ("r1 is captured"). The session's comparison: the glowing core is gone and it reads as grey haze, but the column's top half is now too faint to see, so it looks about half as tall as the brief's 2 m. Claude Code checked it side by side.
+- "Kept", then "Commit it": `9cd79df`, with the brief's dated revision for the new alpha. My reason is the same as for Effect A's r1.
+
+### 8 Nov 2026: Step 7, the headless price
+
+- A `claude -p` session with the edit allowlist, barred from `effects/`, `scripts/` and `shaders/` (`design/a6/prompt-8.txt`), wrote `tests/cost_effects.gd`. Claude Code reran it: the empty scene 0.005 ms a frame, the game with both effects off 1.016, Effect A at its peak 1.018 and Effect B at its heaviest 1.008. Both effects cost the same as off, as both briefs predicted.
+- "Commit both": the script unedited (`fb47194`), then its record (`da498a2`).
+
+### 8 Nov 2026: Use It, my checks, and the GPU price
+
+- Claude Code asked for my reasons for keeping both r1s, my GPU times and my checks in play. I sent the reasons (above), my two GPUs' names ("NVIDIA GeForce RTX 4050 Laptop GPU (6 GB) / AMD Radeon 740M Graphics (512 MB)"), and my checks: "I've checked the effects of multiple. It's fine. I mean, it doesn't affect the gameplay. So repeated quick dives should be good enough ... We might need to work on the second effect a bit ... I don't think the second effects has been created or designed well. I will need to rework on the same for some time. But yeah, I just want to log this before we proceed ahead."
+- Claude Code wrote TEST-REPORT's Use It section from those words. The smoke on load, paused and hidden is named there as checked, with nothing I saw recorded yet.
+- **The GPU price:** asked for the Visual Profiler's numbers, I asked "what do needs can ucheck for me ?". Claude Code measured it with a windowed script on the RTX 4050 at 1280 × 720 (`tools/gpu_time_effects.gd`), reading the GPU timer the Visual Profiler shows: off 3.494 ms a frame, Effect A +0.05 ms and Effect B +0.03 ms, both inside the noise and under their budgets. Its first try, without alternating rounds, put the smoke below off, so it was redone in rounds. It isn't the Visual Profiler, and TEST-REPORT says so.
+- "Commit them": `cf9b7c3`.
+
+### 8 Nov 2026: the fire's circle of sight, and the woodpile further off
+
+- "rework on the fireplaces vision working make the logs further away from the pit it should take the npc around 8 seconds to put the logs in / additionally the firepit and the surrounding campsite when the fire is lit should have the vision cone in circle like i mentioned where if the raccon runs or walks he gets spotted"
+- Claude Code built it: the woodpile about 4.7 m out, a log every 8.0 s; and while the fire burns in the open world, a cone all the way round, the size of the firelight, that spots him walking or running upright, not crouching or keeping still.
+- **What went wrong first:** at its farther place the solid woodpile rerouted the campers, and the camp check failed two timing checks. The pile is now walk-through, and it passes 31 of 31. The fire check has 23 checks.
+- "Commit them": `a12f234`, with CLAUDE.md brought up to date for Effect B as built.
+
+### 8 Nov 2026: a script for the film
+
+- "can u summarzie me a script tot explain me what has happened and waht we have developed". Claude Code wrote `design/a6/film-script.md`: nine scenes, what to show and what to say, covering what the course's film must show. Not committed.
+
+### 8 Nov 2026: the home pine cleared, a plain TO DO list, short hints, and dropped loot
+
+- "remove all the bins and the small boxes near the house tree". The bin, its lid and the cans are gone from the game; only the bubbles check's yard still builds them.
+- "in the tab plan there is too much words in the hints remove them also remove the rock the party section just normal listing of the tasks also reduce the font size for them". The list is now its tasks only, smaller.
+- "for the campsites phase starting for things to pan on the humans and then just the food and then the laugh and contniue the flow of what u have currently after he has been caught stealing the marshmallows force the chase and for the hints it should be concise not more than 5 words remember anywhere / 1. Humans / 2. Food / 3. Food". Claude Code made the pan read Humans, Food, Food; set the men straight after him at the steal; cut every hint to 5 words or fewer; and saved the 5-word rule in its memory.
+- "also when caught if he has anything in the mouth he drops it and the humans pick it back and get it back to the camp reseting the thing". Caught, he drops it, and the camper carries it home before its puzzle resets.
+- "Commit them": `a2328b6`.
+
+### 8 Nov 2026: a slow pan, the fire out at the start, and "You've been caught!"
+
+- "remove the the word hints humans and food looks werid just do a slow pan around the camp its looking werid to me", then a screenshot. The pan is now an 8 s glide round the camp with no words.
+- "from the start of the tutorial the fire should be off its on in the tutorial". The fire is out at load, and the keeper builds it from the pan on.
+- "also the alerting in the tutorial after stealing should be a bit slower like the blackout thing explaing in conicse 5 or less words "u have been caught!" "runnn!"". After the steal, "You've been caught!" then "Runnn!" under the dark layer, then the chase. "Commit them": `665180c`.
+- "the u been cught and run should sync with the vision cones and the actions in the game currently they just come after u have stole the item". Now the beat comes only when a camper's cone sees him with it; unseen, there's no beat and no chase. The tutorial check has 29 checks. "Commit it": `502dc4e`.
+
+### 8 Nov 2026: towards the submission
+
+- "ok lets work to towards the submission now for asignement 6". Claude Code checked the work against the course's "Done means" list and wrote the README's Assignment 6 section. Still to do:
+  - my process-shader notes;
+  - GPU time read off the Visual Profiler itself;
+  - my notes on the smoke on load, paused and hidden;
+  - the explainer, which needs the course's Brutalist skill, not installed here;
+  - the film;
+  - the `a6` tag.
+- "yes do that", for these entries.
 
 ---
 

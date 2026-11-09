@@ -8,7 +8,8 @@ Made for CSYE 7270 (Fall 2026): one game, built up one assignment at a time.
 
 | Assignment | What it added | Submitted as |
 |---|---|---|
-| [Assignment 5: Shaders, Materials, and the Godot Shading Language](#assignment-5-shaders-and-materials-in-progress) | In progress: hand-written shaders and materials, for the campers' vision cones and a textured 3D object | branch `assignment-5`, not tagged yet |
+| [Assignment 6: Creating Particle Effects with Godot and Claude](#assignment-6-particle-effects-in-progress) | In progress: two particle effects, the leaves bursting out of the bush and the campfire's smoke, and the campfire's life that drives the smoke | branch `assignment-6`, to be tagged `a6` |
+| [Assignment 5: Shaders, Materials, and the Godot Shading Language](#assignment-5-shaders-and-materials) | Hand-written shaders and materials, for the campers' vision cones and a textured 3D object | tag `a5` |
 | [Assignment 3: Your First 3D Game Assets with Claude, the Blender MCP, and Blender](#assignment-3-the-three-blender-assets) | Three props built in Blender through the Blender MCP, a Godot asset room and a headless check | tag `a3` |
 | [Assignment 2: Generate Art, Sound, and Music for Your Game](#assignment-2-the-asset-slice) | The asset slice: the forest clearing with the generated poses, sounds and music | tag `a2` |
 
@@ -64,7 +65,7 @@ There's no ending yet. Pictures are in [design/level1/tasks/](design/level1/task
 
 **The tutorial and cones check:** run `godot --headless --path . -- --cones-test`. It puts the raccoon in plain sight at the camp and checks that nobody sees him before the tutorial; that the tutorial pauses the game, ignores Esc, shows Rock the party and its tasks on Tab and carries on after a second Tab; that the spotter's cone is red, every cone shows through the red, and every cone goes 2.5 s after the spotting; that after the chase each of them is confused for 3 s and their cone comes back 5 s after they start back; and that Rock the party is ticked off with its last task (`scripts/cones_test.gd`). It measures the times on the game's clock, so it passes the same at `--fixed-fps 30`, `60` and `144`. Add `--cones-shots=<folder>` in a window for pictures. The other checks skip the tutorial. Since 7 Nov 2026 it goes through the remade tutorial (slowed behind the dark layer, Tab, Enter on the marshmallows), with its intro and guided steps turned off.
 
-**The tutorial check:** run `bash scripts/run-test.sh --tutorial-test 60`. It plays the remade tutorial through, all of it on, as a player would with Tab and E: the pan, the laugh and being seen, the campers frozen till he hides, and in the bush the ones who saw him confused where they stand, nobody coming for him. Then a chase to the bush (set going by the check) that can't catch him, hopping out sneaking, the plate stopping the camp with no words, taking one with E, the campers alerted and the men chasing, eating it sitting up once they've calmed, unnoticed, and the TO DO list (`scripts/tutorial_test.gd`, 28 checks). Add `--tutorial-shots=<folder>` in a window for pictures.
+**The tutorial check:** run `bash scripts/run-test.sh --tutorial-test 60`. It plays the remade tutorial through, all of it on, as a player would with Tab and E: the pan, the laugh and being seen, the campers frozen till he hides, and in the bush the ones who saw him confused where they stand, nobody coming for him. Then a chase to the bush (set going by the check) that can't catch him, hopping out sneaking, the plate stopping the camp with no words, taking one with E, the campers alerted and the men chasing, eating it sitting up once they've calmed, unnoticed, and the TO DO list (`scripts/tutorial_test.gd`, 29 checks). Add `--tutorial-shots=<folder>` in a window for pictures.
 
 **The title screen check:** run `godot --headless --path . -- --title-test`. It moves through the menu with the keys and the mouse, changes the volumes and checks they reach the buses and the settings file, checks the menu's keys leave him asleep, then chooses New Game and checks the way in: the same scene throughout with nothing laid over it, the camera ending in the nap close-up, the lullaby carrying on, the party next door quiet under the title and starting with New Game, silent, with the lullaby playing on and his nap going on untroubled by it, that first nap not counting as one of his naps, and a move key waking him and bringing in the forest music and the key task at the bottom of the screen. It puts your settings file back afterwards (`scripts/title_test.gd`). Run in a window with `--title-shots=<folder>` as well, it saves pictures of the way in. `godot --path . -- --title-shot=out.png` saves a picture of the title screen.
 
@@ -80,7 +81,8 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 | [CHANGE-BRIEF.md](CHANGE-BRIEF.md) | The plan for each assignment's change, written before the work, one section per assignment |
 | [SOURCES.md](SOURCES.md) | The generative models, every generation, other people's assets and the tools, one section per assignment |
 | [TEST-REPORT.md](TEST-REPORT.md) | How each assignment's work was tested and what happened, one section per assignment |
-| [FRICTIONAL.md](FRICTIONAL.md) | The dated log: what was asked for, what came back and what was decided, for Assignment 5 |
+| [TUNING.md](TUNING.md) | Assignment 6's tuning: my first verdict on each effect's strip, Claude's readings, and each revision with its prediction, strips and my verdict |
+| [FRICTIONAL.md](FRICTIONAL.md) | The dated log: what was asked for, what came back and what was decided, for Assignments 5 and 6 |
 | [FRICTIONAL-EARLIER.md](FRICTIONAL-EARLIER.md) | The same log's sections from before Assignment 5: Assignment 2, Assignment 3, and the work after Assignment 3 |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
@@ -90,11 +92,85 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 | [assets/props/](assets/props/) | Assignment 3's props: the s'more, the pizza slice and the cooler, and the camper's dropped beanie. Each has its `.blend` source and the `.glb` Godot loads. |
 | [asset_room/](asset_room/), `Look at the A3 assets.bat`, `look_at_a3_assets.sh` | Assignment 3's asset room, with every asset at game size and its measured size, and the launchers for Windows and for macOS or Linux. See [For the grader](#for-the-grader-the-assets-in-godot-with-their-sizes). |
 | [tests/a3_asset_check.gd](tests/a3_asset_check.gd) | Assignment 3's headless check of the three assets against the brief |
+| [effects/](effects/), [previews/](previews/), `captures/` | Assignment 6's two particle effects as scene files, their preview scenes, and the frame strips from them |
+| [design/a6/](design/a6/) | Assignment 6's `claude -p` prompts and transcripts (excerpts where a transcript is over 1 MB) |
 | `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project. It opens on the title screen, shown over the level itself (`main.tscn`), and New Game starts play in the same scene. |
 
-## Assignment 5: shaders and materials (in progress)
+## Assignment 6: particle effects (in progress)
 
-*Shaders, Materials, and the Godot Shading Language*, on the branch `assignment-5`. It isn't tagged yet.
+*Creating Particle Effects with Godot and Claude*, on the branch `assignment-6`, to be submitted as the tag `a6`. Godot 4.7.2, Forward+.
+
+### What this assignment added
+
+- **Effect A, the leaf burst** ([effects/leaf_burst.tscn](effects/leaf_burst.tscn)): leaves and a puff of flecks burst out of the camp's bush when he dives in, and a burst half the size when he hops out. Its job is to tell you you're hidden, out of sight of whoever's after you, and then that you're out and can be seen again.
+  - Two `GPUParticles3D`, **Leaves** and **Puff**, under one `Node3D`, each with a `ParticleProcessMaterial` and a `StandardMaterial3D`.
+  - **Its event:** the bush's `dived()` ends by emitting `hiding_changed(inside)` ([scripts/hide_spot.gd](scripts/hide_spot.gd)). [scripts/leaf_bursts.gd](scripts/leaf_bursts.gd) listens, puts a fresh copy at the bush each time and frees it on a timer.
+  - **Its retrigger rule is overlap:** diving in and hopping straight out gives two bursts alive at once.
+- **Effect B, the campfire smoke** ([effects/campfire_smoke.tscn](effects/campfire_smoke.tscn)): a soft grey column over the fire pit while the fire burns, thicker the stronger it burns. It warns you the fire is up, so near the camp you should crouch.
+  - One `GPUParticles3D`, **Smoke**.
+  - **A feedback loop:** every frame, [scripts/campfire_smoke.gd](scripts/campfire_smoke.gd) sets its `amount_ratio` to the fire's `strength`, and `emitting` to whether the fire is burning. `amount` never changes.
+  - **What Effect A doesn't use:** the value-driven `amount_ratio`, turbulence, a scale curve (the puffs grow as they rise), a box emission shape, `preprocess` (a burning fire has its column on the first frame) and a soft round texture.
+- **The campfire's life, which drives the smoke** ([scripts/camp_fire.gd](scripts/camp_fire.gd)):
+  - The fire is out at the start. The fire keeper builds it a log at a time from the woodpile, and it burns down by itself.
+  - E at the bucket douses it.
+  - While it burns, he's spotted walking or running upright near it, and standing in its light he's seen half as far again. Crouch.
+  - The other game work this assignment brought (the tent, the tutorial's pan and its "You've been caught!", dropping what he's caught with) is in [TEST-REPORT.md](TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp).
+- **The previews and their frame strips** (fixture captures, Movie Maker at 30 fps, 1280 × 720):
+  - [previews/leaf_burst_preview.tscn](previews/leaf_burst_preview.tscn), with its strips in `captures/leaf_burst/`;
+  - [previews/campfire_smoke_preview.tscn](previews/campfire_smoke_preview.tscn), with its strips in `captures/campfire_smoke/`.
+- **Tuning:** one revision for each effect, both kept ([TUNING.md](TUNING.md)):
+  - the leaves' gravity went from −3.5 to −6.0, so they flutter down after the burst;
+  - the smoke's peak alpha went from 0.45 to 0.25, so it reads as haze, not a glowing cloud.
+- **The checks:**
+  - **Configuration:** [tests/test_leaf_burst_config.gd](tests/test_leaf_burst_config.gd) and [tests/test_campfire_smoke_config.gd](tests/test_campfire_smoke_config.gd) read every setting in the brief back from the scene files. Two mutations of Effect A's scene, a Godot 3 property name and a changed `amount`, each make it exit 1.
+  - **State:** `--leaf-burst-test` ([tests/leaf_burst_state_test.gd](tests/leaf_burst_state_test.gd)) runs the game through real input. `--smoke-test` and `--smoke-load-test` ([tests/campfire_smoke_state_test.gd](tests/campfire_smoke_state_test.gd)) do the same, with the fire cold and burning at load.
+  - **Price:** [tests/cost_effects.gd](tests/cost_effects.gd), the headless CPU price against an empty-scene control.
+- **The price:**
+  - **Headless CPU:** 0.005 ms a frame for the empty scene, 1.016 for the game with both effects off, 1.018 with Effect A at its peak and 1.008 with Effect B at its heaviest. The two effects can't be told apart from "off", as predicted: a headless run draws nothing and runs no GPU particle process.
+  - **GPU, on an NVIDIA GeForce RTX 4050 Laptop GPU at 1280 × 720:** Effect A added +0.05 ms (budget 0.2 ms) and Effect B +0.03 ms (budget 0.3 ms), both within the noise. These were read with [tools/gpu_time_effects.gd](tools/gpu_time_effects.gd), a windowed script that reads the GPU timer the Visual Profiler shows ([TEST-REPORT.md](TEST-REPORT.md#the-gpu-price-8-nov-2026)).
+- **The shader Godot generates for a `ParticleProcessMaterial`:** [shaders/particles_generated.gdshader](shaders/particles_generated.gdshader), converted in the editor from a copy of the smoke's process material. Nothing in the game uses it.
+
+### For the grader: seeing it
+
+- **Effect A:** run `godot --path . -- --dev-start=free` (free play at the camp), walk into the bush 3.5 m west and 3 m south of the fire, then press a move key to hop out. Hop out straight away for two bursts at once.
+- **Effect B:** run `godot --path . -- --dev-start=fire` to start with the fire burning. In a debug run, **F1** opens the developer menu, where the fire's buttons put it out or set it burning. In free play the keeper builds the fire, and E at the bucket by the pit douses it.
+- **F9** turns vsync off and on, for the frame-rate comparison. The game uses neither F1 nor F9.
+- **The previews,** windowed, with a strip written by Movie Maker:
+  - `godot --path . --resolution 1280x720 --fixed-fps 30 --quit-after 60 --write-movie captures/leaf_burst/new/frame.png res://previews/leaf_burst_preview.tscn -- --leaf-burst-preview`
+  - `godot --path . --resolution 1280x720 --fixed-fps 30 --quit-after 180 --write-movie captures/campfire_smoke/new/frame.png res://previews/campfire_smoke_preview.tscn -- --campfire-smoke-preview`
+
+  Make the folder first.
+- **The checks,** from this folder in Git Bash, after `godot --headless --path . --import` once:
+  - `bash scripts/run-test.sh test_leaf_burst_config.gd 60`
+  - `bash scripts/run-test.sh --leaf-burst-test 60`
+  - `bash scripts/run-test.sh test_campfire_smoke_config.gd 60`
+  - `bash scripts/run-test.sh --smoke-test 60`
+  - `bash scripts/run-test.sh --smoke-load-test 60`
+  - `bash scripts/run-test.sh cost_effects.gd 60 300`
+
+  The rest, with their counts, are in [CLAUDE.md](CLAUDE.md) and [TEST-REPORT.md](TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp).
+
+### Known limitations (Assignment 6)
+
+- **Effect B needs more work, in my view:** "I don't think the second effects has been created or designed well. I will need to rework on the same for some time." Since its tuning, the top half of the column is too faint to see, so it reads about half as tall as the brief's 2 m.
+- **The GPU price wasn't read off the Visual Profiler.** It came from a script that reads the same GPU timer, and the AMD Radeon 740M and FPS with vsync off weren't measured.
+- **No headless run can show the look.** What the burst and the smoke look like is checked only by the strips and my eyes. These remain unconfirmed on this build:
+  - how many particles `amount_ratio` 0.5 gives a one-shot burst;
+  - whether a hidden `GPUParticles3D` keeps simulating.
+- **Two earlier checks fail under `--fixed-fps`,** as recorded before: waves (12 of 13) and title (51 of 52). Both pass in realtime.
+
+The docs, each with an Assignment 6 section:
+- the plan and its dated revisions, [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
+- the tuning, [TUNING.md](TUNING.md);
+- the checks and my checks in play, [TEST-REPORT.md](TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp);
+- the log, [FRICTIONAL.md](FRICTIONAL.md#assignment-6-particle-effects-and-the-bigger-camp);
+- the provenance, [SOURCES.md](SOURCES.md#assignment-6-the-bigger-camp-and-particle-effects).
+
+The `claude -p` prompts and transcripts are in [design/a6/](design/a6/). Neither effect uses a sourced or generated texture: the smoke's soft disc is a `GradientTexture2D` written in its scene file.
+
+## Assignment 5: shaders and materials
+
+*Shaders, Materials, and the Godot Shading Language*, on the branch `assignment-5`, submitted as the tag `a5`.
 
 ### What this assignment added
 
