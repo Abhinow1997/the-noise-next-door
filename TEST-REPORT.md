@@ -1236,3 +1236,31 @@ No `SCRIPT ERROR` in any log.
 | Effect B's preview, headless (`--quit-after 180`, `-- --campfire-smoke-preview`) | 30 fps | As committed, a parse error: `var fire: CampFire` names a type the project doesn't declare (the fire's script has no `class_name`). Fixed in the review with one line: the type comes from a `preload`, as everywhere else. Then it runs with no `SCRIPT ERROR`. It lights the fire at frame 10 (strength 0.90, `amount_ratio` 0.90) and douses it at frame 100 (0.23 at frame 110, 0 at 160), and `amount` stays 40 ([logs/a6-step5/preview_headless_30fps.log](logs/a6-step5/preview_headless_30fps.log)). |
 
 **Not yet:** the strip, the author's first verdict, the wiring and the state test.
+
+### Step 7: the headless CPU price (8 Nov 2026)
+
+**How it was made:** a `claude -p` session with the edit allowlist, barred from `effects/`, `scripts/` and `shaders/` (`design/a6/prompt-8.txt`, transcript `design/a6/session-8.jsonl`). There's no copy of the chapter's Example 09 here, so it wrote `tests/cost_effects.gd` in that manner. Its one refused command was a Python edit; it edited with its own tools instead.
+
+**What it measures** (`bash scripts/run-test.sh cost_effects.gd 60 300`, fixed at 60 fps; it checks each frame's step is 1/60 s):
+- **CPU time:** the wall time of each frame: physics, scripts and the headless renderer.
+- **The cases:** each gets a fresh copy of the scene, 120 frames to settle and 300 sampled, over 5 rounds in rotated order. They are:
+  - an empty scene, the control;
+  - `main.tscn` with both effects' nodes removed;
+  - Effect A at its peak, two bursts alive with the second at `amount_ratio` 0.5, triggered by the bush's `hiding_changed`;
+  - Effect B at its heaviest, the fire at full and the smoke at `amount_ratio` 1.
+- **State checks:** every sampled frame is checked to be in its stated state.
+- **Caveat:** `main.tscn` opens on the title screen, so the game cases measure the opening scene with the fire's cycle off, not free play.
+
+| Case | Mean (ms a frame) | SD | Its 5 rounds' means |
+|---|---|---|---|
+| Empty scene (the control) | 0.005 | 0.007 | 0.005 – 0.007 |
+| The game, both effects off | 1.016 | 0.238 | 0.984 – 1.076 |
+| Effect A at its peak (2 bursts) | 1.018 | 0.270 | 1.000 – 1.041 |
+| Effect B at its heaviest | 1.008 | 0.261 | 0.983 – 1.057 |
+
+Claude Code's rerun ([logs/a6-cost/claude_code_rerun_60fps.log](logs/a6-cost/claude_code_rerun_60fps.log)); the session's own run agrees within its spread ([logs/a6-cost/session_run_60fps.log](logs/a6-cost/session_run_60fps.log): 0.005, 0.990, 0.974, 0.998).
+
+**Reading it:**
+- **The script isn't measuring itself.** The control and the game are about 200 times apart, and the cases that should differ from the control do.
+- **Each effect costs the same as effects off**, within the rounds' spread: A +0.002 ms and B −0.008 ms here, against round means that vary by about ±0.05 ms. Both briefs predicted exactly this. A headless run uses a dummy renderer with no GPU particle process, so a GPU effect's CPU share is near zero.
+- **The real price is GPU time** from the Visual Profiler on a real GPU, compared with the budgets (A 0.2 ms, B 0.3 ms). That's the author's check, still to do.
