@@ -1,0 +1,46 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Leaf burst state check, 2026-11-08T20:12:40
+  pass  Scene load: no burst, no event (never on load)                                 expected 0 0            got 0 0
+  pass  Set down outside the bush: not hidden, no burst                                expected false 0        got false 0
+  pass  Walking in: no burst before he lands (never before the event)                  expected true 0         got true 0
+  pass  Dive in: hidden in the bush                                                    expected true           got true
+  pass  Dive in: the signal says in                                                    expected true           got true
+  pass  Dive in: exactly one new burst                                                 expected 1              got 1
+  pass  Dive in: at the bush (38.0, 0.0, 6.2)                                          expected true           got true
+  pass  Dive in: amount_ratio 1.0 on Leaves and Puff                                   expected [1.0, 1.0]     got [1.0, 1.0]
+  pass  Dive in: emitting as it's made                                                 expected [true, true]   got [true, true]
+  pass  Hop out: out of the bush, by a move key                                        expected false          got false
+  pass  Hop out: the signal says out                                                   expected false          got false
+  pass  Hop out: exactly one new burst                                                 expected 1              got 1
+  pass  Hop out: at the bush (38.0, 0.0, 6.2)                                          expected true           got true
+  pass  Hop out: amount_ratio 0.5 on Leaves and Puff                                   expected [0.5, 0.5]     got [0.5, 0.5]
+  pass  Hop out: emitting as it's made                                                 expected [true, true]   got [true, true]
+  pass  Overlap: in and straight out, two bursts alive at once, different copies       expected 2 true         got 2 true
+  pass  Overlap: the second came inside the first's lifetime (s)                       expected true           got true
+  pass  Freed: none left 1.00 s after the hop out (lifetime read + 0.1 s), give or take a tick expected true           got true
+  pass  Standing out: no new burst                                                     expected 0              got 0
+  pass  Dive in again: hidden in the bush                                              expected true           got true
+  pass  Dive in again: the signal says in                                              expected true           got true
+  pass  Dive in again: exactly one new burst                                           expected 1              got 1
+  pass  Dive in again: at the bush (38.0, 0.0, 6.2)                                    expected true           got true
+  pass  Dive in again: amount_ratio 1.0 on Leaves and Puff                             expected [1.0, 1.0]     got [1.0, 1.0]
+  pass  Dive in again: emitting as it's made                                           expected [true, true]   got [true, true]
+  pass  Sitting hidden 1 s: no new burst, still hidden                                 expected 0 true         got 0 true
+  pass  Hop out again: the signal says out                                             expected false          got false
+  pass  Hop out again: exactly one new burst                                           expected 1              got 1
+  pass  Hop out again: at the bush (38.0, 0.0, 6.2)                                    expected true           got true
+  pass  Hop out again: amount_ratio 0.5 on Leaves and Puff                             expected [0.5, 0.5]     got [0.5, 0.5]
+  pass  Hop out again: emitting as it's made                                           expected [true, true]   got [true, true]
+  pass  Hop out again: one burst alive (the dive's is gone)                            expected 1              got 1
+  pass  Each burst freed 1.00 s after it was made, give or take a tick                 expected true           got true
+  pass  At most 2 alive at once, over the whole run                                    expected true           got true
+  pass  No burst without an event (never otherwise)                                    expected 0              got 0
+  pass  Bursts = hiding_changed signals = events driven (a startle would add one)      expected 4 4 4          got 4 4 4
+  pass  None left at the end                                                           expected 0              got 0
+RESULT: all checks passed (37 checks)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

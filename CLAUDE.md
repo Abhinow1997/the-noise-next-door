@@ -57,7 +57,7 @@ bash scripts/run-test.sh cost_effects.gd 60 300        # tests/cost_effects.gd (
 bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; fails 12 of 13 at 60 fps
 bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; fails 51 of 52 at 60 fps
 ```
-- Counts (`TEST-REPORT.md`, 8 Nov 2026, `logs/a6-fire-circle/`): bubbles 87, camp 31, tasks 43, plan 19, tutorial 28;
+- Counts (`TEST-REPORT.md`, 8 Nov 2026, `logs/a6-caught-sync/`): bubbles 87, camp 31, tasks 43, plan 19, tutorial 29;
   cones 43, cone shader 93 at 30, 60, 144; fire 23, tent 16, leaf burst state 37, smoke 20 and 8; waves 13/13 and
   title all in realtime; their `--fixed-fps` failures (12/13, 51/52) are expected: don't "fix" them.
 ## Headless facts
@@ -115,5 +115,5 @@ Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUP
 - What `amount_ratio` 0.5 does to a one-shot burst's count on this build: headless reads only the value; the frame
   strip shows the count (`CHANGE-BRIEF.md`, short answer 1).
 - Whether a hidden `GPUParticles3D` keeps simulating on this build: headless can't show it (Effect B, hidden).
-- The counts above were measured on 8 Nov 2026 (`logs/a6-fire-circle/`); rerun before trusting. `run-test.sh`'s third
+- The counts above were measured on 8 Nov 2026 (`logs/a6-caught-sync/`); rerun before trusting. `run-test.sh`'s third
   argument is only the timeout, so `--*-shots=<folder>` options can't go through it.

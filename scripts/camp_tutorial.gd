@@ -151,6 +151,10 @@ var _hid_at := -INF
 var _heard_by = null
 var _spotter = null
 var _frozen := false
+## After the roasted marshmallow's taken: when, and whether being seen with it is still to
+## set off the caught beat ("caught").
+var _taken_at := -INF
+var _caught_pending := false
 
 
 func _ready() -> void:
@@ -330,6 +334,10 @@ func _intro(real: float) -> void:
 			if player.hiding_in == null and plan.note_showing() == SNEAK_NOTE:
 				plan.note("")
 		"escape":
+			# Seen with it, the first time since he took it: caught.
+			if _caught_pending and roast.carrying() and campsite.last_seen >= _taken_at:
+				_caught()
+				return
 			# Once they've lost him and are all back at work, he may eat it (roast_plate.gd
 			# `can_eat`); a fright from now on is an ordinary one.
 			if _all_calm():
@@ -414,8 +422,22 @@ func _on_taken() -> void:
 		return
 	if level.get("bubbles"):
 		level.bubbles.clear("hungry")
-	# Still frozen from the plate: caught, under the dark layer, then "Runnn!", then the
-	# chase ("caught" in _intro).
+	# They come to, and go on as they were. The caught beat waits for one of them to see him
+	# with it, in their cones (the author, 8 Nov 2026: "the u been cught and run should sync
+	# with the vision cones and the actions in the game"): "escape" in _intro.
+	_freeze(false)
+	spotlight.clear()
+	_taken_at = campsite.clock
+	_caught_pending = true
+	stage = "escape"
+
+
+## Seen with the stolen marshmallow: everyone freezes as they are, the one who saw him
+## with his cone red, under the dark layer with "You've been caught!", then "Runnn!", then
+## the chase ("caught" in _intro).
+func _caught() -> void:
+	_caught_pending = false
+	_freeze(true)
 	spotlight.point(player, 150.0, CAUGHT_LINE, "", 0.3, HIDE_DARK)
 	stage = "caught"
 	_left = CAUGHT_TIME + RUN_TIME

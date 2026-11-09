@@ -172,11 +172,18 @@ func _run() -> void:
 	await _press_e(RoastPlate.TAKE_TIME + 0.2)
 	Input.action_release("sneak")
 	await _wait(0.1)
-	# Since 8 Nov 2026 he's caught first: held under the dark layer, "You've been caught!",
-	# then "Runnn!", then the chase (the author's design).
-	_check("Taken: in his mouth, off the plate, caught, frozen, under the dark layer", "true 0 true %s" % CampTutorial.CAUGHT_LINE,
-		"%s %s %s %s" % [_tutorial.roast.carrying(), _tutorial.roast.on_plate, _tutorial.frozen(),
-			_tutorial.spotlight.line()])
+	_check("Taken: in his mouth, off the plate", "true 0",
+		"%s %s" % [_tutorial.roast.carrying(), _tutorial.roast.on_plate])
+	# Since 8 Nov 2026 the caught beat waits for one of them to see him with it, in their
+	# cones (the author's design). At the plate the camper may see him at once; if not yet,
+	# into the camper's view.
+	if _tutorial.stage != "caught":
+		var eyes: Vector3 = _camp.camper.global_position
+		var ahead: Vector3 = _camp.camper.global_basis.z * Vector3(1, 0, 1)
+		_stand(eyes + ahead.normalized() * 2.2 + Vector3(0, 0.02, 0), eyes)
+	await _until_real(func() -> bool: return _tutorial.stage == "caught", 5.0)
+	_check("Seen with it: caught, frozen, under the dark layer", "true %s" % CampTutorial.CAUGHT_LINE,
+		"%s %s" % [_tutorial.frozen(), _tutorial.spotlight.line()])
 	await _until_real(func() -> bool: return _tutorial.stage == "escape", 5.0)
 	await _until(func() -> bool: return _camp.people.any(func(p) -> bool: return p.state == S.CHASE), 4.0)
 	_shot("06_taken")
@@ -270,6 +277,13 @@ func _watch_calm(was: Dictionary) -> bool:
 func _calm() -> bool:
 	# Tending the fire, which the keeper does through the tutorial since 8 Nov 2026, is work.
 	return _camp.people.all(func(p: CampPerson) -> bool: return p.state == S.WORK or p.state == S.TEND)
+
+
+## Put at `at`, facing `look` (as tasks_test.gd's).
+func _stand(at: Vector3, look: Vector3) -> void:
+	var d := look - at
+	_player.global_basis = Basis(Vector3.UP, atan2(-d.x, -d.z))
+	_player.place(at)
 
 
 func _sneak_to(at: Vector3, look: Vector3) -> void:

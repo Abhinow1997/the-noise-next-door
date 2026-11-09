@@ -1422,3 +1422,16 @@ Logs: [logs/a6-fire-off-caught/](logs/a6-fire-off-caught/), on the working tree 
 |---|---|---|
 | Tutorial (`--tutorial-test 60`) | Pass, 28 of 28 | **How it measures:** "alarmed" and "calm" don't count the keeper tending the fire as alarm (it's his work), with the same expected values. **Expected values changed with the design:** right after the steal, "caught, frozen, under the dark layer" with "You've been caught!" (it was "the campers come to, the dark layer gone"); then "Then 'Runnn!': they come to, the camper spots him, the men chase him". |
 | Every other check in CLAUDE.md's list | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19; cones 43 and cone shader 93 at 30, 60 and 144 (the fire out there now, the intro being off); fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; waves 13/13 and title all in realtime (the title over a cold fire), each failing only its recorded check at 60 fps. No `SCRIPT ERROR`. | No |
+
+### "You've been caught!" when they see him (8 Nov 2026)
+
+This is game work. The author: "the u been cught and run should sync with the vision cones and the actions in the game currently they just come after u have stole the item".
+- **After the take:** the campers come to and go on as they were (`_on_taken` in `scripts/camp_tutorial.gd`).
+- **Seen with it:** the first time one of them sees him with the marshmallow in their cone (`campsite.last_seen` after the take), everyone freezes as they are, with that cone red, under the dark layer. "You've been caught!" shows, then "Runnn!", then the chase (`_caught`, stage `caught`).
+- **Not seen:** if he gets away unseen, there's no caught beat and no chase, and he can eat it once they're calm.
+- **Not checked:** the unseen path. The tutorial check drives the seen one only.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Tutorial (`--tutorial-test 60`) | Pass, 29 of 29 (it was 28) | The steal's checks follow the design:<br>• "Taken: in his mouth, off the plate";<br>• then, after one of them sees him (at the plate the camper may see him at once; if not, the check moves him into the camper's view), "Seen with it: caught, frozen, under the dark layer" with "You've been caught!";<br>• then "Then 'Runnn!': they come to, the camper spots him, the men chase him".<br>A `_stand` helper was added, as in the tasks check. |
+| Every other check in CLAUDE.md's list | The recorded counts ([logs/a6-caught-sync/](logs/a6-caught-sync/)): bubbles 87, camp 31, tasks 43, plan 19; cones 43 and cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; waves 13/13 and title all in realtime, each failing only its recorded check at 60 fps. No `SCRIPT ERROR`. | No |
