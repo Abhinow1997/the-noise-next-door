@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.4.312 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4050 Laptop GPU
+
+adapter: NVIDIA GeForce RTX 4050 Laptop GPU / NVIDIA
+renderer: forward_plus, window (1280.0, 720.0)
+smoke: amount_ratio 0.99, emitting true, fire 0.99
+GPU render time per frame (ms), windowed, 300 frames each:
+  off  mean 3.228  median 3.236  min 3.091  p95 3.318  max 3.384
+  a    mean 3.259  median 3.256  min 3.164  p95 3.357  max 3.467
+  b    mean 3.119  median 3.042  min 3.001  p95 3.461  max 3.864

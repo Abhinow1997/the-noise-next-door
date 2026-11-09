@@ -1264,3 +1264,59 @@ Claude Code's rerun ([logs/a6-cost/claude_code_rerun_60fps.log](logs/a6-cost/cla
 - **The script isn't measuring itself.** The control and the game are about 200 times apart, and the cases that should differ from the control do.
 - **Each effect costs the same as effects off**, within the rounds' spread: A +0.002 ms and B −0.008 ms here, against round means that vary by about ±0.05 ms. Both briefs predicted exactly this. A headless run uses a dummy renderer with no GPU particle process, so a GPU effect's CPU share is near zero.
 - **The real price is GPU time** from the Visual Profiler on a real GPU, compared with the budgets (A 0.2 ms, B 0.3 ms). That's the author's check, still to do.
+
+## Assignment 6: Use It (the author's checks, 8 Nov 2026)
+
+**Setup:**
+- **Source:** branch `assignment-6` at `da498a2`, plus the uncommitted process shader.
+- **Engine:** Godot 4.7.2, Forward+.
+- **GPUs:** the author's laptop has two, an NVIDIA GeForce RTX 4050 Laptop GPU (6 GB) and AMD Radeon 740M Graphics (512 MB). The game runs on the RTX 4050: Godot prints "Vulkan 1.4.312 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4050 Laptop GPU" ([logs/a6-gpu/](logs/a6-gpu/)).
+- **Window:** 1280 × 720.
+
+The author's words, from their dictated notes; Claude Code only arranged them.
+
+| Check | What the author saw |
+|---|---|
+| **In play: Effect A, normal play and rapid repeats** | "I've checked the effects of multiple. It's fine. I mean, it doesn't affect the gameplay. So repeated quick dives should be good enough." |
+| **Against the background: Effect A, darkest and lightest ground** | "the first effect doesn't have a lot of difference for in the darkness, feels fine, and the lighter ground as well. I tried it" |
+| **Against the background: Effect B** | Not reported separately. |
+| **Edge of screen (the visibility box), both** | "it should be fine near the screen's edge as well. I mean, both I feel were good enough for the time being." |
+| **Scene load, paused and hidden: Effect B** | Named as checked ("smoke on loading, pause, escape, and hidden"); no observation recorded yet. |
+| **Size at 1280 × 720, both** | The verdicts in TUNING.md: A's leaves fall after the burst (r1); B reads as grey haze (r1), with its column's top now too faint to see. |
+| **The boundaries holding** | Not reported separately. Every earlier suite holds its recorded counts (logs/a6-firelight/, logs/a6-step6-build/). |
+| **GPU price** | Measured by Claude Code at the author's request ("can u check for me"), not read off the Visual Profiler: see below. |
+
+**Claude against me:** "I don't think the second effects has been created or designed well. I will need to rework on the same for some time." This is where the author and Claude differ. Claude's readings of Effect B's strips found r1 close to the intent (the glow gone, the column short at the top), while the author's view in play is that the smoke as designed isn't right yet and needs reworking. Their verdict in the running game decides.
+
+**Other strip readings beside the verdicts** (TUNING.md):
+- **Effect A r0:** Claude agreed with the author on the confetti look, the pale colours, the weak first beat, the small size and no tumble. It differed on the white shapes near the fire: the author read them as the fire's sparks, Claude as the loot's sparkle icons.
+- **Effect A r1 and Effect B r1:** both kept; the author's reason is "it just felt right".
+
+### The GPU price (8 Nov 2026)
+
+**How:** the author asked Claude Code to take it ("what do needs can ucheck for me ?"). It's a windowed run on the RTX 4050 at 1280 × 720 (`tools/gpu_time_effects.gd`, which says how to run it). It reads each frame's GPU render time from the GPU's own timer (`RenderingServer.viewport_get_measured_render_time_gpu`), the timer the Visual Profiler shows, but it isn't the Visual Profiler. The raccoon stands between the bush and the fire, so both effects are on screen, and vsync stays on (GPU time isn't capped by it).
+
+The states run in rounds, each followed by "off", so the GPU's clocks and warm-up even out:
+- **off:** no bursts; the smoke hidden and not emitting.
+- **Effect A at its peak:** a dive-in burst, then a hop-out 0.33 s later, kept going; only frames with two bursts alive count.
+- **Effect B at its heaviest:** the fire burning, smoke `amount_ratio` about 1.
+
+Each block is 200 frames.
+
+| State | Blocks | Mean GPU time a frame | Median | The blocks' means |
+|---|---|---|---|---|
+| Both effects off | 7 | 3.494 ms | 3.330 ms | 3.355 – 3.559 |
+| Effect A at its peak (2 bursts) | 3 | 3.543 ms | 3.326 ms | 3.494 – 3.600 |
+| Effect B at its heaviest | 3 | 3.525 ms | 3.332 ms | 3.505 – 3.539 |
+
+**Against the budgets:**
+- **Effect A:** +0.05 ms over off. The budget is 0.2 ms and the prediction was under 0.05 ms.
+- **Effect B:** +0.03 ms. The budget is 0.3 ms and the prediction was under 0.1 ms.
+- **Both are inside the noise:** the off blocks alone vary by 0.2 ms. Neither effect's cost can be told apart from it here, so each is under its budget, and the predictions aren't contradicted.
+
+**A first try**, without rounds ([logs/a6-gpu/gpu_time_first_try_rtx4050_windowed.log](logs/a6-gpu/gpu_time_first_try_rtx4050_windowed.log)), put Effect B 0.1 ms *below* off. It was measured first, so the GPU's clock state, not the smoke, set the difference. That's why the run above alternates.
+
+**Not measured:**
+- the Visual Profiler itself, if the course wants its readout;
+- FPS with vsync off (F9);
+- the AMD Radeon 740M.

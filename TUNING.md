@@ -70,7 +70,7 @@ It said the change wouldn't fix the width, the weak first beat or the confetti l
 - **The matched leaves:** I measured five. They're 13–15 px lower than in r0 at frame 20 and 41–44 px lower at frame 30. The comparison holds.
 - **Why the backgrounds differ:** the bush's see-through window cuts only scenery nearer the camera than the raccoon, less 0.8 m (`scripts/see_through.gdshader`, set by `scripts/main.gd`). Run headless, the preview gives the same window at r0's commit and at today's: 18.8 m deep, which cuts only the bush's front, as in r1. One scroll-wheel step of zoom makes it 21.6 m, which cuts the whole bush, as in r0. The likeliest cause is a stray scroll during the r0 capture, but that isn't proven. Either way, r1 shows the default view.
 
-**My verdict** (running game, 1280 × 720): kept, because <in my own words>
+**My verdict** (running game, 1280 × 720): kept, because it just felt right. It felt better, so it's just intuition of how the game was feeling with the effect. (Dictated for both revisions on 8 Nov 2026; Claude Code transcribed it.)
 
 **Strips** (fixture captures): `captures/leaf_burst/r0/`, `captures/leaf_burst/r1/`
 
@@ -141,7 +141,7 @@ Read after the verdict above was written. The strip is `captures/campfire_smoke/
 
 **Claude Code's check of that comparison** (8 Nov 2026): frames 55, 100 and 110 of r0 and r1 side by side. Both strips have the same background and seed, so the puffs match one for one. In r1 they're see-through: the ground and the dancer's shadow show through them at 100 and 110, the near-white mass is gone, and the upper puffs are fainter. The comparison holds.
 
-**My verdict** (running game, 1280 × 720): kept, because <in my own words>
+**My verdict** (running game, 1280 × 720): kept, because it just felt right. It felt better, so it's just intuition of how the game was feeling with the effect. (Dictated for both revisions on 8 Nov 2026; Claude Code transcribed it.)
 
 **Strips** (fixture captures): `captures/campfire_smoke/r0/`, `captures/campfire_smoke/r1/`
 
