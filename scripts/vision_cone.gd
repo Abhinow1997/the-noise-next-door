@@ -115,9 +115,11 @@ func can_see(body: Node3D) -> bool:
 	return false
 
 
-## True while `body` can't be seen by anyone: in a hiding spot, or curled up in his den.
+## True while `body` can't be seen by anyone: in a hiding spot, curled up in his den, or
+## (since 10 Nov 2026, the bear bag: camp_bear_bag.gd) out along a tree's limb, above
+## where any of them looks (player.gd `on_limb`).
 static func hidden(body: Node3D) -> bool:
-	return HideSpot.is_hidden(body) or body.get("resting") == true
+	return HideSpot.is_hidden(body) or body.get("resting") == true or body.get("on_limb") == true
 
 
 ## Shows or hides the cone on the ground (it still sees either way).

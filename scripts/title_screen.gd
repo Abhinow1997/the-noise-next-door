@@ -7,7 +7,8 @@ extends Node
 ## camera in to the level's nap close-up: it's the same world all the way, so nothing
 ## changes but the camera, and play starts from there. Since 25 Oct 2026 New Game also
 ## starts the party next door (main.gd start_party): you see its sound waves, but don't
-## hear it, so the lullaby plays on.
+## hear it. Since 11 Nov 2026 the lullaby is the title's alone: New Game fades it out and
+## the forest loop in, from the party's speaker, mild this far off (main.gd MUSIC_NEAR).
 ## Debug: `-- --title-shot=out.png [--title-frame=N] [--title-settings]` saves a frame
 ## (with the Settings page open) and quits; `-- --title-test` runs the automated check
 ## (scripts/title_test.gd).
@@ -133,7 +134,7 @@ func _process(delta: float) -> void:
 		_frames += 1
 		if _frames == _shot_frame - 15:
 			# Stopped well before the quit, so the audio thread has let go of them.
-			for music: AudioStreamPlayer in [level._music, level._sleep_music]:
+			for music in [level._music, level._sleep_music]:
 				if music:
 					music.stop()
 		if _frames == _shot_frame:

@@ -12,7 +12,9 @@ extends CharacterBody3D
 ##     they're dancing, lost in the music (DANCE_SIGHT).
 ##   - A noise (campsite.gd `noise`: a chitter, his running near, a job done with E)
 ##     makes them wonder (INVESTIGATE): "huh?", the men go and look where it came from,
-##     everyone looks about, then back to the routine. Seeing him is a fright.
+##     everyone looks about, then back to the routine. Seeing him is a fright. His laugh,
+##     his running and his landing from a jump draw them even while they're wondering or
+##     confused (11 Nov 2026).
 ##   - Spotting him, they flinch (`scared`), and the others catch the fright.
 ##   - The girl is always scared: she hurries behind her protector (the low-poly man)
 ##     and cowers there (`cower`), runs further off if he comes near her, and only goes
@@ -36,6 +38,10 @@ extends CharacterBody3D
 ##   - The camper, since 8 Nov 2026, pitches his tent again (PITCH, camp_tent.gd): with
 ##     it down, or with them having seen the raccoon at its pegs, he goes round with his
 ##     mallet and hammers each one back in.
+##   - The camper, since 10 Nov 2026, hangs the bear bag up again (HANG,
+##     camp_bear_bag.gd): with it down and them having seen the raccoon since it fell, or
+##     a treat taken back, he goes to it, puts the treats lying by it back in, then ties it
+##     off at the trunk and hoists it up.
 ##   - Once he's out of the camp or out of sight a while, they walk back (`walk`) to
 ##     where their routine had got to, and carry on.
 ##   - Since 26 Oct 2026, before they walk back they're confused (SEARCH): "??" over
@@ -43,6 +49,11 @@ extends CharacterBody3D
 ##     SEARCH_TIME. The author: "make the npc confused with the '??' around his head
 ##     looking around and then walk back", "afetr he has shooed him away and after the
 ##     raccoon has evaded the sight". Up a tree, they still just give up and go back.
+##     Since 10 Nov 2026 they stand still scratching their heads, and only the head looks
+##     about (the `confused` clip, tools/blender/animate_chubby.py), with "?" over it. The
+##     author: "the confusion where they have lost the sight animation for the npcs should
+##     be head scratching and only the head should look around with the '?' sign over the
+##     head". Their eyes (the cone) go where the head looks.
 ##   - Their cones (vision_cone.gd), since the same day: none, and no seeing him, until
 ##     the tutorial at the camp is done (campsite.gd `cones_on`). When one of them spots
 ##     him while watching for him, every cone shows until that one's red is over and has
@@ -61,7 +72,8 @@ signal state_changed(state: int)
 const VisionCone := preload("res://scripts/vision_cone.gd")
 const Player := preload("res://scripts/player.gd")
 
-enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX, SEARCH, TEND, PITCH }
+enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX, SEARCH, TEND, PITCH,
+	HANG }
 
 ## How far they see while calm (times SNEAK_SIGHT while he sneaks), while wondering
 ## about a noise, and once alarmed, and how wide; where their eyes are.
@@ -78,16 +90,16 @@ const DANCE_SIGHT := 0.6
 ## lit, the ... raccoon has to always ... crouch, or else he'll be detected more quickly
 ## if the fire is up and he goes in the camp or like near the camp".
 const FIRELIT_SIGHT := 1.5
-## His running this near them is heard (campsite.gd hears his chitters and other noises).
-const HEAR_RUN := 4.0
 ## Wondering about a noise: how long the "huh?" lasts, how short of where it came from
 ## the men stop, how long they look about there, and how far (degrees) to each side.
 const HUH := 0.6
 const STOP_SHORT := 1.3
 const LOOK_TIME := 3.0
 const LOOK_SWING := 50.0
-## Confused once he's got away: how long they look about before they go back.
+## Confused once he's got away: how long they look about before they go back, and the
+## clip they do it in (it loops; 3 s, one look each way).
 const SEARCH_TIME := 3.0
+const CONFUSED := "confused"
 ## How long the flinch lasts, and how long the others take to catch the fright.
 const FLINCH := 1.1
 const CATCH_FRIGHT := Vector2(0.25, 0.6)
@@ -193,7 +205,13 @@ var _log: Node3D
 ## Pitching his tent again: the tent (camp_tent.gd), and the peg he's going to.
 var _tent
 var _peg := -1
+## Hanging the bear bag up again: the bag (camp_bear_bag.gd), and where he's got to.
+var _bear_bag
+var _hang_stage := 0
 var _hand: BoneAttachment3D
+## Their skeleton and its head bone, for where the head looks while confused.
+var _skeleton: Skeleton3D
+var _head := -1
 var _stuck := 0.0
 var _side := 0.0
 var _side_left := 0.0
@@ -207,6 +225,9 @@ func _ready() -> void:
 	_rng.seed = hash(name)
 	var players := find_children("*", "AnimationPlayer", true, false)
 	anim = null if players.is_empty() else players[0]
+	# The older loops are set to loop in their .glb's import settings; this one here.
+	if anim and anim.has_animation(CONFUSED):
+		anim.get_animation(CONFUSED).loop_mode = Animation.LOOP_LINEAR
 	eyes = VisionCone.new()
 	eyes.reach = SIGHT
 	eyes.angle = SIGHT_ANGLE
@@ -257,7 +278,7 @@ func _physics_process(delta: float) -> void:
 			return
 	_t += delta
 	eyes.blind = not camp.cones_on
-	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH]
+	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG]
 	if calm:
 		eyes.reach = SIGHT * (SNEAK_SIGHT if player.sneaking else 1.0)
 		if anim and anim.current_animation == "dance":
@@ -331,6 +352,8 @@ func _physics_process(delta: float) -> void:
 			_tend(delta)
 		State.PITCH:
 			_pitch(delta)
+		State.HANG:
+			_hang(delta)
 		State.SEARCH:
 			_search(delta)
 	var meant := velocity.length()
@@ -353,9 +376,25 @@ func _physics_process(delta: float) -> void:
 
 ## Hears a noise at `at` (campsite.gd): going about their routine, they wonder about it.
 ## Dancing, a `freeze` (the music cutting out) catches them mid-move that many seconds
-## before they turn to look.
-func hear(at: Vector3, freeze := 0.0) -> void:
-	if state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH] and not camp.let_be():
+## before they turn to look. Since 11 Nov 2026 a `sharp` one (his laugh, his running, his
+## landing from a jump: campsite.gd) also draws those confused after losing him, and turns
+## those already wondering to where it came from: past their "huh?", they go on toward
+## the new place with no second one, so his footfalls lead them on rather than stopping
+## them (the author: "that should draw their attendtion to the location of the laugh").
+## Other noises don't: some come again and again (a job held with E, the bag crinkling as
+## he runs), and would keep pulling the one going to look back to the same place.
+func hear(at: Vector3, freeze := 0.0, sharp := false) -> void:
+	if camp.let_be():
+		return
+	if sharp and state == State.INVESTIGATE:
+		_noise_at = at
+		if _t > _huh:
+			# Looking again from now: the men set off toward it, for a fresh while.
+			_t = _huh
+			_look_t = -1.0
+		return
+	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG]
+	if calm or sharp and state == State.SEARCH:
 		_frozen = freeze > 0.0 and anim != null and anim.current_animation == "dance"
 		_huh = freeze if _frozen else HUH
 		_noise_at = at
@@ -392,7 +431,7 @@ func chase_now() -> void:
 
 
 ## The tutorial (camp_tutorial.gd), as he dives into the bush: whoever's after him or
-## frightened is confused where they stand ("??", SEARCH), looks about, and goes back to
+## frightened is confused where they stand ("?", SEARCH), looks about, and goes back to
 ## work, without coming to look. The author, 7 Nov 2026: "when the player jumps in the
 ## tutorial dont let the npcs run to him just let them be confused look around and go
 ## back to their working".
@@ -541,6 +580,43 @@ func _pitch(delta: float) -> void:
 		_fix_t = 0.0
 
 
+## Goes to hang the bear bag up again (camp_bear_bag.gd), if he's at his routine.
+func hang(bag) -> void:
+	if state == State.WORK:
+		_bear_bag = bag
+		_hang_stage = 0
+		_fix_t = 0.0
+		_to_state(State.HANG)
+
+
+## Hanging it up again: to the bag, and down to put the treats back in it and tie it shut;
+## to the trunk, and down to tie the rope off and hoist it; then back.
+func _hang(delta: float) -> void:
+	if eyes.seeing and not camp.let_be():
+		_startle(true)
+		return
+	var at_bag := _hang_stage < 2
+	if _hang_stage % 2 == 0:
+		var to: Vector3 = _bear_bag.bag_spot() if at_bag else _bear_bag.knot_spot()
+		if _flat(to - global_position).length() > 0.3:
+			_go(to, WALK * 1.2, delta, "walk", WALK * 1.2 / walk_natural)
+		else:
+			_hang_stage += 1
+			_fix_t = 0.0
+		return
+	_play("bend", 1.0, 0.15)
+	_face(_bear_bag.bag_at() if at_bag else _bear_bag.knot_at(), delta)
+	_fix_t += delta
+	if _fix_t < FIX_BEND:
+		return
+	if at_bag:
+		_bear_bag.gather()
+		_hang_stage = 2
+	else:
+		_bear_bag.hoist()
+		_to_state(State.RETURN)
+
+
 ## A log from the woodpile, in his right hand.
 func _take_log() -> void:
 	if _hand == null:
@@ -593,8 +669,6 @@ func _work(delta: float) -> void:
 				_arrived = false
 	if eyes.seeing and not camp.let_be():
 		_startle(true)
-	elif player.running and _flat(player.global_position - global_position).length() < HEAR_RUN:
-		hear(player.global_position)
 	elif camp.frightened > _fright_seen and camp.clock - camp.frightened < 1.0:
 		# Someone else has just taken fright: so do they, a moment later.
 		_fright_seen = camp.frightened
@@ -755,20 +829,38 @@ func _fix(delta: float) -> void:
 				_to_state(State.RETURN)
 
 
-## Confused: he's got away, and they don't know where to. They look about where he was
-## last seen, with "??" over their heads (camp_input.gd), then go back. Still wary:
+## Confused: he's got away, and they don't know where to. Standing where they are, they
+## scratch their heads and look about (CONFUSED: only the head turns), with "?" over
+## them (camp_input.gd), then go back. Their eyes look where the head does. Still wary:
 ## seeing him there sets them guarding (or her hiding) again, with no flinch.
-func _search(delta: float) -> void:
+func _search(_delta: float) -> void:
 	if eyes.seeing and camp.in_camp(camp.last_seen_at) and not camp.let_be():
 		camp.spot(self)
 		_to_state(State.FLEE if role == "girl" else State.GUARD)
 		return
-	_play(_stand())
-	var to := _flat(camp.last_seen_at - global_position)
-	var toward := atan2(to.x, to.z) if to.length() > 0.1 else rotation.y
-	rotation.y = rotate_toward(rotation.y, toward + deg_to_rad(LOOK_SWING) * sin(_t * 2.1), TURN * 0.5 * delta)
+	_play(CONFUSED if anim and anim.has_animation(CONFUSED) else _stand(), 1.0, 0.3)
+	eyes.rotation.y = PI + _head_turn()
 	if _t > SEARCH_TIME:
 		_to_state(State.RETURN)
+
+
+## How far their head's turned from straight ahead, about the vertical (radians, as
+## rotation.y turns), from their skeleton's head bone; 0 without one.
+func _head_turn() -> float:
+	if _skeleton == null:
+		var skeletons := find_children("*", "Skeleton3D", true, false)
+		if skeletons.is_empty():
+			return 0.0
+		_skeleton = skeletons[0]
+		_head = _skeleton.find_bone("testa")
+	if _head < 0:
+		return 0.0
+	var turned := (_skeleton.get_bone_global_pose(_head).basis
+		* _skeleton.get_bone_global_rest(_head).basis.inverse()).orthonormalized()
+	var to_self := (global_transform.affine_inverse() * _skeleton.global_transform).basis.orthonormalized()
+	# They face +Z.
+	var ahead := to_self * (turned * (to_self.inverse() * Vector3.BACK))
+	return atan2(ahead.x, ahead.z)
 
 
 func _return(delta: float) -> void:
@@ -805,6 +897,8 @@ func _to_state(to: State) -> void:
 		var item := carrying
 		_let_go()
 		camp.put_down(item, global_position + global_basis.z * 0.4)
+	# Their eyes look straight ahead again (confused, they follow the head: `_search`).
+	eyes.rotation.y = PI
 	state = to
 	_t = 0.0
 	state_changed.emit(to)

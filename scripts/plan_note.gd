@@ -30,6 +30,12 @@ extends Control
 ##     also reduce the font size for them"): no hints under the list, no main task (Rock the
 ##     party) on the page or on a scrap, its tasks listed plainly without an indent, and the
 ##     writing smaller. The tasks themselves (camp_tasks.gd) are as they were.
+##   - Since 11 Nov 2026 (the author: "when u complete a task can we have scribe of the
+##     task that was completed and make scribing noise", with a sketch of a big strip along
+##     the bottom with the task on it): a task just done comes up on a scrap DONE_SCALE
+##     times the size of the others, its words written out in chalk a letter at a time,
+##     then crossed off and stamped as before; a chalk scribble is heard while it's written
+##     and while it's crossed off (SCRIBBLE).
 ## The page is laid out in the picture's own pixels (1024 × 572), turned straight, and
 ## scaled to fit the window.
 
@@ -132,6 +138,16 @@ const SCRAP_PAD := 20.0
 const SCRAP_GAP := 8.0
 const SCRAP_BOTTOM := 30.0
 const SCRAP_MOVE := 0.3
+## A task just done: how much bigger its scrap is than the others; how long after it
+## starts coming up its words start being written, and how long each letter takes.
+const DONE_SCALE := 1.8
+const WRITE_AFTER := 0.15
+const WRITE_CHAR := 0.05
+## The chalk scribble heard while a scrap's words are written or crossed off
+## (design/sfx/make_scribble.py makes it), how loud, and how quickly it fades in and out.
+const SCRIBBLE := "res://assets/audio/sfx/scribble-loop.wav"
+const SCRIBBLE_DB := -2.0
+const SCRIBBLE_FADE := 0.06
 ## Hovering (7 Nov 2026): how far round a task's line the mouse counts as on it.
 const HOVER_ABOVE := 46.0
 const HOVER_BELOW := 12.0
@@ -161,6 +177,8 @@ var _key_on := false
 var _key_wait := 0.0
 var _title_font: FontVariation
 var _hand: FontVariation
+var _scribble: AudioStreamPlayer
+var _scribble_gain := 0.0
 
 
 ## A Control that draws with a function of its owner's.
@@ -184,6 +202,9 @@ class Scrap extends Layer:
 	## A note from the tutorial rather than a task: no box, and up even while the page is.
 	var note := false
 	var born := 0.0
+	## When its words start being written, on the plan's clock (INF: there from the start,
+	## as on the key task's and the notes').
+	var writes := INF
 	## When it's crossed off, and when it goes, on the plan's clock (INF: not yet).
 	var struck := INF
 	var leaves := INF
@@ -219,6 +240,13 @@ func _ready() -> void:
 	tasks.ticked.connect(_on_ticked)
 	get_viewport().size_changed.connect(_fit)
 	_fit()
+	_scribble = AudioStreamPlayer.new()
+	_scribble.bus = "SFX"
+	if ResourceLoader.exists(SCRIBBLE):
+		_scribble.stream = load(SCRIBBLE)
+	else:
+		push_warning("This sound isn't imported yet: %s" % SCRIBBLE)
+	add_child(_scribble)
 
 
 ## Tab: the page comes up, or goes away.
@@ -270,6 +298,25 @@ func note_showing() -> String:
 ## task's and whether it's crossed off.
 func scraps() -> Array:
 	return _scraps.map(func(s: Scrap) -> Array: return [s.task.id, s.key, s.struck <= _clock])
+
+
+## How much (0..1) of task `id`'s words are written on its scrap for a task just done, or
+## -1 if there's none (for the tests).
+func written(id: String) -> float:
+	for scrap in _scraps:
+		if scrap.task.id == id and scrap.writes != INF:
+			return clampf(_letters(scrap) / scrap.task.text.length(), 0.0, 1.0)
+	return -1.0
+
+
+## Whether the chalk scribble is being heard (for the tests).
+func scribbling() -> bool:
+	return _scribble.playing
+
+
+## How long `text` takes to write out on a task's scrap once it's done.
+static func write_time(text: String) -> float:
+	return text.length() * WRITE_CHAR
 
 
 ## How far the page is up (0..1).
@@ -355,8 +402,10 @@ func _on_ticked(id: String) -> void:
 			return
 	for task: Dictionary in tasks.list:
 		if task.id == id and not task.get("main", false):
+			# Written out as it comes up, then crossed off.
 			var scrap := _add_scrap(task, false)
-			scrap.struck = _clock + STRIKE_WAIT
+			scrap.writes = _clock + WRITE_AFTER
+			scrap.struck = scrap.writes + write_time(task.text) + STRIKE_WAIT
 			scrap.leaves = scrap.struck + STRIKE_TIME + HOLD
 
 
@@ -392,10 +441,19 @@ func _process(delta: float) -> void:
 	var slot := 0.0
 	for scrap: Scrap in order:
 		scrap.slot = slot
-		slot += SCRAP_HEIGHT + SCRAP_GAP
+		slot += SCRAP_HEIGHT * _size_of(scrap) + SCRAP_GAP
 		scrap.at = lerpf(scrap.at, scrap.slot, 1.0 - exp(-12.0 * delta))
 		_place_scrap(scrap)
 		scrap.chalk.queue_redraw()
+	# The chalk's heard while anything's being written or crossed off, fading in and out
+	# quickly so it doesn't click, from somewhere new in the loop each time.
+	_scribble_gain = move_toward(_scribble_gain, 1.0 if _scraps.any(_scribing) else 0.0, delta / SCRIBBLE_FADE)
+	if _scribble.stream:
+		if _scribble_gain > 0.0 and not _scribble.playing:
+			_scribble.play(randf() * _scribble.stream.get_length())
+		elif _scribble_gain <= 0.0 and _scribble.playing:
+			_scribble.stop()
+		_scribble.volume_db = SCRIBBLE_DB + linear_to_db(maxf(_scribble_gain, 0.001))
 
 
 func _fit() -> void:
@@ -566,10 +624,30 @@ func _place_scrap(scrap: Scrap) -> void:
 	var come := clampf((_clock - scrap.born) / SCRAP_MOVE, 0.0, 1.0)
 	var go := clampf((_clock - scrap.leaves) / SCRAP_MOVE, 0.0, 1.0)
 	var shown := smoothstep(0.0, 1.0, come) * (1.0 - smoothstep(0.0, 1.0, go))
-	scrap.scale = Vector2(s, s)
+	scrap.scale = Vector2(s, s) * _size_of(scrap)
 	scrap.position = Vector2(view.x * 0.5, view.y - (SCRAP_BOTTOM + scrap.at - (1.0 - shown) * 30.0) * s)
 	scrap.rotation = deg_to_rad(sin(float(hash(scrap.task.id) % 100)) * 1.2)
 	scrap.modulate.a = shown * (1.0 if scrap.note else 1.0 - _up)
+
+
+## How big `scrap` is, against the key task's and the notes': a task just done's is bigger.
+func _size_of(scrap: Scrap) -> float:
+	return DONE_SCALE if scrap.writes != INF else 1.0
+
+
+## How many of `scrap`'s letters are written so far, with a fraction for the one going on
+## (INF if its words were there from the start).
+func _letters(scrap: Scrap) -> float:
+	if scrap.writes == INF:
+		return INF
+	return maxf((_clock - scrap.writes) / WRITE_CHAR, 0.0)
+
+
+## True while `scrap`'s words are being written or it's being crossed off.
+func _scribing(scrap: Scrap) -> bool:
+	var writing := _clock >= scrap.writes and _clock < scrap.writes + write_time(scrap.task.text)
+	var crossing := _clock >= scrap.struck and _clock < scrap.struck + STRIKE_TIME
+	return writing or crossing
 
 
 func _paint_scrap(item: CanvasItem) -> void:
@@ -591,7 +669,18 @@ func _paint_scrap_chalk(item: CanvasItem, scrap: Scrap) -> void:
 		write(item, scrap.task.text, Vector2(left, base), SCRAP_SIZE, CHALK)
 		return
 	var done := clampf((_clock - scrap.struck) / STRIKE_TIME, 0.0, 1.0)
-	var right := write(item, scrap.task.text, Vector2(left, base), SCRAP_SIZE, Color(CHALK, lerpf(1.0, DONE_FADE, done)))
+	var color := Color(CHALK, lerpf(1.0, DONE_FADE, done))
+	var text: String = scrap.task.text
+	var right := left + _hand.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, SCRAP_SIZE).x
+	# Written out a letter at a time (a task just done), the one going on coming in.
+	var letters := _letters(scrap)
+	if letters >= text.length():
+		write(item, text, Vector2(left, base), SCRAP_SIZE, color)
+	else:
+		var whole := floori(letters)
+		var x := write(item, text.substr(0, whole), Vector2(left, base), SCRAP_SIZE, color)
+		write(item, text.substr(whole, 1), Vector2(x, base), SCRAP_SIZE, Color(color, color.a * (letters - whole)))
+		return
 	var box := Vector2(scrap.width * 0.5 - SCRAP_PAD - SCRAP_SIZE * 0.35, -SCRAP_HEIGHT * 0.5)
 	if done > 0.0:
 		cross_off(item, left, right, base, SCRAP_SIZE, done, hash(scrap.task.id))

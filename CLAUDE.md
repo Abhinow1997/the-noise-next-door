@@ -49,17 +49,19 @@ bash scripts/run-test.sh --cones-test 30               # scripts/cones_test.gd; 
 bash scripts/run-test.sh --cone-shader-test 30         # tests/cone_shader_test.gd; also 60 and 144
 bash scripts/run-test.sh --fire-test 60                # scripts/fire_test.gd (the campfire, the firelight)
 bash scripts/run-test.sh --tent-test 60 300            # scripts/tent_test.gd (Dismantle the tent)
+bash scripts/run-test.sh --bearbag-test 60 300         # scripts/bear_bag_test.gd (Raid the bear bag)
 bash scripts/run-test.sh test_leaf_burst_config.gd 60  # tests/test_leaf_burst_config.gd (Effect A's settings)
 bash scripts/run-test.sh --leaf-burst-test 60          # tests/leaf_burst_state_test.gd (Effect A's state)
 bash scripts/run-test.sh test_campfire_smoke_config.gd 60  # tests/test_campfire_smoke_config.gd (Effect B's settings)
 bash scripts/run-test.sh --smoke-test 60               # tests/campfire_smoke_state_test.gd (cold); also --smoke-load-test
 bash scripts/run-test.sh cost_effects.gd 60 300        # tests/cost_effects.gd (the headless price)
-bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; fails 12 of 13 at 60 fps
-bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; fails 51 of 52 at 60 fps
+bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; at 60 fps one check fails (13 of 14 pass)
+bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; at 60 fps one check fails (52 of 53 pass)
 ```
-- Counts (`TEST-REPORT.md`, 8 Nov 2026, `logs/a6-caught-sync/`): bubbles 87, camp 31, tasks 43, plan 19, tutorial 29;
-  cones 43, cone shader 93 at 30, 60, 144; fire 23, tent 16, leaf burst state 37, smoke 20 and 8; waves 13/13 and
-  title all in realtime; their `--fixed-fps` failures (12/13, 51/52) are expected: don't "fix" them.
+- Counts (`TEST-REPORT.md`, 11 Nov 2026, `logs/a6-run-scribe-cones/`): bubbles 87, camp 31, tasks 48, plan 22, tutorial 34;
+  cones 43 at 30, 60, 144; cone shader 93 at 60 (and at 30 and 144 on 10 Nov, `logs/a6-bearbag/`); fire 25, tent 16,
+  bear bag 41, leaf burst state 37, smoke 20 and 8; sound 30; waves 14/14 and title 53/53 in realtime; their
+  `--fixed-fps` failures (one check each: 13/14, 52/53) are expected: don't "fix" them.
 ## Headless facts
 - A headless run uses a dummy renderer (it reports no video adapter): it draws no particles and runs no GPU
   particle process. Node state (emitting, one_shot, amount_ratio, visibility, instance counts) is observable; the
@@ -115,5 +117,5 @@ Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUP
 - What `amount_ratio` 0.5 does to a one-shot burst's count on this build: headless reads only the value; the frame
   strip shows the count (`CHANGE-BRIEF.md`, short answer 1).
 - Whether a hidden `GPUParticles3D` keeps simulating on this build: headless can't show it (Effect B, hidden).
-- The counts above were measured on 8 Nov 2026 (`logs/a6-caught-sync/`); rerun before trusting. `run-test.sh`'s third
+- The counts above were measured on 11 Nov 2026 (`logs/a6-run-scribe-cones/`); rerun before trusting. `run-test.sh`'s third
   argument is only the timeout, so `--*-shots=<folder>` options can't go through it.

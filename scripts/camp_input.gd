@@ -7,8 +7,9 @@ extends CanvasLayer
 ##   - a chalk E over the nearest thing he can use, and a ring round it filling while he
 ##     holds E at it (and running back while he doesn't);
 ##   - over the campers' heads (camp_person.gd): a "?" while one is wondering about a
-##     noise, "??" while one is confused after he's got away, and the "!" when one has
-##     just spotted him or is chasing him.
+##     noise or confused after he's got away (it was "??" for that till 10 Nov 2026: the
+##     author, "with the '?' sign over the head"), and the "!" when one has just spotted
+##     him or is chasing him.
 
 const Scribbles := preload("res://scripts/scribbles.gd")
 const Interactable := preload("res://scripts/interactable.gd")
@@ -111,7 +112,7 @@ func _draw_on(canvas: Control) -> void:
 			continue
 		var p := camera.unproject_position(head)
 		if person.state in [CampPerson.State.INVESTIGATE, CampPerson.State.SEARCH]:
-			var mark := "??" if person.state == CampPerson.State.SEARCH else "?"
+			var mark := "?"
 			var size := int(unit * MARK * 1.6)
 			var bob := sin(_t * 4.0 + person.get_instance_id()) * unit * 0.004
 			var line := FONT.get_string_size(mark, HORIZONTAL_ALIGNMENT_CENTER, -1, size)

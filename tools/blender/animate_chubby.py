@@ -24,6 +24,7 @@
 #   dance      64 frames, looping (added 23 Oct 2026 for the campsite): a step-touch over four beats, fists up, see DANCE
 #   hammer     25 frames, looping (the same day): squatting, knocks a tent peg in with a mallet, see hammer_clip
 #   scared, guard, shoo  (the same day, the campers' reactions to the raccoon), see react_clips
+#   confused   75 frames, looping (added 10 Nov 2026): scratching his head while it looks about, see confused_clip
 # All in place, facing -Y (+Z in Godot): the game moves him and plays walk and run at speed / their speed above.
 #
 # prepare_chubby.py ends by running this file (the build gives the whole .blend and .glb). On its own, it re-keys the
@@ -366,10 +367,12 @@ class Keys:
 REST = dict(pel=Vector(), hips_p=0.0, hips_r=0.0, hips_y=0.0, tum_p=0.0, tum_r=0.0, tum_y=0.0, chest_p=0.0,
             neck_p=0.0, head_p=0.0, head_r=0.0, head_y=0.0, knee_out=0.0, l_toe=0.0, r_toe=0.0,
             l_ik=0.0, r_ik=0.0, l_pole_w=0.0, r_pole_w=0.0, l_sw=0.0, r_sw=0.0, l_el=0.0, r_el=0.0,
-            l_at=("fk",), r_at=("fk",), l_out=0.0, r_out=0.0, l_lift=0.0, r_lift=0.0, l_twist=0.0, r_twist=0.0)
+            l_at=("fk",), r_at=("fk",), l_out=0.0, r_out=0.0, l_lift=0.0, r_lift=0.0, l_twist=0.0, r_twist=0.0,
+            l_pole=Vector(), r_pole=Vector())
 # (l_out and r_out raise an arm out to the side, l_twist and r_twist turn it outward about itself (negative) or
 # inward, l_lift and r_lift a foot off the ground: added on 23 Oct 2026 for
-# the campers' reactions; at 0, as every earlier clip has them, they change nothing.)
+# the campers' reactions; at 0, as every earlier clip has them, they change nothing. l_pole and r_pole, added on 10 Nov
+# 2026 for confused, are added to where a solved arm's elbow points (rig space); at zero, the same.)
 # a hand's place: ("fk",) as the arm hangs; (bone, rest point, (finger dir, palm dir)): the rest-pose point and the
 # way the hand faces, both carried by that bone; ("world", point, (finger dir, palm dir)): fixed in the rig's space
 
@@ -431,7 +434,7 @@ def keyed_pose(body, keys, f):
             fk_pt, fk_R = resolve(body, P, k, ("fk",))
             return fk_pt.lerp(point, w), fk_R.to_quaternion().slerp(qv, w).to_matrix()
         # the elbow: as it hangs at rest (back), swung out and back by pole_w for the reaching poses
-        pole = (sd["arm_q"] * (1 - pw) + Vector((sd["s"] * 0.75, 0.55, 0.25)) * pw).normalized()
+        pole = (sd["arm_q"] * (1 - pw) + Vector((sd["s"] * 0.75, 0.55, 0.25)) * pw + g(k + "_pole")).normalized()
         pose["arms"][k] = dict(target=target, pole=pole)
     return pose
 
@@ -628,7 +631,9 @@ def mallet_grip(body, log=print):
 # REACT's numbers are the chubby man's (his short arms turn out, so his hands clear each other); the other two
 # change them.
 REACT = dict(hands_sw=-100.0, hands_el=115.0, hands_out=30.0, hands_twist=-30.0, chest_sw=-45.0, chest_el=95.0, guard_out=38.0, guard_sw=-40.0,
-             guard_el=35.0, cower_sw=-115.0, cower_el=135.0, cower_drop=-0.14, stamp=0.10)
+             guard_el=35.0, cower_sw=-115.0, cower_el=135.0, cower_drop=-0.14, stamp=0.10,
+             look=40.0, scratch_dir=Vector((-0.65, 0.6, 0.2)), scratch_up=0.62, scratch_off=0.035, rub=0.022, rubs=10,
+             scratch_elbow=Vector((0.1, -1.6, -0.4)))
 
 
 def react_clips(body, r=None):
@@ -675,10 +680,74 @@ def react_clips(body, r=None):
         (18, dict(pel=V((0.0, -0.03, -0.08)), tum_p=22.0, **both(sw=-25.0, el=30.0))),               # flap
         (25, up),
     ])
-    return dict(scared=scared, cower=cower, guard=guard, shoo=shoo)
+    confused = confused_clip(body, r)
+    return dict(scared=scared, cower=cower, guard=guard, shoo=shoo, confused=confused)
 
 
-REACT_CLIPS = [("scared", 30, False), ("guard", 50, True), ("shoo", 25, True)]
+# --- confused: once the raccoon's got away (10 Nov 2026) --------------------------------------------------------------
+# Asked for on 10 Nov 2026: "the confusion where they have lost the sight animation for the npcs should be head
+# scratching and only the head should look around with the '?' sign over the head". Till then the game played guard
+# (the girl her cower) and turned the whole of them from side to side. Now, for all three:
+#   confused  75 frames, looping (3 s, the game's SEARCH_TIME): standing still, the right hand up at the side of the
+#             head, scratching; the head looks to the left, then to the right, then ahead again. Only the head and the
+#             scratching arm move: the hand's place is carried by the head, so it goes where the head takes it.
+# REACT's look (degrees each way), scratch_up (how far up the head, from the neck to the top of it, the hand goes),
+# scratch_dir (from there in the middle of the head to the hand, at rest: out to the right, back and a little up),
+# scratch_off (the palm's middle off the head's surface), rub (how far the hand rubs up and down, m), rubs (strokes a
+# loop) and scratch_elbow set it. scratch_elbow (rig space, added to where the elbow points) brings the elbow forward,
+# a little down and in: the author, 10 Nov 2026, of the first try, "there is a werid gap ... cna u make it better ?".
+# With the elbow out to the side at the height of the shoulder, the upper arm squeezed into the chest (the rig has no
+# collarbone), and the mesh tore open in the armpit.
+CONFUSED_FRAMES = 75
+
+
+def scratch_spot(body, r):
+    """Where the right hand scratches, at rest: just off the side of the head above the right ear and a little behind
+    (scratch_up of the way up the head, then along scratch_dir, scratch_off off its surface), measured on the body and
+    whatever else the rig carries (the chubby man's beanie, which doesn't count towards the head's top); and the hand's
+    way there, fingers up over the head, palm on it."""
+    inv = body.rig.matrix_world.inverted()
+    verts, faces = [], []
+    for o in bpy.data.objects:
+        if o.type != "MESH" or o.parent is not body.rig:
+            continue
+        M = inv @ o.matrix_world
+        base = len(verts)
+        verts += [M @ v.co for v in o.data.vertices]
+        faces += [tuple(base + i for i in p.vertices) for p in o.data.polygons]
+    tree = BVHTree.FromPolygons(verts, faces)
+    neck = body.head("testa")
+    top = body.surface.ray_cast(neck + Vector((0, 0, 1.0)), Vector((0, 0, -1)), 2.0)[0]
+    middle = neck + Vector((0, 0, r["scratch_up"] * (top.z - neck.z)))
+    d = r["scratch_dir"].normalized()
+    hit, n = tree.ray_cast(middle + d * 0.6, -d, 1.0)[:2]
+    if hit is None:
+        raise RuntimeError("scratch_spot: no head along scratch_dir")
+    if n.dot(d) < 0:
+        n = -n                                             # outward
+    fingers = Z - n * Z.dot(n); fingers.normalize()
+    return hit + n * r["scratch_off"], fingers, -n
+
+
+def confused_clip(body, r):
+    """confused (see above), as Keys, keyed on every frame: the rub is a sine, `rubs` strokes a loop, and the head's
+    turns ease between holds, so frame CONFUSED_FRAMES is frame 0 again."""
+    V = Vector
+    spot, fingers, palm = scratch_spot(body, r)
+    def scratch(f):
+        u = math.tau * r["rubs"] * f / CONFUSED_FRAMES
+        up, back = r["rub"] * math.sin(u), r["rub"] * 0.4 * math.cos(u)
+        return ("testa", spot + fingers * up + Y * back, ((fingers + Y * 0.3 * math.cos(u)).normalized(), palm))
+    ts = [0, 14, 26, 46, 58, CONFUSED_FRAMES]
+    turn = [0.0, r["look"], r["look"], -r["look"], -r["look"], 0.0]     # +: to the left
+    tilt = [-6.0, -3.0, -9.0, -3.0, -10.0, -6.0]                         # -: the top to the right, into the hand
+    still = dict(pel=V((0.012, 0.004, -0.015)), hips_r=1.5, tum_p=2.0, neck_p=-2.0, head_p=-3.0, knee_out=4.0,
+                 r_ik=1.0, r_pole_w=1.0, r_pole=r["scratch_elbow"])
+    return Keys(REST, [(f, dict(still, head_y=pchip(ts, turn, f), head_r=pchip(ts, tilt, f), r_at=scratch(f)))
+                       for f in range(CONFUSED_FRAMES + 1)])
+
+
+REACT_CLIPS = [("scared", 30, False), ("guard", 50, True), ("shoo", 25, True), ("confused", CONFUSED_FRAMES, True)]
 
 CLIPS = [("walk", WALK["frames"], True), ("run", RUN["frames"], True), ("bend", 72, False), ("take_away", 72, False),
          ("dance", DANCE["frames"], True), ("hammer", HAMMER_FRAMES, True)] + REACT_CLIPS

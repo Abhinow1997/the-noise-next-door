@@ -29,7 +29,8 @@ extends Node3D
 ##     the table; the low-poly man dances and gets a drink from the cooler; the girl
 ##     dances and warms her hands at the fire.
 ##   - Level 1's first puzzles (camp_puzzles.gd): the backpack, the speaker's plug and
-##     the cooler; E at them goes through camp_input.gd.
+##     the cooler; E at them goes through camp_input.gd. Since 10 Nov 2026, the bear bag
+##     hung in a tree east of the fire (camp_bear_bag.gd).
 ##   - Built here: the fire pit (a ring of stones, burning logs, flickering flames,
 ##     sparks and the fire's light), the logs to sit on, the speaker and its cable, the
 ##     string lights, the mallet and the tent pegs. The tents, the table with the
@@ -47,6 +48,7 @@ const CampTasks := preload("res://scripts/camp_tasks.gd")
 const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
 const CampFire := preload("res://scripts/camp_fire.gd")
 const CampTent := preload("res://scripts/camp_tent.gd")
+const CampBearBag := preload("res://scripts/camp_bear_bag.gd")
 const CampInput := preload("res://scripts/camp_input.gd")
 const SoundWaves := preload("res://scripts/sound_waves.gd")
 const ConeDriver := preload("res://scripts/cone_driver.gd")
@@ -95,10 +97,19 @@ const MAN_SPEEDS := [1.10, 3.56, 3.1]
 const GIRL_SPEEDS := [1.04, 3.33, 0.0]
 ## The camp, as the people see it: within CAMP_ZONE metres of its middle (9 before the
 ## camp grew on 7 Nov 2026: the clearing's radius and 1.5 m more, then and now). A
-## chitter this near any of them is heard.
+## chitter this near any of them is heard, and since 11 Nov 2026 the party's music
+## doesn't drown it (the author: "if the raccoon is close in the vicinity of the npcs and
+## laughs that should draw their attendtion to the location of the laugh"): his laugh is
+## sharp and meant to be heard.
 const CAMP_ZONE := 12.5
 const HEAR_CHITTER := 8.0
-## While the party's music plays, noises carry only this much as far.
+## And since the same day his running (a footfall noise every RUN_NOISE_EVERY seconds
+## while he runs) and his landing from a jump are heard this far, the same way (the
+## author: "running/jumping should make them react similar to the laughin"). His running
+## was heard 4 m off before (camp_person.gd HEAR_RUN), and only by those at their routine.
+const HEAR_STEPS := 6.0
+const RUN_NOISE_EVERY := 0.4
+## While the party's music plays, other noises carry only this much as far.
 const PARTY_MASK := 0.6
 ## The walkways' cells, across and up (m): see _bake_walkways.
 const WALK_CELL := Vector2(0.1, 0.05)
@@ -131,10 +142,11 @@ const POLES := [FIRE + Vector2(-3.85, -5.3), FIRE + Vector2(2.1, -5.9), FIRE + V
 const TABLE_TOP := 0.74
 const TABLE_LEGS := Vector2(0.59, 0.36)
 ## Ground the forest keeps clear of rocks and tufts (x, z, radius): the fire and the
-## party's corner, each tent, the camper's peg and the cooler.
+## party's corner, each tent, the camper's peg, the cooler and (since 10 Nov 2026) the foot
+## of the bear bag's tree (camp_bear_bag.gd TREE).
 const CLEARINGS: Array[Vector3] = [Vector3(FIRE.x - 0.5, FIRE.y - 1.5, 4.8), Vector3(FIRE.x + 8.2, FIRE.y - 0.6, 1.6),
 	Vector3(FIRE.x + 3.6, FIRE.y + 5.8, 1.6), Vector3(FIRE.x + 8.6, FIRE.y + 1.5, 0.7),
-	Vector3(FIRE.x - 4.5, FIRE.y - 2.2, 1.0)]
+	Vector3(FIRE.x - 4.5, FIRE.y - 2.2, 1.0), Vector3(FIRE.x + 5.4, FIRE.y - 2.0, 0.8)]
 ## The fire keeper, the camp's fourth person (added 7 Nov 2026: "Maybe you can add in one
 ## more guy or girl in"; the author picked a guy, "update the colours of clothes of the
 ## new guy"): a second low-poly man in a mustard shirt and brown trousers
@@ -214,6 +226,14 @@ const FIRE_ENERGY := 3.2
 const FIRE_RANGE := 8.0
 ## How much of the light's reach counts as being in the firelight (in_firelight).
 const FIRELIGHT := 0.8
+## Since 11 Nov 2026 (the author: "remove the vision cones for npcs when they are closer to
+## the fire pit with the fire fully up"): in the open world, with the fire burning at
+## FIRE_UP or more, a camper within FIRE_NEAR of its middle (roasting, warming their hands,
+## stoking; not the dancers) has no cone drawn: cone_driver.gd fades it out, and back as
+## they leave or the fire burns lower. The fire's own circle of sight (camp_fire.gd) shows
+## the danger there. They see as ever, and a spotting still shows red.
+const FIRE_NEAR := 2.2
+const FIRE_UP := 0.75
 const WIRE := Color("2a2a2c")
 const BULBS := [Color("ffd27a"), Color("ffb066"), Color("fff0c4"), Color("ff8c5c")]
 const BULB_GLOW := 3.0
@@ -227,10 +247,11 @@ const MALLET_HEAD := Color("2c2d31")
 const PEG := Color("b9bcc0")
 
 ## Set before it's added: the forest (for its night colours), the level's to-do list
-## (camp_tasks.gd, which the camp's puzzles tick off) and, later, the level's music.
+## (camp_tasks.gd, which the camp's puzzles tick off) and, later, the level's music (since
+## 11 Nov 2026 it plays from the speaker, main.gd MUSIC_NEAR).
 var forest: Forest
 var tasks: CampTasks
-var music: AudioStreamPlayer
+var music: AudioStreamPlayer3D
 ## False under the title, where the party only starts with New Game (start_party).
 var party_from_start := true
 ## The people, for the level: the camper (in the "camper" group, so the camera leans
@@ -271,12 +292,17 @@ var puzzles: CampPuzzles
 var campfire: CampFire
 ## Dismantle the tent: the camper's tent's four pegs (camp_tent.gd, 8 Nov 2026).
 var tent_pegs: CampTent
+## Raid the bear bag: the food bag hung in the tree east of the fire (camp_bear_bag.gd,
+## 10 Nov 2026).
+var bear_bag: CampBearBag
 ## True while the speaker's plugged in (the party's music can play).
 var music_on: bool:
 	get:
 		return puzzles == null or puzzles.music_on
 
 var _t := 0.0
+## Until his next footfall noise while he runs (RUN_NOISE_EVERY).
+var _run_noise_t := 0.0
 var _fire_light: OmniLight3D
 var _sparks: CPUParticles3D
 var _flames: Array[Dictionary] = []
@@ -354,6 +380,12 @@ func _ready() -> void:
 	tent_pegs.tent = tent
 	tent_pegs.peg_mesh = _peg_mesh()
 	add_child(tent_pegs)
+	# Before the walkways are baked, so the people go round its trunk.
+	bear_bag = CampBearBag.new()
+	bear_bag.camp = self
+	bear_bag.forest = forest
+	bear_bag.position = _v3(FIRE + CampBearBag.TREE)
+	add_child(bear_bag)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
 	var driver := ConeDriver.new()
 	driver.camp = self
@@ -405,10 +437,19 @@ func _physics_process(delta: float) -> void:
 		_player = get_tree().get_first_node_in_group("player") as Player
 		if _player:
 			_player.chittered.connect(_on_chitter)
+			_player.landed.connect(_on_landed)
 			_input.player = _player
 			_waves.player = _player
 	if _player and not _player.climbing:
 		gave_up_on_tree = false
+	# His running: a footfall noise every so often while he runs.
+	if _player and _player.running:
+		_run_noise_t -= delta
+		if _run_noise_t <= 0.0:
+			_run_noise_t = RUN_NOISE_EVERY
+			noise(_player.global_position, HEAR_STEPS, 0.0, true)
+	else:
+		_run_noise_t = 0.0
 
 
 ## New Game (main.gd): the party starts up, if the speaker's plugged in.
@@ -443,6 +484,14 @@ func in_firelight(at: Vector3) -> bool:
 	return d < _fire_light.omni_range * FIRELIGHT
 
 
+## True if a camper at `at` is by the fire while it burns high in the open world: their
+## cone isn't drawn (FIRE_NEAR, FIRE_UP).
+func by_fire_up(at: Vector3) -> bool:
+	if campfire == null or not campfire.open_world or campfire.strength < FIRE_UP:
+		return false
+	return Vector2(at.x - FIRE.x, at.z - FIRE.y).length() < FIRE_NEAR
+
+
 ## True if `at` is in the camp, give or take `margin` metres.
 func in_camp(at: Vector3, margin := 0.0) -> bool:
 	return Vector2(at.x, at.z).distance_to(Forest.CAMP) < CAMP_ZONE + margin
@@ -470,19 +519,25 @@ func cones_shown_until() -> float:
 	return spotted_at + VisionCone.RED_TIME + VisionCone.FADE_OUT
 
 
-## A noise at `at` that carries `radius` metres (less while the party's music plays):
-## whoever's within it hears it and wonders. `freeze` catches dancers mid-move first
-## (camp_person.gd `hear`).
-func noise(at: Vector3, radius: float, freeze := 0.0) -> void:
-	var r := radius * (PARTY_MASK if music_on else 1.0)
+## A noise at `at` that carries `radius` metres (less while the party's music plays,
+## unless it's `sharp`, as his laugh is): whoever's within it hears it and wonders.
+## `freeze` catches dancers mid-move first (camp_person.gd `hear`).
+func noise(at: Vector3, radius: float, freeze := 0.0, sharp := false) -> void:
+	var r := radius * (PARTY_MASK if music_on and not sharp else 1.0)
 	for person in people:
 		var d := person.global_position - at
 		if Vector2(d.x, d.z).length() <= r:
-			person.hear(at, freeze)
+			person.hear(at, freeze, sharp)
 
 
+## His laugh: heard HEAR_CHITTER round, the music or not.
 func _on_chitter() -> void:
-	noise(_player.global_position, HEAR_CHITTER)
+	noise(_player.global_position, HEAR_CHITTER, 0.0, true)
+
+
+## Down from a jump: heard HEAR_STEPS round, as his running is.
+func _on_landed() -> void:
+	noise(_player.global_position, HEAR_STEPS, 0.0, true)
 
 
 ## What the people do with the camp's things (camp_puzzles.gd does the work).
@@ -499,6 +554,8 @@ func take_back(item: RigidBody3D) -> void:
 
 
 func home_of(item: Node3D) -> Vector3:
+	if bear_bag and item in bear_bag.treats:
+		return bear_bag.bag_at()
 	return puzzles.home_of(item)
 
 

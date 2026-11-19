@@ -21,6 +21,11 @@ extends CanvasLayer
 ##   - They don't bother him in his sleep: for a while an angry scribble showed over
 ##     his z's as they reached him, but the author asked for it to go ("remove the
 ##     irriting when sleeping even tho listing to song dont make the irritated").
+##   - Once he's reached the camp (the first task, "Investigate the music", main.gd),
+##     they've shown him the way, so they keep to the speaker (around): out a little to
+##     each side of it on the screen, not toward him, and none at the edge of the screen
+##     while it's off it. Asked for on 11 Nov 2026: "the waves can stop and be limited to
+##     the music system after the user has reached the campsite".
 ## campsite.gd adds it to the level, under the E and the marks over heads (camp_input.gd).
 
 const Scribbles := preload("res://scripts/scribbles.gd")
@@ -37,6 +42,10 @@ const SHORT := 0.9
 const EDGE_IN := 0.7
 ## Out of the speaker, a set starts this big and grows to full size by him.
 const SMALL := 0.45
+## Kept to the speaker (around), a set goes this far out to each side of it, growing to
+## this size (in his height on the screen, as above).
+const AROUND := 0.8
+const AROUND_SIZE := 0.7
 ## The speaker counts as on the screen this far in from its edges (part of its height).
 const ON_SCREEN := 0.04
 ## Where on him they aim (m above his feet).
@@ -98,6 +107,11 @@ func _process(delta: float) -> void:
 	_overlay.queue_redraw()
 
 
+## True once he's reached the camp: the waves keep to the speaker.
+func around() -> bool:
+	return camp.tasks != null and camp.tasks.is_done("investigate")
+
+
 ## How far he is from the speaker, along the ground (m).
 func _away() -> float:
 	if camp.party == null:
@@ -107,13 +121,17 @@ func _away() -> float:
 	return Vector2(him.x, him.z).length()
 
 
-## Where the sets go on the screen now, or {} if he's not on it:
+## Where the sets go on the screen now, or {} if he's not on it (or, once they keep to
+## the speaker, if it isn't):
 ##   him      where he is
 ##   from     where they start: the speaker, if it's on the screen, or the edge of the
 ##            screen the way the speaker is from him
-##   way      which way they roll (a unit vector), toward him
-##   reach    how far they roll out of the speaker, to SHORT of him (pixels)
+##   way      which way they roll (a unit vector), toward him; kept to the speaker,
+##            across the screen
+##   reach    how far they roll out of the speaker, to SHORT of him (pixels); kept to
+##            the speaker, AROUND
 ##   speaker  true if they come from the speaker itself
+##   around   true if they keep to the speaker (around)
 func route(camera: Camera3D) -> Dictionary:
 	if camp.party == null:
 		return {}
@@ -129,12 +147,17 @@ func route(camera: Camera3D) -> Dictionary:
 	if not camera.is_position_behind(speaker):
 		from = camera.unproject_position(speaker)
 		on_screen = view.grow(-view.size.y * ON_SCREEN).has_point(from)
+	if around():
+		if not on_screen:
+			return {}
+		return {"him": him, "from": from, "way": Vector2.RIGHT, "reach": AROUND * unit, "speaker": true,
+			"around": true}
 	if not on_screen:
 		from = _edge(view, him.clamp(view.position, view.end), _toward(camera, him_at, speaker, him))
 	var out := him - from
 	var way := out.normalized() if out.length() > 1.0 else -_toward(camera, him_at, speaker, him)
 	return {"him": him, "from": from, "way": way, "reach": maxf(out.length() - SHORT * unit, 0.0),
-		"speaker": on_screen}
+		"speaker": on_screen, "around": false}
 
 
 ## Which way the speaker is from him on the screen (a unit vector).
@@ -184,9 +207,10 @@ func _draw_on(canvas: Control) -> void:
 		var f := age / LIFE
 		var alpha := pow(sin(PI * f), 0.7)
 		if way.speaker:
-			# Out of the speaker, growing as it goes: toward him, and away on the far side.
+			# Out of the speaker, growing as it goes: toward him, and away on the far side;
+			# or, kept to the speaker, a little way out to either side of it.
 			var gone: float = way.reach * f
-			var grow := lerpf(SMALL, 1.0, f)
+			var grow := lerpf(SMALL, AROUND_SIZE if way.around else 1.0, f)
 			Scribbles.draw(canvas, list, from + dir * gone, unit * grow, dir.angle(), alpha)
 			Scribbles.draw(canvas, list, from - dir * gone, unit * grow, dir.angle() + PI, alpha)
 		else:

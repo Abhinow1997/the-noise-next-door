@@ -13,6 +13,8 @@ extends Node3D
 ##     round (campsite.gd `noise`), which the campers may hear.
 ##   - `enabled` (a Callable returning a bool) can open and close it, for routines and
 ##     for puzzles already done.
+##   - `up_tree` (since 10 Nov 2026, the bear bag's rope: camp_bear_bag.gd) makes it a job
+##     done out along a tree's limb (player.gd `on_limb`), and only there.
 
 const Player := preload("res://scripts/player.gd")
 
@@ -33,6 +35,8 @@ const NOISE_EVERY := 0.5
 @export var needs := ""
 ## Where the E and the ring show, above it.
 @export var prompt_height := 0.5
+## Worked from out along a tree's limb, not from the ground.
+@export var up_tree := false
 
 var enabled := Callable()
 var camp
@@ -52,7 +56,10 @@ func _ready() -> void:
 func usable_by(player: Player) -> bool:
 	if enabled.is_valid() and not enabled.call():
 		return false
-	if player.climbing or player.resting or player.is_hopping():
+	if player.resting or player.is_hopping():
+		return false
+	# Up a tree, only an up_tree job; and that only out on a limb.
+	if player.climbing != up_tree or (up_tree and not player.on_limb):
 		return false
 	var held: Node = player.held
 	if needs == "" and held != null:

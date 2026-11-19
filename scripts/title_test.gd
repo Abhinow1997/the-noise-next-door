@@ -4,11 +4,12 @@ extends Node
 ## over while there's no save, the Settings page's volumes reaching the buses and the
 ## settings file, the menu's keys leaving him asleep and the game not paused, and New
 ## Game gliding the camera in to the nap close-up in the same level, with no second
-## scene, no picture laid over it and the lullaby playing on; since 25 Oct 2026 also the
-## party next door quiet under the title and starting with New Game, the lullaby dropping
-## under it, its sound waves not bothering his nap. Then the nap isn't counted
-## as the nap task, and a move key wakes him and brings in the key task at the bottom
-## (THE PLAN) and the forest music. Run it headless from the project folder:
+## scene and no picture laid over it; since 25 Oct 2026 also the party next door quiet
+## under the title and starting with New Game, its sound waves not bothering his nap.
+## Since 11 Nov 2026 the lullaby is the title's alone: New Game eases it out and, a moment
+## later, the forest music in from the party's speaker, slowly, while he sleeps on (it
+## used to play on until he woke). Then the nap isn't counted as the nap task, and a move key wakes him and
+## brings in the key task at the bottom (THE PLAN). Run it headless from the project folder:
 ##   godot --headless --path . -- --title-test
 ## It prints a table and quits with exit code 0 if every check passes, 1 if not. The
 ## player's own settings file is put back as it was afterwards. Run in a window with
@@ -46,7 +47,6 @@ var _playing := -1.0
 var _play_steps := []
 var _glide_shots := []
 var _lullaby: AudioStreamPlayer
-var _lullaby_at := 0.0
 var _scene: Node
 var _shots := ""
 
@@ -125,9 +125,7 @@ func _ready() -> void:
 		_shot("1-title"))
 
 	_at(51, _key.bind(KEY_UP))
-	_at(52, func() -> void:
-		_lullaby_at = _lullaby.get_playback_position() if _lullaby else 0.0
-		_key(KEY_ENTER))
+	_at(52, _key.bind(KEY_ENTER))
 	_at(54, func() -> void:
 		_check("New Game: the menu locks while the camera glides in", true, _menu.locked)
 		_gliding = 0.0)
@@ -161,8 +159,9 @@ func _process(delta: float) -> void:
 			_finish()
 
 
-## In close: still the one level, nothing laid over it, asleep with the lullaby going
-## on from where it was, and the camera in the nap close-up.
+## In close: still the one level, nothing laid over it, asleep in the nap close-up, and
+## the music handing over: the lullaby easing out, the forest loop from the speaker, far
+## off here, easing in.
 func _check_in() -> void:
 	var player: Node = level.player
 	_check("In: still the same level, no second scene", true, get_tree().current_scene == _scene)
@@ -170,28 +169,34 @@ func _check_in() -> void:
 	_check("In: the title has handed over", 0.0, level.title_view)
 	_check("In: the camera is the nap close-up", 1.0, level._sleep_view)
 	_check("In: he's still asleep in the hollow", true, player.resting and player.is_napping())
-	_check("In: the lullaby is the same and still playing", true, level._sleep_music == _lullaby and _lullaby.playing)
-	_check("In: it carried on, not from the start", true, _lullaby.get_playback_position() > _lullaby_at)
+	_check("In: the lullaby is easing out, not cut off", true,
+		_lullaby.playing and _lullaby.volume_db < level.SLEEP_MUSIC_DB - 1.0)
 	_check("In: New Game started the party next door", true, level.campsite.party.playing)
 	_check("In: the party isn't heard, just its waves", true,
 		level.campsite.party.volume_db <= level.campsite.SILENT_DB)
-	_check("In: the lullaby plays on, not dropped", true, absf(_lullaby.volume_db - level.SLEEP_MUSIC_DB) < 0.5)
 	_check("In: the party's sound waves are rolling out", true, not level.campsite._waves.sets.is_empty())
-	_check("In: the forest loop waits, right down", true, level._music.volume_db <= -59.0)
+	_check("In: the forest loop is easing in, not there at once", true,
+		level._music.playing and level._music.volume_db > -59.0 and level._music.volume_db < level.MUSIC_DB - 1.0)
+	_check("In: it plays from the speaker, far off here", true,
+		level._music.global_position.distance_to(level._ear.global_position) > level.MUSIC_NEAR)
 	_check("In: no key task at the bottom yet", "", level._plan.key_showing())
 	_check("In: THE PLAN is put away", 0.0, level._plan.up())
 
 
-## The prompt to wake him is up, and the nap he started with doesn't count as a nap.
+## The prompt to wake him is up, the music has handed over, and the nap he started with
+## doesn't count as a nap.
 func _check_settled() -> void:
 	_check("Settled: the prompt to wake him is up", 1.0, level._wake_prompt.modulate.a)
+	_check("Settled: the lullaby has gone", false, _lullaby.playing)
+	_check("Settled: the forest loop is up in its place", true,
+		level._music.playing and absf(level._music.volume_db - level.MUSIC_DB) < 0.5)
 	_check("Settled: still asleep, still close", true, level.player.is_napping() and level._sleep_view == 1.0)
 	_check("Settled: the nap he started with doesn't count", 0, level.naps)
 	_check("Settled: the party doesn't bother him in his sleep: just his z's", "asleep", level.bubbles.showing())
 
 
-## Woken by the move key: out of the hollow, the camera back out, the forest music back
-## in place of the lullaby, and the key task up at the bottom (THE PLAN).
+## Woken by the move key: out of the hollow, the camera back out, the forest music still
+## at full and the lullaby still stopped, and the key task up at the bottom (THE PLAN).
 func _check_up() -> void:
 	var player: Node = level.player
 	_check("Up: out of the hollow and on the ground", true, not player.resting and player.is_on_floor())

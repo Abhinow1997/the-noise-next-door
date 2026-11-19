@@ -29,7 +29,7 @@ extends Node
 ##      (campsite.gd `bush`), and he has to get into it, as he has to press Tab later.
 ##      In it (player.gd `hiding_in`), they carry on, but whoever was after him or
 ##      frightened is confused where they stand (camp_person.gd `lose_him`).
-##   4. Lost: the camera's on the one who saw him, confused ("??", SEARCH), for a moment;
+##   4. Lost: the camera's on the one who saw him, confused ("?", SEARCH), for a moment;
 ##      then they all go back to work.
 ##   5. The roasting (roast_plate.gd), once they're all back at work: the camper roasts a
 ##      marshmallow, turns round to put it on a plate on the log and goes back for more,
@@ -40,9 +40,16 @@ extends Node
 ##      the fright, and the men chase him (camp_person.gd `alert`, `chase_next`). Caught,
 ##      he's shooed but keeps it. Once they've lost him and are all back at work, the E
 ##      shows over him: holding it, he sits up and eats it. Eaten: "Yum!".
+##      Since 11 Nov 2026 (the author: "after the run is initiated, don't let the user hide
+##      back in the bush. Initiate a run back and just give the control back to user"),
+##      "Runnn!" sets him running back toward his tree on his own for RUN_OFF (player.gd
+##      `run_off`), then the keys have him; and the bush is closed to him (hide_spot.gd
+##      `closed`) till they're all back at work.
 ##   6. The list: a note says Tab; Tab brings up the TO DO list with Rock the party and
 ##      its tasks on it (camp_tasks.gd `reveal`), the game slowed; Tab again puts it away,
-##      and the world's open, with no more notes.
+##      and the world's open, with no more notes. Since 11 Nov 2026 the marshmallow he
+##      stole counts: Steal the marshmallows is ticked off then (the author: "after the
+##      tutorial is done we can cross out steal the marshmallows").
 ## While it holds the game it holds the raccoon still (player.gd `input_locked`) and Esc
 ## doesn't pause (main.gd). It's the only game script that changes Engine.time_scale,
 ## and only while it holds the game: it puts it back to 1 when it lets go.
@@ -55,6 +62,7 @@ signal finished
 
 const CampPerson := preload("res://scripts/camp_person.gd")
 const Campsite := preload("res://scripts/campsite.gd")
+const Forest := preload("res://scripts/forest.gd")
 const Spotlight := preload("res://scripts/spotlight.gd")
 const HideSpot := preload("res://scripts/hide_spot.gd")
 const RoastPlate := preload("res://scripts/roast_plate.gd")
@@ -115,6 +123,9 @@ const CAUGHT_LINE := "You've been caught!"
 const RUN_LINE := "Runnn!"
 const CAUGHT_TIME := 1.4
 const RUN_TIME := 1.0
+## Then "Runnn!" sends him running back toward his tree on his own for this long (game
+## seconds) before the keys have him again.
+const RUN_OFF := 1.0
 
 ## Set before it's added (main.gd): the TO DO list, the tasks, the camp, the raccoon,
 ## the camera, the UI layer the dark layer goes in (under the list), and the level (for
@@ -329,6 +340,10 @@ func _intro(real: float) -> void:
 				spotlight.clear()
 				for person in campsite.people:
 					person.chase_now()
+				# Off he goes, back the way he came, and the bush won't have him till
+				# they've given up the chase ("escape").
+				campsite.bush.closed = true
+				player.run_off(Forest.HOME - player.global_position, RUN_OFF)
 				stage = "escape"
 		"roast":
 			if player.hiding_in == null and plan.note_showing() == SNEAK_NOTE:
@@ -343,6 +358,8 @@ func _intro(real: float) -> void:
 			if _all_calm():
 				for person in campsite.people:
 					person.chase_next = false
+				if campsite.bush.closed:
+					campsite.bush.closed = false
 
 
 ## Where the pan looks `t` real seconds in: from him through PAN's places in turn, an equal
@@ -497,6 +514,9 @@ func _close_list() -> void:
 	# The open world: the fire's circle, firelight and bucket start working (camp_fire.gd).
 	if campsite.campfire:
 		campsite.campfire.open()
+	# He's stolen a marshmallow: that task's done (written out and crossed off at the
+	# bottom, plan_note.gd).
+	tasks.done("marshmallows")
 	finished.emit()
 
 

@@ -1537,3 +1537,159 @@ This is game work. The author: "the u been cught and run should sync with the vi
 |---|---|---|
 | Tutorial (`--tutorial-test 60`) | Pass, 29 of 29 (it was 28) | The steal's checks follow the design:<br>• "Taken: in his mouth, off the plate";<br>• then, after one of them sees him (at the plate the camper may see him at once; if not, the check moves him into the camper's view), "Seen with it: caught, frozen, under the dark layer" with "You've been caught!";<br>• then "Then 'Runnn!': they come to, the camper spots him, the men chase him".<br>A `_stand` helper was added, as in the tasks check. |
 | Every other check in CLAUDE.md's list | The recorded counts ([logs/a6-caught-sync/](logs/a6-caught-sync/)): bubbles 87, camp 31, tasks 43, plan 19; cones 43 and cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; waves 13/13 and title all in realtime, each failing only its recorded check at 60 fps. No `SCRIPT ERROR`. | No |
+
+### Confused: scratching their heads, only the head looking about, "?" (10 Nov 2026)
+
+This is game work. The author: "the confusion where they have lost the sight animation for the npcs should be head scratching and only the head should look around with the '?' sign over the head so update the current animation which u have".
+- **The clip:** all three figures have a new looping `confused` (75 frames, 3 s, SEARCH_TIME), keyed by `confused_clip` in `tools/blender/animate_chubby.py`. They stand still and scratch the side of the head with the right hand, and the head looks 40° to the left, then 40° to the right, then ahead again. The hand's place is measured on each head and carried by it. The low-poly man and the girl scratch a little lower (`scratch_up` 0.5 in their `REACT`): at 0.62 their fists stuck up over the tops of their heads.
+- **The elbow (the author's check of the first try, the same day: "there is a werid gap ... cna u make it better ?"):** with the elbow out to the side at the height of the shoulder, the upper arm squeezed into the chest, and the chubby man's mesh tore open in the armpit: a pale slit from in front, a notch from the right three-quarter, while the head looked ahead or to the left. The rig has no collarbone to take it. Now the elbow comes forward, a little down and in (`scratch_elbow`, added to where a solved arm's elbow points: `l_pole` and `r_pole` in `REST`, zero for every other clip). Of five aims tried in close-ups, it was the one with no tear through the loop, from in front, from behind and from three-quarters; it also took away smaller notches the low-poly man and the girl had in the armpit. From the right three-quarter, the forearm is now in front of the face. The three `.blend` and `.glb` files were re-keyed with their `animate_*.py` and reimported (`--import`).
+- **Nothing else in the `.glb` files changed:** with the elbow's fix too, every earlier clip's data is byte-identical to before, as are the meshes, skins and nodes; only the exporter's version string differs (v5.2.40 to v5.2.41).
+- **The game (`scripts/camp_person.gd`, `_search`):** while confused they play `confused` (set to loop there, since the `.glb`'s import settings don't list it) and no longer turn their whole body from side to side. Their eyes, the cone, turn with the head (`_head_turn`, read from the head bone), so they still look about as they did, by ±40° (the body used to swing ±50°, LOOK_SWING). The cone faces ahead again on the next state.
+- **The mark (`scripts/camp_input.gd`):** "?" while confused, as while wondering about a noise. It was "??".
+- **Unchanged:** SEARCH_TIME, what starts and ends it, and wondering about a noise (INVESTIGATE: the body still turns, with "?").
+- **Checked by hand on 10 Nov 2026 (scratch scripts, not in the repo):** frames 0, 14 and 46 of each figure, rendered in Blender from in front, both three-quarters and behind, 27° down as the game's camera looks, and the upper body close up for the elbow (frames 0, 14, 36, 46 and 58 on the chubby man); and in Godot, the imported clip, which loops once set, turns the head between −40° and +40°, and moves no hip, spine, neck, leg or shoulder bone, only the right hand.
+- **Not checked:** how it looks in the running game at 1280 × 720. That's for the author's eyes in play.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Every check in CLAUDE.md's list | The recorded counts ([logs/a6-confused/](logs/a6-confused/)): bubbles 87, camp 31, tasks 43, plan 19, tutorial 29; cones 43 and cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; waves 13/13 and title all in realtime. The cones check's "Gone: the camper, the low-poly man and the girl are each confused (SEARCH) first, and look about for SEARCH_TIME" (3.00 s) pass as before. No `SCRIPT ERROR`. Not rerun: the waves and title checks at 60 fps (their recorded failures) and the cost script. | No |
+
+### Raid the bear bag (10 Nov 2026)
+
+A fifth task under Rock the party. The author asked for "more sophistication in the tasks", then for one task, and picked Claude Code's design for the bear bag: "Build it". Real campers hang their food high in a tree, out of the reach of bears and raccoons; getting it down is the puzzle.
+
+What was built (`scripts/camp_bear_bag.gd`; the limb in `scripts/player.gd`; the camper's `HANG` in `scripts/camp_person.gd`):
+- **The tree:** east of the fire, between it and the camper's tent (`TREE`, 5.4 m east and 2 m north of the fire), a tree with one long, low limb reaching back toward the fire, 2.6 m up. The campers' food bag hangs from it, its bottom about 1.6 m up, out of his reach, on a rope that runs over the limb and down to a knot on the trunk. Built in code, like the fire pit.
+- **Two ways to bring it down,** once the TO DO list is on the page, after the tutorial:
+  - **The knot:** hold E at it for 4 s, on the ground at the trunk. The gnawing is heard 1.2 m round. The knot twinkles within 2 m.
+  - **The limb:** climb the trunk; at its top, the move keys pointing out along the limb step him onto it, and he walks along it as they point, out or back. It gives under him the further out he goes, and bobs as he walks. Over the bag, hold E for 2 s to chew the rope, silently. Out on the limb no cone can see him ("nobody looks up": `vision_cone.gd` `hidden`), and he's still up the tree for the campers, who shoo at its foot. E or jump drops him to the ground.
+- **The drop:** the bag falls under the limb with a thump heard 9 m round (5.4 m over the party's music), and the campers near it come to look.
+- **Opening it:** hold E at the drawstring for 2 s. The cookies, a chocolate bar and a bag of trail mix spill out round it.
+- **The task:** a treat in his stash at his tree ticks it off, as the marshmallows do.
+- **Re-hanging:** caught with a treat, he drops it and it's carried back to the bag (the camp's `TAKE`, with `home_of` the bag). With the bag down and him seen since it fell, or a treat taken back, the camper, once calm, walks to the bag, puts the treats lying by it back in, walks to the trunk, ties it off and hoists it up. Treats in the stash stay his.
+- **The list:** "Raid the bear bag", hint "Drop it, grab a treat."
+- **Kept as it was:** the forest's list of trees. The new tree is given to the raccoon alone (`main.gd`, `player.trees`), so the camp and sound checks, which climb "the nearest tree" from the forest's list, climb the trees they always have.
+- **Small rules added for it:** a hold-E job can be marked `up_tree`, worked only from out on a limb (`interactable.gd`); every other job is unchanged, still off while he's up a tree.
+- **No sound of its own yet:** the chewing, the snap and the thump play no sound; the thump is only a noise the campers hear.
+
+Logs: [logs/a6-bearbag/](logs/a6-bearbag/), on the working tree over `1578035`, with the confused animation in it.
+
+| Check | Result | Changed? |
+|---|---|---|
+| **New: the bear bag** (`bash scripts/run-test.sh --bearbag-test 60 300`) | Pass, 41 of 41. It hangs out of reach with its three treats; before the open world the knot can't be chewed, and the rope over the bag can't be chewed from the ground. A real held E chews the knot through (half a chew isn't enough); it lands under the limb and one of the campers comes to wonder about the thump. Held E opens it and the three spill out; one carried home ticks the task off. A treat taken back goes into the bag; calm, the camper hangs it up again with the treat lying by it, but not the one in the stash. Walking into the trunk climbs it, W takes him to the top, the keys pointing along the limb step him onto it and walk him out over the bag; it gives under him, no cone can see him, and held E chews the rope; the rope from the knot stays tied; E drops him to the ground, where he's seen again. The campers' cones are off throughout. | New |
+| Camp tasks (`--tasks-test 60`) | Pass, 43 of 43 | **Expected value changed with the design:** the list is now "investigate party marshmallows music cooler tent bearbag". **How it measures:** the bear bag is ticked off before "All six tasks done" (it was "All five"), which still expects true. The bear bag is played through in its own check. |
+| Cones (`--cones-test` at 30, 60 and 144) | Pass, 43 of 43 at each | **Expected value changed with the design:** the list shown in the tutorial gains "bearbag". **How it measures:** the bear bag is ticked off before "All five done: Rock the party is ticked off" (it was "All four"), which still expects true. |
+| Tutorial (`--tutorial-test 60`) | Pass, 29 of 29 | **Expected value changed with the design:** the list on Tab gains "bearbag". |
+| Sound (`--sound-test 60`) | Pass | **How it measures:** the bear bag is ticked off in the same frame as the music, the cooler and the tent, so "Every task done" still expects true. |
+| Every other check in CLAUDE.md's list | The recorded counts ([logs/a6-bearbag/](logs/a6-bearbag/)): bubbles 87, camp 31, plan 19; cone shader 93 at 30, 60 and 144; fire 23, tent 16, Effect A's state 37, the smoke 20 and 8; waves 13/13 and title all in realtime. The camp and sound checks still climb the trees they always have. | No |
+
+No `SCRIPT ERROR` in any log. The first full run, before the checks above were all updated, failed the tasks check ("All five tasks done", run before its edit) and the cones check at 30, 60 and 144 (its tutorial list, which I'd missed); both were rerun. The first run of the new check passed 41 of 41 but logged a `SCRIPT ERROR`: the knot's blob was given a tube's colour function, so it wasn't drawn. Fixed, and the rerun is clean.
+
+**Looked at in a window** (a scratch script, not in the repo; pictures not kept): the raccoon at the knot with the E and its twinkle, the rope running over the limb to the bag; out on the limb over the bag; and the bag down and open with the treats by it, the girl's "?" for the thump. The string lights run just behind the limb. The treats read small, as the tent's pegs did at first.
+
+**Not checked:** how it plays: how easy each route is, and whether the knot is watched enough (the camper sees it across the fire while he roasts; the tree's in the fire's light). The tree's place is a first guess, for the author to settle in play at 1280 × 720: F1, "Free play: the fire burning", and the tree is east of the fire. Being caught with a treat through a real chase isn't played through; the check sends a treat back the way the chase does (`take_back`).
+
+### The music from the speaker (11 Nov 2026)
+
+This is game work. The author: "the background music we have lets update the same to be coming from the music system we have so we grow closer to the camp it increses".
+- **The forest loop** (`scripts/main.gd`, `_start_music`) is now an `AudioStreamPlayer3D` at the party's speaker, halfway up it, still on the Music bus (M, the Settings page and the pause's muffling work on it as before). It's heard through the ear on the raccoon (`_ear`), so it's louder the nearer he is and comes from the speaker's side of the screen.
+- **How loud:** `MUSIC_DB` (−12, as before) is its level `MUSIC_NEAR` (10 m) from the speaker, about where the trail comes into the camp. It falls off 6 dB each time the distance doubles (inverse distance), and right by the speaker it's never more than `MUSIC_CLOSE_DB` (3 dB) over its level. Worked out from Godot's formula with the probe's distances (headless can't hear it): −24.3 dB at the start and the home pine (41 m), −18.2 halfway (20 m), −11.3 at the camp's west edge (9 m), −9 at the fire and up to the speaker.
+- **The fades are as they were:** `volume_db` is still the music's level, faded for a nap and dipped under the laugh; the cap by the speaker follows it every frame (`max_db`), so the dip still shows there. The player's distance filter is off (`attenuation_filter_db` 0): it goes by the level as well as the distance, so at −12 dB it would have dulled the music even in the camp.
+- **The plug** (`scripts/camp_puzzles.gd`): pulled, the music stops (`stream_paused`), as the silent party beat already did; plugged back in, it goes on from where it stopped. The dancers keep the party's own time meanwhile, as they did with the level music stopped. (Claude Code's call, which the author hadn't asked for; kept by the author the same day: "Yes stops".)
+- **The bubble demo,** which has no camp, plays it as before, the same everywhere (no falloff, no panning).
+- **The checks' clean-up:** the loops that stop both music players at the end of a check (bubbles, camp, tasks, tutorial, waves, the title screen's shot and `main.gd`'s) no longer type their variable as `AudioStreamPlayer`. Nothing they measure changed.
+- **Read back headless (a scratch script, not in the repo):** the player's class, bus, model, unit size and filter; at the start of free play, −12 dB with a cap of −9 and playing; pulled, not playing and paused; plugged back in, playing again.
+- **Not checked:** how it sounds. That's for the author's ears in play: the music is off by default (M turns it on), so press M, then walk from the tree to the camp.
+
+Logs: [logs/a6-music-speaker/](logs/a6-music-speaker/), on the working tree over `1578035`, with the bear bag in it.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Sound (`--sound-test 60`) | Pass, 30 of 30: the nap's fade right down, the forest loop back to full, the pause's muffling and "the music carries on" read the 3D player as they did the old one | No |
+| Every other check in CLAUDE.md's list that runs the level | The recorded counts: bubbles 87, camp 31, tasks 43, plan 19, tutorial 29; cones 43 at 60; fire 23, tent 16, bear bag 41, Effect A's state 37, the smoke 20; waves 13/13 and title 52/52 in realtime. No `SCRIPT ERROR`. Not rerun: cones at 30 and 144, the cone shader, the smoke's load check, the asset and material checks, the effects' configuration checks and the cost script, which don't touch the music. | No |
+
+### The title's lullaby, then the forest loop from New Game (11 Nov 2026)
+
+This is game work. The author: "the title music is the sleepy music that will always be on as soon as you start the game. So and as soon as the user clicks on the new game, it stops", and the music that comes in then "should be like mild, but it should be audible, and then it should increase as we go closer".
+- **On from the start** (`scripts/main.gd`, `MUSIC_ON_AT_START`): true again. The Music bus was muted under the title by default from 7 Nov 2026 ("by default have the music off"); now the lullaby is heard on the title as soon as the game opens. M still mutes it.
+- **New Game** (`start_party`): the lullaby fades out and stops, and the forest loop fades in from the speaker, both over 1.5 s (`WAKE_FADE`, the crossfade waking used), while he sleeps on in the hollow and the camera glides in. It used to wait, right down, until he woke. Waking now has nothing left to fade. Later naps in the hollow still bring the lullaby in, as before.
+- **Mild at his tree** (`MUSIC_NEAR` 16 m; it was 10 m earlier the same day): worked out from Godot's formula with the probe's distances, −20.2 dB at the start and the home pine (41 m), 8 dB under `MUSIC_DB` (it was 12 dB under); −14.2 halfway (20 m); −9 (the cap, `MUSIC_CLOSE_DB` over `MUSIC_DB`) from about 11 m out, which takes in the whole camp. So it rises along the trail and is flat in the camp.
+- **Not checked:** how it sounds, and whether 8 dB under is "mild, but audible" over the night's sounds. That's for the author's ears in play. The knob is `MUSIC_NEAR`: larger is louder far off.
+
+Logs: [logs/a6-title-music/](logs/a6-title-music/), on the working tree over `1578035`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Title (`--title-test realtime`) | Pass, 51 of 51 (it was 52) | **Expected values changed with the design:** "In: the lullaby is the same and still playing" is now "In: New Game stopped the lullaby" (expects false); "In: the forest loop waits, right down" is now "In: the forest loop is up in its place" (playing, at `MUSIC_DB`); new, "In: it plays from the speaker, far off here" (more than `MUSIC_NEAR` from the ear). Gone with the design: "In: it carried on, not from the start" and "In: the lullaby plays on, not dropped". The "Up:" checks are as they were. |
+| Every other check that runs the level | The recorded counts: sound 30, bubbles 87, camp 31, tasks 43, plan 19, tutorial 29, cones 43 at 60, bear bag 41; waves 13/13 in realtime. No `SCRIPT ERROR`. Not rerun since the music from the speaker (above), as nothing in them reaches the title or `MUSIC_NEAR`: fire, tent, Effect A's state, the smoke. | No |
+
+### New Game's music, eased; the waves kept to the speaker at the camp (11 Nov 2026)
+
+This is game work, two changes asked for together. The author: "the shift is very sudden for when a new game has started handel it appropriately", and "along with the same the waves can stop and be limited to the music system after the user has reached the campsite".
+- **The hand-over at New Game** (`scripts/main.gd`, `start_party`, `_ease_music`): no longer one 1.5 s crossfade. The lullaby eases out over 3.5 s (`NEW_GAME_LULLABY_OUT`); 1.5 s in (`NEW_GAME_MUSIC_AFTER`), the forest loop eases in over 4 s (`NEW_GAME_MUSIC_IN`). So they overlap for 2 s and it's all in by 5.5 s, about when the prompt to wake him comes up (the glide is 2.6 s, the prompt waits 2.5 s more). Both fades ease the amplitude in and out along a sine (`TRANS_SINE`, `EASE_IN_OUT`), so neither jumps in nor drops away. The nap's own crossfades are as they were.
+- **Waking from the title's nap leaves it alone** (`_process`): waking used to run the wake crossfade, which would have cut a slow fade-in short if he was woken during it (he can be, from 2.6 s). Later naps cross over as before.
+- **Not sent back to its top:** a first try started the forest loop from its beginning as it came in. The party's beat goes by the forest loop's place (its dancers, its woofer and its waves), so the jump stalled the waves for a few beats, and the title check's "In: the party's sound waves are rolling out" failed. Taken out: the loop comes in where it is, under the slow fade.
+- **The waves** (`scripts/sound_waves.gd`, `around`): once "Investigate the music" is ticked (he's in the camp, `main.gd` `_check_tasks`), they keep to the speaker. On the beat as before, a set goes out of the speaker a little way to each side across the screen (`AROUND` 0.8 of his height, growing to `AROUND_SIZE` 0.7). None comes toward him, and none shows at the edge of the screen while the speaker's off it. Before he's reached the camp they're as they were: at the edge, or out of the speaker toward him.
+- **Not checked:** how either looks or sounds in play at 1280 × 720. That's for the author: New Game from the title, then walk into the camp and look at the speaker.
+
+Logs: [logs/a6-handover-waves/](logs/a6-handover-waves/), on the working tree over `1578035`.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Title (`--title-test realtime`) | Pass, 53 of 53 (51 before this) | **Expected values changed with the design:** at the first look in (about 2.65 s after New Game), "In: New Game stopped the lullaby" is now "In: the lullaby is easing out, not cut off" (playing, more than 1 dB under its level), and "In: the forest loop is up in its place" is now "In: the forest loop is easing in, not there at once" (playing, between −59 dB and 1 dB under `MUSIC_DB`). New, once the prompt is up (about 6.2 s): "Settled: the lullaby has gone" and "Settled: the forest loop is up in its place". |
+| Waves (`--waves-test realtime`) | Pass, 14 of 14 (it was 13) | **Expected value changed with the design:** "at the camp: from the speaker's side of him" is now "at the camp: kept to the speaker, a little way to each side, not toward him" (`around`, across the screen, `AROUND` out). **New:** "At the camp's far side, the speaker off the screen: no waves at the edge", 10 m from the speaker east of the fire. By his tree and on the trail, as before. |
+| Sound, camp, tasks, tutorial, bubbles, plan, cones at 60 | The recorded counts: 30, 31, 43, 29, 87, 19, 43. No `SCRIPT ERROR`. Run before the loop's jump to its top came out, which only happens after New Game on the title, which none of them has. | No |
+
+The first run's title check failed "In: the party's sound waves are rolling out", as above; after the fix the title check was rerun alone, and it's this log.
+
+### "Runnn!": a run back, and the bush closed (11 Nov 2026)
+
+This is game work. The author: "In the tutorial after the run is initiated, don't let the user hide back in the bush. Initiate a run back and just give the control back to user after after you started the run." Kept by the author on 12 Nov 2026 after play ("Good, record it all"), with the three entries below.
+- **The run back** (`scripts/camp_tutorial.gd`, "caught"; `scripts/player.gd` `run_off`): as "Runnn!" ends and the men set off, he runs toward his tree on his own for `RUN_OFF` (1 s), as if Shift and a move key were held; the keys do nothing till then, and putting him somewhere (`place()`) ends it. Then the keys have him again. In the check, from a standstill, he got about 1.8 m back toward his tree in that second.
+- **The bush closed** (`scripts/hide_spot.gd` `closed`): from "Runnn!" until they're all back at work, walking into it doesn't dive him in or hide him, and a wall the shape of it, 1.1 times its size, keeps him out of it. The wall is on a physics layer of its own (`CLOSED_LAYER`, layer 10) that only the raccoon collides with (`player.gd` adds it to his mask), so the campers and loose things go through it as ever. It opens again in "escape" once they're all calm, before he can eat the marshmallow.
+- **Not checked:** how the run back feels in play, and where it takes him when he's caught somewhere other than by the fire.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Tutorial (`--tutorial-test 60`) | Pass, 33 of 33 then (29 before; 34 now, with the entry below) | **New:** "'Runnn!': he's off on his own, and the bush is closed"; "Then the keys have him again, some way back toward his tree" (more than 1 m); "Run at the bush while they chase him: it won't have him, he stops at its leaves" (watched the whole way: never in, never nearer its middle than `BUSH_HIDE`); "And the bush is open again" once they're calm. **How it measures:** after "Runnn!" it waits till he's down and nobody's shooing him before putting him away from the camp (a shoo's leap carries on wherever he's put), with the same expected value. **Mutations:** the bush left open fails the first and third; closed with no wall fails the third. |
+
+### Steal the marshmallows after the tutorial, and a task done written out at the bottom (11 Nov 2026)
+
+This is game work. The author: "after the tutorial is done we can cross out steal the marshmallows also when u complete a task can we have scribe of the task that was completed and make scribing noise?", with a sketch of a big strip along the bottom of the screen with the task's name on it.
+- **The marshmallow he stole counts** (`scripts/camp_tutorial.gd` `_close_list`): Steal the marshmallows is ticked off as the tutorial ends, when Tab puts the list away. Only the tutorial with its intro does it; without it (the cones checks), the list picks the marshmallows as before.
+- **Written out** (`scripts/plan_note.gd`): a task just done comes up on a scrap `DONE_SCALE` (1.8) times the size of the others, its words written in chalk a letter every `WRITE_CHAR` (0.05 s) from `WRITE_AFTER` (0.15 s) after it starts coming up; then, as before, `STRIKE_WAIT`, crossed off, stamped and gone after `HOLD`. The key task's scrap and the tutorial's notes are as they were.
+- **The scribble** (`assets/audio/sfx/scribble-loop.wav`, made by `design/sfx/make_scribble.py`, SOURCES.md): a chalk scribble loops on the effects bus at `SCRIBBLE_DB` (−2 dB) while a scrap's words are written and while it's crossed off, fading in and out in 60 ms, from somewhere new in the loop each time. The WAV was imported with `--import`; no other import file changed.
+- **Looked at in a window** (the plan check's own pictures, `--plan-shots`, not kept): halfway through, the big scrap reads "Steal the ma" with the next letter coming in, above the key task's scrap; then crossed off and stamped.
+- **Not checked:** how the scribble sounds (a headless run plays nothing); how big the scrap reads at other window sizes.
+
+| Check | Result | Changed? |
+|---|---|---|
+| THE PLAN (`--plan-test 60`) | Pass, 22 of 22 (it was 19) | **How it measures:** the waits for a done task's scrap to be crossed off and to go now include writing its words out (`WRITE_AFTER`, `write_time`), with the same expected values. **New:** "Done: on a bigger scrap than the key task's"; "Done: its words being written out, the chalk heard"; "Done: all written, and the chalk quiet again". |
+| Tutorial (`--tutorial-test 60`) | Pass, 34 of 34 | **New:** "And the stolen marshmallow counts: Steal the marshmallows done, written out at the bottom". |
+
+### His laugh draws them (11 Nov 2026)
+
+This is game work. The author: "if the raccoon is close in the vicinity of the npcs and laughs that should draw their attendtion to the location of the laugh".
+- **Before:** his laugh was heard `HEAR_CHITTER` (8 m) round, but only 4.8 m while the party's music played (`PARTY_MASK`), and only by those calm at their routine: they wondered ("huh?"), the men went to look, and they looked about there.
+- **Now** (`scripts/campsite.gd` `noise`, `sharp`; `scripts/camp_person.gd` `hear`): it carries 8 m whether the music plays or not, and it also draws those confused after losing him, and turns those already wondering to where it came from. Other noises are drowned by the music as before, and don't turn those already wondering: some come again and again (a job held with E, the bag crinkling as he runs), and would keep pulling the one going to look back. (A first try let every noise do it; Claude Code took that back before the author saw it, for that reason.)
+
+| Check | Result | Changed? |
+|---|---|---|
+| Camp tasks (`--tasks-test 60`) | Pass (45 of 45 then; 48 now, with the entry below) | **New:** "Laugh: 6.5 m behind him, the music on: he turns to it"; "Laugh again from his side while he wonders: he turns to that one". **Mutations:** the music drowning the laugh again fails both; a laugh not turning those already wondering fails the second. |
+
+### The cones: hidden by a fire burning high and by how he moves; his running and jumping heard (11 Nov 2026)
+
+This is game work. The author: "for the npcs vision cones can be too much and sometimes unecessary can we remove the vision cones for npcs when they are closer to the fire pit with the fire fully up and can we think of some updates to the mechanism of the vision cones where they can be not over jaring ?". Claude Code offered four (fade with distance; quiet while he's safe; smooth every change; a softer look, in the author's shader). The author answered in their own words instead: "cones should be visiable when he is trying to sneek and hide but fade if he is running around and moving around especially when near the npcs also running/jumping should make them react similar to the laughin".
+- **By the fire** (`scripts/campsite.gd` `by_fire_up`, `scripts/cone_driver.gd`): in the open world, with the fire at `FIRE_UP` (0.75) or more, a camper within `FIRE_NEAR` (2.2 m) of its middle (roasting, warming their hands, stoking; the dancers stand just outside it) has their cone faded out over `FADE_OUT`, and back as they leave or it burns lower. The keeper keeps it between about 0.4 and 1, so it's above 0.75 a little over a third of the time it's lit. The fire's own circle of sight shows the danger there. In the tutorial (before the open world) the roasting camper keeps his cone.
+- **By how he moves** (`scripts/cone_driver.gd`): every cone shows in full while he sneaks or is hidden, and fades out over `STEALTH_OUT` (1 s) while he moves about upright (walking, running, jumping); standing still or climbing, it stays as it was, so stopping and starting doesn't make them blink. Before he's moved at all they show.
+- **Kept as they were:** what they see (only the drawing changes), the red on a spotting and its fade (whatever he's doing, wherever they are), the fire's circle, and the author's shader (`shaders/vision_cone.gdshader`, not touched: cone_driver.gd sets its `shown` as before, now times these two).
+- **His running and his landing** (`scripts/campsite.gd` `HEAR_STEPS`, `RUN_NOISE_EVERY`; `scripts/player.gd` `landed`): running makes a footfall noise every 0.4 s, and coming down from a jump a thump, each heard 6 m round, the same way as his laugh (the music doesn't drown them; they draw the confused and turn those wondering). His running was heard 4 m off before (camp_person.gd's `HEAR_RUN`, now gone), only by those at their routine. Turned to a new noise while past their "huh?", the men go on toward it without a second one, for a fresh while, so his footfalls lead them on.
+- **Not checked:** how it reads and plays at 1280 × 720: the cones fading as he walks, and the campers following his running.
+
+Logs: [logs/a6-run-scribe-cones/](logs/a6-run-scribe-cones/), on the working tree over `1578035`, for all four entries.
+
+| Check | Result | Changed? |
+|---|---|---|
+| Campfire (`--fire-test 60`) | Pass, 25 of 25 (it was 23) | **New:** "Burning high, by the fire: her cone fades away, he's still watching away from it" (the girl put by the fire, the camper 5 m off, both frozen); "Away from the fire again: her cone's back". **Mutation:** no fade by the fire fails the first. |
+| Camp tasks (`--tasks-test 60`) | Pass, 48 of 48 | **New:** "Running 5.3 m behind him, the music on: he turns to it"; "A jump 5.3 m behind him, the music on: he turns to it"; "Cones: walking upright they fade; stopped, they stay faded; sneaking, they're back". These and the laugh's two run last: run before the cooler, the time they took put the fire keeper (who isn't settled) where he saw him at the cooler. **Mutations:** footfalls heard only 4 m off fails the two; no fade for how he moves fails the third. |
+| Every other check in CLAUDE.md's list that runs the level | Bubbles 87, camp 31, plan 22, tutorial 34; cones 43 at 30, 60 and 144; cone shader 93 at 60; tent 16, bear bag 41, Effect A's state 37, the smoke 20 and 8; sound 30; waves 14/14 and title 53/53 in realtime, and at 60 fps 13 of 14 and 52 of 53, each failing only its recorded check. No `SCRIPT ERROR`. Not rerun: the cone shader at 30 and 144, the asset, material and effects' configuration checks, and the cost script. | No |

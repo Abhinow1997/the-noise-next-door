@@ -353,6 +353,10 @@ func plug_in(item: RigidBody3D) -> void:
 		music_on = true
 		if camp.party:
 			camp.party.play()
+		# The level's music plays from the speaker too (main.gd MUSIC_NEAR): on again from
+		# where it stopped.
+		if camp.music:
+			camp.music.stream_paused = false
 
 
 ## Tugged out with his teeth: it comes away in his mouth, and the music stops.
@@ -372,6 +376,8 @@ func _music_off() -> void:
 	_cut_at = camp.clock
 	if camp.party:
 		camp.party.stop()
+	if camp.music:
+		camp.music.stream_paused = true
 	tasks.done("music")
 	# Everyone notices the quiet and wonders what happened to the music; the dancers
 	# stop dead first, which gives him a moment to get away.

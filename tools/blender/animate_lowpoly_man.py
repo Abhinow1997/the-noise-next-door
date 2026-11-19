@@ -16,6 +16,7 @@
 #   dance      64 frames, looping (added 23 Oct 2026 for the campsite): the chubby man's step-touch with his own
 #              arms (DANCE below)
 #   scared, guard, shoo  (added 23 Oct 2026, the campers' reactions) as animate_chubby.py has them
+#   confused   (added 10 Nov 2026) as animate_chubby.py has it, a little lower on his head (REACT below)
 # All in place, facing -Y (+Z in Godot): the game moves him and plays walk and run at speed / their speed above.
 #
 # prepare_lowpoly_man.py ends by running this file. On its own, it re-keys the four actions on the saved .blend, saves
@@ -57,7 +58,10 @@ DANCE = dict(L["DANCE"], step=0.18, bounce=0.04, pop=5.0,
 
 # His reactions (scared and the rest, 23 Oct 2026): his arms are long enough to put his hands up without
 # turning them out, as the chubby man's are
-REACT = dict(L["REACT"], hands_out=18.0, hands_twist=0.0)
+REACT = dict(L["REACT"], hands_out=18.0, hands_twist=0.0,
+             scratch_up=0.5)
+# (confused, 10 Nov 2026: his head is shorter above the ear than the chubby man's with his beanie, so he scratches
+# lower down it; at the chubby man's 0.62 his fist stuck up over the top of his head)
 
 
 def clips(body):

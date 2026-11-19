@@ -1,7 +1,8 @@
 extends Node
 ## The automated check for THE PLAN (plan_note.gd): Tab brings the page up and puts it
 ## away, V has the camera panel now, the key task waits at the bottom until it's done,
-## a task done comes up crossed off at the bottom and goes, and the page crosses off
+## a task done comes up at the bottom (since 11 Nov 2026 on a bigger scrap, its words
+## written out with the chalk heard), is crossed off and goes, and the page crosses off
 ## what's been done. Run it headless from the project folder:
 ##   godot --headless --path . --audio-driver Dummy -- --plan-test
 ## It prints a table and quits with exit code 0 if every check passes, 1 if not. With
@@ -12,8 +13,10 @@ const Campsite := preload("res://scripts/campsite.gd")
 const PlanNote := preload("res://scripts/plan_note.gd")
 ## Where he's put at the camp's edge, on the side of his tree.
 const AT_CAMP := Vector3(Forest.CAMP.x - Campsite.CAMP_ZONE + 1.5, 0.02, Forest.CAMP.y)
-## The time a done task's scrap takes from coming up to having gone.
-const SCRAP_LIFE := PlanNote.STRIKE_WAIT + PlanNote.STRIKE_TIME + PlanNote.HOLD + PlanNote.SCRAP_MOVE
+## The time a done task's scrap takes from coming up to having gone, besides writing its
+## words out (PlanNote.write_time).
+const SCRAP_LIFE := PlanNote.WRITE_AFTER + PlanNote.STRIKE_WAIT + PlanNote.STRIKE_TIME + PlanNote.HOLD \
+	+ PlanNote.SCRAP_MOVE
 
 ## Set by the level (main.gd).
 var level: Node
@@ -53,12 +56,22 @@ func _run() -> void:
 	await _wait(0.1)
 	_check("V again: the camera panel shuts", false, level._tuner.visible)
 
-	# A task done comes up crossed off above the key task, then goes.
+	# A task done comes up above the key task, its words written out (since 11 Nov 2026),
+	# crossed off, then goes.
+	var writing := PlanNote.write_time("Steal the marshmallows")
 	level.tasks.done("marshmallows")
 	await _wait(0.1)
 	_check("Done: its scrap comes up above the key task's", "investigate (key), marshmallows", _scraps())
-	await _wait(PlanNote.STRIKE_WAIT + PlanNote.STRIKE_TIME + 0.4)
+	_check("Done: on a bigger scrap than the key task's", true, _scale("marshmallows") > _scale("investigate") * 1.5)
+	await _wait(PlanNote.WRITE_AFTER + writing * 0.5 - 0.1)
+	var halfway := _plan.written("marshmallows")
+	_check("Done: its words being written out, the chalk heard", "true true",
+		"%s %s" % [halfway > 0.2 and halfway < 0.8, _plan.scribbling()])
+	_shot("3-done-being-written")
+	await _wait(writing * 0.5 + PlanNote.STRIKE_WAIT + PlanNote.STRIKE_TIME + 0.4)
 	_check("Done: it's crossed off", "investigate (key), marshmallows (crossed off)", _scraps())
+	_check("Done: all written, and the chalk quiet again", "1.0 false",
+		"%s %s" % [_plan.written("marshmallows"), _plan.scribbling()])
 	_shot("3-done-at-the-bottom")
 	await _wait(SCRAP_LIFE)
 	_check("Done: its scrap has gone, the key task's stays", "investigate (key)", _scraps())
@@ -96,6 +109,14 @@ func _run() -> void:
 func _scraps() -> String:
 	return ", ".join(_plan.scraps().map(func(s: Array) -> String:
 		return s[0] + (" (key)" if s[1] else "") + (" (crossed off)" if s[2] else "")))
+
+
+## How big task `id`'s scrap is on the screen, or 0 if it has none.
+func _scale(id: String) -> float:
+	for scrap in _plan._scraps:
+		if scrap.task.id == id:
+			return scrap.scale.x
+	return 0.0
 
 
 func _tab() -> void:

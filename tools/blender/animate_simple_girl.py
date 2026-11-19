@@ -17,6 +17,7 @@
 #   dance      64 frames, looping (added 23 Oct 2026 for the campsite): the chubby man's step-touch with her own
 #              arms (DANCE below)
 #   scared, cower  (added 23 Oct 2026, the campers' reactions) as animate_chubby.py has them: she's always scared
+#   confused   (added 10 Nov 2026) as animate_chubby.py has it, a little lower on her head (REACT below)
 # All in place, facing -Y (+Z in Godot): the game moves her and plays walk and run at speed / their speed above.
 #
 # prepare_simple_girl.py ends by running this file. On its own, it re-keys the four actions on the saved .blend, saves
@@ -59,7 +60,10 @@ DANCE = dict(L["DANCE"], step=0.15, bounce=0.03, pop=8.0, yaw=9.0,
 
 # Her reactions (scared and the rest, 23 Oct 2026): her arms are long enough to put her hands up without
 # turning them out, as the chubby man's are
-REACT = dict(L["REACT"], hands_out=18.0, hands_twist=0.0)
+REACT = dict(L["REACT"], hands_out=18.0, hands_twist=0.0,
+             scratch_up=0.5)
+# (confused, 10 Nov 2026: her head is shorter above the ear than the chubby man's with his beanie, so she scratches
+# lower down it; at the chubby man's 0.62 her fist stuck up over the top of her head)
 
 
 def clips(body):
@@ -124,7 +128,8 @@ def animate(rig, body, only=None, log=print):
     L["WALK"], L["RUN"], L["clips"], L["DANCE"] = WALK, RUN, clips, DANCE
     L["REACT"] = REACT
     L["CLIPS"] = [("walk", WALK["frames"], True), ("run", RUN["frames"], True), ("bend", 72, False), ("take_away", 72, False),
-                  ("dance", DANCE["frames"], True)] + [("scared", 30, False), ("cower", 50, True)]
+                  ("dance", DANCE["frames"], True)] + [("scared", 30, False), ("cower", 50, True),
+                                                                        ("confused", L["CONFUSED_FRAMES"], True)]
     return L["animate"](rig, body, only=only, log=log)
 
 

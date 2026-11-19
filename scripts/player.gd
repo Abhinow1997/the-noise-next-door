@@ -1,12 +1,21 @@
 extends CharacterBody3D
 ## Goose-game style controls: walk, run, sneak, jump, carry things in your mouth,
 ## chitter, and climb trees.
+## Since 10 Nov 2026 (the bear bag, camp_bear_bag.gd: "Build it") a tree can have a limb
+## (its `limb` in `trees`): at the top of its trunk, the move keys pointing out along it
+## step him onto it; he walks along it as they point, out or back, and back at the trunk
+## he's on the trunk again. It gives under him the further out he goes, and bobs as he
+## walks. E or jump drops him off it to the ground below. Out on it he's still
+## `climbing` (the campers shoo at the foot of the tree), and `on_limb`.
 
 signal chittered
+## He's come down from a jump (heard at the camp: campsite.gd). Added 11 Nov 2026.
+signal landed
 ## A sound effect started; `id` is its asset ID (SOURCES.md). Counted by the level.
 signal sound_started(id: String)
 
 const RaccoonModel := preload("res://scripts/raccoon_model.gd")
+const HideSpot := preload("res://scripts/hide_spot.gd")
 
 ## The author's generated sounds (CHANGE-BRIEF.md v2): two loops that play while he
 ## runs or climbs, and take A of the laugh for the chitter.
@@ -32,6 +41,16 @@ const DIVE_TIME := 0.32
 const DIVE_HEIGHT := 0.35
 const DIVE_OUT := 1.5
 const DIVE_AGAIN := 0.6
+## Out on a limb (since 10 Nov 2026): how fast he walks along it (times climb_speed);
+## how squarely the move keys must point out along it, at the top of the trunk, to step
+## out; how quickly it gives under him; how much it bobs as he walks; and the drop off it
+## (seconds, and how high the hop's arc goes).
+const LIMB_SPEED := 1.0
+const LIMB_STEP := 0.6
+const LIMB_GIVE := 8.0
+const LIMB_BOB := 0.25
+const LIMB_DROP_TIME := 0.45
+const LIMB_DROP_HEIGHT := 0.15
 ## How fast he drops off in the hollow (sleep per second). He starts just before he
 ## lands there, so the sleep animation has blended in by the time he touches down.
 const DOZE_RATE := 1.5
@@ -113,6 +132,11 @@ var keep_asleep := false
 ## Set while the camp's tutorial holds the game (camp_tutorial.gd): he doesn't move, and
 ## E, Space and jump do nothing, until it lets go. Added 7 Nov 2026.
 var input_locked := false
+## Sent running on his own (run_off): which way along the ground, and for how many more
+## seconds; the move keys do nothing till then. Added 11 Nov 2026 for the tutorial's
+## "Runnn!" (camp_tutorial.gd).
+var _run_off := Vector3.ZERO
+var _run_off_left := 0.0
 ## The hiding spot he's dived into (hide_spot.gd with `dive` on: the camp's bush), or
 ## null. Added 7 Nov 2026, when the author found hiding "clunky": walking into it, he
 ## dives in with a little hop and vanishes into it; a move key hops him out the way it
@@ -123,6 +147,9 @@ var _diving := false
 var _dive_wait := 0.0
 ## True while on a tree trunk, including the hops on and off.
 var climbing := false
+## True while he's out along a tree's limb (climbing is true too), including the hops on
+## and off it.
+var on_limb := false
 ## True while he runs on the ground: Shift held, not sneaking, faster than a walk.
 var running := false
 ## True while he moves on a trunk.
@@ -167,6 +194,11 @@ var _climb_angle := 0.0
 var _climb_side := 0.0
 ## How long he's been pushing into a trunk.
 var _climb_push := 0.0
+## Out on a limb: how far along it he is (metres from the trunk's middle), which way he
+## faces along it (1 out, -1 back), and how far it's giving under him (radians at its root).
+var _limb_along := 0.0
+var _limb_facing := 1.0
+var _limb_bend := 0.0
 ## A jump press waiting to be used (seconds it has left), and how long he can still
 ## jump since he was last on the ground.
 var _jump_press := 0.0
@@ -194,6 +226,8 @@ func _ready() -> void:
 	shape.position = Vector3(0, 0.2, 0.04) * size
 	add_child(shape)
 	_shape = shape
+	# A closed hiding spot's wall keeps him, and only him, out of it (hide_spot.gd).
+	collision_mask |= HideSpot.CLOSED_LAYER
 
 	_voice = _sound(CHITTER_SOUND, CHITTER_DB)
 	_run_sfx = _sound(RUN_LOOP, RUN_DB)
@@ -218,8 +252,9 @@ func _physics_process(delta: float) -> void:
 	running = false
 	climb_moving = false
 	_dive_wait = maxf(_dive_wait - delta, 0.0)
+	_run_off_left = maxf(_run_off_left - delta, 0.0)
 	model.hopping = _hop_t >= 0.0
-	model.climbing = climbing
+	model.climbing = climbing and not on_limb
 	# Only walking sets these.
 	model.yaw_rate = 0.0
 	model.look = 0.0
@@ -230,6 +265,8 @@ func _physics_process(delta: float) -> void:
 		_rest_process(delta)
 	elif hiding_in:
 		_hide_process(delta)
+	elif climbing and on_limb:
+		_limb_process(delta)
 	elif climbing:
 		_climb_process(delta)
 	else:
@@ -268,11 +305,12 @@ func _walk_process(delta: float) -> void:
 	if camera:
 		dir = dir.rotated(Vector3.UP, camera.global_rotation.y)
 
-	sneaking = Input.is_action_pressed("sneak")
+	var run_key := Input.is_action_pressed("run") or running_off()
+	sneaking = Input.is_action_pressed("sneak") and not running_off()
 	var speed := walk_speed
 	if sneaking:
 		speed = sneak_speed
-	elif Input.is_action_pressed("run"):
+	elif run_key:
 		speed = run_speed
 	_push_speed = speed * dir.length()
 
@@ -316,7 +354,7 @@ func _walk_process(delta: float) -> void:
 	var before := moving
 	moving = move_toward(moving, target_speed, (ACCEL if target_speed > moving else DECEL) * control * delta)
 	_speed = moving
-	running = not sneaking and Input.is_action_pressed("run") and _speed > walk_speed + 0.1 and not jumping
+	running = not sneaking and run_key and _speed > walk_speed + 0.1 and not jumping
 	velocity.x = heading.x * moving
 	velocity.z = heading.z * moving
 
@@ -366,9 +404,27 @@ func _walk_process(delta: float) -> void:
 
 
 func _move_input() -> Vector2:
+	if running_off():
+		# The way he's been sent, in the keys' terms (turned back by the camera's yaw, as
+		# the keys are turned by it).
+		var way := _run_off.rotated(Vector3.UP, -camera.global_rotation.y) if camera else _run_off
+		return Vector2(way.x, way.z)
 	if input_locked:
 		return Vector2.ZERO
 	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+
+
+## Sends him running `way` (along the ground) on his own for `seconds`, as if Shift and
+## a move key were held; the move keys have him again after. For the tutorial's "Runnn!"
+## (camp_tutorial.gd).
+func run_off(way: Vector3, seconds: float) -> void:
+	_run_off = Vector3(way.x, 0.0, way.z).normalized()
+	_run_off_left = seconds
+
+
+## True while he's running on his own (run_off).
+func running_off() -> bool:
+	return _run_off_left > 0.0
 
 
 ## Jumps: now if he's on the ground, or as soon as he lands (see JUMP_BUFFER).
@@ -388,6 +444,7 @@ func _jump_pose(delta: float, rising: float) -> void:
 		_land_t = 0.0
 		_land_hard = clampf(-rising / lift, 0.3, 1.0)
 		_land_pitch = model.pitch
+		landed.emit()
 	if jumping:
 		_air_t += delta
 		model.leap = _keyed(JUMP_AIR, clampf((1.0 - velocity.y / lift) * 0.5, 0.0, 1.0))
@@ -416,6 +473,8 @@ func _end_jump() -> void:
 ## Puts him straight at `pos` with whatever he's carrying, for the tests. He's drawn
 ## between physics ticks, so this resets that, or he'd be drawn sliding there.
 func place(pos: Vector3) -> void:
+	# Put somewhere: no longer sent running.
+	_run_off_left = 0.0
 	if hiding_in:
 		_stop_hiding()
 	if _diving:
@@ -732,6 +791,9 @@ func _climb_process(delta: float) -> void:
 	var round_speed := input.x * _climb_side * speed * 0.7
 
 	var top := _climb_top()
+	if _climb_along >= top - 0.02 and _tree.has("limb") and _toward_limb(input):
+		_onto_limb()
+		return
 	if _climb_along >= top and up_speed > 0.0 and _tree.has("rest_spot"):
 		rest(_tree.rest_spot, _tree.rest_exit)
 		return
@@ -799,6 +861,143 @@ func _ground_spot(angle: float) -> Transform3D:
 	return Transform3D(Basis.looking_at(out), _tree.base + out * (_tree.clear + 0.5 * size))
 
 
+# --- Out on a limb (10 Nov 2026) --------------------------------------------------
+
+## The tree he's climbing (one of `trees`), or {} when he isn't.
+func climbing_tree() -> Dictionary:
+	return _tree if climbing else {}
+
+
+## How far the limb he's on is giving under him (radians at its root), for the tree to
+## bend to; 0 off a limb.
+func limb_bend() -> float:
+	return _limb_bend if on_limb else 0.0
+
+
+## How far out along the limb he is (metres from the trunk's middle), or -1 off one.
+func limb_along() -> float:
+	return _limb_along if on_limb else -1.0
+
+
+## The move keys `input` as a direction on the ground, the way the camera faces.
+func _input_dir(input: Vector2) -> Vector3:
+	var dir := Vector3(input.x, 0.0, input.y)
+	if camera:
+		dir = dir.rotated(Vector3.UP, camera.global_rotation.y)
+	return dir
+
+
+## The way the limb runs out from the trunk, level.
+func _limb_out() -> Vector3:
+	var limb: Dictionary = _tree.limb
+	var out: Vector3 = (limb.to - limb.from) * Vector3(1, 0, 1)
+	return out.normalized()
+
+
+## True if `input` points out along the limb of the tree he's on.
+func _toward_limb(input: Vector2) -> bool:
+	if input.length_squared() < 0.25:
+		return false
+	return _input_dir(input).normalized().dot(_limb_out()) > LIMB_STEP
+
+
+## The nearest and furthest he can be along the limb: just clear of the trunk, and short
+## of its tip.
+func _limb_start() -> float:
+	return float(_tree.r1) + 0.1 * size
+
+
+func _limb_end() -> float:
+	var limb: Dictionary = _tree.limb
+	return limb.from.distance_to(limb.to) - 0.2 * size
+
+
+## A point on top of the limb `along` metres out, as far as it's giving now: it turns
+## down about its root (camp_bear_bag.gd bends its limb the same way).
+func _limb_point(along: float) -> Vector3:
+	var limb: Dictionary = _tree.limb
+	var run: Vector3 = (limb.to - limb.from).normalized()
+	var side := run.cross(Vector3.UP).normalized()
+	return limb.from + run.rotated(side, -_limb_bend) * along + Vector3.UP * float(limb.r)
+
+
+func _limb_transform() -> Transform3D:
+	return Transform3D(Basis.looking_at(_limb_out() * _limb_facing), _limb_point(_limb_along))
+
+
+## From the top of the trunk onto its limb, with a little hop.
+func _onto_limb() -> void:
+	on_limb = true
+	_limb_along = _limb_start()
+	_limb_facing = 1.0
+	_limb_bend = 0.0
+	_hop(global_transform, _limb_transform(), 0.25, 0.12)
+
+
+## Out on the limb: the move keys walk him along it, the way they point along it; back at
+## the trunk, he's on it again, at the top on the limb's side.
+func _limb_process(delta: float) -> void:
+	var input := _move_input()
+	sneaking = Input.is_action_pressed("sneak")
+	var speed := climb_speed * LIMB_SPEED
+	if sneaking:
+		speed *= 0.5
+	elif Input.is_action_pressed("run"):
+		speed *= 1.6
+	var along_speed := _input_dir(input).dot(_limb_out()) * speed
+	if absf(along_speed) > 0.05:
+		_limb_facing = signf(along_speed)
+	if _limb_along <= _limb_start() + 0.001 and along_speed < -0.05:
+		on_limb = false
+		_limb_bend = 0.0
+		var out := _limb_out()
+		_climb_angle = atan2(out.x, out.z)
+		_climb_along = _climb_top()
+		_hop(global_transform, _climb_transform(), 0.2, 0.08)
+		return
+	var before := _limb_along
+	_limb_along = clampf(_limb_along + along_speed * delta, _limb_start(), _limb_end())
+	var moved := absf(_limb_along - before) / maxf(delta, 0.0001)
+	climb_moving = moved > 0.05
+	var limb: Dictionary = _tree.limb
+	var give: float = float(limb.get("bend", 0.0)) * clampf(_limb_along / limb.from.distance_to(limb.to), 0.0, 1.0)
+	if climb_moving:
+		give *= 1.0 + LIMB_BOB * sin(model.walk_phase * 2.0)
+	_limb_bend = lerpf(_limb_bend, give, 1.0 - exp(-LIMB_GIVE * delta))
+	global_transform = _limb_transform()
+	_carry()
+	model.speed = moved
+	model.walk_amount = clampf(moved / walk_speed, 0.0, 1.0)
+	model.walk_phase += moved * delta * 7.0 / size
+	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
+	model.turn = 0.0
+
+
+## Off the limb: a drop to the ground under him, or a little further on if that's taken.
+func _limb_off() -> void:
+	var facing := Basis.looking_at(_limb_out() * _limb_facing)
+	var below := Vector3(global_position.x, float(_tree.base.y), global_position.z)
+	var space := get_world_3d().direct_space_state
+	var probe := PhysicsShapeQueryParameters3D.new()
+	var ball := SphereShape3D.new()
+	ball.radius = 0.25
+	probe.shape = ball
+	probe.exclude = [get_rid()]
+	var land := below
+	for far: float in [0.0, 0.4, 0.8]:
+		land = below - facing.z * far
+		probe.transform = Transform3D(Basis(), land + Vector3.UP * 0.3)
+		if space.intersect_shape(probe, 1).is_empty():
+			break
+	_hop(global_transform, Transform3D(facing, land), LIMB_DROP_TIME, LIMB_DROP_HEIGHT, _end_limb)
+
+
+func _end_limb() -> void:
+	on_limb = false
+	_limb_bend = 0.0
+	_end_climb()
+
+
 # --- Grabbing and chittering -----------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -809,6 +1008,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if held:
 			_drop()
+		elif climbing and on_limb:
+			_limb_off()
 		elif climbing:
 			_climb_off()
 		else:
@@ -817,7 +1018,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		chitter()
 	elif event.is_action_pressed("jump"):
 		# Up a tree, a jump hops him off, as E does.
-		if climbing:
+		if climbing and on_limb:
+			_limb_off()
+		elif climbing:
 			_climb_off()
 		else:
 			jump()

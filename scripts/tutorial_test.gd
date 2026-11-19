@@ -189,11 +189,39 @@ func _run() -> void:
 	_shot("06_taken")
 	_check("Then 'Runnn!': they come to, the camper spots him, the men chase him", "false true true",
 		"%s %s %s" % [_tutorial.frozen(), _camp.spotted_at > spotted_before, _camp.people.any(func(p) -> bool: return p.state == S.CHASE)])
-	# Away out of the camp. A chaser may have shooed him already, and his leap may have
-	# landed him in the bush (a dive starts the tick after): it's all over first.
-	await _wait(0.6)
+	# Since 11 Nov 2026 "Runnn!" sends him running back toward his tree on his own, then the
+	# keys have him again; and the bush won't have him till they've given up the chase.
+	var ran_from := _player.global_position
+	var home := Vector2(Forest.HOME.x - ran_from.x, Forest.HOME.z - ran_from.z).normalized()
+	_check("'Runnn!': he's off on his own, and the bush is closed", "true true",
+		"%s %s" % [_player.running_off(), _camp.bush.closed])
+	await _until(func() -> bool: return not _player.running_off(), CampTutorial.RUN_OFF + 0.5)
+	var ran := Vector2(_player.global_position.x - ran_from.x, _player.global_position.z - ran_from.z)
+	_check("Then the keys have him again, some way back toward his tree", "false false true",
+		"%s %s %s" % [_player.running_off(), _player.input_locked, ran.dot(home) > 1.0])
+	# Into the bush while they chase him: it doesn't take him; he stops at its leaves.
 	await _until(func() -> bool: return not _player.is_hopping(), 3.0)
-	await _wait(0.2)
+	var bush_at: Vector3 = _camp.bush.global_position
+	# From outside the camp (the chasers come from inside it), facing it, for a moment:
+	# without the wall he'd be through its middle by the end.
+	_player.place(bush_at + Vector3(-1.6, 0.02, 0.0))
+	_player.rotation.y = -PI / 2.0
+	# Standing: place() keeps his speed, which would swing him round in an arc.
+	_player.velocity = Vector3.ZERO
+	_player.run_off(bush_at - _player.global_position, 0.7)
+	# Watched the whole way: whether he ever got in or was hidden, and how near its middle.
+	var run := {"in": false, "nearest": INF}
+	await _until(func() -> bool:
+		run.in = run.in or _player.hiding_in != null or HideSpot.is_hidden(_player)
+		run.nearest = minf(run.nearest, Vector2(_player.global_position.x - bush_at.x,
+			_player.global_position.z - bush_at.z).length())
+		return not _player.running_off(), 1.2)
+	_check("Run at the bush while they chase him: it won't have him, he stops at its leaves", "true false true",
+		"%s %s %s" % [_camp.bush.closed, run.in, run.nearest > Campsite.BUSH_HIDE])
+	# Away out of the camp. A chaser may be shooing him (a leap carries on wherever he's
+	# put): once he's down and nobody is, away at once.
+	await _until(func() -> bool: return not (_player.is_hopping()
+		or _camp.people.any(func(p) -> bool: return p.state == S.SHOO)), 3.0)
 	_player.place(AWAY)
 	await _wait(0.2)
 	await _press_e(0.1)
@@ -205,6 +233,7 @@ func _run() -> void:
 	await _until(func() -> bool: return _tutorial.roast.can_eat_now(), 40.0)
 	_check("Away, once they're all back at work: the E to eat it", "true true true",
 		"%s %s %s" % [_calm(), _tutorial.roast.carrying(), _tutorial.roast.can_eat_now()])
+	_check("And the bush is open again", false, _camp.bush.closed)
 
 	# Holding E, he sits up and eats it.
 	var spotted_away: float = _camp.spotted_at
@@ -234,7 +263,9 @@ func _run() -> void:
 	_key(KEY_TAB)
 	await _real(1.0)
 	_shot("09_to_do")
-	_check("Tab: the TO DO list up to read, the camp's tasks on it, slowed", "true investigate party marshmallows music cooler tent true",
+	# Raid the bear bag joined the list on 10 Nov 2026 (camp_bear_bag.gd).
+	_check("Tab: the TO DO list up to read, the camp's tasks on it, slowed",
+		"true investigate party marshmallows music cooler tent bearbag true",
 		"%s %s %s" % [_plan.open and _plan.up() >= 1.0,
 			" ".join(level.tasks.shown().map(func(t: Dictionary) -> String: return t.id)), Engine.time_scale <= CampTutorial.SLOW + 0.01])
 	_key(KEY_TAB)
@@ -242,8 +273,11 @@ func _run() -> void:
 	_check("Tab again: the world's open (list away, no note, full speed, he can move)", "DONE false  %s false" % 1.0,
 		"%s %s %s %s %s" % [CampTutorial.Step.keys()[_tutorial.step], _plan.open, _plan.note_showing(), Engine.time_scale,
 			_player.input_locked])
+	# Since 11 Nov 2026 the marshmallow he stole counts.
+	_check("And the stolen marshmallow counts: Steal the marshmallows done, written out at the bottom", "true true",
+		"%s %s" % [level.tasks.is_done("marshmallows"), _plan.written("marshmallows") > 0.0])
 
-	for music: AudioStreamPlayer in [level._music, level._sleep_music]:
+	for music in [level._music, level._sleep_music]:
 		if music:
 			music.stop()
 	if _camp.party:

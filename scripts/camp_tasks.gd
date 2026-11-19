@@ -38,6 +38,9 @@ var list: Array[Dictionary] = [
 	# Added on 8 Nov 2026 (camp_tent.gd). No hint: the author, "don't give any additional
 	# details on it".
 	{"id": "tent", "text": "Dismantle the tent", "done": false, "parent": "party", "hint": ""},
+	# Added on 10 Nov 2026 (camp_bear_bag.gd).
+	{"id": "bearbag", "text": "Raid the bear bag", "done": false, "parent": "party",
+		"hint": "Drop it, grab a treat."},
 ]
 ## Whether the main task and its sub-tasks are on the list yet.
 var revealed := false

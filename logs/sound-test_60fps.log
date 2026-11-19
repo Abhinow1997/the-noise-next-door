@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Sound check, 2026-11-01T18:10:34
+Sound check, 2026-11-11T18:29:21
   pass  Nap: it counts as a nap                              expected 1      got 1
   pass  Nap: a task done in his sleep is ticked off          expected true   got true
   pass  Nap: no laugh in his sleep                           expected 0      got 0
@@ -25,7 +25,7 @@ Sound check, 2026-11-01T18:10:34
   pass  SFX-CHITTER: 5 quick presses + 1 held press          expected 6      got 6
   pass  SFX-RUN: 2 runs, Shift tapped during the first       expected 2      got 2
   pass  SFX-CLIMB: 2 climbs, clinging still between          expected 2      got 2
-  pass  SFX-TASK-LAUGH: 2 tasks in a frame, not in his sleep expected 1      got 1
+  pass  SFX-TASK-LAUGH: 3 tasks in a frame, not in his sleep expected 1      got 1
   pass  Every task done                                      expected true   got true
   pass  No ending yet: the music carries on                  expected true   got true
   pass  Loop marker over the whole file: forest-loop.wav     expected true   got true

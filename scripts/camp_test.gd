@@ -148,7 +148,7 @@ func _ready() -> void:
 		_check("Up a tree: they can't catch him", false, _hopped))
 	_at(88.0, func() -> void:
 		_check("Up a tree: they give up and head back", true, S.RETURN in _seen(_camper) and S.RETURN in _seen(_man))
-		for music: AudioStreamPlayer in [level._music, level._sleep_music]:
+		for music in [level._music, level._sleep_music]:
 			if music:
 				music.stop()
 		if _camp.party:

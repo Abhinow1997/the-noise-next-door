@@ -16,6 +16,7 @@ extends Node
 
 const CampPerson := preload("res://scripts/camp_person.gd")
 const CampFire := preload("res://scripts/camp_fire.gd")
+const VisionCone := preload("res://scripts/vision_cone.gd")
 const S := CampPerson.State
 
 ## Set by the level (main.gd).
@@ -79,6 +80,28 @@ func _run() -> void:
 	var before := _fire.strength
 	await _wait(5.0)
 	_check("It burns down slowly unfed", true, _fire.strength < before and _fire.strength > before - 0.1)
+
+	# By the fire burning high, a camper's cone isn't drawn (11 Nov 2026: campsite.gd
+	# `by_fire_up`, cone_driver.gd); away from it, it is. Frozen as the tutorial does, so
+	# they stay where they're put; the girl by the fire, the camper well away.
+	for person in _camp.people:
+		person.process_mode = Node.PROCESS_MODE_DISABLED
+	var girl: CampPerson = _camp.dancers[1]
+	var camper_at: Vector3 = _camp.camper.global_position
+	var girl_at: Vector3 = girl.global_position
+	var pit: Vector3 = _fire.global_position
+	girl.global_position = Vector3(pit.x + 1.0, girl_at.y, pit.z + 0.7)
+	_camp.camper.global_position = Vector3(pit.x + 5.0, camper_at.y, pit.z)
+	await _wait(VisionCone.FADE_OUT + 0.2)
+	_check("Burning high, by the fire: her cone fades away, he's still watching away from it", "true true 0.00 1.00",
+		"%s %s %.2f %.2f" % [_fire.strength >= _camp.FIRE_UP, girl.eyes.showing(), _shown(girl), _shown(_camp.camper)])
+	girl.global_position = Vector3(pit.x - 4.0, girl_at.y, pit.z - 1.0)
+	await _wait(VisionCone.FADE_OUT + 0.2)
+	_check("Away from the fire again: her cone's back", "1.00", "%.2f" % _shown(girl))
+	girl.global_position = girl_at
+	_camp.camper.global_position = camper_at
+	for person in _camp.people:
+		person.process_mode = Node.PROCESS_MODE_INHERIT
 
 	# The firelight (campsite.gd `in_firelight`): standing in it, they see him further;
 	# crouching, only as far as ever while he sneaks. Read off the camper's eyes.
@@ -188,6 +211,11 @@ func _until(done: Callable, timeout: float) -> void:
 	while left > 0.0 and not done.call():
 		await get_tree().physics_frame
 		left -= get_physics_process_delta_time()
+
+
+## How much of `person`'s cone shows (the cone shader's `shown`, as cone_driver.gd sets it).
+func _shown(person: CampPerson) -> float:
+	return person.eyes.material().get_shader_parameter("shown")
 
 
 func _check(name: String, expected, actual) -> void:

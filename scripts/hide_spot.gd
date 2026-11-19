@@ -26,6 +26,25 @@ signal hiding_changed(inside: bool)
 ## What rustles as he dives in and out (set before it's added).
 var leaves: Node3D
 
+## The physics layer a closed spot's wall is on: the raccoon alone runs into it
+## (player.gd), so the people and loose things go about as ever. Nothing else uses it.
+const CLOSED_LAYER := 1 << 9
+## The wall stands a little outside the spot, so he can't be touching the spot itself
+## when it opens again.
+const WALL_SCALE := 1.1
+
+## While true, it takes nobody in: walking into it doesn't dive him in, it doesn't hide
+## him, and a wall the shape of it keeps him out. Added 11 Nov 2026: the tutorial at the
+## camp closes the camp's bush while the campers chase him (camp_tutorial.gd).
+var closed := false:
+	set(value):
+		closed = value
+		if closed and _wall == null:
+			_wall = _make_wall()
+		if _wall:
+			_wall.collision_layer = CLOSED_LAYER if closed else 0
+var _wall: StaticBody3D
+
 ## How long the rustle lasts and how hard it shakes; how big his eyes are, how far apart,
 ## and how high up the spot; and how often they blink, and for how long (seconds).
 const RUSTLE := 0.45
@@ -57,7 +76,7 @@ func _ready() -> void:
 
 ## True while `body` is inside this spot, and sneaking if it needs that.
 func covers(body: Node3D) -> bool:
-	if not monitoring or not body is PhysicsBody3D:
+	if closed or not monitoring or not body is PhysicsBody3D:
 		return false
 	return overlaps_body(body) and (not needs_sneak or body.get("sneaking") == true)
 
@@ -83,8 +102,21 @@ static func is_hidden(body: Node3D) -> bool:
 func _on_body_entered(body: Node3D) -> void:
 	# A frame later: this comes while the physics is being worked out, when his
 	# collider can't be switched off for the hop.
-	if body.has_method("dive_into"):
+	if not closed and body.has_method("dive_into"):
 		body.dive_into.call_deferred(self)
+
+
+## The wall a closed spot puts up: its own shapes, a little bigger, on CLOSED_LAYER.
+func _make_wall() -> StaticBody3D:
+	var wall := StaticBody3D.new()
+	wall.collision_mask = 0
+	for shape: CollisionShape3D in find_children("*", "CollisionShape3D", false, false):
+		var copy := CollisionShape3D.new()
+		copy.shape = shape.shape
+		copy.transform = shape.transform.scaled_local(Vector3.ONE * WALL_SCALE)
+		wall.add_child(copy)
+	add_child(wall)
+	return wall
 
 
 ## He's dived in (true) or come out (false): it rustles, and his eyes peek out or go.

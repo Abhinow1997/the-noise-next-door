@@ -40,6 +40,9 @@ extends Node3D
 ## light (scripts/fire_test.gd, camp_fire.gd).
 ## `-- --tent-test` checks Dismantle the tent: its four pegs pulled with E, the tent
 ## falling, and the camper pitching it again (scripts/tent_test.gd, camp_tent.gd).
+## `-- --bearbag-test` checks Raid the bear bag: the knot chewed through and the limb
+## walked out along, the bag's drop and its thump, opening it, a treat home to the stash,
+## and the camper hanging it up again (scripts/bear_bag_test.gd, camp_bear_bag.gd).
 ## `-- --dev-start=<point>` starts at a point of the developer menu (F1, dev_menu.gd):
 ## den, camp, roast, free (the fire out) or fire (burning); F9 turns vsync off and on.
 
@@ -62,6 +65,7 @@ const CampTest := preload("res://scripts/camp_test.gd")
 const TasksTest := preload("res://scripts/tasks_test.gd")
 const FireTest := preload("res://scripts/fire_test.gd")
 const TentTest := preload("res://scripts/tent_test.gd")
+const BearBagTest := preload("res://scripts/bear_bag_test.gd")
 const WavesTest := preload("res://scripts/waves_test.gd")
 const PlanTest := preload("res://scripts/plan_test.gd")
 const ConesTest := preload("res://scripts/cones_test.gd")
@@ -170,14 +174,31 @@ const SLEEP_CAMERA_OUT := 1.5
 ## design/music/ (see SOURCES.md). The WAV's own loop marker makes it repeat seamlessly.
 const MUSIC_PATH := "res://assets/audio/music/forest-loop.wav"
 ## Whether the music (the Music bus: the forest loop and the lullaby) is on when the game
-## starts. Off since 7 Nov 2026, as the author asked ("by default have the music off"):
-## M turns it on. The checks, run with their own flags, start with it on as before.
-const MUSIC_ON_AT_START := false
+## starts. Off from 7 Nov 2026, as the author asked ("by default have the music off"),
+## with M to turn it on; on again since 11 Nov 2026, when the author asked for the
+## lullaby on the title ("the title music is the sleepy music that will always be on as
+## soon as you start the game"). M still mutes it. The checks, run with their own flags,
+## start with it on either way.
+const MUSIC_ON_AT_START := true
 ## How loud the music sits under the sound effects, and its fade-in time in seconds.
 ## Lowered 3 dB on 6 Oct, with the effects raised 4 dB, after the author's playtest
 ## found the effects too quiet against it.
 const MUSIC_DB := -12.0
 const MUSIC_FADE_IN := 2.0
+## Since 11 Nov 2026 the forest loop plays from the party's speaker (campsite.gd), as a
+## sound in the world, at the author's request ("the background music we have lets update
+## the same to be coming from the music system we have so we grow closer to the camp it
+## increses"). MUSIC_DB is how loud it is MUSIC_NEAR metres from the speaker, a few metres
+## out along the trail from the camp; it falls off 6 dB each time the distance doubles,
+## so at his tree, about 41 m away, it's about 8 dB quieter. Right by the speaker it's
+## never more than MUSIC_CLOSE_DB over its level, which still dips under the laugh and
+## fades for a nap as before. It stops while the speaker's unplugged (camp_puzzles.gd).
+## The bubble demo has no camp: there it plays as it always did, the same everywhere.
+## MUSIC_NEAR was 10 m at first; the same day it went to 16 m, when the author asked for
+## the music at New Game to be "mild, but it should be audible" at his tree (it was about
+## 12 dB down there).
+const MUSIC_NEAR := 16.0
+const MUSIC_CLOSE_DB := 3.0
 ## The nap music: the generated lullaby in design/music/ (MUS-THEME-SLOW), from its
 ## start, then round a 34 s section cut to loop seamlessly (see SOURCES.md). It fades
 ## in over the forest loop as he curls up in the hollow, and out as he wakes. It's
@@ -193,6 +214,15 @@ const WAKE_FADE := 1.5
 const LULLABY_FADE_IN := 2.5
 const WAKE_PROMPT_AFTER := 2.5
 const UI_FADE := 0.8
+## New Game's hand-over from the lullaby to the forest loop (start_party), in seconds: the
+## lullaby eases out over NEW_GAME_LULLABY_OUT; NEW_GAME_MUSIC_AFTER in, the forest loop
+## eases in over NEW_GAME_MUSIC_IN. So they overlap for 2 s, and
+## it's all in by 5.5 s, as the prompt to wake him comes up (the glide takes 2.6 s, the
+## prompt waits WAKE_PROMPT_AFTER more). It was one 1.5 s crossfade at first, which the
+## author found "very sudden" (11 Nov 2026).
+const NEW_GAME_LULLABY_OUT := 3.5
+const NEW_GAME_MUSIC_AFTER := 1.5
+const NEW_GAME_MUSIC_IN := 4.0
 const WAKE_PROMPT := "Move to wake up"
 
 const INPUTS := {
@@ -214,8 +244,8 @@ var campsite: Campsite
 ## Effect B's driver (campfire_smoke.gd), or null without the campsite.
 var campfire_smoke: CampfireSmokeDriver
 ## What the game hears through: on the raccoon, turned as the camera is, so sounds in
-## the world (the party's music, campsite.gd) are as loud as they are where he is, and
-## what's on the right of the screen is heard on the right.
+## the world (the forest loop from the speaker, MUSIC_NEAR) are as loud as they are
+## where he is, and what's on the right of the screen is heard on the right.
 var _ear: AudioListener3D
 var bin: RigidBody3D
 var lid: RigidBody3D
@@ -270,7 +300,7 @@ var _frames := 0
 var _zoom_now := 1.0
 ## Where the camera thinks the raccoon is; it trails him slightly for smoothness.
 var _anchor := Vector3.ZERO
-var _music: AudioStreamPlayer
+var _music: AudioStreamPlayer3D
 var _music_tween: Tween
 var _sleep_music: AudioStreamPlayer
 var _sleep_tween: Tween
@@ -362,6 +392,7 @@ func _ready() -> void:
 	var leaf_burst_test := false
 	var fire_test := false
 	var tent_test := false
+	var bearbag_test := false
 	var smoke_test := false
 	var smoke_load_test := false
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
@@ -431,6 +462,8 @@ func _ready() -> void:
 			fire_test = true
 		elif arg == "--tent-test":
 			tent_test = true
+		elif arg == "--bearbag-test":
+			bearbag_test = true
 		elif arg == "--smoke-test":
 			smoke_test = true
 		elif arg == "--smoke-load-test":
@@ -474,7 +507,7 @@ func _ready() -> void:
 		var leaf_bursts := LeafBursts.new()
 		leaf_bursts.bush = campsite.bush
 		add_child(leaf_bursts)
-		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test or tent_test \
+		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test or tent_test or bearbag_test \
 				or dev_point in ["free", "fire"]:
 			# These skip the tutorial at the camp: everything's as it is after it.
 			tasks.reveal()
@@ -512,7 +545,12 @@ func _ready() -> void:
 		player.position = DEV_STARTS[dev_point]
 		player.rotation.y = deg_to_rad(-90.0)
 	player.camera = camera
-	player.trees = forest.climbable
+	# The forest's trunks, and (since 10 Nov 2026) the bear bag's tree with its limb
+	# (camp_bear_bag.gd), which isn't on the forest's list: the checks pick their trees
+	# from that.
+	player.trees = forest.climbable.duplicate()
+	if campsite:
+		player.trees.append(campsite.bear_bag.tree)
 	add_child(player)
 	player.sound_started.connect(_count_sound)
 	if title_mode:
@@ -599,6 +637,10 @@ func _ready() -> void:
 		var tent_check := TentTest.new()
 		tent_check.level = self
 		add_child(tent_check)
+	if bearbag_test and campsite:
+		var bag_check := BearBagTest.new()
+		bag_check.level = self
+		add_child(bag_check)
 	if fire_test and campsite:
 		var fire_check := FireTest.new()
 		fire_check.level = self
@@ -661,9 +703,12 @@ func _process(delta: float) -> void:
 	var napping := player.is_napping()
 	if napping != _napping:
 		_napping = napping
-		_nap_music(napping)
 		if not napping and _first_nap:
+			# Woken from the title's nap: New Game has handed the music over already
+			# (start_party), and may still be easing it in, so it's left to finish.
 			_show_ui()
+		else:
+			_nap_music(napping)
 	_sleep_view = move_toward(_sleep_view, 1.0 if napping else 0.0,
 		delta / (SLEEP_CAMERA_IN if napping else SLEEP_CAMERA_OUT))
 	if _closeup:
@@ -687,6 +732,10 @@ func _process(delta: float) -> void:
 		_focus_w = move_toward(_focus_w, 1.0 if camera_focus != null else 0.0, real / FOCUS_TIME)
 		_place_camera()
 	_ear.global_transform = Transform3D(camera.global_basis, _drawn() + Vector3(0, 0.35, 0))
+	if _music and campsite:
+		# Right by the speaker, no more than MUSIC_CLOSE_DB over the music's level, whatever
+		# that is just now (faded for a nap, dipped under the laugh).
+		_music.max_db = _music.volume_db + MUSIC_CLOSE_DB
 	_update_see_through()
 	_check_tasks(delta)
 
@@ -721,7 +770,7 @@ func _process(delta: float) -> void:
 			Input.action_release("jump")
 		if _frames == _shot_frame - 15:
 			# Stopped well before the quit, so the audio thread has let go of them.
-			for music: AudioStreamPlayer in [_music, _sleep_music]:
+			for music in [_music, _sleep_music]:
 				if music:
 					music.stop()
 			if campsite and campsite.party:
@@ -731,19 +780,32 @@ func _process(delta: float) -> void:
 			get_tree().quit()
 
 
-## Starts the forest loop with a soft fade-in. If the WAV hasn't been imported yet
-## (the editor or the Play launcher does that), the game runs without music.
+## Starts the forest loop with a soft fade-in, from the party's speaker (MUSIC_NEAR). If
+## the WAV hasn't been imported yet (the editor or the Play launcher does that), the game
+## runs without music.
 func _start_music() -> void:
 	if not ResourceLoader.exists(MUSIC_PATH):
 		push_warning("The music isn't imported yet: %s" % MUSIC_PATH)
 		return
-	_music = AudioStreamPlayer.new()
+	_music = AudioStreamPlayer3D.new()
 	_music.stream = load(MUSIC_PATH)
 	_music.volume_db = -60.0
 	_music.bus = "Music"
 	# It keeps playing, muffled, while the game is paused.
 	_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	if campsite:
+		_music.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		_music.unit_size = MUSIC_NEAR
+		# The player's distance filter goes by its level as well as the distance, so at
+		# MUSIC_DB it would dull the music even at the camp: off, so it sounds as it did.
+		_music.attenuation_filter_db = 0.0
+	else:
+		_music.attenuation_model = AudioStreamPlayer3D.ATTENUATION_DISABLED
+		_music.panning_strength = 0.0
 	add_child(_music)
+	if campsite:
+		# Halfway up the speaker.
+		_music.global_position = campsite.puzzles.speaker.global_position + Vector3(0, 0.3, 0)
 	_music.play()
 	# Starting asleep, it stays right down under the lullaby until he wakes (_nap_music).
 	if not _first_nap:
@@ -787,11 +849,23 @@ func _nap_music(napping: bool) -> void:
 
 ## Fades `music` to `to_db` evenly in power rather than in decibels, so while one
 ## track fades out and the other in they stay as loud together, with no dip between.
-func _crossfade(tween: Tween, music: AudioStreamPlayer, to_db: float, time: float) -> void:
+## `music` is either player: the forest loop (3D) or the lullaby.
+func _crossfade(tween: Tween, music, to_db: float, time: float) -> void:
 	var from := pow(db_to_linear(music.volume_db), 2.0)
 	var to := pow(db_to_linear(to_db), 2.0)
 	tween.tween_method(func(t: float) -> void:
 		music.volume_db = maxf(linear_to_db(sqrt(lerpf(from, to, t))), -60.0), 0.0, 1.0, time)
+
+
+## Fades `music` (either player) to `to_db` gently: its loudness eases out of where it is
+## and into where it's going (a sine ease on the amplitude), so nothing jumps in or drops
+## away. For New Game's hand-over (start_party); the nap's crossfades are above.
+func _ease_music(tween: Tween, music, to_db: float, time: float) -> void:
+	var from := db_to_linear(music.volume_db)
+	var to := db_to_linear(to_db)
+	var fade := tween.tween_method(func(amp: float) -> void:
+		music.volume_db = maxf(linear_to_db(amp), -60.0), from, to, time)
+	fade.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _restart_sleep_tween() -> void:
@@ -1320,10 +1394,24 @@ func _build_ui() -> void:
 ## 2026: "when user selects new game start a loud music from the party". At first the
 ## party was heard and the lullaby dropped under it; later that day the author asked
 ## for just the waves ("remove the party sound just let the sound waves be there"), so
-## the party is silent (campsite.gd PARTY_HEARD) and the lullaby plays on as it was.
+## the party is silent (campsite.gd PARTY_HEARD) and the lullaby played on as it was.
+## Since 11 Nov 2026 the lullaby is the title's alone (the author: "as soon as the user
+## clicks on the new game, it stops"): it eases out and the forest loop eases in from the
+## speaker as he sleeps on, mild this far off (MUSIC_NEAR), slowly (NEW_GAME_MUSIC_IN).
+## When he wakes from this nap, the music's already handed over (_process).
 func start_party() -> void:
 	if campsite:
 		campsite.start_party()
+	if _sleep_music:
+		_restart_sleep_tween()
+		_ease_music(_sleep_tween, _sleep_music, -60.0, NEW_GAME_LULLABY_OUT)
+		_sleep_tween.tween_callback(_sleep_music.stop)
+	if _music:
+		_restart_music_tween()
+		_music_tween.tween_interval(NEW_GAME_MUSIC_AFTER)
+		# Where it is: it's been playing right down all along, and the party's beat (its
+		# dancers, its woofer and its waves) goes by it, so it isn't sent back to its top.
+		_ease_music(_music_tween, _music, MUSIC_DB, NEW_GAME_MUSIC_IN)
 
 
 ## New Game has brought the camera in: the title is gone, he can be woken now, and the

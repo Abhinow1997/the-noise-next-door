@@ -316,7 +316,7 @@ func _ready() -> void:
 	_at(2330, _check_drawing)
 	# Stopped well before the quit, so the audio thread has let go of them.
 	_at(2330, func() -> void:
-		for music: AudioStreamPlayer in [level._music, level._sleep_music]:
+		for music in [level._music, level._sleep_music]:
 			if music:
 				music.stop())
 	_at(2350, _finish)

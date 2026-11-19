@@ -1,0 +1,50 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Raid the bear bag check, 2026-11-11T16:24:11
+  pass  Start: it hangs, its three treats in it                            expected true false 3     got true false 3
+  pass  Start: out of his reach (its bottom over 1.2 m up)                 expected true             got true
+  pass  Start: the tree's his to climb, with its limb                      expected true             got true
+  pass  Start: it isn't on the forest's list                               expected false            got false
+  pass  Before the open world, the knot can't be chewed                    expected false            got false
+  pass  Then it can                                                        expected true             got true
+  pass  By the knot, it twinkles                                           expected true             got true
+  pass  From the ground, the rope over the bag can't be chewed             expected false            got false
+  pass  Half chewed, it still hangs                                        expected true             got true
+  pass  Chewed through at the knot                                         expected knot false       got knot false
+  pass  It falls and lands                                                 expected true             got true
+  pass  It lands under the limb, on the ground                             expected true             got true
+  pass  The ropes go with it                                               expected false false      got false false
+  pass  The thump: one of them wonders about it                            expected true             got true
+  pass  Down, it twinkles                                                  expected true             got true
+  pass  Holding E opens it                                                 expected true             got true
+  pass  The three treats spill out, his to grab                            expected 3                got 3
+  pass  E picks a treat up                                                 expected true             got true
+  pass  A treat in his stash: the task's done                              expected true             got true
+  pass  It's his now                                                       expected false            got false
+  pass  Taken back, a treat goes home to the bag                           expected true             got true
+  pass  Back in the bag                                                    expected true false       got true false
+  pass  They'll want it hung up again                                      expected true             got true
+  pass  Calm, the camper goes to hang it                                   expected HANG             got HANG
+  pass  He hoists it up again                                              expected true false       got true false
+  pass  Up, out of reach again                                             expected true             got true
+  pass  The treat lying by it is back in, the one in his stash isn't       expected true false       got true false
+  pass  Its ropes are back                                                 expected true true        got true true
+  pass  Walking into the trunk, he climbs it                               expected true             got true
+  pass  W takes him to the top of the trunk                                expected true             got true
+  pass  At the top, still on the trunk                                     expected false            got false
+  pass  The keys pointing out along the limb step him onto it              expected true             got true
+  pass  He walks out along it, over the bag                                expected true             got true
+  pass  Out on it, he's still up the tree (they shoo at its foot)          expected true             got true
+  pass  It gives under him                                                 expected true             got true
+  pass  Up there, they can't see him                                       expected true             got true
+  pass  Chewed through over the bag                                        expected limb false       got limb false
+  pass  It falls and lands                                                 expected true             got true
+  pass  The rope from the knot stays tied                                  expected true false       got true false
+  pass  E drops him off it, onto the ground                                expected false false true got false false true
+  pass  Down, they can see him again                                       expected false            got false
+RESULT: all checks passed (41 checks)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

@@ -1,9 +1,10 @@
 extends Node
 ## The automated check for the party's sound waves (sound_waves.gd): a set of strokes
-## goes out on the beat and fades after its time; wherever he is (by his tree, along
-## the trail, at the camp) they come at him from the speaker's side of him on the
-## screen, on the edge of the screen the music comes from, or out of the speaker itself once it's on
-## the screen; and with the music stopped no more come.
+## goes out on the beat and fades after its time; on the way (by his tree, along the
+## trail) they come at him from the speaker's side of him on the screen, on the edge of
+## the screen the music comes from; once he's reached the camp they keep to the speaker
+## (since 11 Nov 2026), out of it a little way to each side, and none at the edge with
+## it off the screen; and with the music stopped no more come.
 ## Run it headless from the project folder:
 ##   godot --headless --path . --audio-driver Dummy -- --waves-test
 ## It prints a table and quits with exit code 0 if every check passes, 1 if not. With
@@ -48,7 +49,8 @@ func _run() -> void:
 		_waves.sets.size() <= ceili(SoundWaves.LIFE / every)
 		and _waves.sets.all(func(age: float) -> bool: return age < SoundWaves.LIFE))
 
-	# Wherever he is, they come at him from the speaker's side of him on the screen.
+	# On the way, they come at him from the speaker's side of him on the screen; once he's
+	# reached the camp, they keep to the speaker.
 	for place: Array in [["by his tree", Forest.START, false], ["on the trail", Vector3(Forest.TRAIL_POINTS[3].x, 0.02,
 			Forest.TRAIL_POINTS[3].y), false], ["at the camp", Vector3(Campsite.FIRE.x + 1.8, 0.02, Campsite.FIRE.y - 2.4),
 			true]]:
@@ -56,10 +58,15 @@ func _run() -> void:
 		await _wait(1.0)
 		var camera := get_viewport().get_camera_3d()
 		var way := _waves.route(camera)
-		var speaker := camera.unproject_position(_camp.party.global_position)
-		var toward := (speaker - (way.him as Vector2)).normalized()
-		_check("%s (%.0f m off): from the speaker's side of him" % [place[0], _waves._away()], true,
-			(-way.way as Vector2).dot(toward) > 0.95)
+		if place[2]:
+			_check("%s (%.0f m off): kept to the speaker, a little way to each side, not toward him" % [place[0],
+				_waves._away()], true, way.around and way.way == Vector2.RIGHT
+				and is_equal_approx(way.reach, SoundWaves.AROUND * _waves._unit()))
+		else:
+			var speaker := camera.unproject_position(_camp.party.global_position)
+			var toward := (speaker - (way.him as Vector2)).normalized()
+			_check("%s (%.0f m off): from the speaker's side of him" % [place[0], _waves._away()], true,
+				(-way.way as Vector2).dot(toward) > 0.95)
 		_check("%s: out of the speaker itself" % place[0], place[2], way.speaker)
 		if not place[2]:
 			var view := get_viewport().get_visible_rect()
@@ -71,6 +78,17 @@ func _run() -> void:
 			return absf(age - SoundWaves.LIFE * 0.5) < 0.05), 3.0)
 		_shot("%s_by-claude" % String(place[0]).replace(" ", "_"))
 
+	# Still in the camp, on its far side from the speaker, which is off the screen: none
+	# at the edge of the screen.
+	_player.place(Vector3(Campsite.FIRE.x + 7.0, 0.02, Campsite.FIRE.y + 2.5))
+	await _wait(1.0)
+	var far_camera := get_viewport().get_camera_3d()
+	var far_speaker := far_camera.unproject_position(_camp.party.global_position)
+	_check("At the camp's far side (%.0f m off), the speaker off the screen: no waves at the edge" % _waves._away(),
+		"off the screen, none", "%s, %s" % ["on the screen" if get_viewport().get_visible_rect().has_point(far_speaker)
+		else "off the screen", "none" if _waves.route(far_camera).is_empty() else "some"])
+	_shot("camp_far_side_by-claude")
+
 	# The music stopped: no more sets, and the last ones fade.
 	_camp.party.stop()
 	await _wait(0.2)
@@ -79,7 +97,7 @@ func _run() -> void:
 	_check("The music stopped: no new sets", made, _waves.made)
 	_check("The music stopped: the last ones have faded", 0, _waves.sets.size())
 
-	for music: AudioStreamPlayer in [level._music, level._sleep_music]:
+	for music in [level._music, level._sleep_music]:
 		if music:
 			music.stop()
 	await _wait(0.3)

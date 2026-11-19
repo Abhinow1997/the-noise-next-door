@@ -235,7 +235,7 @@ func _watch() -> void:
 	var nearest = null
 	for person in camp.people:
 		if person.state in [CampPerson.State.WORK, CampPerson.State.RETURN, CampPerson.State.TEND,
-				CampPerson.State.PITCH, CampPerson.State.FIX] and (nearest == null
+				CampPerson.State.PITCH, CampPerson.State.HANG, CampPerson.State.FIX] and (nearest == null
 				or person.global_position.distance_to(player.global_position)
 				< nearest.global_position.distance_to(player.global_position)):
 			nearest = person

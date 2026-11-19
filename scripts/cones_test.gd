@@ -11,7 +11,7 @@ extends Node
 ##     steps after the pick are turned off here (`guide`), so the cones come on at the pick;
 ##   - once he's spotted: the spotter's cone red and every cone shown for the red and its
 ##     fade, then none; the chase and the shoo as before;
-##   - once he's got away: each of them confused ("??", SEARCH) for SEARCH_TIME, then
+##   - once he's got away: each of them confused ("?", SEARCH) for SEARCH_TIME, then
 ##     walking back, their cone back BACK_AFTER seconds after they start;
 ##   - Rock the party ticked off once its sub-tasks are.
 ## Durations are measured on the camp's clock, so they're the same at any frame rate
@@ -102,8 +102,9 @@ func _ready() -> void:
 		_key(KEY_TAB))
 	_at(3.4, func() -> void:
 		_check("Tutorial: Tab brings up the TO DO list", true, _plan.open and _plan.up() >= 1.0)
+		# Raid the bear bag joined the list on 10 Nov 2026 (camp_bear_bag.gd).
 		_check("Tutorial: the list shows Rock the party and its tasks",
-			"investigate party marshmallows music cooler tent", _shown_ids())
+			"investigate party marshmallows music cooler tent bearbag", _shown_ids())
 		_check("Tutorial: the note says to pick one, the marshmallows marked",
 			CampTutorial.PICK_NOTE + " / marshmallows", _plan.note_showing() + " / " + _plan.highlighted())
 		_check("Tutorial: still slowed down while he reads", true, Engine.time_scale <= CampTutorial.SLOW + 0.01)
@@ -152,9 +153,11 @@ func _ready() -> void:
 			_tasks.done(id)
 		_check("Two of its tasks done: Rock the party isn't", false, _tasks.is_done("party"))
 		_tasks.done("cooler")
-		# Dismantle the tent, added on 8 Nov 2026, is the fourth.
+		# Dismantle the tent, added on 8 Nov 2026, is the fourth; Raid the bear bag, added on
+		# 10 Nov 2026, the fifth.
 		_tasks.done("tent")
-		_check("All four done: Rock the party is ticked off", true, _tasks.is_done("party")))
+		_tasks.done("bearbag")
+		_check("All five done: Rock the party is ticked off", true, _tasks.is_done("party")))
 	_at(45.5, _finish)
 
 

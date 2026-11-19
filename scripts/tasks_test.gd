@@ -11,6 +11,8 @@ extends Node
 const CampPerson := preload("res://scripts/camp_person.gd")
 const Campsite := preload("res://scripts/campsite.gd")
 const Forest := preload("res://scripts/forest.gd")
+const ConeDriver := preload("res://scripts/cone_driver.gd")
+const VisionCone := preload("res://scripts/vision_cone.gd")
 const S := CampPerson.State
 ## Where he's put out of everyone's way.
 const AWAY := Vector3(20.0, 0.02, 6.5)
@@ -66,9 +68,10 @@ func _physics_process(_delta: float) -> void:
 func _run() -> void:
 	await _wait(1.0)
 	# Since 26 Oct 2026 the camp's three are the sub-tasks of one main task, Rock the party.
-	# Dismantle the tent joined them on 8 Nov 2026 (camp_tent.gd).
-	_check("The to-do list: the music, then Rock the party and its four",
-		"investigate party marshmallows music cooler tent",
+	# Dismantle the tent joined them on 8 Nov 2026 (camp_tent.gd), and Raid the bear bag on
+	# 10 Nov 2026 (camp_bear_bag.gd).
+	_check("The to-do list: the music, then Rock the party and its five",
+		"investigate party marshmallows music cooler tent bearbag",
 		" ".join(level.tasks.list.map(func(t: Dictionary) -> String: return t.id)))
 	_check("Routines: the camper starts pegging out his tent", "peg", _camper.activity())
 	_check("Routines: the low-poly man starts dancing", "dance", _man.activity())
@@ -221,14 +224,77 @@ func _run() -> void:
 	await _press_e(0.0)
 	await _wait(0.8)
 	_check("Cooler: dropped in his stash, the task's done", true, level.tasks.is_done("cooler"))
-	# The tent (8 Nov 2026) is played through in tent_test.gd; here it's ticked off, so this
-	# still checks the list is done once every task is.
+	# The tent (8 Nov 2026) is played through in tent_test.gd, and the bear bag (10 Nov 2026)
+	# in bear_bag_test.gd; here they're ticked off, so this still checks the list is done
+	# once every task is.
 	level.tasks.done("tent")
-	_check("All five tasks done", true, level.tasks.all_done())
+	level.tasks.done("bearbag")
+	_check("All six tasks done", true, level.tasks.all_done())
 	await _wait(1.0)
 	_shot("07_loot_in_his_stash_all_ticked_by-claude")
 
-	for music: AudioStreamPlayer in [level._music, level._sleep_music]:
+	# Last, so the tasks above keep their own timing (the fire keeper, who isn't settled,
+	# is where he always was at the cooler). His laugh (11 Nov 2026): heard HEAR_CHITTER
+	# round, the music or not, and it turns those already wondering to where it came from.
+	# Sneaking, out of the low-poly man's sight: 6.5 m behind him, further than other noises
+	# carry with the music on.
+	await _settle([0, 0, 0])
+	Input.action_press("sneak")
+	_mark()
+	var behind: Vector3 = _man.global_position - _man.global_basis.z * 6.5
+	_player.place(Vector3(behind.x, 0.02, behind.z))
+	await _wait(0.1)
+	_player.chitter()
+	await _wait(0.1)
+	_check("Laugh: 6.5 m behind him, the music on: he turns to it", "true true",
+		"%s %s" % [_camp.music_on, S.INVESTIGATE in _seen(_man) and _man._noise_at.distance_to(_player.global_position) < 0.3])
+	var side: Vector3 = _man.global_position + _man.global_basis.x * 6.0
+	_player.place(Vector3(side.x, 0.02, side.z))
+	_player.chitter()
+	await get_tree().physics_frame
+	_check("Laugh again from his side while he wonders: he turns to that one", "INVESTIGATE true",
+		"%s %s" % [S.keys()[_man.state], _man._noise_at.distance_to(_player.global_position) < 0.3])
+	_player.place(AWAY)
+	Input.action_release("sneak")
+
+	# His running and his landing from a jump (11 Nov 2026): heard HEAR_STEPS round, as his
+	# laugh is, the music or not. 5.3 m behind the low-poly man, out of his sight: further
+	# than his running was heard before (4 m). Run past by hand (as Shift and a key would),
+	# or a jump on the spot.
+	for how: String in ["Running", "A jump"]:
+		await _settle([0, 0, 0])
+		_mark()
+		behind = _man.global_position - _man.global_basis.z * 5.3
+		_player.place(Vector3(behind.x, 0.02, behind.z))
+		_player.velocity = Vector3.ZERO
+		await _wait(0.1)
+		if how == "Running":
+			_player.run_off(_man.global_basis.x, 0.5)
+		else:
+			_player.jump()
+		await _until(func() -> bool: return S.INVESTIGATE in _seen(_man), 1.2)
+		_check("%s 5.3 m behind him, the music on: he turns to it" % how, "true true",
+			"%s %s" % [_camp.music_on, S.INVESTIGATE in _seen(_man)])
+		_player.place(AWAY)
+
+	# The cones and how he moves (11 Nov 2026): they show while he sneaks, fade while he
+	# moves about upright, and stay as they were while he stands still. On the trail, out of
+	# everyone's sight, read off the low-poly man's cone.
+	await _settle([0, 0, 0])
+	await _until(func() -> bool: return _man.eyes.showing(), 10.0)
+	Input.action_press("move_right")
+	await _wait(ConeDriver.STEALTH_OUT + 0.3)
+	var walking := _cone_shown(_man)
+	Input.action_release("move_right")
+	await _wait(0.8)
+	var stopped := _cone_shown(_man)
+	Input.action_press("sneak")
+	await _wait(VisionCone.FADE_OUT + 0.2)
+	_check("Cones: walking upright they fade; stopped, they stay faded; sneaking, they're back", "true 0.00 0.00 1.00",
+		"%s %.2f %.2f %.2f" % [_man.eyes.showing(), walking, stopped, _cone_shown(_man)])
+	Input.action_release("sneak")
+
+	for music in [level._music, level._sleep_music]:
 		if music:
 			music.stop()
 	if _camp.party:
@@ -308,6 +374,11 @@ func _until(done: Callable, timeout: float) -> void:
 
 func _mark() -> void:
 	_seen_states.clear()
+
+
+## How much of `person`'s cone shows (the cone shader's `shown`, as cone_driver.gd sets it).
+func _cone_shown(person: CampPerson) -> float:
+	return person.eyes.material().get_shader_parameter("shown")
 
 
 func _seen(person: CampPerson) -> Array:
