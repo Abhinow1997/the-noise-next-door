@@ -275,3 +275,39 @@ The pins (`tests/jump_pins.gd`, `1232706`) measured the jump as it is today. Fou
 - the frames to read are 10, 12, 13, 17, 18, 25, 30 and 40.
 
 (Drafted by Claude Code on 21 Nov 2026 from the pins' measurements. Kept by me the same day, before any clip was set up: "Keep and commit".)
+
+---
+
+### Revised 21 Nov 2026: F while asleep or climbing, the task's tests, and the extras' timings (Step 5's findings)
+
+The Step 5 plan (`design/a7/session-5.jsonl`) found four things the brief didn't settle. This revision settles three of them; the fourth (a finished one-shot reads `current_animation` as `""`, so the clip check uses `assigned_animation`) is code, not the brief's.
+
+**F while asleep or climbing.** The state table said F starts `jump` "from all seven states". Today F does nothing while he's asleep (input is locked), and up a tree it hops him off, as E does. From now:
+- **Asleep, in the hollow:** F wakes him into the leap out, exactly as a move key does today: he wakes, uncurls and leaps out, posed through the run clip as before. This is an input change: F joins the move keys as a way to wake him. It doesn't start `jump`.
+- **Climbing, on the trunk or a limb:** F hops him off as today, with the same timing and the same path, as E still does. The hop is now shown with the jump's clips: `jump` from its takeoff pose (frame 2, so no crouch, since he's already leaving the tree) until he's down, then `jump_land`'s 4 frames. This is presentation only: the hop's timing, movement and input are unchanged, and there's no bite in it.
+- This replaces "Leaps from the hollow and hops keep the run clip". The leap out of the hollow, the dive into the bush and its hop out, the startle's leaps and the hop to and from the rest spot keep the run clip. Only the hops off a tree change.
+- **In the state table:** from `sleep`, F gives the leap out, not `jump`. From `climb`, F gives the hop off, shown as `jump` from frame 2, then `jump_land`.
+
+**The task's tests.** "Pop the balloons", a new sub-task of Rock the party, changes five existing tests. Each change is only the new task, nothing else:
+- `scripts/cones_test.gd:107`, `scripts/tasks_test.gd:74` and `scripts/tutorial_test.gd:268`: the expected task-id strings gain `balloons` after `bearbag`.
+- `scripts/cones_test.gd:160` ("Rock the party is ticked off"), `scripts/tasks_test.gd:232` ("All six tasks done", now seven) and `scripts/sound_test.gd:168` ("Every task done"): each still expects `true`. Each test now also ticks `balloons` on its way there, as it ticks the other sub-tasks.
+- Their checks' names may change to match ("All six" becomes "All seven"); their counts of checks stay the same.
+
+**The extras' timings and places** (not graded; each gets a light read-back like the float's):
+- **The balloon's `pop`:**
+  - cells 3, 4, 5, each held 2 frames at 24 fps;
+  - keys at 0, 2/24 and 4/24 s; length 6/24 s (0.25 s); `step` 1/24; `LOOP_NONE`; discrete;
+  - played once by the balloon's own script when it's bitten, then the balloon is hidden. It goes in the balloon scene's library beside `float`, as `animations/balloon_pop.tres`.
+- **The moths' `flutter`:**
+  - cells 4, 5 of `bugs.png`, each held 2 frames at 24 fps;
+  - keys at 0 and 2/24 s; length 4/24 s; `step` 1/24; `LOOP_LINEAR`; discrete;
+  - the seam: the last cell (5) differs from the first (4), and the last gap (2/24 s) equals the interval.
+  - It's saved as `animations/moth_flutter.tres`.
+- **The moths:**
+  - four, round the campfire, each circling 0.55–0.9 m out and 0.85–1.5 m up, each 0.1 m across (`pixel_size` 0.1 / 8), billboarded with nearest filtering;
+  - each starts its flutter at its own offset, so they don't flap in step;
+  - shown while the fire `burning()`, hidden while it isn't, by their driver, which reads the fire and writes nothing in the game;
+  - `bugs.png`'s `detect_3d/compress_to` set to 0.
+  - This is as the throwaway preview showed them, and that preview is not reused.
+
+(Drafted by Claude Code on 21 Nov 2026 from my answers to Step 5's findings: "Make F jump there too", then "F wakes him into the leap out" and "The hop off uses the jump clips"; "Draft a brief revision"; and "Add them" for the extras' timings, which are Claude Code's. Kept by me the same day: "Keep it".)
