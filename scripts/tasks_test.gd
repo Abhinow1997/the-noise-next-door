@@ -68,10 +68,10 @@ func _physics_process(_delta: float) -> void:
 func _run() -> void:
 	await _wait(1.0)
 	# Since 26 Oct 2026 the camp's three are the sub-tasks of one main task, Rock the party.
-	# Dismantle the tent joined them on 8 Nov 2026 (camp_tent.gd), and Raid the bear bag on
-	# 10 Nov 2026 (camp_bear_bag.gd).
-	_check("The to-do list: the music, then Rock the party and its five",
-		"investigate party marshmallows music cooler tent bearbag",
+	# Dismantle the tent joined them on 8 Nov 2026 (camp_tent.gd), Raid the bear bag on
+	# 10 Nov 2026 (camp_bear_bag.gd), and Pop the balloons on 21 Nov 2026 (camp_balloons.gd).
+	_check("The to-do list: the music, then Rock the party and its six",
+		"investigate party marshmallows music cooler tent bearbag balloons",
 		" ".join(level.tasks.list.map(func(t: Dictionary) -> String: return t.id)))
 	_check("Routines: the camper starts pegging out his tent", "peg", _camper.activity())
 	_check("Routines: the low-poly man starts dancing", "dance", _man.activity())
@@ -224,12 +224,13 @@ func _run() -> void:
 	await _press_e(0.0)
 	await _wait(0.8)
 	_check("Cooler: dropped in his stash, the task's done", true, level.tasks.is_done("cooler"))
-	# The tent (8 Nov 2026) is played through in tent_test.gd, and the bear bag (10 Nov 2026)
-	# in bear_bag_test.gd; here they're ticked off, so this still checks the list is done
-	# once every task is.
+	# The tent (8 Nov 2026) is played through in tent_test.gd, the bear bag (10 Nov 2026)
+	# in bear_bag_test.gd, and the balloons (21 Nov 2026) in tests/test_balloon_task.gd;
+	# here they're ticked off, so this still checks the list is done once every task is.
 	level.tasks.done("tent")
 	level.tasks.done("bearbag")
-	_check("All six tasks done", true, level.tasks.all_done())
+	level.tasks.done("balloons")
+	_check("All seven tasks done", true, level.tasks.all_done())
 	await _wait(1.0)
 	_shot("07_loot_in_his_stash_all_ticked_by-claude")
 

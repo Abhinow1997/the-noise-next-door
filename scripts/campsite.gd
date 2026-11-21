@@ -49,6 +49,7 @@ const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
 const CampFire := preload("res://scripts/camp_fire.gd")
 const CampTent := preload("res://scripts/camp_tent.gd")
 const CampBearBag := preload("res://scripts/camp_bear_bag.gd")
+const CampBalloons := preload("res://scripts/camp_balloons.gd")
 const CampInput := preload("res://scripts/camp_input.gd")
 const SoundWaves := preload("res://scripts/sound_waves.gd")
 const ConeDriver := preload("res://scripts/cone_driver.gd")
@@ -295,6 +296,8 @@ var tent_pegs: CampTent
 ## Raid the bear bag: the food bag hung in the tree east of the fire (camp_bear_bag.gd,
 ## 10 Nov 2026).
 var bear_bag: CampBearBag
+## Pop the balloons: the three balloons by the speaker (camp_balloons.gd, 21 Nov 2026).
+var balloons: CampBalloons
 ## True while the speaker's plugged in (the party's music can play).
 var music_on: bool:
 	get:
@@ -386,6 +389,11 @@ func _ready() -> void:
 	bear_bag.forest = forest
 	bear_bag.position = _v3(FIRE + CampBearBag.TREE)
 	add_child(bear_bag)
+	# Pop the balloons: three tied by the speaker (camp_balloons.gd, 21 Nov 2026).
+	balloons = CampBalloons.new()
+	balloons.camp = self
+	balloons.position = _v3(SPEAKER[0])
+	add_child(balloons)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
 	var driver := ConeDriver.new()
 	driver.camp = self

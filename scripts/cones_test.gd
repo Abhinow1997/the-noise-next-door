@@ -102,9 +102,10 @@ func _ready() -> void:
 		_key(KEY_TAB))
 	_at(3.4, func() -> void:
 		_check("Tutorial: Tab brings up the TO DO list", true, _plan.open and _plan.up() >= 1.0)
-		# Raid the bear bag joined the list on 10 Nov 2026 (camp_bear_bag.gd).
+		# Raid the bear bag joined the list on 10 Nov 2026 (camp_bear_bag.gd), and Pop the
+		# balloons on 21 Nov 2026 (camp_balloons.gd; CHANGE-BRIEF.md's revision of that day).
 		_check("Tutorial: the list shows Rock the party and its tasks",
-			"investigate party marshmallows music cooler tent bearbag", _shown_ids())
+			"investigate party marshmallows music cooler tent bearbag balloons", _shown_ids())
 		_check("Tutorial: the note says to pick one, the marshmallows marked",
 			CampTutorial.PICK_NOTE + " / marshmallows", _plan.note_showing() + " / " + _plan.highlighted())
 		_check("Tutorial: still slowed down while he reads", true, Engine.time_scale <= CampTutorial.SLOW + 0.01)
@@ -154,10 +155,11 @@ func _ready() -> void:
 		_check("Two of its tasks done: Rock the party isn't", false, _tasks.is_done("party"))
 		_tasks.done("cooler")
 		# Dismantle the tent, added on 8 Nov 2026, is the fourth; Raid the bear bag, added on
-		# 10 Nov 2026, the fifth.
+		# 10 Nov 2026, the fifth; Pop the balloons, added on 21 Nov 2026, the sixth.
 		_tasks.done("tent")
 		_tasks.done("bearbag")
-		_check("All five done: Rock the party is ticked off", true, _tasks.is_done("party")))
+		_tasks.done("balloons")
+		_check("All six done: Rock the party is ticked off", true, _tasks.is_done("party")))
 	_at(45.5, _finish)
 
 

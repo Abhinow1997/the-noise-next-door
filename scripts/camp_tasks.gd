@@ -41,6 +41,9 @@ var list: Array[Dictionary] = [
 	# Added on 10 Nov 2026 (camp_bear_bag.gd).
 	{"id": "bearbag", "text": "Raid the bear bag", "done": false, "parent": "party",
 		"hint": "Drop it, grab a treat."},
+	# Added on 21 Nov 2026 (camp_balloons.gd; CHANGE-BRIEF.md, Assignment 7).
+	{"id": "balloons", "text": "Pop the balloons", "done": false, "parent": "party",
+		"hint": "Jump and bite all three."},
 ]
 ## Whether the main task and its sub-tasks are on the list yet.
 var revealed := false

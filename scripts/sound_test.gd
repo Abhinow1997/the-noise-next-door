@@ -77,12 +77,13 @@ func _ready() -> void:
 	# Tasks (level 1's, camp_tasks.gd; the camp's puzzles tick them off): the others
 	# ticked off in the same frame, for one laugh (the first was ticked off in his sleep).
 	# Dismantle the tent, added on 8 Nov 2026, is ticked off with them, and Raid the bear
-	# bag, added on 10 Nov 2026.
+	# bag, added on 10 Nov 2026, and Pop the balloons, added on 21 Nov 2026.
 	_at(940, func() -> void:
 		level.tasks.done("music")
 		level.tasks.done("cooler")
 		level.tasks.done("tent")
-		level.tasks.done("bearbag"))
+		level.tasks.done("bearbag")
+		level.tasks.done("balloons"))
 
 	# Pause and mute: switched on and off again; the game mustn't care.
 	_at(1000, _check_pause_and_mute)

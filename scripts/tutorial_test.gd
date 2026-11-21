@@ -263,9 +263,10 @@ func _run() -> void:
 	_key(KEY_TAB)
 	await _real(1.0)
 	_shot("09_to_do")
-	# Raid the bear bag joined the list on 10 Nov 2026 (camp_bear_bag.gd).
+	# Raid the bear bag joined the list on 10 Nov 2026 (camp_bear_bag.gd), and Pop the
+	# balloons on 21 Nov 2026 (camp_balloons.gd).
 	_check("Tab: the TO DO list up to read, the camp's tasks on it, slowed",
-		"true investigate party marshmallows music cooler tent bearbag true",
+		"true investigate party marshmallows music cooler tent bearbag balloons true",
 		"%s %s %s" % [_plan.open and _plan.up() >= 1.0,
 			" ".join(level.tasks.shown().map(func(t: Dictionary) -> String: return t.id)), Engine.time_scale <= CampTutorial.SLOW + 0.01])
 	_key(KEY_TAB)
