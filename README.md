@@ -80,10 +80,9 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 | [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The cast: the raccoon and the camper (the two main characters) and the town's dogs, with looks, palettes, poses and the Gemini prompts |
 | [CHANGE-BRIEF.md](CHANGE-BRIEF.md) | The plan for each assignment's change, written before the work, one section per assignment |
 | [SOURCES.md](SOURCES.md) | The generative models, every generation, other people's assets and the tools, one section per assignment |
-| [TEST-REPORT.md](TEST-REPORT.md) | How each assignment's work was tested and what happened, one section per assignment |
-| [TUNING.md](TUNING.md) | Assignment 6's tuning: my first verdict on each effect's strip, Claude's readings, and each revision with its prediction, strips and my verdict |
-| [FRICTIONAL.md](FRICTIONAL.md) | The dated log: what was asked for, what came back and what was decided, for Assignments 5 and 6 |
-| [FRICTIONAL-EARLIER.md](FRICTIONAL-EARLIER.md) | The same log's sections from before Assignment 5: Assignment 2, Assignment 3, and the work after Assignment 3 |
+| [TEST-REPORT.md](TEST-REPORT.md) | How Assignment 7's work is tested and what happened; each earlier report is at its assignment's tag |
+| [TUNING.md](TUNING.md) | Assignment 7's tuning: my first verdict on each strip, Claude's readings, and each revision with its prediction, strips and my verdict (Assignment 6's is at tag `a6`) |
+| [FRICTIONAL.md](FRICTIONAL.md) | The dated log for Assignment 7: what was asked for, what came back and what was decided; each earlier log is at its assignment's tag |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
 | [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
@@ -114,11 +113,11 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - The fire is out at the start. The fire keeper builds it a log at a time from the woodpile, and it burns down by itself.
   - E at the bucket douses it.
   - While it burns, he's spotted walking or running upright near it, and standing in its light he's seen half as far again. Crouch.
-  - The other game work this assignment brought (the tent, the tutorial's pan and its "You've been caught!", dropping what he's caught with) is in [TEST-REPORT.md](TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp).
+  - The other game work this assignment brought (the tent, the tutorial's pan and its "You've been caught!", dropping what he's caught with) is in [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a6/TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp).
 - **The previews and their frame strips** (fixture captures, Movie Maker at 30 fps, 1280 × 720):
   - [previews/leaf_burst_preview.tscn](previews/leaf_burst_preview.tscn), with its strips in `captures/leaf_burst/`;
   - [previews/campfire_smoke_preview.tscn](previews/campfire_smoke_preview.tscn), with its strips in `captures/campfire_smoke/`.
-- **Tuning:** one revision for each effect, both kept ([TUNING.md](TUNING.md)):
+- **Tuning:** one revision for each effect, both kept ([TUNING.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a6/TUNING.md)):
   - the leaves' gravity went from −3.5 to −6.0, so they flutter down after the burst;
   - the smoke's peak alpha went from 0.45 to 0.25, so it reads as haze, not a glowing cloud.
 - **The checks:**
@@ -148,7 +147,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - `bash scripts/run-test.sh --smoke-load-test 60`
   - `bash scripts/run-test.sh cost_effects.gd 60 300`
 
-  The rest, with their counts, are in [CLAUDE.md](CLAUDE.md) and [TEST-REPORT.md](TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp).
+  The rest, with their counts, are in [CLAUDE.md](CLAUDE.md) and [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a6/TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp).
 
 ### Known limitations (Assignment 6)
 
@@ -161,9 +160,9 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 
 The docs, each with an Assignment 6 section:
 - the plan and its dated revisions, [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
-- the tuning, [TUNING.md](TUNING.md);
-- the checks and my checks in play, [TEST-REPORT.md](TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp);
-- the log, [FRICTIONAL.md](FRICTIONAL.md#assignment-6-particle-effects-and-the-bigger-camp);
+- the tuning, [TUNING.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a6/TUNING.md);
+- the checks and my checks in play, [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a6/TEST-REPORT.md#assignment-6-particle-effects-and-the-bigger-camp);
+- the log, [FRICTIONAL.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a6/FRICTIONAL.md#assignment-6-particle-effects-and-the-bigger-camp);
 - the provenance, [SOURCES.md](SOURCES.md#assignment-6-the-bigger-camp-and-particle-effects).
 
 The `claude -p` prompts and transcripts are in [design/a6/](design/a6/). The films, mine and a NotebookLM explainer, are linked in [SUBMISSION.md](SUBMISSION.md). Neither effect uses a sourced or generated texture: the smoke's soft disc is a `GradientTexture2D` written in its scene file.
@@ -202,7 +201,7 @@ The `claude -p` prompts and transcripts are in [design/a6/](design/a6/). The fil
 - **The cones:** start a New Game and follow the music east to the camp; the tutorial there has a camper spot him straight away (the list was THE PLAN until 7 Nov 2026).
 - **The cooler:** by the camp's fire, or in the asset room (`Look at the A3 assets.bat`, then key 2).
 - **The hint experiment:** `godot --path . res://hint_experiment/hint_experiment.tscn`.
-- **The checks,** from this folder in Git Bash, after `godot --headless --path . --import` once: `bash scripts/run-test.sh --cone-shader-test 60` (also at 30 and 144) and `bash scripts/run-test.sh test_materials.gd 60`. The earlier checks and their counts are in [TEST-REPORT.md](TEST-REPORT.md#assignment-5-shaders-and-materials).
+- **The checks,** from this folder in Git Bash, after `godot --headless --path . --import` once: `bash scripts/run-test.sh --cone-shader-test 60` (also at 30 and 144) and `bash scripts/run-test.sh test_materials.gd 60`. The earlier checks and their counts are in [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a5/TEST-REPORT.md#assignment-5-shaders-and-materials).
 
 ### Known limitations (Assignment 5)
 
@@ -211,7 +210,7 @@ The `claude -p` prompts and transcripts are in [design/a6/](design/a6/). The fil
 - **The cooler's colour line can take `ALBEDO` above 1** at the diffuse's brightest texels, and its `DIFFUSE_MEAN_LUMINANCE` fits only this diffuse ([MATERIALS.md](MATERIALS.md), findings).
 - **Two earlier checks fail under `--fixed-fps`,** as recorded before this assignment: waves (12 of 13) and title (51 of 52).
 
-The docs, each with an Assignment 5 section: the plan, [CHANGE-BRIEF.md](CHANGE-BRIEF.md#assignment-5-shaders-and-materials); the log, [FRICTIONAL.md](FRICTIONAL.md#assignment-5-shaders-and-materials); the checks, [TEST-REPORT.md](TEST-REPORT.md#assignment-5-shaders-and-materials); the tools and provenance, [SOURCES.md](SOURCES.md#assignment-5-tools-and-provenance).
+The docs, each with an Assignment 5 section: the plan, [CHANGE-BRIEF.md](CHANGE-BRIEF.md#assignment-5-shaders-and-materials); the log, [FRICTIONAL.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a5/FRICTIONAL.md#assignment-5-shaders-and-materials); the checks, [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a5/TEST-REPORT.md#assignment-5-shaders-and-materials); the tools and provenance, [SOURCES.md](SOURCES.md#assignment-5-tools-and-provenance).
 
 ## Assignment 3: the three Blender assets
 
@@ -223,8 +222,8 @@ The docs, each with an Assignment 5 section: the plan, [CHANGE-BRIEF.md](CHANGE-
 - **Versions:** Godot 4.7.2 stable, Blender 5.2.2 LTS, the mcp-for-blender server 2.1.9 with the MCP for Blender add-on 1.8, on Windows 11.
 - **The docs:** each of these has an Assignment 3 section:
   - the plan: [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
-  - the log: [FRICTIONAL-EARLIER.md](FRICTIONAL-EARLIER.md);
-  - the checks: [TEST-REPORT.md](TEST-REPORT.md);
+  - the log: [FRICTIONAL.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a3/FRICTIONAL.md#assignment-3-the-three-blender-assets);
+  - the checks: [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a3/TEST-REPORT.md#assignment-3-the-three-blender-assets);
   - the tools: [SOURCES.md](SOURCES.md).
 
   [BLENDER-NOTES.md](BLENDER-NOTES.md) is new, and the Blender build scripts go in [tools/blender/](tools/blender/).
@@ -330,7 +329,7 @@ timeout 120 godot --headless --path . --script res://tests/a3_asset_check.gd --f
   - The first imports.
   - The second checks the three assets against the brief: the size, the height axis, the floor, the scale, the triangles, the resting parts and the facing. It should end `PASS: 0 check(s) failed`.
   - The third breaks each asset in memory to prove the check can fail. It should end `PASS: 7 of 7 breaks caught`.
-- What the check doesn't show is in [TEST-REPORT.md](TEST-REPORT.md).
+- What the check doesn't show is in [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a3/TEST-REPORT.md#assignment-3-the-three-blender-assets).
 
 **Rebuilding an asset in Blender:** `tools/blender/build_<asset>.py` holds every piece of code Claude ran, in order. **Don't run one directly:** each saves over its own `assets/props/<asset>.blend`. To test that one rebuilds the asset, run a copy that saves somewhere else.
 
@@ -375,7 +374,7 @@ The slice is the prototype's forest clearing, with its five-task to-do list, dre
 - **Four generated sound effects, each tied to an event:** running (a loop while Shift-running), climbing (a loop while moving on a trunk), his chitter (Space) and a laugh when a task is ticked off.
 - **A seamless generated music loop:** it's muffled and quieter while paused, dips under the task laugh, and fades out when every task is done. M and N mute the music and the effects.
 
-[TEST-REPORT.md](TEST-REPORT.md) shows each of these in the game, and [SOURCES.md](SOURCES.md) logs how each asset was made.
+[TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a2/TEST-REPORT.md) shows each of these in the game, and [SOURCES.md](SOURCES.md) logs how each asset was made.
 
 ### Known limitations (Assignment 2)
 
@@ -391,7 +390,7 @@ The slice is the prototype's forest clearing, with its five-task to-do list, dre
   - They're in the course media storage: **link to add**.
   - The game doesn't load any of them: it plays the cut loops in `assets/audio/`. The source ZIP leaves them out.
 
-[TEST-REPORT.md](TEST-REPORT.md) has the details and the next steps.
+[TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a2/TEST-REPORT.md) has the details and the next steps.
 
 ### The Assignment 2 film
 
