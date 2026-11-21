@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Texture2D" uid="uid://duw0sklpx6dn4" path="res://assets/sprites/balloons/balloon_red_4.png" id="1_red"]
+[ext_resource type="Animation" path="res://animations/balloon_float.tres" id="2_float"]
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_balloon"]
+_data = {
+&"float": ExtResource("2_float")
+}
+
+[node name="Balloon" type="Sprite3D"]
+pixel_size = 0.0214286
+billboard = 1
+texture_filter = 0
+texture = ExtResource("1_red")
+hframes = 3
+vframes = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_balloon")
+}
+callback_mode_process = 1
