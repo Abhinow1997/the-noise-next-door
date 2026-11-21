@@ -253,3 +253,25 @@ The balloon's float runs from its scene's start. When a bite lands in the active
   - the state table, the evidence split, the strip, the predicted failures, and the drafts of the short answers;
   - this draft of the brief.
 - **Generative models:** none.
+
+---
+
+### Revised 21 Nov 2026: a held jump lands 25 ticks after takeoff (the pins)
+
+The pins (`tests/jump_pins.gd`, `1232706`) measured the jump as it is today. Four of the brief's worked-out numbers are off, and each is replaced here. The original text stays above, as this file's rule is.
+- **A held jump** lands **25 ticks after takeoff (0.417 s)**, not 26 (0.433 s). It still peaks at 0.511 m. The game counts him down on the tick his capsule is back on the floor, a tick before the worked-out height reaches 0.
+- **A quick tap** (F let go the tick after it's pressed, as a quick key press is) peaks at **0.228 m** and still lands after 12 ticks. The brief's 0.183 m assumed F let go at the instant of takeoff, which no key press does.
+- **A press kept from before landing** takes off **the tick after he lands**, not on it: he's counted down after that tick's takeoff check.
+- **The pins' "tick after F"** is this brief's frame 0: the test presses F on one tick, and the game sees it on the next.
+
+**What it changes in the phase table** (frame 0 is the tick F is seen; takeoff on tick 5, as the brief has it):
+- **Landing:** a held jump lands on **tick 30, 0.5 s, exactly frame 12** (was tick 31, about 0.517 s). A quick tap lands on tick 17, 0.283 s. The landing then ends on tick 40 (0.667 s, frame 16) for a held jump.
+- **`jump`'s length:** its 12 frames now end exactly as a held jump touches down. Its last key, "paws reaching down", is held only through a longer fall (off a ledge, say).
+- **A kept press:** from the landing, the next crouch starts on the tick after he lands, as a kept press does today.
+
+**What it changes in the frame strip** (F at frame 10, at 30 fps):
+- the landing at 0.5 s falls exactly on **frame 25**: touching down, squashed;
+- the landing's end at 0.667 s falls exactly on **frame 30**: back in his stance;
+- the frames to read are 10, 12, 13, 17, 18, 25, 30 and 40.
+
+(Drafted by Claude Code on 21 Nov 2026 from the pins' measurements. Kept by me the same day, before any clip was set up: "Keep and commit".)
