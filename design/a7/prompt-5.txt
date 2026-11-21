@@ -1,0 +1,52 @@
+Read CLAUDE.md first. CHANGE-BRIEF.md is the contract for this change, with its dated
+revision at the end. Both clips are set up and their read-back tests pass: the balloon's
+float (props/party_balloon.tscn, animations/balloon_float.tres,
+tests/test_balloon_float.gd) and the jump (jump and jump_land in
+assets/characters/raccoon_v2.glb, loop modes in its .import, tests/test_raccoon_rig.gd).
+The behaviour pins are tests/jump_pins.gd. The project is the repository root, so the
+course's godot/tests/ is tests/ here. Do not change any clip's keys in this task, and do
+not edit any .gdshader file.
+
+First propose the smallest plan that meets the brief: the state machine's states and
+transitions, the code that plays each clip, which node is the one authority over each
+animated node, and a structure test in tests/. Say which brief rule each assertion
+covers, and which rules only a human can check. Do not edit yet.
+
+The plan has to cover the changes the brief names, in steps I can approve one at a time:
+- the jump in scripts/player.gd: the 2-frame crouch (takeoff 5 ticks after F is seen),
+  the bite window (ticks 5-14), and the 10-tick landing, counted in physics ticks from
+  the press, with everything else about movement and input as it is;
+- scripts/raccoon_model.gd playing `jump` and `jump_land` on the states the brief names,
+  as the one authority over the rig's AnimationPlayer, with the leap seek kept out of
+  the jump; and removing its runtime loop line (raccoon_model.gd:385-386), now that the
+  loop modes live in the importer;
+- the task "Pop the balloons": three balloons (props/party_balloon.tscn) placed as the
+  brief says, each with its own script as the only caller of play() on its own
+  AnimationPlayer; the bite check on the physics tick; each pop heard as the brief says;
+  the task on the list with its hint; ticked when all three are popped;
+- the extras only after those: the balloon's pop clip, and the moths round the fire.
+Name each file the plan would create or change, and why the brief allows it.
+
+After I approve a step, implement only that step and show the diff.
+Rules:
+- Presentation code may read game state; it never writes it. Do not change collision,
+  movement, input, the existing state machine's timings, or the existing tests and pins,
+  except where the brief names the change. The pins in tests/jump_pins.gd that the brief
+  says will change (the jump's clips, takeoff, the landing's length) are updated only in
+  Step 6's re-pin, not here: say which of them will fail after each step.
+- Exactly one node writes to each animated node. If the brief's authority conflicts with
+  something already in the scene, say so and stop.
+- The structure test asserts the state table against the resource: every state the code
+  requests exists as a clip in the AnimationPlayer, and every transition in the brief is
+  present. There is no AnimationTree, so there's no advance_expression_base_node to set.
+- The tests drive the state machine through the real game loop and real input, via
+  Input.parse_input_event, never by calling the transition function directly.
+  tests/jump_pins.gd shows a way to run in the real level as a --script test without
+  adding a flag to main.gd.
+- Read the current clip with the property this route uses: current_animation, on the
+  AnimationPlayer.
+- Run every test with scripts/run-test.sh (bash scripts/run-test.sh <test> <fps>): the
+  existing ones and the pins as CLAUDE.md says, and the new ones at 60, or in realtime if
+  they wait on audio. Show the real output and say which mode you used.
+- Say exactly what each test proves and what it cannot prove headlessly.
+- Do not commit.
