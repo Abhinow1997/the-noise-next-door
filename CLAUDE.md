@@ -1,67 +1,60 @@
 ## Project context
 
-- **Engine:** Godot 4.7.2 stable: `config/features` says `"4.7"` and `"Forward Plus"` (`project.godot`); the wrapper
-  looks for `Godot_v4.7.2-stable_win64_console.exe` (`scripts/run-test.sh`). GDScript. The project is the repo root.
+- **Engine:** Godot 4.7.2 stable, GDScript; `config/features` is `"4.7"`, `"Forward Plus"` (`project.godot`); the
+  wrapper looks for `Godot_v4.7.2-stable_win64_console.exe` (`scripts/run-test.sh:18`). The project is the repo root, so
+  the course's `godot/shaders/`, `godot/animations/`, `godot/tests/` are `shaders/`, `animations/`, `tests/` here.
+  Renderer Forward+, 1280 × 720, physics interpolation on (`project.godot`). No `animations/` folder exists yet.
+- **Scene:** `res://main.tscn` (`run/main_scene`), one `Node3D` running `scripts/main.gd`, which adds `Campsite.new()`.
 
-### The effects (`CHANGE-BRIEF.md`, "The effects", and its 8 Nov 2026 revisions)
-- **Effect A, the leaf burst:** two `GPUParticles3D`, **Leaves** and **Puff**, under one `Node3D` root, each with a
-  `ParticleProcessMaterial` and a `StandardMaterial3D`. A fresh copy per event, placed at the bush, freed by a timer
-  (see Headless facts); the hop-out copy has `amount_ratio` 0.5. Leaves' gravity is −6.0 since tuning r1.
-- **Effect B, the campfire smoke:** one `GPUParticles3D`, **Smoke** (`ParticleProcessMaterial`, `StandardMaterial3D`)
-  at the fire pit; a feedback loop: `amount_ratio` follows the fire's `strength` (the brief's 8 Nov B revision).
+### The jump: imported 3D rig (`CHANGE-BRIEF.md`, "The two clips")
+- **Rig:** `assets/characters/raccoon_v2.glb` (from `raccoon_v2.blend` by `assets/characters/export_raccoon_v2.py`; its
+  actions keyed in `design/character/raccoon_v2/anim.py`). Import: `animation/fps=24`, `_subresources={}`
+  (`raccoon_v2.glb.import:34,42`). Loaded by `_build_rigged()` (`scripts/raccoon_model.gd:375`); the model's scene is
+  `raccoon_model.tscn`. The `AnimationPlayer` is found in the instanced rig (`raccoon_model.gd:384`) and held in `_anim`.
+- **New clips** `jump` and `jump_land` go in the `.glb` as Blender actions (keyed in `anim.py`); loop modes go in the
+  `.import`'s `_subresources`, replacing the runtime loop at `raccoon_model.gd:385-386`.
+- **State machine:** the state lives in `scripts/player.gd` (`jump()` :431, `_jump_pose()` :440, `_end_jump()` :465,
+  `jumping` :159, `signal landed` :13, the `JUMP_*`, `AIR_CONTROL`, `LAND_TIME` constants :93-100; `_physics_process()`
+  :251 sets `model.jumping`). The clips are picked in `scripts/raccoon_model.gd`: `_process_rigged()` :460 →
+  `_rigged_state()` :553 → `_change_animation()` :540. No `AnimationTree`.
+- **His mouth:** `mouth`, a `Marker3D` on the `head` bone (`raccoon_model.gd:392-400`). **Readers of the jump:**
+  `cone_driver.gd:96`; `_on_landed()` (`campsite.gd:539`, `HEAR_STEPS` 6 m); `tasks_test.gd:260-274`.
 
-### What owns Effect A's event
-- **The bush:** `bush`, an `Area3D` running `scripts/hide_spot.gd`, `_build_bush()` (`scripts/campsite.gd`); never freed.
-- **The event:** `dived(inside: bool)` in `scripts/hide_spot.gd` ends by emitting `hiding_changed(inside: bool)`;
-  `scripts/leaf_bursts.gd` listens, added in `scripts/main.gd`. Callers (`scripts/player.gd`): `_hidden_in()` on
-  landing a `dive_into()` hop (in); `_stop_hiding()` from `_hide_process()` (a move key), `place()` and `startle()` (out).
-### What owns Effect B's condition
-- **The value:** `strength` (0 out, 1 burning well) in `scripts/camp_fire.gd`, with `burning()` and the signals
-  `lit` and `doused`; the node is `campfire` (`var campfire: CampFire`, `scripts/campsite.gd`), at `FIRE`, built in
-  `_ready()`. The flames, light and sparks follow `strength` (`_process()` in `scripts/campsite.gd`).
-- **What moves it:** `start_cycle()` when the tutorial's done (`_close_list()`, `scripts/camp_tutorial.gd`), then it
-  burns down by `BURN`; `die_out()` at the steal; the keeper's `add_log()` (`TEND`, `scripts/camp_person.gd`);
-  `douse()` (the bucket, E). Cycle off (the tutorial, the checks that skip it): `strength` stays 1. Starts:
-  `-- --dev-start=fire` (burning) or `free` (cold), `scripts/dev_menu.gd` (F1 in debug runs).
-### The scenes the effects appear in
-- `res://main.tscn` (`project.godot`, `run/main_scene`), running `scripts/main.gd`, which adds `Campsite.new()`. A:
-  `effects/leaf_burst.tscn`, `previews/leaf_burst_preview.tscn`, `scripts/leaf_bursts.gd`. B: `effects/campfire_smoke.tscn`,
-  `previews/campfire_smoke_preview.tscn`, `scripts/campfire_smoke.gd` (the driver). Tests below.
+### The balloon's float: `Sprite3D` + `AnimationPlayer` frame track
+- **Sheets:** `assets/sprites/balloons/balloon_{red_4,yellow,blue_4}.png` (also green, purple), 48 × 64 px, `hframes` 3,
+  `vframes` 2; float cells 0–2, pop 3–5 (`assets/sprites/balloons/ATTRIBUTION.md`; CC-BY-SA 4.0, credit line there).
+- **Placement:** by the party's `TABLE` and `SPEAKER` (`scripts/campsite.gd:81,83`); a pop heard `HEAR_CHITTER` 8 m (:105).
+- **Moth (extra):** `assets/sprites/cutebugs/bugs.png` (`ATTRIBUTION.md` there, CC0), shown while `burning()`
+  (`scripts/camp_fire.gd`). Both sheets have `detect_3d/compress_to=1` today (their `.png.import`, line 40).
 
-### Tests: always through `scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
-- An argument starting with `--` runs `main.tscn` with that flag (parsed in `scripts/main.gd`; `--title-test` in
-  `scripts/title_screen.gd`); anything else runs `res://tests/<file>` with
-  `--script`. Every run is headless. `<fps>` adds `--fixed-fps`; `realtime` leaves it out (audio, the clock). The
-  third argument is the timeout, 120 s by default. Log: `logs/<name>_<fps>fps.log` or `_realtime.log`; exit 1 on
-  `SHADER ERROR` or `SCRIPT ERROR`, 124 on timeout. Godot: `GODOT`, the PATH, then `../Godot/` (`scripts/run-test.sh`).
-
+### Tests: always `bash scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
+- `--name` runs `main.tscn` with that flag (parsed in `scripts/main.gd:399-470`); anything else runs `res://tests/<file>`
+  with `--script`. Headless. `<fps>` adds `--fixed-fps <fps>`; `realtime` omits it (audio, the clock). Timeout 120 s.
+  Log `logs/<name>_<fps>fps.log` or `_realtime.log`; exit 1 on `SHADER ERROR`, `SCRIPT ERROR` or `Failed loading resource`, 124 on timeout.
 ```
 bash scripts/run-test.sh a3_asset_check.gd 60          # tests/a3_asset_check.gd
 bash scripts/run-test.sh normal_map_calibration.gd 60  # tests/normal_map_calibration.gd
 bash scripts/run-test.sh test_materials.gd 60          # tests/test_materials.gd
+bash scripts/run-test.sh test_leaf_burst_config.gd 60  # tests/test_leaf_burst_config.gd
+bash scripts/run-test.sh test_campfire_smoke_config.gd 60  # tests/test_campfire_smoke_config.gd
+bash scripts/run-test.sh cost_effects.gd 60 300        # tests/cost_effects.gd
 bash scripts/run-test.sh --sound-test 60               # scripts/sound_test.gd
 bash scripts/run-test.sh --bubble-test 60              # scripts/bubble_test.gd
-bash scripts/run-test.sh --camp-test 60                # scripts/camp_test.gd
-bash scripts/run-test.sh --tasks-test 60               # scripts/tasks_test.gd
+bash scripts/run-test.sh --camp-test 60                # scripts/camp_test.gd (reads campers' current_animation)
+bash scripts/run-test.sh --tasks-test 60               # scripts/tasks_test.gd (a jump's landing heard)
 bash scripts/run-test.sh --plan-test 60                # scripts/plan_test.gd
-bash scripts/run-test.sh --tutorial-test 60            # scripts/tutorial_test.gd (dives into the bush)
+bash scripts/run-test.sh --tutorial-test 60            # scripts/tutorial_test.gd
 bash scripts/run-test.sh --cones-test 30               # scripts/cones_test.gd; also 60 and 144
 bash scripts/run-test.sh --cone-shader-test 30         # tests/cone_shader_test.gd; also 60 and 144
-bash scripts/run-test.sh --fire-test 60                # scripts/fire_test.gd (the campfire, the firelight)
-bash scripts/run-test.sh --tent-test 60 300            # scripts/tent_test.gd (Dismantle the tent)
-bash scripts/run-test.sh --bearbag-test 60 300         # scripts/bear_bag_test.gd (Raid the bear bag)
-bash scripts/run-test.sh test_leaf_burst_config.gd 60  # tests/test_leaf_burst_config.gd (Effect A's settings)
-bash scripts/run-test.sh --leaf-burst-test 60          # tests/leaf_burst_state_test.gd (Effect A's state)
-bash scripts/run-test.sh test_campfire_smoke_config.gd 60  # tests/test_campfire_smoke_config.gd (Effect B's settings)
-bash scripts/run-test.sh --smoke-test 60               # tests/campfire_smoke_state_test.gd (cold); also --smoke-load-test
-bash scripts/run-test.sh cost_effects.gd 60 300        # tests/cost_effects.gd (the headless price)
-bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; at 60 fps one check fails (13 of 14 pass)
-bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; at 60 fps one check fails (52 of 53 pass)
+bash scripts/run-test.sh --fire-test 60                # scripts/fire_test.gd
+bash scripts/run-test.sh --tent-test 60 300            # scripts/tent_test.gd
+bash scripts/run-test.sh --bearbag-test 60 300         # scripts/bear_bag_test.gd
+bash scripts/run-test.sh --leaf-burst-test 60          # tests/leaf_burst_state_test.gd
+bash scripts/run-test.sh --smoke-test 60               # tests/campfire_smoke_state_test.gd; also --smoke-load-test
+bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; under --fixed-fps one check fails
+bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; under --fixed-fps one check fails
 ```
-- Counts (`TEST-REPORT.md`, 11 Nov 2026, `logs/a6-run-scribe-cones/`): bubbles 87, camp 31, tasks 48, plan 22, tutorial 34;
-  cones 43 at 30, 60, 144; cone shader 93 at 60 (and at 30 and 144 on 10 Nov, `logs/a6-bearbag/`); fire 25, tent 16,
-  bear bag 41, leaf burst state 37, smoke 20 and 8; sound 30; waves 14/14 and title 53/53 in realtime; their
-  `--fixed-fps` failures (one check each: 13/14, 52/53) are expected: don't "fix" them.
+- The waves and title failures under `--fixed-fps` are expected: don't "fix" them. No Assignment 7 test exists yet.
 ## Headless facts
 - A headless run uses a dummy renderer (it reports no video adapter): it draws no particles and runs no GPU
   particle process. Node state (emitting, one_shot, amount_ratio, visibility, instance counts) is observable; the
@@ -74,48 +67,52 @@ bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; 
 @CHANGE-BRIEF.md
 
 ## Ownership
-Every file in `shaders/` is hand-written by the human and is never edited by an agent: not
-created, rewritten, reformatted or "fixed". If a shader looks wrong, report it and stop.
+- Every file in `shaders/` is hand-written by the human and is never edited by an agent: not created, rewritten,
+  reformatted or "fixed". If a shader looks wrong, report it and stop.
+- Clips live as resources: in `animations/` (`.tres`/`.res`), in the scene that owns them (the balloon's `.tscn`), or,
+  for the rig, as actions in `raccoon_v2.glb` with import settings in its `.import`. Never built in code at runtime: no
+  `Animation.new()`, `add_track()`, `track_insert_key()` or `loop_mode =` in game scripts.
+- Assignment 6's effect settings stay in `effects/` scenes. The brief's tables are the source of every timing; a
+  change starts as a dated revision of `CHANGE-BRIEF.md`, made by the human.
 
-Effect settings live in scene files in `effects/` (`.tscn`, with their materials, curves and textures as
-sub-resources or `.tres` beside them), not in code. Scripts may instance an effect, place it, set `amount_ratio`
-(Effect A's hop-out; Effect B's feedback) and free it; they don't set `amount`, lifetimes, velocities, ramps or
-materials. The brief's settings tables are the source of each value; a change to one starts as a dated revision
-of `CHANGE-BRIEF.md`, made by the human.
+## One authority
+Exactly one node writes to each animated node. Never add a second writer to one that already has one.
+- **The rig's `AnimationPlayer`:** `scripts/raccoon_model.gd` only (`play()` :407, :548; `seek()` :493, :550; `speed_scale`
+  :478). `player.gd` writes the model's inputs (`jumping`, `leap`, `squash`, `pitch`), never the player. During `jump`
+  and `jump_land` the leap `seek()` (:479-493) must not run. `raccoon_flex.gd`, `raccoon_eat.gd` and the `TwoBoneIK3D`
+  write bones after it, as `SkeletonModifier3D`s, by design; they never touch the `AnimationPlayer`.
+- **Each balloon's `AnimationPlayer`:** that balloon's own script, its only caller of `play()`; the bite check asks it to pop.
+- **The moths' `AnimationPlayer`:** their driver script; it reads `burning()`, writes nothing in the game.
+- **Not this change's, already two writers:** the dancers' `AnimationPlayer`s are played by `scripts/camp_person.gd`
+  (`_play()` :1008) and sought and sped by `scripts/campsite.gd` (:354-355, :617-623) for the beat. Leave as is; don't copy.
 
 ## Godot 4 names
-Use Godot 4 names only. Never Godot 3's: `Particles`, `ParticlesMaterial`, `CPUParticles` (no `3D`),
-`SpatialMaterial`, `Spatial`, `flags_unshaded`, `params_billboard_mode`, `flags_transparent`.
-- **Seen working on 4.7.2 in this repo:** `CPUParticles3D`, `StandardMaterial3D`, `BaseMaterial3D.SHADING_MODE_UNSHADED`,
-  `.TRANSPARENCY_ALPHA`, `.BLEND_MODE_ADD`, `.BILLBOARD_PARTICLES`, `vertex_color_use_as_albedo`, `QuadMesh.size`
-  (`scripts/campsite.gd`, the sparks); and Effect A's scene, `effects/leaf_burst.tscn`.
-- **Read back from ClassDB on 4.7.2** (7 and 8 Nov, scratch scripts): `GPUParticles3D` has `amount`, `amount_ratio`,
-  `one_shot`, `explosiveness`, `randomness`, `lifetime`, `preprocess`, `local_coords`, `visibility_aabb`,
-  `process_material`, `draw_pass_1`, `emitting`, `use_fixed_seed`, `seed`, `restart()`, `finished`.
-  `ParticleProcessMaterial` has `emission_shape` (`EMISSION_SHAPE_SPHERE`; `_BOX` = 3), `emission_sphere_radius`,
-  `emission_box_extents`, `emission_shape_offset`, `direction`, `spread`, `initial_velocity_min`/`_max`, `gravity`,
-  `damping_min`/`_max`, `angle_min`/`_max`, `scale_min`/`_max`, `scale_curve`, `alpha_curve`, `lifetime_randomness`,
-  `color_ramp`, `color_initial_ramp` (ramps take a `GradientTexture1D`), `turbulence_enabled`, `turbulence_noise_`
-  `strength`/`_scale`/`_speed`. `GradientTexture2D`: `fill` (`FILL_RADIAL` = 1), `gradient`, `width`, `height`.
-  `StandardMaterial3D`: `albedo_texture`, `disable_fog`.
-- Godot 3's `scale_random`, `flags_unshaded`, `params_billboard_mode` don't exist; `initial_velocity`, `scale` are editor pairs.
-- The node's `randomness` (emission timing) is not the process material's `lifetime_randomness` (the brief's).
+Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `playback_process_mode`, `AnimatedSprite`,
+`Spatial`, `Particles`, `SpatialMaterial`, `flags_unshaded`, `params_billboard_mode`, `flags_transparent`.
+- **Seen working in this repo:** `AnimationPlayer` `play(name, blend)`, `seek(t, true)`, `speed_scale`,
+  `current_animation`, `current_animation_position`, `current_animation_length`, `get_animation_list()`,
+  `get_animation()`; `Animation.loop_mode`, `Animation.LOOP_LINEAR` (`raccoon_model.gd`). `Sprite3D` `pixel_size`,
+  `billboard`, `alpha_cut` (`SpriteBase3D.ALPHA_CUT_*`), `texture_filter` (`BaseMaterial3D.TEXTURE_FILTER_*`) (`main.gd:1264-1275`).
+- **Read back on 4.7.2 (the brief):** rig's `callback_mode_process` 1 (`ANIMATION_CALLBACK_MODE_PROCESS_IDLE`), `step` 1/24.
+- **Not yet seen in this repo, believed Godot 4; read back from ClassDB before relying on them:** `Animation.LOOP_NONE`,
+  `Animation.step`, `length`, `TYPE_VALUE`, `value_track_set_update_mode()`, `UPDATE_DISCRETE`, `track_get_path()`,
+  `track_get_key_time()`, `Sprite3D.hframes`/`vframes`/`frame`, `TEXTURE_FILTER_NEAREST`, `AnimationLibrary`, and the
+  glb importer's per-animation `settings/loop_mode` key in `_subresources`.
 
 ## Out of scope
-- The raccoon's movement, collision, input and key bindings, including the dive, its hop and its timings.
-- The campers: what they see, their states, routines and timings. The tutorial's steps and wording.
-- Game code: the fire's life (`scripts/camp_fire.gd`), the keeper's tending, the bucket, the firelight, the tent,
-  the developer menu. Beyond the 7 Nov wiring, the effects listen and read (`hiding_changed`, `strength`); they
-  never write game state, and nothing in the game reads them.
-- Every other look: the bush's rustle and peeking eyes, the fire's flames, light and sparks, cones, cooler, trees,
-  icons, waves, and everything in `shaders/`.
+- Movement, collision, input and key bindings, except the brief's two jump timings (takeoff 5 ticks after the press,
+  a 10-tick landing). No new keys. The leap from the hollow and hops keep the run clip.
+- The campers (sight, states, routines, timings, clips), the tutorial, the other tasks, the fire's life; `shaders/`,
+  Assignment 6's effects, every other look; the renderer, `project.godot`; the seven raccoon clips' keys (only
+  their loop mode moves, into the `.import`).
 - What any existing test expects. A test may change how it measures only with the same expected value.
-- The renderer, `project.godot`, and the bush's and the fire pit's meshes, sizes and places. `Engine.time_scale`:
-  only the tutorial changes it, while it holds the game (`scripts/camp_tutorial.gd`).
+- Presentation reads game state and never writes it; the bite, the pops and the task are game code.
 
 ## Unconfirmed
-- What `amount_ratio` 0.5 does to a one-shot burst's count on this build: headless reads only the value; the frame
-  strip shows the count (`CHANGE-BRIEF.md`, short answer 1).
-- Whether a hidden `GPUParticles3D` keeps simulating on this build: headless can't show it (Effect B, hidden).
-- The counts above were measured on 11 Nov 2026 (`logs/a6-run-scribe-cones/`); rerun before trusting. `run-test.sh`'s third
-  argument is only the timeout, so `--*-shots=<folder>` options can't go through it.
+- Whether the glb importer on 4.7.2 keeps `settings/loop_mode` per animation from `_subresources` after an empty-cache
+  `--import`: the brief's prediction, not yet read back.
+- How a continuous `frame` track rounds between keys (short answer 2); the one-tick (1/60 s) clock gap: unmeasured.
+- Paths for the balloon and moth scenes and scripts and the Assignment 7 tests: in no file yet. `--jump-test`
+  (`scripts/main.gd:412,766`) only presses jump for a screenshot; it checks nothing.
+- Earlier counts were measured 11 Nov 2026 (`logs/a6-run-scribe-cones/`); rerun before trusting. `run-test.sh`'s
+  third argument is only the timeout, so `--*-shots=<folder>` options can't go through it.
