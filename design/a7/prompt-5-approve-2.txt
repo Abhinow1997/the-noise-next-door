@@ -1,0 +1,26 @@
+Step 1 is committed (16ee0fe), with your three choices accepted: no climbing in the
+crouch, the crouch clears the landing pose, the coyote time cleared at takeoff.
+
+Approved: Step 2, as you planned it: scripts/raccoon_model.gd plays `jump` and `jump_land`
+as the one authority over the rig's AnimationPlayer (the `landing` input, the jump states
+first in _rigged_state(), the leap seek kept out of the jump with its jump-only branch
+removed, the change check on assigned_animation, the rate at 1.0 and JUMP_BLEND for the two
+clips), player.gd writing `landing` and no longer `leap` in jumps, the runtime loop line
+(raccoon_model.gd:385-386) removed, and the structure and state test,
+tests/test_jump_states.gd, with the assertions you listed.
+
+The brief's dated revision 1730f86 ("F while asleep or climbing, the task's tests, and the
+extras' timings") is now part of the contract. Include its first part in this step:
+- asleep, in the hollow: F wakes him into the leap out exactly as a move key does today
+  (player.gd);
+- climbing, on a trunk or a limb: F hops him off as today, same timing and path, shown with
+  `jump` from its takeoff pose (frame 2) until he's down, then `jump_land`; no bite in it;
+  the other hops keep the run clip.
+Change the test's assertions to match: F from `sleep` gives the leap out, not `jump`; F
+from `climb` gives the hop off shown as `jump` from frame 2, then `jump_land`.
+
+Do not move or delete .godot/: I'll run the read-back from an empty import cache in a
+separate worktree. Run through scripts/run-test.sh: the new test at 60, the two read-backs,
+tests/jump_pins.gd at 60 (say which pins fail and whether each was predicted), and every
+existing test CLAUDE.md lists, in its pinned mode, reading each run's exit code. Show the
+real output. Then stop. Do not start Step 3. Do not commit.

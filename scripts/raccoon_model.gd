@@ -36,10 +36,15 @@ const EAT_BLEND := 0.25
 ## point in its stride.
 const LOCOMOTION := ["idle", "walk", "run", "sneak"]
 const GAIT_BLEND := 0.3
-## A jump's poses come in quickly, and if he was already running his stride runs on
-## into them at up to LEAP_CATCH cycles a second rather than snapping to them.
+## A jump's clips come in quickly.
 const JUMP_BLEND := 0.08
-const LEAP_CATCH := 8.0
+## The jump's two one-shot clips (CHANGE-BRIEF.md, "The phase table: the jump"), and
+## `jump`'s takeoff pose: frame 2 at 24 fps.
+const ONE_SHOTS := ["jump", "jump_land"]
+const JUMP_TAKEOFF := 2.0 / 24.0
+## Every clip _process_rigged() can ask the rig's AnimationPlayer for (the structure test
+## checks each is in it).
+const CLIPS := ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "jump", "jump_land"]
 ## Turning on the spot faster than this (rad/s), he steps round rather than gliding.
 const TURN_STEP := 2.5
 ## His weight, on the rigged model. He banks into a turn by LEAN_GAIN of the angle the
@@ -140,9 +145,16 @@ var forced_animation := ""
 var leap := -1.0
 ## 0..1: squashes him down, crouching to spring or soaking up a landing.
 var squash := 0.0
-## Rigged model only: set by the player from a jump's takeoff until he has soaked up
-## its landing, and how far to tip him nose up then besides his weight's tip (radians).
+## Rigged model only: set by the player from a jump's press (or a hop off a tree) until
+## he has soaked up its landing, and how far to tip him nose up then besides his weight's
+## tip (radians). `landing` is true while he soaks it up; `jump_id` changes with each new
+## jump or hop off a tree; `jump_from_takeoff` starts `jump` at its takeoff pose (frame 2),
+## for a hop off a tree, where he's already leaving and there's no crouch.
+## (CHANGE-BRIEF.md, "The state machine" and its revision of 21 Nov 2026.)
 var jumping := false
+var landing := false
+var jump_id := 0
+var jump_from_takeoff := false
 var pitch := 0.0
 ## Rigged model only: sitting up eating something from his front paws (raccoon_eat.gd,
 ## over the bored animation's sit), and how far through a bite he is (0..1; negative
@@ -192,8 +204,8 @@ var _lean := 0.0
 var _lean_v := 0.0
 var _tilt := 0.0
 var _tilt_v := 0.0
-## Where in the run's cycle a jump's pose has got to (-1 when he isn't jumping).
-var _leap_u := -1.0
+## The `jump_id` of the jump `jump` was last started for.
+var _played_jump := -1
 
 
 func _ready() -> void:
@@ -381,9 +393,8 @@ func _build_rigged() -> bool:
 	# He faces +Z in the file; turn him round to face -Z.
 	_rig.rotation.y = PI
 	add_child(_rig)
+	# Its clips' loop modes are the importer's (raccoon_v2.glb.import, _subresources).
 	_anim = _rig.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
-	for anim_name: StringName in _anim.get_animation_list():
-		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	for mi: MeshInstance3D in _rig.find_children("*", "MeshInstance3D", true, false):
 		for i in mi.mesh.get_surface_count():
 			mi.set_surface_override_material(i, _model_material(mi.mesh.surface_get_material(i)))
@@ -470,29 +481,23 @@ func _process_rigged(delta: float) -> void:
 		_eat.bite = eat_bite
 		_eat_ik.influence = _eat.amount
 		_eat_ik.active = _eat.amount > 0.0
-	var was_running := _anim.current_animation == "run"
-	if _anim.current_animation != anim_name:
+	# Against the clip last asked for, not current_animation: a one-shot that has run out
+	# (`jump` held through a long fall) reads "" there, and mustn't be started again. A new
+	# jump (a new jump_id) starts `jump` again even if the last one's is still assigned.
+	if _anim.assigned_animation != anim_name or (anim_name == "jump" and jump_id != _played_jump):
 		_change_animation(anim_name)
-	# Eased, so speeding up or slowing down doesn't jerk the stride.
-	_rate = lerpf(_rate, _rigged_rate(anim_name), 1.0 - exp(-10.0 * delta))
+	if anim_name in ONE_SHOTS:
+		# The jump's clips play at their own rate, from their first frame.
+		_rate = 1.0
+	else:
+		# Eased, so speeding up or slowing down doesn't jerk the stride.
+		_rate = lerpf(_rate, _rigged_rate(anim_name), 1.0 - exp(-10.0 * delta))
 	_anim.speed_scale = _rate
-	if leap >= 0.0 and forced_animation == "":
-		var u := leap
-		if jumping:
-			# Jumping from a run, his stride runs on from where it was into the jump's pose,
-			# or eases back to it if it's only just gone past.
-			if _leap_u < 0.0:
-				_leap_u = leap
-				if was_running:
-					var phase := _anim.current_animation_position / maxf(_anim.current_animation_length, 0.001)
-					var past := fposmod(phase - leap, 1.0)
-					_leap_u = leap + (past if past < 0.2 else past - 1.0)
-			_leap_u = move_toward(_leap_u, leap, delta * LEAP_CATCH)
-			u = _leap_u
+	# A leap (out of the hollow) holds the run clip at a pose. Never in a jump: there the
+	# jump's clips play on their own.
+	if leap >= 0.0 and forced_animation == "" and not jumping:
 		# Seek every frame rather than pausing: a paused player never finishes its blend.
-		_anim.seek(fposmod(u, 1.0) * _anim.current_animation_length, true)
-	if leap < 0.0 or not jumping:
-		_leap_u = -1.0
+		_anim.seek(fposmod(leap, 1.0) * _anim.current_animation_length, true)
 	# As the sleep animation blends in, slide the model so the middle of the ball
 	# lies where he was laid, and back again as it blends out.
 	_curl = move_toward(_curl, 1.0 if anim_name == "sleep" else 0.0, delta / RIGGED_BLEND)
@@ -543,14 +548,24 @@ func _change_animation(anim_name: String) -> void:
 	if from in GAITS and anim_name in GAITS and "climb" not in [from, anim_name] and leap < 0.0:
 		phase = _anim.current_animation_position / maxf(_anim.current_animation_length, 0.001)
 	var blend := GAIT_BLEND if from in LOCOMOTION and anim_name in LOCOMOTION else RIGGED_BLEND
-	if jumping and leap >= 0.0:
+	if anim_name in ONE_SHOTS:
 		blend = JUMP_BLEND
 	_anim.play(anim_name, blend)
+	if anim_name == "jump":
+		_played_jump = jump_id
+		# Off a tree he's already leaving: from the takeoff pose, with no crouch.
+		if jump_from_takeoff:
+			phase = JUMP_TAKEOFF / maxf(_anim.current_animation_length, 0.001)
 	if phase >= 0.0:
 		_anim.seek(phase * _anim.current_animation_length, true)
 
 
 func _rigged_state(delta: float) -> String:
+	# The jump first (CHANGE-BRIEF.md, "The state machine"): from F seen (or a hop off a
+	# tree) until `landed`, then the landing until it's soaked up.
+	if jumping:
+		_still = 0.0
+		return "jump_land" if landing else "jump"
 	var still := false
 	var state := "idle"
 	# A leap holds poses from the run; asleep, he's curled up from the moment he

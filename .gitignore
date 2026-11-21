@@ -40,3 +40,7 @@ desktop.ini
 # excerpts, session-7-excerpt.jsonl and session-7-compare-excerpt.jsonl, record each one's size and SHA-256.
 /design/a6/session-7.jsonl
 /design/a6/session-7-compare.jsonl
+
+# Assignment 7, Step 5's Step 2 transcript: 1.7 MB, over the course's 1 MB; its excerpt,
+# session-5-step2-excerpt.jsonl, records its size and SHA-256 in its first line.
+/design/a7/session-5-step2.jsonl

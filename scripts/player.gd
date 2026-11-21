@@ -107,10 +107,6 @@ const TAKEOFF_TICK := 5
 const BITE_FROM := 5
 const BITE_TO := 14
 const LAND_TICKS := 10
-## Points in the run animation's cycle he passes through in a jump, against how far
-## along he is from taking off (0) to coming down as fast as he went up (1): the hind
-## legs' push, the full stretch at the top, the front paws reaching down for the ground.
-const JUMP_AIR := [[0.0, 1.02], [0.25, 1.2], [0.5, 1.38], [1.0, 1.48]]
 
 @export var walk_speed := 2.0
 @export var run_speed := 4.0
@@ -221,6 +217,9 @@ var _bite_used := false
 ## isn't), how hard that landing was (0..1) and how far he was tipped as he touched down.
 var _air_t := 0.0
 var _land_tick := -1
+## True while he hops off a tree (the trunk or a limb), which is shown with the jump's
+## clips (CHANGE-BRIEF.md, revision of 21 Nov 2026); its timing and path are the hop's.
+var _tree_hop := false
 var _land_hard := 0.0
 var _land_pitch := 0.0
 
@@ -286,7 +285,8 @@ func _physics_process(delta: float) -> void:
 	else:
 		_walk_process(delta)
 	# After walking, which may have just taken off, so the model knows it the same tick.
-	model.jumping = jumping or _land_tick >= 0
+	model.jumping = jumping or _land_tick >= 0 or (_tree_hop and _hop_t >= 0.0)
+	model.landing = _land_tick >= 0
 	_loop(_run_sfx, running, "SFX-RUN", delta)
 	_loop(_climb_sfx, climb_moving, "SFX-CLIMB", delta)
 
@@ -386,6 +386,8 @@ func _walk_process(delta: float) -> void:
 		_bite_used = false
 		_air_t = 0.0
 		_land_tick = -1
+		model.jump_id += 1
+		model.jump_from_takeoff = false
 	elif jumping:
 		_jump_tick += 1
 	if crouching and _jump_tick == TAKEOFF_TICK:
@@ -493,14 +495,15 @@ func _jump_pose(delta: float, rising: float) -> void:
 		_land_hard = clampf(-rising / lift, 0.3, 1.0)
 		_land_pitch = model.pitch
 		landed.emit()
+	# His pose through it all is the jump's clips (raccoon_model.gd plays them from
+	# `jumping` and `landing`), with squash and pitch laid over them.
 	if jumping and not _airborne:
-		# The crouch: his own stride's clip for now (the jump's clips come in Step 2).
+		# The crouch (the clip's), clearing a landing's squash and tip.
 		model.leap = -1.0
 		model.squash = 0.0
 		model.pitch = 0.0
 	elif _airborne:
 		_air_t += delta
-		model.leap = _keyed(JUMP_AIR, clampf((1.0 - velocity.y / lift) * 0.5, 0.0, 1.0))
 		model.squash = 0.5 * maxf(0.0, 1.0 - _air_t / 0.1)
 		var tip := clampf(atan2(velocity.y, maxf(_speed, 1.5)) * 0.35, -0.35, 0.3)
 		model.pitch = tip * smoothstep(0.0, 0.08, _air_t)
@@ -512,7 +515,6 @@ func _jump_pose(delta: float, rising: float) -> void:
 			_end_jump()
 			return
 		var f := minf((_land_tick + 1.0) / LAND_TICKS, 1.0)
-		model.leap = lerpf(1.48, 1.78, f)
 		model.squash = 0.8 * _land_hard * sin(PI * sqrt(f))
 		model.pitch = _land_pitch * (1.0 - smoothstep(0.0, 0.6, f))
 
@@ -678,6 +680,7 @@ func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done :
 	_hop_time = time
 	_hop_height = height
 	_hop_done = done
+	_tree_hop = false
 	_shape.disabled = true
 	velocity = Vector3.ZERO
 	_speed = 0.0
@@ -709,7 +712,10 @@ func _rest_process(delta: float) -> void:
 	model.turn = 0.0
 	if not _waking:
 		model.sleep = move_toward(model.sleep, 1.0, delta * DOZE_RATE)
-		_waking = not keep_asleep and model.sleep >= 1.0 and _move_input().length_squared() > 0.1
+		# A move key wakes him, and since 21 Nov 2026 so does F (CHANGE-BRIEF.md's revision):
+		# into the same leap out.
+		var wake_key := _move_input().length_squared() > 0.1 or (Input.is_action_pressed("jump") and not input_locked)
+		_waking = not keep_asleep and model.sleep >= 1.0 and wake_key
 		if _waking:
 			_leave_t = 0.0
 		return
@@ -881,11 +887,27 @@ func _climb_process(delta: float) -> void:
 ## Hops down from the trunk onto the ground behind him.
 func _climb_off() -> void:
 	_hop(global_transform, _ground_spot(_climb_angle), 0.3 + 0.12 * _climb_along, 0.15, _end_climb)
+	_show_tree_hop()
+
+
+## A hop off a tree is shown with the jump's clips: `jump` from its takeoff pose until
+## he's down, then `jump_land` (_end_climb). Presentation only: the hop's timing, path and
+## input are as before, it isn't `jumping`, there's no bite and no `landed`.
+func _show_tree_hop() -> void:
+	_tree_hop = true
+	model.jump_id += 1
+	model.jump_from_takeoff = true
 
 
 func _end_climb() -> void:
 	climbing = false
 	_shape.disabled = false
+	if _tree_hop:
+		# Down: the landing's LAND_TICKS ticks, shown as for a jump, with no squash or tip.
+		_tree_hop = false
+		_land_tick = 0
+		_land_hard = 0.0
+		_land_pitch = 0.0
 
 
 ## Low enough that his tail just reaches the ground.
@@ -1048,6 +1070,7 @@ func _limb_off() -> void:
 		if space.intersect_shape(probe, 1).is_empty():
 			break
 	_hop(global_transform, Transform3D(facing, land), LIMB_DROP_TIME, LIMB_DROP_HEIGHT, _end_limb)
+	_show_tree_hop()
 
 
 func _end_limb() -> void:
