@@ -94,7 +94,9 @@ func _run() -> void:
 		return
 	var clip := player.get_animation(CLIP)
 	_check(_near(clip.length, LENGTH), "the length is 1.0 s (within 1/48 s)", "%.10f" % clip.length)
-	_check(_near(clip.step, 1.0 / FPS), "step is 1/24 s (within 1/48 s)", "%.10f" % clip.step)
+	# step exactly, not within half a frame: the default 1/30 s is only 0.008 s from 1/24 s, so
+	# a half-frame tolerance would pass a clip left at the default (the author's review, 21 Nov 2026).
+	_check(is_equal_approx(clip.step, 1.0 / FPS), "step is 1/24 s", "%.10f" % clip.step)
 	_check(clip.loop_mode == Animation.LOOP_LINEAR, "loop_mode is Animation.LOOP_LINEAR", str(clip.loop_mode))
 	_check(clip.get_track_count() == 1, "the float has one track", str(clip.get_track_count()))
 	if clip.get_track_count() < 1:
