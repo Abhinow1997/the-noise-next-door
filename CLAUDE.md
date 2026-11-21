@@ -54,13 +54,16 @@ bash scripts/run-test.sh --smoke-test 60               # tests/campfire_smoke_st
 bash scripts/run-test.sh --waves-test realtime         # scripts/waves_test.gd; under --fixed-fps one check fails
 bash scripts/run-test.sh --title-test realtime         # scripts/title_test.gd; under --fixed-fps one check fails
 ```
-- The waves and title failures under `--fixed-fps` are expected: don't "fix" them. No Assignment 7 test exists yet.
+- Baseline (21 Nov 2026, this wrapper): every test above passes at its 11 Nov count except `cost_effects.gd`, 3/4 (its
+  smoke case finds the fire out; open). The waves and title `--fixed-fps` failures are expected: don't "fix" them.
 ## Headless facts
-- A headless run uses a dummy renderer (it reports no video adapter): it draws no particles and runs no GPU
-  particle process. Node state (emitting, one_shot, amount_ratio, visibility, instance counts) is observable; the
-  look is not. On 4.7.2 a one-shot `GPUParticles3D` turns `emitting` off within a few frames and never emits
-  `finished` (read back on 7 Nov 2026), so nothing may wait on `finished`: free a burst on a timer.
-- A GPU effect's headless CPU price is near zero by construction.
+- A headless run uses a dummy renderer (no video adapter): no GPU particle process, so a GPU effect's CPU price is
+  near zero. On 4.7.2 a one-shot `GPUParticles3D` never emits `finished` (7 Nov 2026): free a burst on a timer.
+- A headless run advances clips and reads their structure. It draws nothing, so whether the motion reads is not
+  observable here (seen 21 Nov 2026: a clip and the rig's `walk` moved their property and bone).
+- Key times are 32-bit floats; compare them with a tolerance (21 Nov: 5/24 s reads back 0.2083333284 after a save).
+- `value_track_get_update_mode` applies only to value tracks (21 Nov: on a bone track it prints an `ERROR`, which
+  the wrapper doesn't catch, and answers `UPDATE_CONTINUOUS`).
 - Frame strips come from a windowed Movie Maker run, which I start.
 - Under `--fixed-fps`, game time follows frames, not the clock; physics runs at 60 ticks a second at every rate.
 ## Current change
@@ -93,11 +96,10 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
   `current_animation`, `current_animation_position`, `current_animation_length`, `get_animation_list()`,
   `get_animation()`; `Animation.loop_mode`, `Animation.LOOP_LINEAR` (`raccoon_model.gd`). `Sprite3D` `pixel_size`,
   `billboard`, `alpha_cut` (`SpriteBase3D.ALPHA_CUT_*`), `texture_filter` (`BaseMaterial3D.TEXTURE_FILTER_*`) (`main.gd:1264-1275`).
-- **Read back on 4.7.2 (the brief):** rig's `callback_mode_process` 1 (`ANIMATION_CALLBACK_MODE_PROCESS_IDLE`), `step` 1/24.
-- **Not yet seen in this repo, believed Godot 4; read back from ClassDB before relying on them:** `Animation.LOOP_NONE`,
-  `Animation.step`, `length`, `TYPE_VALUE`, `value_track_set_update_mode()`, `UPDATE_DISCRETE`, `track_get_path()`,
-  `track_get_key_time()`, `Sprite3D.hframes`/`vframes`/`frame`, `TEXTURE_FILTER_NEAREST`, `AnimationLibrary`, and the
-  glb importer's per-animation `settings/loop_mode` key in `_subresources`.
+- **Read back on 4.7.2** (the brief; ClassDB and scratch checks, 21 Nov 2026): the rig's `callback_mode_process` 1
+  (`ANIMATION_CALLBACK_MODE_PROCESS_IDLE`) and `step` 1/24; `Animation.LOOP_NONE`/`LOOP_LINEAR`/`LOOP_PINGPONG`, `step`,
+  `length`, `TYPE_VALUE`, `TYPE_POSITION_3D`, `value_track_set_update_mode()`/`get`, `UPDATE_DISCRETE`, `track_get_path()`,
+  `track_get_key_time()`, `AnimationLibrary`; `Sprite3D.hframes`/`vframes`/`frame`; `TEXTURE_FILTER_NEAREST`.
 
 ## Out of scope
 - Movement, collision, input and key bindings, except the brief's two jump timings (takeoff 5 ticks after the press,
@@ -114,5 +116,4 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
 - How a continuous `frame` track rounds between keys (short answer 2); the one-tick (1/60 s) clock gap: unmeasured.
 - Paths for the balloon and moth scenes and scripts and the Assignment 7 tests: in no file yet. `--jump-test`
   (`scripts/main.gd:412,766`) only presses jump for a screenshot; it checks nothing.
-- Earlier counts were measured 11 Nov 2026 (`logs/a6-run-scribe-cones/`); rerun before trusting. `run-test.sh`'s
-  third argument is only the timeout, so `--*-shots=<folder>` options can't go through it.
+- `run-test.sh`'s third argument is only the timeout, so `--*-shots=<folder>` options can't go through it.
