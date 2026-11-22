@@ -2,9 +2,10 @@ extends Node3D
 ## Pop the balloons, a level 1 task at the camp (camp_tasks.gd "balloons"; CHANGE-BRIEF.md,
 ## "Boundaries: named changes" and "The phase table: the jump"). Game code: the bite and the
 ## pops are decided here, on the physics tick, never from the clips.
-##   - Three balloons (props/party_balloon.tscn), red, yellow and blue, tied low at the party
-##     by the speaker beside the table (SPOTS, from the speaker), each 0.3 m across, their
-##     middles MIDDLE_UP high. They have no collision.
+##   - Three balloons (props/party_balloon.tscn), red, yellow and blue, tied low just outside
+##     the camp (PLACE; since CHANGE-BRIEF.md's revision of 21 Nov 2026, "out of the camp with
+##     the girl"; before, by the speaker), each 0.3 m across, their middles MIDDLE_UP high.
+##     They have no collision. The girl minds them (campsite.gd _routines, MINDER).
 ##   - Each physics tick after the player's: while his bite is open (player.gd bite_open(),
 ##     ticks 5-14 of a jump, once a jump), the first balloon not yet popped whose middle is
 ##     within REACH of his mouth (player.gd mouth_point()) pops. That uses the jump's bite,
@@ -16,10 +17,17 @@ extends Node3D
 const Balloon := preload("res://props/party_balloon.tscn")
 const Player := preload("res://scripts/player.gd")
 
-## Each balloon's colour and where it's tied, from the speaker (x, z): on the fire's side
-## of it and the table, clear of the table's top (which ends 0.52 m on that side of the
-## speaker) so he can jump at them.
-const SPOTS := [["red", Vector2(-0.55, 0.85)], ["yellow", Vector2(0.05, 1.0)], ["blue", Vector2(0.65, 0.85)]]
+## Where they're tied, from the camp's middle (Forest.CAMP, x, z): 13.6 m south-west of it,
+## beyond CAMP_ZONE (12.5 m), on the open ground south of the trees (forest.gd _is_open: no
+## tree grows south of z 10.5), on the side of the camp the raccoon comes in from, inside
+## the walkways (campsite.gd _bake_walkways: 18.5 m out) so she can walk there, and clear of
+## the camp's things (the nearest, the other tent, is 10 m off).
+const PLACE := Vector2(-6.5, 12.0)
+## Each balloon's colour and where it's tied, from PLACE (x, z): a row across, 0.6 m apart,
+## so one jump reaches one.
+const SPOTS := [["red", Vector2(-0.6, 0.0)], ["yellow", Vector2(0.0, 0.3)], ["blue", Vector2(0.6, 0.0)]]
+## Where the girl stands minding them, from PLACE: 1.1 m on the camp's side of the row.
+const MINDER := Vector2(0.0, -1.1)
 ## How high each balloon's middle is (m), and how near his mouth it must be to pop.
 const MIDDLE_UP := 0.7
 const REACH := 0.25

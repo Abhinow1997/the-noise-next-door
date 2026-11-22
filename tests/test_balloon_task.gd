@@ -9,9 +9,13 @@ extends SceneTree
 ## gives chase, but hearing as ever; driven through the game loop with real key presses
 ## (Input.parse_input_event), read each physics tick after the bite check. It checks:
 ##   - the balloons: three, red, yellow and blue, each the low-poly sheet's 3 x 2 grid with its own
-##     tint, 0.3 m across,
-##     its middle 0.7 m up, clear of the table's top, with no collision; each AnimationPlayer
-##     playing `float` (current_animation) while it's up, not in step with the others;
+##     tint, 0.3 m across, its middle 0.7 m up, just outside the camp (beyond CAMP_ZONE, inside
+##     the walkways), clear of the camp's things and colliders, with no collision; each
+##     AnimationPlayer playing `float` (current_animation) while it's up, not in step;
+##   - the girl (CHANGE-BRIEF.md's revisions of 21 Nov 2026): her routine dance, warm, then
+##     minding the balloons; from warming her hands she walks out to them and stays her drawn
+##     GIRL_DANCE_TIME, then goes back to dancing; the pops below are made while she minds them;
+##     seeing him there she takes fright, flees and cowers, as she always does;
 ##   - one authority: in props/party_balloon.gd every play() and seek() is on its own
 ##     AnimationPlayer; camp_balloons.gd calls neither; no other script uses the balloon;
 ##   - the task: on the list under Rock the party, with its hint;
@@ -37,6 +41,9 @@ signal ticked
 const DevMenu := preload("res://scripts/dev_menu.gd")
 const BalloonScene := preload("res://props/party_balloon.tscn")
 const CampsiteScript := preload("res://scripts/campsite.gd")
+const ForestScript := preload("res://scripts/forest.gd")
+const CampPersonScript := preload("res://scripts/camp_person.gd")
+const CampBalloonsScript := preload("res://scripts/camp_balloons.gd")
 ## Well out of the camp, where none of them can see him (scripts/cones_test.gd, _send_away).
 const QUIET := Vector3(20.0, 0.02, 6.5)
 const HEAR := 8.0
@@ -50,13 +57,18 @@ const TINTS := {"red": Color("b25d57"), "yellow": Color("e2c25a"), "blue": Color
 ## middle 126.5 px from the cell's left and 143 px from its top.
 const BODY_W := 163.0
 const BODY_MID := Vector2(126.5, 143.0)
-## The table's top, from its middle (campsite.gd _table_legs: 1.28 x 0.83 m).
-const TABLE_HALF := Vector2(0.64, 0.415)
+## How far round each balloon (m, at the height of a person) nothing may collide, and how near
+## her spot she must stand to have got there (camp_person.gd ARRIVE puts her on it).
+const CLEAR := 0.5
+const ON_SPOT := 0.35
 
 var level: Node
 var camp: Node
 var player: CharacterBody3D
 var balloons_node: Node3D
+var girl: Node3D
+## The girl's states since the last _mark_girl().
+var _girl_states := {}
 
 var _tick := 0
 var _checks := 0
@@ -102,6 +114,8 @@ func step() -> void:
 		player = level.get("player")
 		camp = level.get("campsite")
 		balloons_node = camp.get("balloons")
+		girl = camp.get("dancers")[1]
+	_girl_states[int(girl.get("state"))] = true
 	var jumping: bool = player.get("jumping")
 	if jumping and not _was_jumping:
 		_jt = 0
@@ -192,7 +206,9 @@ func _run() -> void:
 	camp.set("cones_on", false)
 	await _wait(30)
 	_structure()
+	await _girl_minds_them()
 	await _task()
+	await _girl_scared()
 	await _edges()
 	print("RESULT: %s (%d checks, %d failed)" % ["FAILED" if _failed > 0 else "all checks passed", _checks, _failed])
 	quit(1 if _failed > 0 else 0)
@@ -204,9 +220,14 @@ func _structure() -> void:
 	var real := _real()
 	_check("three balloons, red, yellow and blue", real.size() == 3 and real.map(func(b) -> String: return b.get("colour")) == COLOURS,
 		real.map(func(b) -> String: return b.get("colour")))
-	var table: Array = CampsiteScript.TABLE
 	var camp_at: Vector3 = (camp as Node3D).global_position
-	var table_mid: Vector3 = Vector3(table[0].x, 0.0, table[0].y) + camp_at
+	var middle: Vector2 = ForestScript.CAMP
+	var space := (camp as Node3D).get_world_3d().direct_space_state
+	var probe := PhysicsShapeQueryParameters3D.new()
+	var ball := SphereShape3D.new()
+	ball.radius = CLEAR
+	probe.shape = ball
+	probe.exclude = [player.get_rid()]
 	for b in real:
 		var c: String = b.get("colour")
 		var sheet := b.texture.resource_path if b.texture else ""
@@ -223,9 +244,17 @@ func _structure() -> void:
 		var mid := Vector2(rect.position.x + BODY_MID.x, rect.end.y - BODY_MID.y) * b.pixel_size
 		_check("%s: its middle 0.7 m up (offset %s puts the body's middle on the origin: drawn at %.4f, %.4f m)" % [c, b.offset, mid.x, mid.y],
 			absf(up - 0.7) < 0.01 and b.offset == Vector2(1, -113) and mid.length() < 0.5 * b.pixel_size, "%.3f m up" % up)
-		var rel: Vector3 = b.global_position - table_mid
-		_check("%s: clear of the table's top" % c, absf(rel.x) > TABLE_HALF.x or absf(rel.z) > TABLE_HALF.y,
-			"%.2f, %.2f from its middle" % [rel.x, rel.z])
+		# Just outside the camp (CHANGE-BRIEF.md, "out of the camp with the girl"): beyond
+		# CAMP_ZONE from its middle, inside the walkways (campsite.gd: 6 m further), nothing
+		# collidable within CLEAR of it at a person's height.
+		var out := Vector2(b.global_position.x, b.global_position.z).distance_to(middle)
+		_check("%s: just outside the camp, %.2f m from its middle (beyond CAMP_ZONE %.1f, inside the walkways' %.1f)"
+			% [c, out, CampsiteScript.CAMP_ZONE, CampsiteScript.CAMP_ZONE + 6.0],
+			out > CampsiteScript.CAMP_ZONE and out < CampsiteScript.CAMP_ZONE + 6.0, out)
+		probe.transform = Transform3D(Basis(), Vector3(b.global_position.x, camp_at.y + 0.9, b.global_position.z))
+		var hits := space.intersect_shape(probe, 4)
+		_check("%s: clear of the camp's things and colliders (nothing within %.1f m)" % [c, CLEAR], hits.is_empty(),
+			hits.map(func(h: Dictionary) -> String: return str(h.collider.name)))
 		var bodies := b.find_children("*", "CollisionObject3D", true, false).size() + b.find_children("*", "CollisionShape3D", true, false).size()
 		_check("%s: no collision" % c, bodies == 0, bodies)
 		var anim := b.get_node("AnimationPlayer") as AnimationPlayer
@@ -266,12 +295,61 @@ func _structure() -> void:
 	_check("no other game script uses the balloon", users.is_empty(), users)
 
 
+## The girl's new step (CHANGE-BRIEF.md, "out of the camp with the girl" and "the girl's new step
+## comes after warming her hands"): dance, warm, then out to mind the balloons for about a
+## dance's length (GIRL_DANCE_TIME), then dancing again. Driven as tasks_test.gd drives the
+## routines: her warming is cut short (_step_left), and she goes on by herself.
+func _girl_minds_them() -> void:
+	var routine: Array = girl.get("routine")
+	var names: Array = routine.map(func(a: Dictionary) -> String: return a.name)
+	var minding: Vector2 = ForestScript.CAMP + CampBalloonsScript.PLACE + CampBalloonsScript.MINDER
+	_check("her routine: dance, warm, then mind the balloons (%s)" % " ".join(names), names == ["dance", "warm", "balloons"], names)
+	if names.size() < 3:
+		return
+	var step: Dictionary = routine[2]
+	_check("minding them: by the balloons, for about a dance's length (GIRL_DANCE_TIME %s s)" % str(step.time),
+		Vector2(step.at.x, step.at.z).distance_to(minding) < 0.01 and step.time == CampsiteScript.GIRL_DANCE_TIME,
+		"%s, %s" % [step.at, step.time])
+	var path := NavigationServer3D.map_get_path((camp as Node3D).get_world_3d().navigation_map, routine[1].at, step.at, true)
+	var reaches: bool = path.size() > 1 and Vector2(path[-1].x, path[-1].z).distance_to(minding) < ON_SPOT
+	_check("the walkways reach her spot from the fire (%d points)" % path.size(), reaches, path[-1] if path.size() > 0 else "no path")
+
+	# Out of the way and blind to him, as for the pops: from warming her hands, she walks out.
+	player.call("place", QUIET)
+	girl.set("_step", 1)
+	girl.set("_arrived", false)
+	girl.set("_step_left", 0.01)
+	await _until(func() -> bool: return girl.call("activity") == "balloons", 1800)
+	var drawn: float = girl.get("_step_left")
+	_check("after warming her hands she sets off to mind the balloons, to stay %.1f s" % drawn,
+		girl.call("activity") == "balloons" and drawn >= CampsiteScript.GIRL_DANCE_TIME.x and drawn <= CampsiteScript.GIRL_DANCE_TIME.y,
+		girl.call("activity"))
+	var there := await _until(func() -> bool: return girl.call("at_activity"), 3600)
+	var at := Vector2(girl.global_position.x, girl.global_position.z)
+	_check("she walks out to them: on her spot by the balloons, %.2f m from the camp's middle" % at.distance_to(ForestScript.CAMP),
+		there and at.distance_to(minding) < ON_SPOT and at.distance_to(ForestScript.CAMP) > CampsiteScript.CAMP_ZONE,
+		"%.2f m from her spot" % at.distance_to(minding))
+	var arrived := _tick
+	await _until(func() -> bool: return girl.call("activity") != "balloons", 3600)
+	var stayed := (_tick - arrived) / 60.0
+	_check("she stays about a dance's length (%.2f s, drawn from GIRL_DANCE_TIME), then goes back to dancing" % stayed,
+		absf(stayed - drawn) < 0.1 and girl.call("activity") == "dance", "%.2f s, then %s" % [stayed, girl.call("activity")])
+
+	# Back out to them for the pops, staying.
+	girl.set("_step", 2)
+	girl.set("_arrived", false)
+	girl.set("_step_left", 400.0)
+	await _until(func() -> bool: return girl.call("at_activity"), 3600)
+
+
 func _task() -> void:
 	var tasks = camp.get("tasks")
 	var real := _real()
 	for i in 3:
 		var b := real[i]
 		var c: String = b.get("colour")
+		# Facing the camp's way, so he stands on the far side of the row from her.
+		player.rotation.y = 0.0
 		await _under(b.global_position)
 		var before := _pops.size()
 		await _jump()
@@ -317,6 +395,40 @@ func _task() -> void:
 				outside += 1
 	_check("the hearing was tried both ways: campers within 8 m of a pop (%d) and further (%d)" % [inside, outside],
 		inside > 0 and outside > 0, "%d, %d" % [inside, outside])
+
+
+## Seeing him by the balloons, she does what she already does (camp_person.gd, unchanged): she
+## takes fright, flees and cowers, and never chases. Where she flees to is the code's own
+## choice (_hiding_place): behind her protector if he's within 6 m of her, else a few steps
+## away from the raccoon; how far her protector is, is printed.
+func _girl_scared() -> void:
+	var S := CampPersonScript.State
+	camp.set("cones_on", true)
+	player.call("place", QUIET)
+	await _until(func() -> bool: return girl.get("state") == S.WORK and girl.call("at_activity"), 2400)
+	var protector: Node3D = girl.get("protector")
+	var apart := Vector2(protector.global_position.x - girl.global_position.x, protector.global_position.z - girl.global_position.z).length()
+	var ahead: Vector3 = girl.global_basis.z * Vector3(1, 0, 1)
+	var him := girl.global_position + ahead.normalized() * 2.5
+	player.call("place", Vector3(him.x, 0.02, him.z))
+	_girl_states.clear()
+	var from_him_before := Vector2(girl.global_position.x - him.x, girl.global_position.z - him.z).length()
+	await _until(func() -> bool: return _girl_states.has(S.STARTLED), 120)
+	_check("seeing him 2.5 m in front of her by the balloons: she takes fright", _girl_states.has(S.STARTLED), _girl_states.keys())
+	await _until(func() -> bool: return girl.get("state") == S.COWER, 600)
+	# Her clip follows her state on the process tick after.
+	await _wait(5)
+	var anim := girl.get("anim") as AnimationPlayer
+	var from_him := Vector2(girl.global_position.x - him.x, girl.global_position.z - him.z).length()
+	_check("then she flees and cowers, further from him (%.2f m, from %.2f m), as she always does" % [from_him, from_him_before],
+		_girl_states.has(S.FLEE) and girl.get("state") == S.COWER and anim.current_animation == "cower" and from_him > from_him_before,
+		"%s, %s" % [S.keys()[girl.get("state")], anim.current_animation])
+	_check("she never chases or stands guard", not (_girl_states.has(S.CHASE) or _girl_states.has(S.GUARD)), _girl_states.keys())
+	print("INFO  her protector (%s) was %.1f m from her: %s" % [protector.name, apart,
+		"within the 6 m she runs to him from" if apart < 6.0 else "beyond the 6 m she runs to him from (camp_person.gd _hiding_place), so she backs off from the raccoon instead"])
+	player.call("place", QUIET)
+	camp.set("cones_on", false)
+	await _wait(120)
 
 
 # --- The bite's edges, with balloons the test adds ----------------------------------

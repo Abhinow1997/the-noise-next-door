@@ -99,8 +99,14 @@ func _run() -> void:
 	_check("Routines: the girl warms her hands at the fire", true, _been_at[_girl].has("warm"))
 	if _girl.activity() == "warm":
 		_girl._step_left = 0.01
-	await _until(func() -> bool: return _girl.activity() == "dance" and _girl.at_activity(), 15.0)
-	_check("Routines: and round again: she's back dancing", true, _girl.activity() == "dance" and _girl.at_activity())
+	# Since 21 Nov 2026 she minds the balloons after warming her hands (CHANGE-BRIEF.md's
+	# revision; camp_balloons.gd): she walks out to them, and that's cut short the same way.
+	await _until(func() -> bool: return _girl.activity() == "balloons" and _girl.at_activity(), 40.0)
+	if _girl.activity() == "balloons":
+		_girl._step_left = 0.01
+	await _until(func() -> bool: return _girl.activity() == "dance" and _girl.at_activity(), 40.0)
+	_check("Routines: then out to mind the balloons, and round again: she's back dancing", true,
+		_girl.activity() == "dance" and _girl.at_activity())
 
 	# Steal the marshmallows, caught: unzipped behind the roasting camper, then seen
 	# with the bag; they snatch it back and the bag goes back in, zipped.

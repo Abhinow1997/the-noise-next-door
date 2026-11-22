@@ -389,10 +389,11 @@ func _ready() -> void:
 	bear_bag.forest = forest
 	bear_bag.position = _v3(FIRE + CampBearBag.TREE)
 	add_child(bear_bag)
-	# Pop the balloons: three tied by the speaker (camp_balloons.gd, 21 Nov 2026).
+	# Pop the balloons: three tied just outside the camp, which the girl minds
+	# (camp_balloons.gd, 21 Nov 2026).
 	balloons = CampBalloons.new()
 	balloons.camp = self
-	balloons.position = _v3(SPEAKER[0])
+	balloons.position = _v3(Forest.CAMP + CampBalloons.PLACE)
 	add_child(balloons)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
 	var driver := ConeDriver.new()
@@ -420,6 +421,11 @@ func _routines(peg: Vector3, cooler: Node3D) -> Array:
 	var drink := cooler.global_position + front * 0.8
 	var man_at: Vector2 = DANCERS[0][1]
 	var girl_at: Vector2 = DANCERS[1][1]
+	# Since 21 Nov 2026 (CHANGE-BRIEF.md, "out of the camp with the girl", and "the girl's new
+	# step comes after warming her hands"): after warming her hands she walks out to mind the
+	# balloons (camp_balloons.gd), facing them, about as long as a dance, then back to dancing.
+	var minding: Vector2 = Forest.CAMP + CampBalloons.PLACE + CampBalloons.MINDER
+	var to_balloons: Vector2 = CampBalloons.PLACE - (CampBalloons.PLACE + CampBalloons.MINDER)
 	return [
 		[_activity("peg", peg, deg_to_rad(CAMPER_FACING), "hammer", 1.0, PEG_TIME),
 			_activity("roast", _v3(FIRE + ROAST), toward_fire.call(FIRE + ROAST), "roast", 1.0, ROAST_TIME, "bend"),
@@ -427,7 +433,8 @@ func _routines(peg: Vector3, cooler: Node3D) -> Array:
 		[_activity("dance", _v3(man_at), toward_fire.call(man_at), "dance", dance, DANCE_TIME),
 			_activity("drink", Vector3(drink.x, 0, drink.z), atan2(-front.x, -front.z), "take_away", 1.0, DRINK_TIME)],
 		[_activity("dance", _v3(girl_at), toward_fire.call(girl_at), "dance", dance, GIRL_DANCE_TIME),
-			_activity("warm", _v3(FIRE + WARM), toward_fire.call(FIRE + WARM), "idle", 1.0, WARM_TIME, "dance", 0.4)],
+			_activity("warm", _v3(FIRE + WARM), toward_fire.call(FIRE + WARM), "idle", 1.0, WARM_TIME, "dance", 0.4),
+			_activity("balloons", _v3(minding), atan2(to_balloons.x, to_balloons.y), "idle", 1.0, GIRL_DANCE_TIME, "dance", 0.4)],
 		[_activity("eat", _v3(FIRE + KEEPER_EAT), 0.0, "idle", 1.0, KEEPER_EAT_TIME, "dance", 0.4),
 			_activity("stoke", _v3(FIRE + STOKE), toward_fire.call(FIRE + STOKE), "bend", 1.0, STOKE_TIME)],
 	]

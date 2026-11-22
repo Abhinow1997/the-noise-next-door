@@ -1,0 +1,25 @@
+Part 1 is committed (da90cfd), and the old pixel-art sheets are out of the repo with CLAUDE.md's
+balloon lines updated (a9b4f5e). I kept a new dated revision of the brief (the last one in
+CHANGE-BRIEF.md): the girl's new step comes after warming her hands, and
+scripts/tasks_test.gd:100-103 changes to match, and only there.
+
+Approved: Part 2, as the two revisions say:
+- scripts/camp_balloons.gd: the three balloons at a clear spot just outside the camp, beyond
+  CAMP_ZONE from the camp's middle, on ground she can walk to, clear of the camp's things and
+  colliders. Name the spot and why you picked it.
+- The girl's routine: dance -> warm -> mind the balloons (walk out to them, stay about a dance's
+  length, GIRL_DANCE_TIME) -> dance. Her reactions and everyone else's unchanged.
+- scripts/tasks_test.gd:100-103 only: after `warm` is cut short she walks out to the balloons;
+  that step is cut short the same way (_step_left = 0.01); then she's back dancing, still
+  expecting true. The check's name may change to say so; its count stays the same.
+- tests/test_balloon_task.gd: the new spot (beyond CAMP_ZONE); the girl's routine has the step,
+  she walks out to the balloons and stays about a dance's length; seeing him there she runs to
+  her protector as she always does; popping any time, each pop heard HEAR_CHITTER round.
+- If any other existing test expects her old routine or the balloons by the speaker, stop and
+  say which test and line; don't change it.
+
+Run through scripts/run-test.sh: test_balloon_task.gd, test_balloon_float.gd,
+test_balloon_pop.gd, test_jump_states.gd, test_moths_state.gd, tests/jump_pins.gd (the same 13
+predicted failures and nothing else) and every existing test CLAUDE.md lists in its pinned
+mode, reading each run's exit code; --tasks-test must keep its 48 checks. Show the real
+output. Then stop. Do not start Step 6. Do not commit.
