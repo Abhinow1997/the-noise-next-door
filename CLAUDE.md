@@ -20,12 +20,10 @@
 - **His mouth:** `mouth`, a `Marker3D` on the `head` bone (`raccoon_model.gd:392-400`). **Readers of the jump:**
   `cone_driver.gd:96`; `_on_landed()` (`campsite.gd:539`, `HEAR_STEPS` 6 m); `tasks_test.gd:260-274`.
 
-### The balloon's float: `Sprite3D` + `AnimationPlayer` frame track
-- **Sheet:** `assets/sprites/balloon_lowpoly/balloon_lowpoly.png` (the author's, generated; made by
-  `tools/make_balloon_sheet.gd`), 765 × 1024, 255 × 512 cells, `hframes` 3, `vframes` 2; float 0–2, pop 3–5; tinted per balloon.
-- **Placement:** by the party's `TABLE` and `SPEAKER` (`scripts/campsite.gd:81,83`); a pop heard `HEAR_CHITTER` 8 m (:105).
-- **Moth (extra):** `assets/sprites/cutebugs/bugs.png` (`ATTRIBUTION.md` there, CC0), shown while `burning()`
-  (`scripts/camp_fire.gd`). Both sheets have `detect_3d/compress_to=1` today (their `.png.import`, line 40).
+### The moth's flutter (the graded sprite clip): `Sprite3D` + `AnimationPlayer` frame track
+- **Sheet:** `assets/sprites/cutebugs/bugs.png` (CC0, `ATTRIBUTION.md` there), 8 × 8 cells, `hframes` 4, `vframes` 3; moth
+  cells 4–5; `animations/moth_flutter.tres`; `props/moths.tscn`, driver `props/moths.gd` (shown while `burning()`).
+- **Balloons (not graded):** 3D, `props/party_balloon.tscn`/`.gd`, clips in `animations/`; placed by `scripts/camp_balloons.gd`.
 
 ### Tests: always `bash scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
 - `--name` runs `main.tscn` with that flag (parsed in `scripts/main.gd:399-470`); anything else runs `res://tests/<file>`
