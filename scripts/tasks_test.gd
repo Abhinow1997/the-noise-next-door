@@ -313,15 +313,19 @@ func _run() -> void:
 # --- Moves ---------------------------------------------------------------------
 
 ## Out of the way, everyone calm, then each at step `steps[i]` of their routine (the
-## camper, the low-poly man, the girl), staying at it.
+## camper, the low-poly man, the girl), staying at it; and since 21 Nov 2026 the fire keeper
+## too, at the first step of his (eating at the table, away from the backpack), so where his
+## routine has got to doesn't depend on how long the scenes before took (CHANGE-BRIEF.md,
+## "the tasks test settles the fire keeper too").
 func _settle(steps: Array) -> void:
 	Input.action_release("sneak")
 	_player.place(AWAY)
 	await _until(func() -> bool: return _states() == "WORK WORK WORK", 40.0)
-	var people: Array[CampPerson] = [_camper, _man, _girl]
+	var people: Array[CampPerson] = [_camper, _man, _girl, _camp.keeper]
+	var at_steps: Array = steps + [0]
 	for i in people.size():
-		if people[i]._step != steps[i]:
-			people[i]._step = steps[i]
+		if people[i]._step != at_steps[i]:
+			people[i]._step = at_steps[i]
 			people[i]._arrived = false
 		people[i]._step_left = 400.0
 	await _until(func() -> bool: return people.all(func(p: CampPerson) -> bool: return p.at_activity()), 30.0)
