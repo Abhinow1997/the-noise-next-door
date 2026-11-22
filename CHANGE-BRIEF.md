@@ -677,3 +677,67 @@ The frames to keep are 10, 13, 14, 16, 17, 21, 22, 27, 28 and 40. The rest of th
 No game script, clip or test changes.
 
 (Drafted by Claude Code on 22 Nov 2026 from my words above and "Yes, draft it". The frames to keep and what each should show are Claude Code's, from `anim.py`; `sleep`'s stillness is its read-back. Kept by me the same day: "Keep it".)
+
+---
+
+### Revised 22 Nov 2026: the short answers, for the clips as built
+
+The seven short answers above were written for the first plan: the balloon's 2D float as the sprite clip, and the bite window as the jump's active phase. Neither is in the game now. These answers replace them, for the jump as it plays (its three phases from "the jump plays as it did before") and the moth's flutter as the graded sprite loop. The originals stay above, as this file's rule is. Every number here was measured on Godot 4.7.2 and is named with where it was measured.
+
+1. **Which route does each clip use, and what does that route's read-back see that the other route's does not?**
+   The jump (`jump` and `jump_land`) is on the imported 3D rig, `raccoon_v2.glb`, with the seven loops. The moth's flutter is a `Sprite3D` with an `AnimationPlayer` frame track (`animations/moth_flutter.tres`).
+   - **The rig's read-back** (`tests/test_raccoon_rig.gd`) sees bone tracks: rotations and positions whose subname is a bone of the `Skeleton3D`, which the course's track check (`tests/track_check.gd`) looks up by track type. It sees loop modes that last only if they're in the importer's settings, so it's run from an empty import cache. And it sees continuous tracks, whose seam is each track's value at 0 matching its value at the length. It also found a fact of the route: the importer drops a key its neighbours already give, so a pose held across a key reads as held within 0.1°.
+   - **The frame track's read-back** (`tests/test_moth_flutter.gd`) sees one value track on the sprite's `frame`, a property, not a bone. It checks the track's update mode (discrete), and that every key is a cell `bugs.png` has (below `hframes` × `vframes`, 12). None of those exist on a bone track. And no importer touches a `.tres`, so its loop mode can't be lost on a reimport.
+   - **Each read-back failed when its route was broken** (`logs/a7-mutations/`):
+     - the moth's track renamed to `.:fram`: 5 checks failed;
+     - a key on cell 12: 2 failed;
+     - each loop's mode flipped to `LOOP_NONE`, one at a time, the moth's and each of the seven raccoon loops: 1 failed each time.
+2. **If your frame track is left on continuous updates, what does the sprite show between two keys, and why?**
+   Measured on 22 Nov 2026 on a copy of the moth's clip, changed only in memory, sampled every 1/240 s. It depends on the track's interpolation as well:
+   - **With the track's interpolation at nearest,** as shipped, continuous updates show nothing different. Nearest holds each key's cell until the next key, the same as discrete. So the read-back checks the update mode itself: the picture wouldn't show the mistake.
+   - **With linear interpolation,** the value is blended between the keys, and the integer `frame` takes the nearest cell. So the cell changes halfway between keys, not on them: cell 5 shows from frame 1, not frame 2, and cell 4 comes back just after frame 3, not on frame 4. The flap's timing is off by a frame each way.
+   - **Where two keys are more than a cell apart** (tried with 4 then 6), it shows every cell in between, both ways: cell 5 flashes between 4 and 6.
+   - Discrete updates set the cell only on a key, whatever the interpolation. That's why the flutter is discrete.
+3. **Your brief is in frames at your stated frame rate. What will `Animation.step` be, and what happens to your key times if you leave it at its default?**
+   - **1/24 s (0.0417 s), one frame at 24 fps, on every clip:**
+     - the rig's nine, from the importer's `animation/fps=24`;
+     - the moth's flutter, from `step = 0.041666668` in its `.tres`.
+   - **At the default 1/30 s,** keys set in the editor snap to thirtieths and land off the tables:
+     - the flutter's second key, at 2/24 s (0.083 s), is 2.5 thirtieths, so it lands at 0.067 or 0.1 s;
+     - the jump's stretch, at 3/24 s (0.125 s), lands at 0.133 s;
+     - its reach, at 10/24 s (0.417 s), is 12.5 thirtieths, so it lands at 0.4 or 0.433 s.
+   - **The read-backs compare `step` exactly** (`is_equal_approx`), and every key time within half a frame (1/48 s). Within half a frame wouldn't do for `step`: 1/30 s is only 0.008 s from 1/24 s. The first balloon read-back made that mistake, and it was fixed in `86e22ed` and proved in a worktree.
+4. **Which node is the one authority over each animated node, and what else in your project could write to it?**
+   - **The rig's `AnimationPlayer`:** `scripts/raccoon_model.gd`.
+     - **What it does to the player:** it plays the clip `_rigged_state()` picks, sets `speed_scale` (1 for the jump's clips), and seeks twice: to hold the run clip for a leap, and to carry a gait's stride into the next.
+     - **What else could write to it:**
+       - that leap seek, which is kept out of the jump (`not jumping`);
+       - `forced_animation`, set by the previews and screenshot flags, though the model's script still does the playing;
+       - the three `SkeletonModifier3D`s (`raccoon_flex.gd`, `raccoon_eat.gd` and the eating IK), which write his bones after it, by design, without touching the player.
+     - **What `player.gd` writes:** only the model's inputs (`jumping`, `landing`, `jump_id`).
+     - **The state test checks it:**
+       - all 5 of the script's `play()`, `seek()` and `speed_scale` calls are on `_anim`;
+       - no other script reaches `_anim`;
+       - `player.gd` has no `AnimationPlayer`.
+   - **Each moth's `AnimationPlayer`:** the moths' driver, `props/moths.gd`. It plays `flutter` once on each moth and seeks it to that moth's own offset. Nothing else plays it, and the moths' state test checks that the driver plays and seeks only the moths' players.
+   - **Not this change's:** the dancers' players already have two writers (`camp_person.gd` plays them, `campsite.gd` seeks them to the beat). They're left as they are, and not copied.
+5. **Which tick does each clip advance on, and which tick does gameplay read the fact your committing action's active window depends on? If they differ, what is the largest disagreement in seconds?**
+   - **Every clip advances on the process tick** (`ANIMATION_CALLBACK_MODE_PROCESS_IDLE`):
+     - the rig's player, read back as 1;
+     - the moths' players, set in `props/moths.tscn`.
+   - **Gameplay reads the jump on the physics tick.** The active window, the top and the fall (ticks 15–24 of a held jump), is counted in physics ticks from takeoff. So are the landing and its 12 ticks, and `landed`. Nothing in the game reads the clip's position.
+   - **They differ, measured** (`tests/test_jump_states.gd`, `tests/test_jump_edges.gd`): the clip shows each change one physics tick after the game.
+     - That's 0.017 s for the jump at 60 and 144 fps, and for a gait change at 60 (walk to run, 1 tick).
+     - At 30 fps a frame holds two ticks, so it's one or two ticks: **the largest disagreement is 0.033 s, at 30 fps.**
+6. **For your cycle: what is the seam rule for its track type, and what would a duplicated frame at the wrap look like in play?**
+   - **The moth's flutter, a frame track:** no key repeats across the wrap. The last cell (5) differs from the first (4), and the gap from the last key to the length (2/24 s) equals the key interval.
+     - A duplicated frame would be cell 4 keyed again before the wrap: keys 4, 5, 4 at 0, 2/24 and 4/24 s, with the length 6/24 s.
+     - Cell 4 would then show for four frames running (two at the end, two at the start), so the wings would hang open twice as long as they're up: a limp in the flutter, four times a second.
+   - **The raccoon's loops, continuous tracks:** each track's value at 0 matches its value at the length, so the key at the length is the wrap itself, not a frame of its own. A duplicated frame there would hold one pose for an extra frame at every wrap: a hitch once a second in the walk.
+   - The rig's read-back checks every track of the seven at 0 against its value at the length. The moth's read-back checks its seam rule. The strips show each seam (TUNING.md, "Loops r0").
+7. **If your rig is imported: where does loop mode have to live so that a reimport keeps it, and how will you prove it survived an empty import cache?**
+   - **Where it lives:** in `assets/characters/raccoon_v2.glb.import`, under `_subresources` → `"animations"` → the clip's name → `"settings/loop_mode"`. That's 1 (`LOOP_LINEAR`) for the seven loops, and 0 (`LOOP_NONE`) for `jump` and `jump_land`. Not in the scene, and not in code: `raccoon_model.gd`'s runtime loop line is gone, and the state test checks that no `loop_mode =` is left there or in `player.gd`.
+   - **Proved on 21 Nov 2026** (`logs/a7-mutations/`, M4): in a worktree with no `.godot/`, `--import` ran clean, and the rig's read-back passed 51 of 51, reading the seven as `LOOP_LINEAR` and the two as `LOOP_NONE`.
+   - **The contrast:** the same empty-cache import with the seven's modes taken out of the importer failed 7 checks, one for each loop. The old runtime-code way would have hidden that.
+
+(Drafted by Claude Code on 22 Nov 2026 at my request, "Draft short answers", from the code, the tests' logs and the mutations. Answer 2's numbers are from Claude Code's scratch measurement that day. Kept by me the same day: "Keep it".)
