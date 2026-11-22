@@ -1,6 +1,7 @@
-"""Rebuilds only the two one-shot actions, jump and jump_land, in raccoon_v2.blend, by
-running anim.py with ONLY = {"jump", "jump_land"}. The head, mesh, rig, weights and the
-seven looping actions are left as they are.
+"""Rebuilds only the one-shot action jump in raccoon_v2.blend, by running anim.py with
+ONLY = {"jump"}. The head, mesh, rig, weights, the seven looping actions and jump_land are
+left as they are (CHANGE-BRIEF.md's revision of 21 Nov 2026 re-keys jump alone). Its report
+covers both one-shots, so jump_land can be seen unchanged.
 
 Run from the repo root (add `-- --save` to write the result back into the .blend):
 
@@ -15,7 +16,7 @@ import bpy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 path = os.path.join(HERE, "anim.py")
-ns = {"__name__": "__main__", "__file__": path, "ONLY": {"jump", "jump_land"}}
+ns = {"__name__": "__main__", "__file__": path, "ONLY": {"jump"}}
 if bpy.context.mode != "OBJECT":
     bpy.ops.object.mode_set(mode="OBJECT")
 exec(compile(open(path).read(), path, "exec"), ns)

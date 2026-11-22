@@ -4,16 +4,18 @@ extends Node3D
 ## the camp's other props (scripts/lowpoly.gd: faceted, flat-shaded, matte, vertex-coloured):
 ## a SIDES-sided egg of a body, fuller above, 0.3 m across, tinted; a small knot in its tint; a
 ## thin pale string down to just above the ground. No collision.
-##   - The node's origin is the body's middle (camp_balloons.gd puts it MIDDLE_UP high, and the
-##     bite measures from it). The clips move only its Float node (the body and string), never
-##     the balloon itself.
+##   - The node's origin is the body's middle; camp_balloons.gd turns it so its string runs
+##     down to the bunch's knot. The clips move only its Float node (the body and string),
+##     never the balloon itself.
 ##   - `colour` (red, yellow or blue) picks its tint and where in the bob it starts, so the
 ##     three don't bob in step.
-##   - Its own AnimationPlayer has `bob` (animations/balloon_bob.tres, a 2 s loop) and `pop`
-##     (animations/balloon_pop.tres, a quick swell). This script is that player's one
-##     authority, the only caller of its play() and seek().
-##   - pop() is the bite's (camp_balloons.gd, game code): it sets `popped` and plays `pop` once,
-##     then hides the balloon when it's done.
+##   - Its own AnimationPlayer has `inflate` (animations/balloon_inflate.tres, 3 s: from a
+##     limp bud to full size) and `bob` (animations/balloon_bob.tres, a 2 s loop). This script
+##     is that player's one authority, the only caller of its play() and seek().
+##   - Since CHANGE-BRIEF.md's revision "the balloon task is 'Let the balloons go'" it's hidden
+##     until the girl blows it up: inflate() (camp_balloons.gd, game code, which times it) shows
+##     it and plays `inflate` once, then `bob` from its own offset. Presentation: it reads
+##     nothing back into the game. (`pop` went with the bite.)
 ## Written by Claude Code on 21 Nov 2026.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
@@ -38,31 +40,31 @@ const TAIL := [[-0.18, 0.0, 0.018], [-0.21, 0.0, 0.011], [-0.22, 0.0, 0.0035], [
 	[-0.55, 0.016, 0.0035], [-0.68, 0.01, 0.0035]]
 const STRING := Color("ddd6c6")
 
+## How quickly the bob takes over from the end of `inflate` (s).
+const BOB_BLEND := 0.25
+
 @export_enum("red", "yellow", "blue") var colour := "red"
-## True once he's bitten it.
-var popped := false
 
 @onready var _anim: AnimationPlayer = $AnimationPlayer
 
 
 func _ready() -> void:
 	_build()
-	_anim.play("bob")
-	_anim.seek(BOB_OFFSETS[colour], true)
-
-
-## Bitten: it bursts (`pop`, once), then it's gone. Once only.
-func pop() -> void:
-	if popped:
-		return
-	popped = true
+	# Not blown up yet: nothing there.
+	hide()
 	_anim.animation_finished.connect(_on_finished)
-	_anim.play("pop")
+
+
+## Blown up by the girl: it shows, swells from a limp bud (`inflate`, once), then bobs.
+func inflate() -> void:
+	show()
+	_anim.play("inflate")
 
 
 func _on_finished(anim_name: StringName) -> void:
-	if anim_name == &"pop":
-		hide()
+	if anim_name == &"inflate":
+		_anim.play("bob", BOB_BLEND)
+		_anim.seek(BOB_OFFSETS[colour], true)
 
 
 ## The body, and the knot and string, as faceted lofts in the camp's one matte material.

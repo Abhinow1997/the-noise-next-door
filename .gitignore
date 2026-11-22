@@ -46,3 +46,5 @@ desktop.ini
 /design/a7/session-5-step2.jsonl
 # Part 2's transcript (1.08 MB): over the course's 1 MB; session-5-step7-excerpt.jsonl records its size and SHA-256.
 /design/a7/session-5-step7.jsonl
+# The jump-remodel and balloon-task build's transcript (4.2 MB): over the course's 1 MB; session-6-excerpt.jsonl records its size and SHA-256.
+/design/a7/session-6.jsonl

@@ -517,11 +517,13 @@ def climb(u, pose):
     tail_curve(pose, -0.35, 0.06 * math.sin(TAU * u), wave=0.06, u=u)
 
 
-# --- Jump: crouch, spring up snout first, gather, reach down (one-shot) --------------------
-# From CHANGE-BRIEF.md, "The phase table: the jump", at 24 fps: frame 0 the press, frame 2
-# takeoff (the deepest crouch, the push), frames 2-6 the bite (frame 4 stretched up, snout
-# first), frame 12 the paws reaching down, held by the game until he lands. In place: the
-# game lifts him, so the airborne poses leave the paws where the legs hang, not on the ground.
+# --- Jump: push off, stretch up snout first, gather at the top, reach down (one-shot) ------
+# From CHANGE-BRIEF.md's revision of 21 Nov 2026, "the jump plays as it did before, in three
+# phases of its own", at 24 fps for a held jump, frame 0 the takeoff (the tick F is seen):
+# frame 0 the push-off, hind legs extending; frame 3 stretched up, snout first; frame 6
+# gathered at the top (the peak, ticks 14-15); frame 10 front paws reaching down, the
+# landing (tick 25), held by the game through a longer fall. No crouch, no bite. In place:
+# the game lifts him, so the airborne poses leave the paws where the legs hang.
 # Positive X turns tip the front down; negative tip it (and the snout) up.
 
 def stance(pose):
@@ -529,26 +531,26 @@ def stance(pose):
     idle(0.0, pose)
 
 
-def jump_crouch(pose):                                 # frame 2: the push
-    pose.pelvis = Vector((0, 0.01, -0.11))             # low, weight back over the hind legs
-    pose.turn("pelvis", X, 0.05)                       # front a little lower than the rump
-    pose.turn("spine", X, 0.06)                        # back rounded, gathered
-    pose.turn("chest", X, 0.04)
-    pose.turn("neck", X, -0.12)                        # head up, eyeing the target
-    pose.turn("head", X, -0.15)
+def jump_push(pose):                                   # frame 0: the push-off
+    pose.pelvis = Vector((0, 0.01, -0.05))             # still low, rising off the hind legs
+    pose.turn("pelvis", X, -0.16)                      # front lifting first
+    pose.turn("spine", X, -0.02)                       # unrolling from the gather
+    pose.turn("chest", X, -0.02)
+    pose.turn("neck", X, -0.12)                        # head up, eyeing where he's going
+    pose.turn("head", X, -0.12)
     for k in ("foot_ik.L", "foot_ik.R"):
-        pose.paw[k] = Vector((0, -0.03, 0))            # hind paws bunched under him
-        pose.paw_pitch[k] = 0.3                        # up on the toes to push
+        pose.paw[k] = Vector((0, 0.05, 0))             # hind legs extending back, pushing
+        pose.paw_pitch[k] = 0.75                       # up on the toes
     for k in ("hand_ik.L", "hand_ik.R"):
-        pose.paw[k] = Vector((0, 0.02, 0))
-        pose.paw_pitch[k] = 0.15
+        pose.paw[k] = Vector((0, 0.0, 0.05))           # front paws lifting off
+        pose.paw_pitch[k] = 0.4
     for e in ("ear.L", "ear.R"):
-        pose.turn(e, X, 0.15)                          # pricked forward
-    tail_curve(pose, 0.55, 0.0, curl=-0.05)
-    eyes(pose, 0.9)
+        pose.turn(e, X, -0.1)                          # going back
+    tail_curve(pose, 0.45, 0.0, curl=-0.05)
+    eyes(pose, 1.0)
 
 
-def jump_stretch(pose):                                # frame 4: snout first, mid-bite
+def jump_stretch(pose):                                # frame 3: stretched up, snout first
     pose.pelvis = Vector((0, 0, 0.01))
     pose.turn("pelvis", X, -0.32)                      # the whole body tipped nose-up
     pose.turn("spine", X, -0.04)                       # stretched long
@@ -566,7 +568,7 @@ def jump_stretch(pose):                                # frame 4: snout first, m
     eyes(pose, 1.0)
 
 
-def jump_gather(pose):                                 # frame 6: the bite over, gathering
+def jump_gather(pose):                                 # frame 6: gathered at the top
     pose.pelvis = Vector((0, 0, 0.02))
     pose.turn("pelvis", X, -0.12)                      # levelling out
     pose.turn("spine", X, 0.05)                        # rounding up
@@ -584,7 +586,7 @@ def jump_gather(pose):                                 # frame 6: the bite over,
     eyes(pose, 1.0)
 
 
-def jump_reach(pose):                                  # frame 12: front paws reaching down
+def jump_reach(pose):                                  # frame 10: front paws reaching down
     pose.pelvis = Vector((0, 0, 0.01))
     pose.turn("pelvis", X, 0.14)                       # nose-down, front end first
     pose.turn("spine", X, -0.03)
@@ -624,10 +626,16 @@ make("sneak", 48, sneak)
 make("bored", 96, bored)
 make("sleep", 96, sleep)
 make("climb", 24, climb)
-# The one-shots. Accelerating into the push (0-2) and the stretch (2-4), settling into the
-# gather (4-6), easing in and out to the reach (6-12); out of the squash, settling (0-4).
-make_oneshot("jump", [(0, stance), (2, jump_crouch), (4, jump_stretch), (6, jump_gather), (12, jump_reach)],
-             {0: ("QUAD", "EASE_IN"), 2: ("QUAD", "EASE_IN"), 4: ("QUAD", "EASE_OUT"), 6: ("SINE", "EASE_IN_OUT")})
+# The one-shots. jump (revision of 21 Nov 2026), 10 frames at 24 fps; each key's time:
+#   frame 0  = 0.0 s     the push-off
+#   frame 3  = 0.125 s   stretched up, snout first
+#   frame 6  = 0.25 s    gathered at the top
+#   frame 10 = 0.4167 s  front paws reaching down (the landing, a held jump's tick 25)
+# Out of the push fast and slowing into the stretch (0-3), as the rise slows; easing over
+# the top (3-6); falling into the reach, slow then faster (6-10). jump_land: out of the
+# squash, settling (0-4).
+make_oneshot("jump", [(0, jump_push), (3, jump_stretch), (6, jump_gather), (10, jump_reach)],
+             {0: ("QUAD", "EASE_OUT"), 3: ("SINE", "EASE_IN_OUT"), 6: ("QUAD", "EASE_IN")})
 make_oneshot("jump_land", [(0, land_squash), (4, stance)], {0: ("QUAD", "EASE_OUT")})
 
 # Leave the rig on its rest pose with no action, and park each action in the NLA so the

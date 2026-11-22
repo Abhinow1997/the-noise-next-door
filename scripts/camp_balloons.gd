@@ -1,21 +1,34 @@
 extends Node3D
-## Pop the balloons, a level 1 task at the camp (camp_tasks.gd "balloons"; CHANGE-BRIEF.md,
-## "Boundaries: named changes" and "The phase table: the jump"). Game code: the bite and the
-## pops are decided here, on the physics tick, never from the clips.
-##   - Three balloons (props/party_balloon.tscn), red, yellow and blue, tied low just outside
-##     the camp (PLACE; since CHANGE-BRIEF.md's revision of 21 Nov 2026, "out of the camp with
-##     the girl"; before, by the speaker), each 0.3 m across, their middles MIDDLE_UP high.
-##     They have no collision. The girl minds them (campsite.gd _routines, MINDER).
-##   - Each physics tick after the player's: while his bite is open (player.gd bite_open(),
-##     ticks 5-14 of a jump, once a jump), the first balloon not yet popped whose middle is
-##     within REACH of his mouth (player.gd mouth_point()) pops. That uses the jump's bite,
-##     the pop is heard HEAR_CHITTER round as his laugh is (campsite.gd noise), and once all
-##     three are popped the task is ticked off.
-##   - Only once the tutorial has revealed the camp's tasks, as the bear bag and the tent.
-## Built on 21 Nov 2026 by Claude Code, from the brief and its revision of the same day.
+## Let the balloons go, a level 1 task at the camp (camp_tasks.gd "balloons"; CHANGE-BRIEF.md's
+## revisions of 21 Nov 2026, last "the balloon task is 'Let the balloons go'"). Game code: what
+## happens, and when, is decided here on the physics tick, never from the clips.
+##   - The place: just outside the camp (PLACE, beyond CAMP_ZONE), where the girl minds them
+##     (campsite.gd _routines, her "balloons" step, MINDER).
+##   - The girl blows them up: the first time she gets to her step there (`minder`), she sets
+##     out a folding camp chair (built here, like the camp's props; no collider) and, after
+##     SET_OUT, blows up the three balloons one by one (props/party_balloon.tscn, red, yellow,
+##     blue), INFLATE seconds each with GAP between: each balloon plays its own `inflate`. As
+##     each is done she ties it to the chair: the strings meet in one knot low on the chair's
+##     front leg (KNOT). With all three tied she goes back to the party (camp_person.gd
+##     finish_activity). Interrupted, she carries on next time she's there. Until all three
+##     are tied there's nothing to untie.
+##   - He lets them go: E (his grab, camp_input.gd) at the knot tugs it loose, once the
+##     tutorial has revealed the tasks. The bunch (props/balloon_bunch.tscn) floats away: its
+##     own AnimationPlayer plays `float_away`, rising 8 m over FLOAT_TIME, then it's gone. That
+##     ticks the task.
+##   - The girl calls the others: seeing them float away (calm and within her sight,
+##     CampPerson.SIGHT, of the chair during FLOAT_TIME), or coming back to her step to find
+##     the chair empty, she takes fright and calls them (camp_person.gd call_out). Once a
+##     release.
+##   - One authority: each balloon's own script plays its clips; this script is the only
+##     caller of play() on the bunch's player.
+## Built on 21 Nov 2026 by Claude Code, from the brief and its revisions of the same day.
 
 const Balloon := preload("res://props/party_balloon.tscn")
-const Player := preload("res://scripts/player.gd")
+const Bunch := preload("res://props/balloon_bunch.tscn")
+const Interactable := preload("res://scripts/interactable.gd")
+const LowPoly := preload("res://scripts/lowpoly.gd")
+const CampPerson := preload("res://scripts/camp_person.gd")
 
 ## Where they're tied, from the camp's middle (Forest.CAMP, x, z): 13.6 m south-west of it,
 ## beyond CAMP_ZONE (12.5 m), on the open ground south of the trees (forest.gd _is_open: no
@@ -23,53 +36,179 @@ const Player := preload("res://scripts/player.gd")
 ## the walkways (campsite.gd _bake_walkways: 18.5 m out) so she can walk there, and clear of
 ## the camp's things (the nearest, the other tent, is 10 m off).
 const PLACE := Vector2(-6.5, 12.0)
-## Each balloon's colour and where it's tied, from PLACE (x, z): a row across, 0.6 m apart,
-## so one jump reaches one.
-const SPOTS := [["red", Vector2(-0.6, 0.0)], ["yellow", Vector2(0.0, 0.3)], ["blue", Vector2(0.6, 0.0)]]
-## Where the girl stands minding them, from PLACE: 1.1 m on the camp's side of the row.
+## Where the girl stands minding them, from PLACE: 1.1 m on the camp's side.
 const MINDER := Vector2(0.0, -1.1)
-## How high each balloon's middle is (m), and how near his mouth it must be to pop.
-const MIDDLE_UP := 0.7
-const REACH := 0.25
+## The chair, from PLACE: where its middle stands (x, z), facing her (-Z); its seat's height,
+## width and depth, and its back's top (m).
+const CHAIR := Vector2(0.0, 0.3)
+const SEAT := Vector3(0.48, 0.42, 0.42)
+const BACK_TOP := 0.85
+const CANVAS := Color("3f6a5c")
+const FRAME := Color("8d9196")
+## The knot, from PLACE: low on the chair's front right leg, in his reach.
+const KNOT := Vector3(0.24, 0.08, 0.09)
+## Each balloon's colour and which way its string leans up from the knot (x, y, z; normalised):
+## a bunch leaning out in front of the chair, toward her. Its string is STRING_LENGTH long
+## (party_balloon.gd TAIL), so each one's middle is about 0.7 m up.
+const SPOTS := [["red", Vector3(-0.5, 1.0, -0.3)], ["yellow", Vector3(0.0, 1.0, -0.45)], ["blue", Vector3(0.5, 1.0, -0.3)]]
+const STRING_LENGTH := 0.68
+const STRING := Color("ddd6c6")
+## The girl's timing: setting the chair out, blowing each up (the length of `inflate`), and
+## the pause before the next. Floating away takes FLOAT_TIME (the length of `float_away`).
+const SET_OUT := 1.0
+const INFLATE := 3.0
+const GAP := 0.5
+const FLOAT_TIME := 5.0
 
-## Set before it's added (campsite.gd): the camp.
+## Set before it's added (campsite.gd): the camp, and the girl who minds them.
 var camp
-## The balloons, in SPOTS's order.
+var minder: CampPerson
+## The balloons, in SPOTS's order, and the bunch they're in (its Lift is what floats away).
 var balloons: Array[Node3D] = []
+var bunch: Node3D
+var chair: Node3D
+## Where things are: whether the chair's out, how many are blown up and tied, whether he's let
+## them go (and when, on the camp's clock), and whether she's raised the alarm for it.
+var chair_out := false
+var tied := 0
+var released := false
+var released_at := -INF
+var reported := false
 
-var _player: Player
+var _knot_mesh: MeshInstance3D
+var _knot_spot: Interactable
+var _bunch_anim: AnimationPlayer
+## Counting down to her next step in blowing them up; whether one is being blown up now.
+var _next := 0.0
+var _blowing := false
 
 
 func _ready() -> void:
-	# After the player's own tick (priority 0), so his jump's state is this tick's.
-	process_physics_priority = 1
+	chair = _build_chair()
+	chair.visible = false
+	add_child(chair)
+	bunch = Bunch.instantiate() as Node3D
+	bunch.position = KNOT
+	add_child(bunch)
+	_bunch_anim = bunch.get_node("AnimationPlayer") as AnimationPlayer
+	var lift := bunch.get_node("Lift") as Node3D
 	for spot: Array in SPOTS:
 		var balloon := Balloon.instantiate() as Node3D
 		balloon.set("colour", spot[0])
-		balloon.position = Vector3(spot[1].x, MIDDLE_UP, spot[1].y)
-		add_child(balloon)
+		var up: Vector3 = (spot[1] as Vector3).normalized()
+		# Its string's end (its own -Y, STRING_LENGTH down) on the knot.
+		balloon.transform = Transform3D(Basis(Quaternion(Vector3.UP, up)), up * STRING_LENGTH)
+		lift.add_child(balloon)
 		balloons.append(balloon)
+	_knot_mesh = MeshInstance3D.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	LowPoly.add_icosphere(st, Vector3.ZERO, Vector3.ONE * 0.022, 0, 0.1, 5, func(_n: Vector3) -> Color: return STRING)
+	_knot_mesh.mesh = LowPoly.commit(st)
+	_knot_mesh.visible = false
+	lift.add_child(_knot_mesh)
+	_knot_spot = Interactable.new()
+	_knot_spot.camp = camp
+	_knot_spot.reach = 0.6
+	_knot_spot.prompt_height = 0.25
+	_knot_spot.position = KNOT
+	_knot_spot.enabled = func() -> bool: return camp.tasks != null and camp.tasks.revealed and can_untie()
+	_knot_spot.finished.connect(_release)
+	add_child(_knot_spot)
 
 
-## How many are popped.
-func popped_count() -> int:
-	return balloons.filter(func(b: Node3D) -> bool: return b.get("popped")).size()
+## True while there's a knot to untie: all three blown up and tied, and not yet let go.
+func can_untie() -> bool:
+	return tied == balloons.size() and not released
 
 
-func _physics_process(_delta: float) -> void:
-	if _player == null:
-		_player = get_tree().get_first_node_in_group("player") as Player
-		if _player == null:
-			return
-	if camp.tasks == null or not camp.tasks.revealed or not _player.bite_open():
+## Where the knot is (the chair's leg), in the world.
+func knot_at() -> Vector3:
+	return to_global(KNOT)
+
+
+func _physics_process(delta: float) -> void:
+	if minder == null:
 		return
-	var mouth := _player.mouth_point()
-	for balloon in balloons:
-		if balloon.get("popped") or balloon.global_position.distance_to(mouth) > REACH:
-			continue
-		balloon.call("pop")
-		_player.use_bite()
-		camp.noise(balloon.global_position, camp.HEAR_CHITTER, 0.0, true)
-		if popped_count() == balloons.size():
-			camp.tasks.done("balloons")
+	var there: bool = minder.at_activity() and minder.activity() == "balloons"
+	if tied < balloons.size():
+		_blow_up(there, delta)
+	elif released and not reported:
+		var floating: bool = camp.clock - released_at <= FLOAT_TIME
+		var calm := minder.state in [CampPerson.State.WORK, CampPerson.State.RETURN]
+		var near := Vector2(minder.global_position.x - global_position.x, minder.global_position.z - global_position.z).length()
+		if there or (floating and calm and near <= CampPerson.SIGHT):
+			reported = true
+			minder.call_out(to_global(Vector3(CHAIR.x, 0.0, CHAIR.y)))
+
+
+## Her first visits: the chair, then each balloon in turn, while she's there.
+func _blow_up(there: bool, delta: float) -> void:
+	_next -= delta
+	if _blowing:
+		# One she's started is finished, there or not.
+		if _next <= 0.0:
+			_blowing = false
+			tied += 1
+			_knot_mesh.visible = true
+			_next = GAP
+			if tied == balloons.size():
+				minder.finish_activity()
 		return
+	if not there:
+		return
+	if not chair_out:
+		chair_out = true
+		chair.visible = true
+		_next = SET_OUT
+	elif _next <= 0.0:
+		_blowing = true
+		_next = INFLATE
+		balloons[tied].call("inflate")
+
+
+## E at the knot: it's tugged loose, the bunch floats away, the task's ticked.
+func _release() -> void:
+	if not can_untie():
+		return
+	released = true
+	released_at = camp.clock
+	_bunch_anim.play("float_away")
+	camp.tasks.done("balloons")
+
+
+## A folding camp chair, low-poly: a canvas seat and back on a frame of thin legs crossed at the
+## sides, and armrests. Facing -Z (her), its middle on CHAIR.
+func _build_chair() -> Node3D:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var w := SEAT.x * 0.5
+	var d := SEAT.z * 0.5
+	var leg := 0.022
+	# The seat, sagging a little, and the back, leaning back.
+	LowPoly.add_box(st, Transform3D(Basis(), Vector3(0, SEAT.y, 0)), Vector3(SEAT.x, 0.03, SEAT.z), CANVAS)
+	var lean := Basis(Vector3.RIGHT, -0.18)
+	LowPoly.add_box(st, Transform3D(lean, Vector3(0, (SEAT.y + BACK_TOP) * 0.5, d + 0.04)),
+		Vector3(SEAT.x, BACK_TOP - SEAT.y, 0.025), CANVAS)
+	# The legs: an X at each side, from the front foot to the back of the seat and back again.
+	for x: float in [-w, w]:
+		for pair: Array in [[Vector3(x, 0, -d), Vector3(x, SEAT.y, d)], [Vector3(x, 0, d), Vector3(x, SEAT.y, -d)]]:
+			_add_bar(st, pair[0], pair[1], leg)
+		# The back's upright, and the armrest.
+		_add_bar(st, Vector3(x, SEAT.y, d), Vector3(x, BACK_TOP, d + 0.13), leg)
+		LowPoly.add_box(st, Transform3D(Basis(), Vector3(x, SEAT.y + 0.2, 0)), Vector3(0.05, 0.025, SEAT.z), CANVAS)
+		_add_bar(st, Vector3(x, SEAT.y, -d), Vector3(x, SEAT.y + 0.2, -d), leg)
+	# A bar along the front and the back at the feet.
+	_add_bar(st, Vector3(-w, 0.03, -d), Vector3(w, 0.03, -d), leg)
+	_add_bar(st, Vector3(-w, 0.03, d), Vector3(w, 0.03, d), leg)
+	var mi := MeshInstance3D.new()
+	mi.mesh = LowPoly.commit(st)
+	mi.position = Vector3(CHAIR.x, 0, CHAIR.y)
+	return mi
+
+
+## A square bar of `size` from `a` to `b`.
+func _add_bar(st: SurfaceTool, a: Vector3, b: Vector3, size: float) -> void:
+	var along := b - a
+	var basis := Basis(Quaternion(Vector3.UP, along.normalized()))
+	LowPoly.add_box(st, Transform3D(basis, (a + b) * 0.5), Vector3(size, along.length(), size), FRAME)

@@ -60,6 +60,14 @@ extends CharacterBody3D
 ##     faded (campsite.gd `spot`); then each goes, and comes back BACK_AFTER seconds after
 ##     its own person is calm again: when they start walking back, for the ones who took
 ##     fright.
+##   - Since 21 Nov 2026 (CHANGE-BRIEF.md, "the balloon task is 'Let the balloons go'"), one
+##     new trigger for reactions they already have: the girl, seeing the balloons float away or
+##     coming back to find the chair empty (camp_balloons.gd), takes fright as she does on
+##     seeing him, facing where they were, and calls the others (`call_out`). Each of them
+##     who's calm or wondering comes to look (`called`): confused ("?", SEARCH), they walk to
+##     a spot round where the balloons were tied and search there as after a fright, then go
+##     back. She does the same once she's calmed down. How they search and what they do on
+##     seeing him are unchanged.
 ##   - In the tutorial (camp_tutorial.gd), since 7 Nov 2026: as he dives into the bush,
 ##     `lose_him` leaves whoever was after him or frightened confused where they stand;
 ##     as he steals a roasted marshmallow, `alert` has the camper spot him, and
@@ -100,6 +108,8 @@ const LOOK_SWING := 50.0
 ## clip they do it in (it loops; 3 s, one look each way).
 const SEARCH_TIME := 3.0
 const CONFUSED := "confused"
+## Called to look somewhere (call_out): how far from it they stand to search.
+const CALL_NEAR := 1.3
 ## How long the flinch lasts, and how long the others take to catch the fright.
 const FLINCH := 1.1
 const CATCH_FRIGHT := Vector2(0.25, 0.6)
@@ -212,6 +222,11 @@ var _hand: BoneAttachment3D
 ## Their skeleton and its head bone, for where the head looks while confused.
 var _skeleton: Skeleton3D
 var _head := -1
+## Called to look somewhere (`call_out`, `called`): where (INF when not), the spot round it
+## they search from (INF until worked out), and whether they've got there.
+var _called_to := Vector3.INF
+var _call_spot := Vector3.INF
+var _at_call := false
 var _stuck := 0.0
 var _side := 0.0
 var _side_left := 0.0
@@ -306,7 +321,7 @@ func _physics_process(delta: float) -> void:
 			_work(delta)
 		State.STARTLED:
 			_play("scared", 1.0, 0.15)
-			_face(camp.last_seen_at, delta)
+			_face(_threat(), delta)
 			if _t >= FLINCH:
 				var chase := chase_next and role != "girl"
 				chase_next = false
@@ -337,7 +352,7 @@ func _physics_process(delta: float) -> void:
 				_to_state(State.COWER)
 		State.COWER:
 			_play("cower")
-			_face(camp.last_seen_at, delta)
+			_face(_threat(), delta)
 			if camp.seen_within(0.5) and _flat(player.global_position - global_position).length() < TOO_NEAR \
 					and _flat(_hiding_place() - global_position).length() > 0.3:
 				# Somewhere further off to go: she runs (cornered, she stays cowering).
@@ -446,6 +461,43 @@ func lose_him() -> void:
 	if state in [State.STARTLED, State.GUARD, State.CHASE, State.SHOO, State.FLEE, State.COWER,
 			State.INVESTIGATE]:
 		_to_state(State.SEARCH)
+
+
+## Ends the activity they're at now: they go on to the next one (the girl, once she's blown
+## the balloons up: camp_balloons.gd). Only while they're at it.
+func finish_activity() -> void:
+	if at_activity():
+		_step_left = 0.0
+
+
+## Something of theirs gone from `at` (the balloons: camp_balloons.gd). They take fright as on
+## seeing him, facing it (_threat), and call the others, who come to look (`called`).
+func call_out(at: Vector3) -> void:
+	_called_to = at
+	_call_spot = Vector3.INF
+	_at_call = false
+	_startle()
+	for person in camp.people:
+		if person != self:
+			person.called(at)
+
+
+## Called to look round `at`: if they're calm or wondering, they're confused at once (SEARCH),
+## walk there and search (`_search`), then go back.
+func called(at: Vector3) -> void:
+	if state in [State.WORK, State.RETURN, State.INVESTIGATE, State.SEARCH]:
+		_called_to = at
+		_call_spot = Vector3.INF
+		_at_call = false
+		_to_state(State.SEARCH)
+
+
+## What a fright faces and flees from: where he was last seen, unless they've been called to
+## look somewhere (call_out) and he hasn't been seen lately.
+func _threat() -> Vector3:
+	if _called_to != Vector3.INF and not camp.seen_within(LOSE):
+		return _called_to
+	return camp.last_seen_at
 
 
 ## Goes to put the music's plug back in (campsite.gd), if they're calm.
@@ -833,11 +885,26 @@ func _fix(delta: float) -> void:
 ## scratch their heads and look about (CONFUSED: only the head turns), with "?" over
 ## them (camp_input.gd), then go back. Their eyes look where the head does. Still wary:
 ## seeing him there sets them guarding (or her hiding) again, with no flinch.
-func _search(_delta: float) -> void:
+## Called to look somewhere (call_out, `called`), they first walk to a spot round it, from
+## the side they come from, and search there.
+func _search(delta: float) -> void:
 	if eyes.seeing and camp.in_camp(camp.last_seen_at) and not camp.let_be():
 		camp.spot(self)
 		_to_state(State.FLEE if role == "girl" else State.GUARD)
 		return
+	if _called_to != Vector3.INF and not _at_call:
+		if _call_spot == Vector3.INF:
+			var from := _flat(global_position - _called_to)
+			var dir := from.normalized() if from.length() > 0.1 else -global_basis.z
+			_call_spot = _clear_near(_called_to, dir, [CALL_NEAR, CALL_NEAR * 1.4], _called_to + dir * CALL_NEAR)
+		if _flat(_call_spot - global_position).length() > 0.25:
+			_go(_call_spot, WALK * 1.4, delta, "walk", WALK * 1.4 / walk_natural)
+			return
+		_at_call = true
+		# The search's time from getting there.
+		_t = 0.0
+	if _at_call:
+		_face(_called_to, delta)
 	_play(CONFUSED if anim and anim.has_animation(CONFUSED) else _stand(), 1.0, 0.3)
 	eyes.rotation.y = PI + _head_turn()
 	if _t > SEARCH_TIME:
@@ -889,6 +956,11 @@ func _to_state(to: State) -> void:
 		_arrived = false
 	if to == State.INVESTIGATE:
 		_look_t = -1.0
+	if to not in [State.STARTLED, State.FLEE, State.COWER, State.SEARCH] or (to == State.SEARCH and _at_call):
+		# A call to look somewhere lasts through her fright and their search there, and no further.
+		_called_to = Vector3.INF
+		_call_spot = Vector3.INF
+		_at_call = false
 	if to != State.TEND:
 		# Interrupted with a log: it's dropped back on the pile.
 		_drop_log()
@@ -927,7 +999,7 @@ func _let_go() -> void:
 ## Behind her protector, away from the raccoon, if he's near and standing his ground;
 ## otherwise a few steps away from the raccoon. Wherever there's room to stand.
 func _hiding_place() -> Vector3:
-	var threat: Vector3 = camp.last_seen_at
+	var threat: Vector3 = _threat()
 	if protector and protector.state in [State.STARTLED, State.GUARD] \
 			and _flat(protector.global_position - global_position).length() < 6.0:
 		var p: Vector3 = protector.global_position

@@ -1,8 +1,10 @@
 extends SceneTree
 ## Assignment 7, Step 5 (Step 2 of its plan): the structure and state test for the raccoon's
-## jump (CHANGE-BRIEF.md, "The state machine" and its revision of 21 Nov 2026, "F while asleep
-## or climbing"; "The evidence split": the state-machine row and the one-authority row;
-## predicted failure 4).
+## jump (CHANGE-BRIEF.md, "The state machine" and its revisions of 21 Nov 2026, "F while asleep
+## or climbing" and "the jump plays as it did before, in three phases of its own"; "The evidence
+## split": the state-machine row and the one-authority row; predicted failure 4).
+## Since that last revision: no crouch (he takes off on the tick F is seen, and `jump` starts
+## there), no bite, a 12-tick landing (LAND_TIME 0.2 s), and `jump` from frame 0 off a tree.
 ##
 ## Structure, against the resource and the source:
 ##   - every clip raccoon_model.gd can ask for (RM.CLIPS) is in the rig's
@@ -21,12 +23,12 @@ extends SceneTree
 ## (Input.parse_input_event), reading the rig's AnimationPlayer.current_animation each
 ## physics tick after the player's:
 ##   - F from idle, bored, walk, run and sneak: `jump`, then `jump_land` on `landed`, then
-##     the clip for how he's moving, 10 ticks after landing;
+##     the clip for how he's moving, 12 ticks after landing;
 ##   - F during `jump_land`: `jump` again, the landing cut short;
 ##   - F from sleep: the leap out (the run clip), exactly as W gives it (the same ticks),
 ##     never `jump`;
-##   - F from climb: the hop off, shown as `jump` from its takeoff pose (frame 2), then
-##     `jump_land`; no `jumping`, no bite and no `landed` in it;
+##   - F from climb: the hop off, shown as `jump` from frame 0 (its push-off), then
+##     `jump_land`; no `jumping` and no `landed` in it;
 ##   - in every jump the leap seek doesn't run: model.leap < 0 and `jump`'s position only
 ##     goes forward.
 ## The clip follows the game by one tick (the AnimationPlayer advances on the process tick,
@@ -44,11 +46,12 @@ extends SceneTree
 signal ticked
 
 const DevMenu := preload("res://scripts/dev_menu.gd")
-## raccoon_model.gd (RaccoonModel), for its CLIPS, ONE_SHOTS and JUMP_TAKEOFF.
+## raccoon_model.gd (RaccoonModel), for its CLIPS and ONE_SHOTS.
 const RM := preload("res://scripts/raccoon_model.gd")
 ## Well out of the camp, where none of them can see him (scripts/cones_test.gd, _send_away).
 const QUIET := Vector3(20.0, 0.02, 6.5)
-const LAND_TICKS := 10
+## LAND_TIME 0.2 s at 60 ticks a second (player.gd; the brief's phase table: landing + 0-11).
+const LAND_TICKS := 12
 const TOL := 0.001
 const SCAN := ["res://scripts", "res://props"]
 
@@ -106,7 +109,6 @@ func step() -> void:
 		"mj": bool(model.get("jumping")),
 		"ml": bool(model.get("landing")),
 		"jid": int(model.get("jump_id")),
-		"bite": bool(player.call("bite_open")),
 		"resting": bool(player.get("resting")),
 		"climbing": bool(player.get("climbing")),
 	}
@@ -277,8 +279,8 @@ func _structure() -> void:
 # --- One jump's ticks ------------------------------------------------------------
 
 ## Checks one jump (or hop off a tree) from its records: `jump` from the tick after it starts
-## to the landing, `jump_land` for the landing's 10 ticks, then `after`.
-func _check_jump(label: String, recs: Array[Dictionary], after: String, from_takeoff := false) -> Dictionary:
+## to the landing, from its frame 0, `jump_land` for the landing's 12 ticks, then `after`.
+func _check_jump(label: String, recs: Array[Dictionary], after: String) -> Dictionary:
 	var t0 := -1
 	var land := -1
 	var out := -1
@@ -343,16 +345,11 @@ func _check_jump(label: String, recs: Array[Dictionary], after: String, from_tak
 	_check("%s: the leap seek doesn't run (model.leap < 0 on every tick; `jump`'s position never goes back)" % label,
 		leaps == 0 and back == 0, "%d ticks with leap, %d steps back" % [leaps, back])
 
-	if from_takeoff:
-		var p: float = recs[first_jump].pos
-		# Started at frame 2 (2/24 s), then advanced by that process tick (1/60 s).
-		_check("%s: `jump` starts from its takeoff pose, frame 2 (position %.4f s on its first tick; 2/24 = %.4f, + one tick %.4f)"
-			% [label, p, RM.JUMP_TAKEOFF, RM.JUMP_TAKEOFF + 1.0 / 60.0],
-			p >= RM.JUMP_TAKEOFF - TOL and p <= RM.JUMP_TAKEOFF + 1.0 / 60.0 + TOL, p)
-	else:
-		var p: float = recs[first_jump].pos
-		_check("%s: `jump` starts from its first frame (position %.4f s on its first tick)" % [label, p],
-			p <= 1.0 / 60.0 + TOL, p)
+	# From frame 0, its push-off (a jump and a hop off a tree alike), then advanced by that
+	# process tick (at most 1/60 s).
+	var p: float = recs[first_jump].pos
+	_check("%s: `jump` starts from frame 0, its push-off (position %.4f s on its first tick)" % [label, p],
+		p <= 1.0 / 60.0 + TOL, p)
 	return {"t0": t0, "land": land, "out": out}
 
 
@@ -419,7 +416,7 @@ func _f_in_landing() -> void:
 	var landed_tick := _tick
 	var first_id: int = _rec.jid
 	await _wait(2)
-	# Pressed on the landing's tick 2: the game sees it on tick 3 and starts the next crouch.
+	# Pressed on the landing's tick 2: the game sees it on tick 3 and takes off at once.
 	_key(KEY_F, true)
 	var recs: Array[Dictionary] = []
 	for i in 6:
@@ -432,9 +429,9 @@ func _f_in_landing() -> void:
 			cut = r.tick - landed_tick
 		if asked < 0 and r.asg == "jump" and r.jid != first_id:
 			asked = r.tick - landed_tick
-	_check("F in the landing: the next crouch starts at once, cutting the landing (on landing tick %d of %d)" % [cut, LAND_TICKS],
+	_check("F in the landing: the next jump takes off at once, cutting the landing (on landing tick %d of %d)" % [cut, LAND_TICKS],
 		cut > 0 and cut < LAND_TICKS, cut)
-	_check("F in the landing: `jump` again from `jump_land`, a tick after the crouch starts", asked == cut + 1,
+	_check("F in the landing: `jump` again from `jump_land`, a tick after the takeoff", asked == cut + 1,
 		"jump on landing tick %d" % asked)
 	var rest := await _watch()
 	_key(KEY_F, false)
@@ -506,15 +503,12 @@ func _from_climb() -> void:
 	_check("up the home pine (W into the trunk): climb", up and _rec.cur == "climb", "climbing %s, %s" % [up, _rec.cur])
 	var landed_before := _landed.size()
 	var recs := await _press_and_watch([])
-	_check_jump("F from climb (the hop off)", recs, "idle", true)
+	_check_jump("F from climb (the hop off)", recs, "idle")
 	var pj := 0
-	var bites := 0
 	for r: Dictionary in recs:
 		if r.pj:
 			pj += 1
-		if r.bite:
-			bites += 1
-	_check("F from climb: the hop off isn't `jumping` and has no bite (the hop's game is unchanged)",
-		pj == 0 and bites == 0, "%d ticks jumping, %d ticks bite open" % [pj, bites])
+	_check("F from climb: the hop off isn't `jumping` (the hop's game is unchanged)",
+		pj == 0, "%d ticks jumping" % pj)
 	_check("F from climb: no `landed` (the hop's game is unchanged)", _landed.size() == landed_before,
 		_landed.size() - landed_before)

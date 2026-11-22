@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Animation" path="res://animations/balloon_float_away.tres" id="1_float_away"]
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_bunch"]
+_data = {
+&"float_away": ExtResource("1_float_away")
+}
+
+[node name="Bunch" type="Node3D"]
+
+[node name="Lift" type="Node3D" parent="."]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_bunch")
+}
+callback_mode_process = 1

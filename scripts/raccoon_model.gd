@@ -38,10 +38,10 @@ const LOCOMOTION := ["idle", "walk", "run", "sneak"]
 const GAIT_BLEND := 0.3
 ## A jump's clips come in quickly.
 const JUMP_BLEND := 0.08
-## The jump's two one-shot clips (CHANGE-BRIEF.md, "The phase table: the jump"), and
-## `jump`'s takeoff pose: frame 2 at 24 fps.
+## The jump's two one-shot clips (CHANGE-BRIEF.md, "The phase table: the jump" and its
+## revision of 21 Nov 2026). `jump` always starts from frame 0, its push-off: a jump's
+## takeoff and a hop off a tree alike.
 const ONE_SHOTS := ["jump", "jump_land"]
-const JUMP_TAKEOFF := 2.0 / 24.0
 ## Every clip _process_rigged() can ask the rig's AnimationPlayer for (the structure test
 ## checks each is in it).
 const CLIPS := ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "jump", "jump_land"]
@@ -145,16 +145,14 @@ var forced_animation := ""
 var leap := -1.0
 ## 0..1: squashes him down, crouching to spring or soaking up a landing.
 var squash := 0.0
-## Rigged model only: set by the player from a jump's press (or a hop off a tree) until
+## Rigged model only: set by the player from a jump's takeoff (or a hop off a tree) until
 ## he has soaked up its landing, and how far to tip him nose up then besides his weight's
 ## tip (radians). `landing` is true while he soaks it up; `jump_id` changes with each new
-## jump or hop off a tree; `jump_from_takeoff` starts `jump` at its takeoff pose (frame 2),
-## for a hop off a tree, where he's already leaving and there's no crouch.
-## (CHANGE-BRIEF.md, "The state machine" and its revision of 21 Nov 2026.)
+## jump or hop off a tree. (CHANGE-BRIEF.md, "The state machine" and its revisions of
+## 21 Nov 2026.)
 var jumping := false
 var landing := false
 var jump_id := 0
-var jump_from_takeoff := false
 var pitch := 0.0
 ## Rigged model only: sitting up eating something from his front paws (raccoon_eat.gd,
 ## over the bored animation's sit), and how far through a bite he is (0..1; negative
@@ -553,15 +551,12 @@ func _change_animation(anim_name: String) -> void:
 	_anim.play(anim_name, blend)
 	if anim_name == "jump":
 		_played_jump = jump_id
-		# Off a tree he's already leaving: from the takeoff pose, with no crouch.
-		if jump_from_takeoff:
-			phase = JUMP_TAKEOFF / maxf(_anim.current_animation_length, 0.001)
 	if phase >= 0.0:
 		_anim.seek(phase * _anim.current_animation_length, true)
 
 
 func _rigged_state(delta: float) -> String:
-	# The jump first (CHANGE-BRIEF.md, "The state machine"): from F seen (or a hop off a
+	# The jump first (CHANGE-BRIEF.md, "The state machine"): from takeoff (or a hop off a
 	# tree) until `landed`, then the landing until it's soaked up.
 	if jumping:
 		_still = 0.0

@@ -296,7 +296,8 @@ var tent_pegs: CampTent
 ## Raid the bear bag: the food bag hung in the tree east of the fire (camp_bear_bag.gd,
 ## 10 Nov 2026).
 var bear_bag: CampBearBag
-## Pop the balloons: the three balloons by the speaker (camp_balloons.gd, 21 Nov 2026).
+## Let the balloons go: the girl's balloons, tied to a chair just outside the camp
+## (camp_balloons.gd, 21 Nov 2026).
 var balloons: CampBalloons
 ## True while the speaker's plugged in (the party's music can play).
 var music_on: bool:
@@ -389,10 +390,12 @@ func _ready() -> void:
 	bear_bag.forest = forest
 	bear_bag.position = _v3(FIRE + CampBearBag.TREE)
 	add_child(bear_bag)
-	# Pop the balloons: three tied just outside the camp, which the girl minds
-	# (camp_balloons.gd, 21 Nov 2026).
+	# Let the balloons go: just outside the camp, where the girl's step takes her
+	# (camp_balloons.gd, 21 Nov 2026). The first time she's there she sets out a chair and
+	# blows them up; after, she minds them.
 	balloons = CampBalloons.new()
 	balloons.camp = self
+	balloons.minder = dancers[1]
 	balloons.position = _v3(Forest.CAMP + CampBalloons.PLACE)
 	add_child(balloons)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
@@ -424,6 +427,8 @@ func _routines(peg: Vector3, cooler: Node3D) -> Array:
 	# Since 21 Nov 2026 (CHANGE-BRIEF.md, "out of the camp with the girl", and "the girl's new
 	# step comes after warming her hands"): after warming her hands she walks out to mind the
 	# balloons (camp_balloons.gd), facing them, about as long as a dance, then back to dancing.
+	# Her first time there she blows them up instead, and goes back once they're tied
+	# (camp_balloons.gd, "Let the balloons go").
 	var minding: Vector2 = Forest.CAMP + CampBalloons.PLACE + CampBalloons.MINDER
 	var to_balloons: Vector2 = CampBalloons.PLACE - (CampBalloons.PLACE + CampBalloons.MINDER)
 	return [

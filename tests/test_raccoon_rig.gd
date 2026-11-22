@@ -6,9 +6,10 @@ extends SceneTree
 ##   - every track in every clip resolves to a real node and property, bone or blend shape (the
 ##     course's check, as in tests/test_balloon_float.gd, branching on track type);
 ##   - all nine clips exist;
-##   - jump's length is 12/24 s and jump_land's 4/24 s (within half a frame); every clip's step is
-##     1/24 s exactly (is_equal_approx);
-##   - jump has keys at frames 0, 2, 4, 6 and 12, and jump_land at 0 and 4, within half a frame
+##   - jump's length is 10/24 s and jump_land's 4/24 s (within half a frame); every clip's step is
+##     1/24 s exactly (is_equal_approx). (jump was 12/24 s, keyed at 0, 2, 4, 6 and 12, until the
+##     brief's revision of 21 Nov 2026, "the jump plays as it did before, in three phases of its own");
+##   - jump has keys at frames 0, 3, 6 and 10, and jump_land at 0 and 4, within half a frame
 ##     (1/48 s), never ==, on every track not held through that frame (the importer drops the keys
 ##     of a hold); each key time is printed beside the frame it comes from;
 ##   - jump's last pose is its own, not a copy of its first (a one-shot);
@@ -29,8 +30,8 @@ const HALF_FRAME := 1.0 / 48.0
 const LOOPS: Array[String] = ["idle", "walk", "run", "sneak", "bored", "sleep", "climb"]
 const ONE_SHOTS: Array[String] = ["jump", "jump_land"]
 ## Each one-shot's length and the phase table's frames it must have keys on.
-const FRAMES := {"jump": 12, "jump_land": 4}
-const KEY_FRAMES := {"jump": [0, 2, 4, 6, 12], "jump_land": [0, 4]}
+const FRAMES := {"jump": 10, "jump_land": 4}
+const KEY_FRAMES := {"jump": [0, 3, 6, 10], "jump_land": [0, 4]}
 
 var _passed := 0
 var _failed := 0
@@ -128,8 +129,9 @@ func _check_one_shot(clip_name: String, clip: Animation) -> void:
 
 	# The phase table's frames: the clip has a key within half a frame of each, on every track
 	# that changes there. The importer drops keys a track doesn't need, so a track held through a
-	# frame (the eyes open from frame 4 to 12, say) has none there: it passes only if its keys
-	# either side of the frame hold the same value.
+	# frame (the shins between two keys, say) has none there: it passes only if its keys either
+	# side of the frame hold the same value, or it has no key after the frame (it holds its last
+	# key to the end).
 	var wanted: Array = KEY_FRAMES[clip_name]
 	var missing: Array[String] = []
 	for f in wanted:
@@ -156,6 +158,10 @@ func _check_one_shot(clip_name: String, clip: Animation) -> void:
 					first_time = found
 			elif before != -1 and after != -1 and _same(
 					clip.track_get_key_value(t, before), clip.track_get_key_value(t, after)):
+				held.append(str(clip.track_get_path(t)).get_slice(":", 1))
+			elif before != -1 and after == -1:
+				# No key after the frame: the track holds its last key to the clip's end (a track
+				# that never changes, like the open eyes through `jump`, keeps one key at 0).
 				held.append(str(clip.track_get_path(t)).get_slice(":", 1))
 			else:
 				missing.append("frame %d on %s" % [f, clip.track_get_path(t)])

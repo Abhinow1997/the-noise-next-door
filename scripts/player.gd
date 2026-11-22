@@ -84,18 +84,15 @@ const ACCEL := 10.0
 const DECEL := 14.0
 const GRIP := 30.0
 const SLIP := 0.44
-## Jumping (F). He crouches first and takes off TAKEOFF_TICK physics ticks after the press
-## is seen (tick 0), then rises JUMP_HEIGHT (m) under
+## Jumping (F). He takes off the moment it's pressed and rises JUMP_HEIGHT (m) under
 ## JUMP_GRAVITY, a snappier pull than the world's, then comes down under FALL_GRAVITY;
 ## let go of F on the way up and the pull is JUMP_CUT times stronger, so a tap is a
 ## small hop. A press up to JUMP_BUFFER (s) before he lands is kept until he does,
 ## and he can still jump JUMP_COYOTE (s) after stepping off an edge. In the air he has
-## AIR_CONTROL of his turning and footing, and he soaks up a landing for LAND_TICKS ticks.
-## The crouch can't be cancelled, and he moves in it as on the ground; F again does
-## nothing in it. His bite is open on ticks BITE_FROM to BITE_TO, once a jump.
-## (CHANGE-BRIEF.md, "The phase table: the jump": 2 frames at 24 fps = 5 ticks at 60;
-## a 4-frame bite = ticks 5-14; a 4-frame landing = 10 ticks. Was: off on the press,
-## a 0.2 s landing.)
+## AIR_CONTROL of his turning and footing, and he soaks up a landing for LAND_TIME (s),
+## counted in physics ticks (12 at 60 a second).
+## (CHANGE-BRIEF.md's revision of 21 Nov 2026, "the jump plays as it did before": the
+## movement as at dc8ff17; Step 1's crouch, bite and 10-tick landing are gone.)
 const JUMP_HEIGHT := 0.55
 const JUMP_GRAVITY := 20.0
 const FALL_GRAVITY := 28.0
@@ -103,10 +100,7 @@ const JUMP_CUT := 2.5
 const JUMP_BUFFER := 0.12
 const JUMP_COYOTE := 0.1
 const AIR_CONTROL := 0.35
-const TAKEOFF_TICK := 5
-const BITE_FROM := 5
-const BITE_TO := 14
-const LAND_TICKS := 10
+const LAND_TIME := 0.2
 
 @export var walk_speed := 2.0
 @export var run_speed := 4.0
@@ -159,8 +153,8 @@ var on_limb := false
 var running := false
 ## True while he moves on a trunk.
 var climb_moving := false
-## True from the tick a jump's press is seen (the crouch) until he lands, and the height
-## he took off from (the camera stays at it meanwhile).
+## True from a jump's takeoff until he lands, and the height he took off from (the
+## camera stays at it meanwhile).
 var jumping := false
 var jump_from_y := 0.0
 
@@ -208,11 +202,6 @@ var _limb_bend := 0.0
 ## jump since he was last on the ground.
 var _jump_press := 0.0
 var _coyote := 0.0
-## Physics ticks since a jump's press was seen (0 on that tick, -1 when not jumping);
-## true from takeoff until he lands; whether this jump's bite has been used.
-var _jump_tick := -1
-var _airborne := false
-var _bite_used := false
 ## Seconds since a jump's takeoff; ticks into soaking up its landing (-1 when he
 ## isn't), how hard that landing was (0..1) and how far he was tipped as he touched down.
 var _air_t := 0.0
@@ -332,7 +321,7 @@ func _walk_process(delta: float) -> void:
 	# to face it, and brakes in time to finish facing it. In the air he has less to
 	# push against, so he turns less and keeps his momentum.
 	var has_input := dir.length_squared() > 0.01
-	var control := AIR_CONTROL if _airborne else 1.0
+	var control := AIR_CONTROL if jumping else 1.0
 	var want := 0.0
 	var target_rate := 0.0
 	if has_input:
@@ -363,38 +352,30 @@ func _walk_process(delta: float) -> void:
 		else:
 			var most := GRIP * control / maxf(moving, 0.5) * delta
 			heading = heading.rotated(Vector3.UP, clampf(heading.signed_angle_to(travel, Vector3.UP), -most, most))
-	elif _airborne:
+	elif jumping:
 		target_speed = moving
 	var before := moving
 	moving = move_toward(moving, target_speed, (ACCEL if target_speed > moving else DECEL) * control * delta)
 	_speed = moving
-	running = not sneaking and run_key and _speed > walk_speed + 0.1 and not _airborne
+	running = not sneaking and run_key and _speed > walk_speed + 0.1 and not jumping
 	velocity.x = heading.x * moving
 	velocity.z = heading.z * moving
 
-	# Jumping: the press starts the crouch (tick 0; or as soon as he can, for a press just
-	# before he lands, which also cuts a landing short), he's off on TAKEOFF_TICK, up under
-	# a snappy pull that's stronger still if F is let go, down faster still.
+	# Jumping: off at once (or as soon as he can, for a press just before he lands, which
+	# also cuts a landing short), up under a snappy pull that's stronger still if F is let
+	# go, down faster still. Each takeoff is a new jump for the model's clips (jump_id).
 	_jump_press = maxf(_jump_press - delta, 0.0)
-	_coyote = JUMP_COYOTE if is_on_floor() and not _airborne else maxf(_coyote - delta, 0.0)
-	var crouching := jumping and not _airborne
-	if _jump_press > 0.0 and _coyote > 0.0 and not crouching:
+	_coyote = JUMP_COYOTE if is_on_floor() and not jumping else maxf(_coyote - delta, 0.0)
+	if _jump_press > 0.0 and _coyote > 0.0:
 		_jump_press = 0.0
+		_coyote = 0.0
 		jumping = true
 		jump_from_y = global_position.y
-		_jump_tick = 0
-		_bite_used = false
 		_air_t = 0.0
 		_land_tick = -1
-		model.jump_id += 1
-		model.jump_from_takeoff = false
-	elif jumping:
-		_jump_tick += 1
-	if crouching and _jump_tick == TAKEOFF_TICK:
-		_coyote = 0.0
-		_airborne = true
 		velocity.y = sqrt(2.0 * JUMP_GRAVITY * JUMP_HEIGHT)
-	if _airborne:
+		model.jump_id += 1
+	if jumping:
 		var pull := JUMP_GRAVITY if velocity.y > 0.0 else FALL_GRAVITY
 		if velocity.y > 0.0 and not Input.is_action_pressed("jump"):
 			pull *= JUMP_CUT
@@ -421,8 +402,7 @@ func _walk_process(delta: float) -> void:
 	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
 
 	# Pushing into a tree trunk for a moment starts a climb.
-	# Not in a jump's crouch, which can't be cancelled (in the air he's off the floor anyway).
-	var tree := _trunk_ahead(dir) if is_on_floor() and not jumping else {}
+	var tree := _trunk_ahead(dir) if is_on_floor() else {}
 	_climb_push = _climb_push + delta if not tree.is_empty() else 0.0
 	if _climb_push > 0.2:
 		_start_climb(tree)
@@ -452,30 +432,9 @@ func running_off() -> bool:
 	return _run_off_left > 0.0
 
 
-## Jumps: now if he's on the ground, or as soon as he lands (see JUMP_BUFFER). In a
-## jump's crouch it does nothing.
+## Jumps: now if he's on the ground, or as soon as he lands (see JUMP_BUFFER).
 func jump() -> void:
-	if jumping and not _airborne:
-		return
 	_jump_press = JUMP_BUFFER
-
-
-## True on the physics ticks of a jump's bite (BITE_FROM to BITE_TO after the press, in
-## the air), until this jump's bite is used. Game code: the bite check reads it.
-func bite_open() -> bool:
-	return _airborne and not _bite_used and _jump_tick >= BITE_FROM and _jump_tick <= BITE_TO
-
-
-## Uses this jump's one bite.
-func use_bite() -> void:
-	_bite_used = true
-
-
-## Where his mouth is, for the bite: the model's mouth point (RaccoonModel.RIGGED_MOUTH)
-## on his body as it stands, not the posed head bone, so the game reads it on the physics
-## tick whatever the clip is showing.
-func mouth_point() -> Vector3:
-	return global_transform * (RaccoonModel.RIGGED_MOUTH * size)
 
 
 ## Lands a jump once he's back down, and poses him through it. Leaving, his hind legs
@@ -486,10 +445,8 @@ func mouth_point() -> Vector3:
 func _jump_pose(delta: float, rising: float) -> void:
 	var lift := sqrt(2.0 * JUMP_GRAVITY * JUMP_HEIGHT)
 	var just_landed := false
-	if _airborne and _air_t > 0.0 and rising <= 0.0 and is_on_floor():
+	if jumping and _air_t > 0.0 and rising <= 0.0 and is_on_floor():
 		jumping = false
-		_airborne = false
-		_jump_tick = -1
 		_land_tick = 0
 		just_landed = true
 		_land_hard = clampf(-rising / lift, 0.3, 1.0)
@@ -497,24 +454,20 @@ func _jump_pose(delta: float, rising: float) -> void:
 		landed.emit()
 	# His pose through it all is the jump's clips (raccoon_model.gd plays them from
 	# `jumping` and `landing`), with squash and pitch laid over them.
-	if jumping and not _airborne:
-		# The crouch (the clip's), clearing a landing's squash and tip.
-		model.leap = -1.0
-		model.squash = 0.0
-		model.pitch = 0.0
-	elif _airborne:
+	if jumping:
 		_air_t += delta
 		model.squash = 0.5 * maxf(0.0, 1.0 - _air_t / 0.1)
 		var tip := clampf(atan2(velocity.y, maxf(_speed, 1.5)) * 0.35, -0.35, 0.3)
 		model.pitch = tip * smoothstep(0.0, 0.08, _air_t)
 	elif _land_tick >= 0:
-		# Ticks landed + 0 to landed + LAND_TICKS - 1; he's out of it on landed + LAND_TICKS.
+		# LAND_TIME in ticks: landed + 0 to landed + 11; he's out of it on landed + 12.
+		var land_ticks := roundi(LAND_TIME * Engine.physics_ticks_per_second)
 		if not just_landed:
 			_land_tick += 1
-		if _land_tick >= LAND_TICKS:
+		if _land_tick >= land_ticks:
 			_end_jump()
 			return
-		var f := minf((_land_tick + 1.0) / LAND_TICKS, 1.0)
+		var f := minf((_land_tick + 1.0) / land_ticks, 1.0)
 		model.squash = 0.8 * _land_hard * sin(PI * sqrt(f))
 		model.pitch = _land_pitch * (1.0 - smoothstep(0.0, 0.6, f))
 
@@ -522,8 +475,6 @@ func _jump_pose(delta: float, rising: float) -> void:
 ## Out of a jump's poses, landed or not.
 func _end_jump() -> void:
 	jumping = false
-	_airborne = false
-	_jump_tick = -1
 	_land_tick = -1
 	model.leap = -1.0
 	model.squash = 0.0
@@ -890,20 +841,19 @@ func _climb_off() -> void:
 	_show_tree_hop()
 
 
-## A hop off a tree is shown with the jump's clips: `jump` from its takeoff pose until
-## he's down, then `jump_land` (_end_climb). Presentation only: the hop's timing, path and
-## input are as before, it isn't `jumping`, there's no bite and no `landed`.
+## A hop off a tree is shown with the jump's clips: `jump` from frame 0, its push-off, as
+## a jump's, until he's down, then `jump_land` (_end_climb). Presentation only: the hop's
+## timing, path and input are as before, it isn't `jumping`, and there's no `landed`.
 func _show_tree_hop() -> void:
 	_tree_hop = true
 	model.jump_id += 1
-	model.jump_from_takeoff = true
 
 
 func _end_climb() -> void:
 	climbing = false
 	_shape.disabled = false
 	if _tree_hop:
-		# Down: the landing's LAND_TICKS ticks, shown as for a jump, with no squash or tip.
+		# Down: the landing's LAND_TIME, shown as for a jump, with no squash or tip.
 		_tree_hop = false
 		_land_tick = 0
 		_land_hard = 0.0

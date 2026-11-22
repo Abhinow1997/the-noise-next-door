@@ -2,12 +2,12 @@
 
 [ext_resource type="Script" path="res://props/party_balloon.gd" id="1_script"]
 [ext_resource type="Animation" path="res://animations/balloon_bob.tres" id="2_bob"]
-[ext_resource type="Animation" path="res://animations/balloon_pop.tres" id="3_pop"]
+[ext_resource type="Animation" path="res://animations/balloon_inflate.tres" id="3_inflate"]
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_balloon"]
 _data = {
 &"bob": ExtResource("2_bob"),
-&"pop": ExtResource("3_pop")
+&"inflate": ExtResource("3_inflate")
 }
 
 [node name="Balloon" type="Node3D"]
