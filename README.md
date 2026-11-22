@@ -8,7 +8,8 @@ Made for CSYE 7270 (Fall 2026): one game, built up one assignment at a time.
 
 | Assignment | What it added | Submitted as |
 |---|---|---|
-| [Assignment 6: Creating Particle Effects with Godot and Claude](#assignment-6-particle-effects-in-progress) | In progress: two particle effects, the leaves bursting out of the bush and the campfire's smoke, and the campfire's life that drives the smoke | branch `assignment-6`, to be tagged `a6` |
+| [Assignment 7: Doing Animation with Claude and Godot](#assignment-7-animation) | In progress: the raccoon's jump on his rig and the moth's sprite flutter, the moth guiding him to the camp, his seven loops brought up to the same standard, and the balloon task | branch `assignment-7`, to be tagged `a7` |
+| [Assignment 6: Creating Particle Effects with Godot and Claude](#assignment-6-particle-effects) | Two particle effects, the leaves bursting out of the bush and the campfire's smoke, and the campfire's life that drives the smoke | tag `a6` |
 | [Assignment 5: Shaders, Materials, and the Godot Shading Language](#assignment-5-shaders-and-materials) | Hand-written shaders and materials, for the campers' vision cones and a textured 3D object | tag `a5` |
 | [Assignment 3: Your First 3D Game Assets with Claude, the Blender MCP, and Blender](#assignment-3-the-three-blender-assets) | Three props built in Blender through the Blender MCP, a Godot asset room and a headless check | tag `a3` |
 | [Assignment 2: Generate Art, Sound, and Music for Your Game](#assignment-2-the-asset-slice) | The asset slice: the forest clearing with the generated poses, sounds and music | tag `a2` |
@@ -47,11 +48,11 @@ There's no ending yet. Pictures are in [design/level1/tasks/](design/level1/task
 - **Roasted marshmallows** (remade later on 7 Nov 2026): once they're all back at work, the camper roasts one at the fire, turns round to set it on a plate on the log behind him, and goes back for more. The first one on the plate stops the camp as the hide did: the campers freeze, the plate is lit under the dark layer, and the raccoon thinks of food. There are no words. Take it with E, and they come to: the camper, turned to the plate, spots him, the others take fright, and the men chase him. Caught, he's shooed but keeps it, and E doesn't drop it. Once they've lost him and are all back at work, the E shows over him (not while he's in the bush): hold it, and he sits up straight, ears up, holding it in both front paws and looking down at it. He eats it in three bites: each time he lifts it to his mouth as his head dips to meet it, chomps, and chews with quick little nods, eyes squeezed shut and head tilting, while his paws lower it again, smaller each time ("Yum!"). Let go, and he stands with what's left in his mouth. The eating is laid over his bored animation's sit in code (`scripts/raccoon_eat.gd`, with Godot's two-bone IK for his paws), since there's no Blender here to add an animation to his rig.
 - **The list:** then Tab brings up the TO DO list to read (hover over a task to see how it's done); Tab again, and the camp plays as before.
 
-**The party next door** (25 Oct 2026, `scripts/sound_waves.gd`): under the title the night is quiet; New Game starts the party up. You don't hear it (his lullaby plays on); you see it, as its sound waves. They are drawn like the thought icons, three hand-scribbled wavy white lines. On the beat, while the speaker's off the screen, a set pulses on the edge of the screen the music's coming from, so you can always tell which way to go; once the speaker's on the screen, the sets come out of the speaker itself. Asleep in his hollow, he sleeps on through it, untroubled. Pictures are in [design/level1/waves/](design/level1/waves/).
+**The party next door** (25 Oct 2026, `scripts/sound_waves.gd`): under the title the night is quiet; New Game starts the party up. You don't hear it (his lullaby plays on); you see it, as its sound waves. They are drawn like the thought icons, three hand-scribbled wavy white lines. While the speaker's off the screen, they pulse on the edge of the screen the music's coming from, so you can always tell which way to go: since 22 Nov 2026 in bursts, three on the beat every 8 beats (about 5 s), then quiet; once the speaker's on the screen, the sets come out of the speaker itself. Asleep in his hollow, he sleeps on through it, untroubled. Pictures are in [design/level1/waves/](design/level1/waves/).
 
 **Controls:** WASD or the arrow keys to move, Shift to run, Ctrl or C to sneak, F to jump (tap it for a small hop, hold it for a full jump), E or a click to grab or drop, Space to chitter, and the mouse wheel to zoom. Walk into a tree to climb it. Then W and S climb up and down, A and D go round the trunk, and E or F lets go. Climb to the top of the home pine to get into the hollow. Esc pauses. M turns the music on and off (since 7 Nov 2026 it starts off), and N does the same for the sound effects. Tab brings up the TO DO list (THE PLAN until 7 Nov 2026), the level's tasks on a torn notebook page, crossed off as they're done (the camp's tasks appear on it with the tutorial at the camp); the task to follow now waits at the bottom of the screen, and a task just done comes up there crossed off. V opens a panel for trying out camera views live; its "Copy numbers" button copies the settings.
 
-**Developer keys** (debug runs only, which include runs from the editor; added 8 Nov 2026): **F1** opens the developer menu (`scripts/dev_menu.gd`). It restarts the level at a point: from the den, arriving at the camp, the tutorial's roasting, or free play with the campfire out or burning. It shows the fire's strength and what the fire keeper is doing, and it can put the fire out or set it burning. The same points start a run from the command line with `-- --dev-start=<den|camp|roast|free|fire>`. **F9** turns vsync off and on, for Assignment 6's frame-rate comparison; the window's title says which. Neither key is used by the game.
+**Developer keys** (debug runs only, which include runs from the editor; added 8 Nov 2026): **F1** opens the developer menu (`scripts/dev_menu.gd`). It restarts the level at a point: from the den, arriving at the camp, the tutorial's roasting, or free play with the campfire out or burning. It shows the fire's strength and what the fire keeper is doing, and it can put the fire out or set it burning. The same points start a run from the command line with `-- --dev-start=<den|camp|roast|free|fire>`; add `--dev-unseen` with `free` or `fire` and the campers can't see him (22 Nov 2026). **F9** turns vsync off and on, for Assignment 6's frame-rate comparison; the window's title says which. Neither key is used by the game.
 
 **The automated sound check:** run `godot --headless --path . -- --sound-test`. It plays a scripted input sequence, counts how often each sound effect starts, and checks the music's pause, mute, loop and end behaviour. It prints a table, and its exit code is 0 only if every check passes (`scripts/sound_test.gd`).
 
@@ -91,13 +92,104 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 | [assets/props/](assets/props/) | Assignment 3's props: the s'more, the pizza slice and the cooler, and the camper's dropped beanie. Each has its `.blend` source and the `.glb` Godot loads. |
 | [asset_room/](asset_room/), `Look at the A3 assets.bat`, `look_at_a3_assets.sh` | Assignment 3's asset room, with every asset at game size and its measured size, and the launchers for Windows and for macOS or Linux. See [For the grader](#for-the-grader-the-assets-in-godot-with-their-sizes). |
 | [tests/a3_asset_check.gd](tests/a3_asset_check.gd) | Assignment 3's headless check of the three assets against the brief |
-| [effects/](effects/), [previews/](previews/), `captures/` | Assignment 6's two particle effects as scene files, their preview scenes, and the frame strips from them |
+| [effects/](effects/), [previews/](previews/), `captures/` | Assignment 6's two particle effects as scene files; the preview scenes (Assignment 6's and Assignment 7's: the jump, the raccoon's loops, the moth) and the frame strips from them |
+| [animations/](animations/), [props/](props/) | Assignment 7's clips as resources (the moth's flutter, the balloons' bob, inflate and float away), the moth's and the balloons' scenes and scripts |
+| [assets/sprites/moth_lowpoly/](assets/sprites/moth_lowpoly/), [tools/](tools/) | The moth's sheet (my Gemini image as pasted, the sheet made from it, its credits) and the tool scripts that make sheets and cut strips |
+| [design/a7/](design/a7/) | Assignment 7's `claude -p` prompts and transcripts (excerpts where a transcript is over 1 MB), and the prompts for the generated images |
 | [design/a6/](design/a6/) | Assignment 6's `claude -p` prompts and transcripts (excerpts where a transcript is over 1 MB) |
 | `project.godot`, `main.tscn`, `raccoon_model.tscn`, `scripts/` | The Godot project. It opens on the title screen, shown over the level itself (`main.tscn`), and New Game starts play in the same scene. |
 
-## Assignment 6: particle effects (in progress)
+## Assignment 7: animation
 
-*Creating Particle Effects with Godot and Claude*, on the branch `assignment-6`, to be submitted as the tag `a6`. Godot 4.7.2, Forward+.
+*Doing Animation with Claude and Godot*, on the branch `assignment-7`, to be submitted as the tag `a7`. Godot 4.7.2, Forward+.
+
+### What this assignment added
+
+**The two clips:**
+
+| | What it is | Route | Its job, in my words | Loops or commits |
+|---|---|---|---|---|
+| **The jump** | The raccoon pushes off, stretches up snout first, gathers at the top, reaches down and lands: `jump` and `jump_land` | Imported 3D rig: new actions in [assets/characters/raccoon_v2.glb](assets/characters/raccoon_v2.glb) | "The jump tells the player the raccoon is airborne, to reach things not generally reachable." | Commits |
+| **The moth's flutter** | One moth flapping out and back through four poses | `Sprite3D` with an `AnimationPlayer` frame track ([animations/moth_flutter.tres](animations/moth_flutter.tres)) | "he helps user navigate to the main area" | Loops |
+
+- **The jump** is keyed in Blender from the brief's phase table, at 24 fps (`design/character/raccoon_v2/anim.py`, re-exported):
+  - **`jump`:** 10 frames, keys at 0, 3, 6 and 10;
+  - **`jump_land`:** 4 frames.
+  - **Its phases,** for a held jump, in physics ticks from takeoff:
+    - startup, the push and rise: 0–14;
+    - active, the top and the fall: 15–24;
+    - recovery: a 12-tick landing.
+  - **The movement is the game's own:** F takes off on the tick it's seen. Hold it for a full jump, or tap it for a hop.
+  - **Who plays it:** `scripts/raccoon_model.gd` is the only writer to the rig's `AnimationPlayer`. It plays the clips from what `scripts/player.gd` says he's doing. There's no `AnimationTree`.
+  - **Also new:** F now wakes him in his hollow, and a hop off a tree is shown with the jump's clips.
+- **The moth** is on a sheet I generated with Google Gemini, made into the game's sheet by [tools/make_moth_sheet.gd](tools/make_moth_sheet.gd) ([assets/sprites/moth_lowpoly/](assets/sprites/moth_lowpoly/), with its `ATTRIBUTION.md`).
+  - **On a New Game,** once he's out of his hollow, it flutters in and annoys him: it buzzes round his head and dips as if to land, but it never comes within reach.
+  - **As soon as he moves,** it flies ahead of him along the trail to the camp.
+  - **At the camp** it goes to the fire, and is over the flames while they burn.
+  - **Its driver,** [props/moths.gd](props/moths.gd), is presentation only, and the only writer to the moth's player.
+- **The raccoon's seven looping clips** (idle, walk, run, sneak, bored, sleep, climb) now meet the same requirements:
+  - written cycle specs, and a checked seam;
+  - their loop modes moved out of code into the importer's settings ([assets/characters/raccoon_v2.glb.import](assets/characters/raccoon_v2.glb.import)), proved from an empty import cache;
+  - a frame strip of each, with my verdict: all seven kept.
+- **The other game work** that came with it:
+  - **Let the balloons go,** a new task under Rock the party: just outside the camp to the south-west, the girl blows up three 3D balloons and ties them to a camp chair. E at the knot lets them go, and the bunch floats away. When she sees them gone, she calls the others to search there.
+  - **The party's sound waves** now come in bursts: three on the beat every 8 beats (about 5 s), then quiet.
+  - **`-- --dev-unseen`,** a developer flag that keeps the campers from seeing him.
+- **The previews and their frame strips** (fixture captures, Movie Maker, 1280 × 720):
+  - [previews/jump_preview.tscn](previews/jump_preview.tscn), 30 fps, with its strips `captures/jump/r0/` and `r1/`;
+  - [previews/raccoon_loops_preview.tscn](previews/raccoon_loops_preview.tscn), 24 fps, cut by [tools/crop_loop_strips.gd](tools/crop_loop_strips.gd) into `captures/loops/r0/`;
+  - [previews/moth_preview.tscn](previews/moth_preview.tscn), the moth close up.
+- **Tuning:** one revision, kept after play ([TUNING.md](TUNING.md)). From my play, "the hind legs don't particularly move", so the jump's push-off key now starts with the hind legs bunched under his hips.
+- **The checks:**
+  - **Read-backs:** [tests/test_raccoon_rig.gd](tests/test_raccoon_rig.gd) (every bone track, step, loop mode, the jump's keys, the loops' seams) and [tests/test_moth_flutter.gd](tests/test_moth_flutter.gd) (the frame track: discrete, every key a cell of the sheet, its seam).
+  - **Pins:** [tests/jump_pins.gd](tests/jump_pins.gd), committed before the change and re-pinned in its own commit.
+  - **State and edges:** [tests/test_jump_states.gd](tests/test_jump_states.gd) and [tests/test_jump_edges.gd](tests/test_jump_edges.gd), driven by real input. The edges run at 30, 60 and 144 fps.
+  - **The moth and the balloons:** [tests/test_moths_state.gd](tests/test_moths_state.gd), [tests/test_moth_guide.gd](tests/test_moth_guide.gd), [tests/test_balloon_3d.gd](tests/test_balloon_3d.gd) and [tests/test_balloon_task.gd](tests/test_balloon_task.gd).
+  - **Mutations and baseline:** the course's four mutations, each in its own git worktree; every one makes its test fail. The baseline was rerun before and after the change, from empty import caches. All of it is in [TEST-REPORT.md](TEST-REPORT.md).
+
+### For the grader: seeing it
+
+- **The jump and the moth's guide:** run `godot --path .` and choose New Game. W, A, S or D wakes him, and the moth comes in as he lands. Follow it to the camp, and press F to jump, tapped or held. To skip the title, run `godot --path . -- --dev-start=den`.
+- **The moth over the fire:** run `godot --path . -- --dev-start=fire`. Add `--dev-unseen` after it, so the campers don't get in the way.
+- **The balloons:** in free play (`-- --dev-start=free`), wait for the girl's balloon step after she warms her hands, then go south-west of the camp to the chair, and press E at the knot.
+- **The previews,** windowed. Make each folder first.
+  - `godot --path . --resolution 1280x720 res://previews/jump_preview.tscn --write-movie captures/jump/new/frame.png --fixed-fps 30 --quit-after 60 -- --dev-start=free`
+  - `godot --path . --resolution 1280x720 res://previews/raccoon_loops_preview.tscn --write-movie captures/loops/full/frame.png --fixed-fps 24 --quit-after 240 -- --raccoon-loops-preview`, then `godot --headless --path . --script res://tools/crop_loop_strips.gd -- --frames=captures/loops/full`
+  - `godot --path . --resolution 1280x720 res://previews/moth_preview.tscn --write-movie captures/moth/new/frame.png --fixed-fps 24 --quit-after 12`
+- **The checks,** from this folder in Git Bash, after `godot --headless --path . --import` once:
+  - `bash scripts/run-test.sh test_raccoon_rig.gd 60`
+  - `bash scripts/run-test.sh test_moth_flutter.gd 60`
+  - `bash scripts/run-test.sh jump_pins.gd 60`
+  - `bash scripts/run-test.sh test_jump_states.gd 60`
+  - `bash scripts/run-test.sh test_jump_edges.gd 30`, then the same at 60 and 144
+  - `bash scripts/run-test.sh test_moths_state.gd 60`
+  - `bash scripts/run-test.sh test_moth_guide.gd 60`
+  - `bash scripts/run-test.sh test_balloon_task.gd 60`
+
+  Every test, with its count, is in [CLAUDE.md](CLAUDE.md) and [TEST-REPORT.md](TEST-REPORT.md).
+
+### Known limitations (Assignment 7)
+
+- **`tests/cost_effects.gd` fails 1 of its 4 checks:** its smoke case finds the fire out. It failed the same way before this assignment's first change, so it isn't this change's, and it's still open.
+- **Climb needs more work, in my view:** "Maybe we'll need to work on climb in the future". In the loops preview it plays on flat ground, so it's best judged up a tree.
+- **The jump's distance:** "Maybe we can increase the distance for the jump, like, a little bit ... Or maybe keep it." It's noted, not changed: the jump's movement is outside this assignment.
+- **The sleep clip holds one pose,** with no breathing. I kept it.
+- **At an exact wrap Godot shows the moth's last cell,** an engine quirk. The moth starts half a frame in to avoid it at 24, 30 and 60 fps. At 144 fps it still drops one frame of the wings-raised pose in 48.
+- **No headless run can show the look.** How the clips read is checked by the strips and my eyes, and two of those checks are still mine to do: both clips over the darkest and lightest ground, and the new moth's registration by eye.
+- **Two earlier checks fail under `--fixed-fps`,** as before: waves and title. Both pass in realtime.
+
+The docs, each with its Assignment 7 work:
+- the plan and its dated revisions, [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
+- the tuning and the strips' readings, [TUNING.md](TUNING.md);
+- the checks and my checks in play, [TEST-REPORT.md](TEST-REPORT.md);
+- the log, [FRICTIONAL.md](FRICTIONAL.md);
+- the provenance, [SOURCES.md](SOURCES.md#assignment-7-animation).
+
+The `claude -p` prompts and transcripts are in [design/a7/](design/a7/). The film will be linked in [SUBMISSION.md](SUBMISSION.md).
+
+## Assignment 6: particle effects
+
+*Creating Particle Effects with Godot and Claude*, submitted as the tag `a6`. Godot 4.7.2, Forward+.
 
 ### What this assignment added
 
