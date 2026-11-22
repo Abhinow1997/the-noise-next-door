@@ -15,7 +15,9 @@ extends SceneTree
 ##     AnimationPlayer; camp_balloons.gd calls neither; no other script uses the balloon;
 ##   - the task: on the list under Rock the party, with its hint;
 ##   - three jumps (F held), one under each balloon: each pops it within the bite (ticks 5-14
-##     after F is seen), each pop heard by every camper within 8 m of it (HEAR_CHITTER: they
+##     after F is seen); `pop` (animations/balloon_pop.tres) starts on that tick and plays once,
+##     through cells 3, 4, 5, and the balloon is hidden once it has played, not on the bite's
+##     tick (Step 4); each pop heard by every camper within 8 m of it (HEAR_CHITTER: they
 ##     turn to it, camp_person.gd `_noise_at`) and by none further; the task not ticked after
 ##     one or two, ticked on the third;
 ##   - with balloons the test adds (from the same scene, given to camp_balloons.gd): one at
@@ -58,9 +60,14 @@ var _failed := 0
 ## Ticks since the current jump's press was seen (0 on that tick), -1 when not jumping.
 var _jt := -1
 var _was_jumping := false
-## Every pop: {balloon, tick, jt, heard: [[name, distance, heard]]}.
+## Every pop: {balloon, tick, jt, heard: [[name, distance, heard]], visible (on the pop's
+## tick), clip (current_animation on it)}.
 var _pops: Array[Dictionary] = []
 var _seen_popped := {}
+## For each popped balloon, after its pop tick: {cells: the frames it showed while still
+## visible, starts: how often `pop` began (from its start), hidden: the tick it was first
+## hidden, last: `pop`'s position last tick}.
+var _after := {}
 
 
 func _initialize() -> void:
@@ -100,6 +107,7 @@ func step() -> void:
 		_jt = -1
 	_was_jumping = jumping
 	for b: Sprite3D in balloons_node.get("balloons"):
+		var anim := b.get_node("AnimationPlayer") as AnimationPlayer
 		if b.get("popped") and not _seen_popped.has(b):
 			_seen_popped[b] = true
 			var heard: Array = []
@@ -107,7 +115,20 @@ func step() -> void:
 				var d := Vector2(person.global_position.x - b.global_position.x, person.global_position.z - b.global_position.z).length()
 				var at: Vector3 = person.get("_noise_at")
 				heard.append([person.name, d, at.distance_to(b.global_position) < 0.01])
-			_pops.append({"balloon": b, "tick": _tick, "jt": _jt, "heard": heard})
+			_pops.append({"balloon": b, "tick": _tick, "jt": _jt, "heard": heard, "visible": b.visible,
+				"clip": String(anim.current_animation)})
+			_after[b] = {"cells": [], "starts": 0, "hidden": -1, "last": INF, "pop_tick": _tick}
+		elif _after.has(b):
+			var a: Dictionary = _after[b]
+			if b.visible:
+				if not b.frame in a.cells:
+					a.cells.append(b.frame)
+				# `pop` began again from its start: its position went back.
+				if anim.assigned_animation == "pop" and anim.current_animation_position < a.last - 0.001:
+					a.starts += 1
+				a.last = anim.current_animation_position
+			elif a.hidden < 0:
+				a.hidden = _tick
 	ticked.emit()
 
 
@@ -222,7 +243,8 @@ func _structure() -> void:
 			on_anim += 1
 		else:
 			off.append(m.get_string(0))
-	_check("party_balloon.gd: every play() and seek() is on its own AnimationPlayer (%d)" % on_anim, off.is_empty() and on_anim == 2, off)
+	# play("float"), seek() and, since Step 4, play("pop"): three.
+	_check("party_balloon.gd: every play() and seek() is on its own AnimationPlayer (%d)" % on_anim, off.is_empty() and on_anim == 3, off)
 	var game: String = files.get("res://scripts/camp_balloons.gd", "")
 	_check("camp_balloons.gd calls no play() or seek(), and has no AnimationPlayer",
 		calls.search(game) == null and not game.contains("AnimationPlayer"), "")
@@ -248,6 +270,18 @@ func _task() -> void:
 		if mine.size() == 1:
 			var jt: int = mine[0].jt
 			_check("%s: popped within the bite, ticks 5-14 after F is seen (on tick %d)" % [c, jt], jt >= 5 and jt <= 14, jt)
+			# The pop clip (Step 4): `pop` starts on the bite's tick, the balloon still showing;
+			# it plays once through cells 3, 4, 5, and the balloon is hidden when it ends.
+			var a: Dictionary = _after[b]
+			_check("%s: on the bite's tick, `pop` starts and the balloon is still showing" % c,
+				mine[0].clip == "pop" and mine[0].visible, "%s, visible %s" % [mine[0].clip, mine[0].visible])
+			var cells: Array = a.cells.duplicate()
+			cells.sort()
+			_check("%s: `pop` plays once (started %d time(s)), showing cells %s" % [c, a.starts, cells],
+				a.starts == 1 and cells == [3, 4, 5], "%d, %s" % [a.starts, cells])
+			var after: int = a.hidden - a.pop_tick
+			_check("%s: hidden once `pop` has played, %d ticks after the bite (its 6/24 s is 15)" % [c, after],
+				after >= 15 and after <= 17, after)
 			var wrong: Array = []
 			for h: Array in mine[0].heard:
 				if (h[1] <= HEAR) != h[2]:

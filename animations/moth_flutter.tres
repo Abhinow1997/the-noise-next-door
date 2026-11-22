@@ -1,0 +1,26 @@
+[gd_resource type="Animation" format=3]
+
+; The moths' flutter (CHANGE-BRIEF.md, revision of 21 Nov 2026, "The extras' timings and places"):
+; cells 4 and 5 of assets/sprites/cutebugs/bugs.png (wings out, wings up; hframes 4, vframes 3) on
+; a moth's Sprite3D frame, each held 2 frames at 24 fps, keys at frames 0 and 2 (0, 2/24 s), length
+; 4/24 s, step 1/24 s, discrete updates, LOOP_LINEAR. The seam: the last key is cell 5, the first
+; cell 4, and the last gap (2/24 to 4/24 s) is the key interval, 2/24 s. The track's path is
+; relative to each moth's AnimationPlayer's root_node (its Sprite3D, in props/moths.tscn).
+
+[resource]
+resource_name = "flutter"
+length = 0.16666667
+loop_mode = 1
+step = 0.041666668
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:frame")
+tracks/0/interp = 0
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.083333336),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [4, 5]
+}

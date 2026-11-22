@@ -89,6 +89,8 @@ const CampTutorial := preload("res://scripts/camp_tutorial.gd")
 const LeafBursts := preload("res://scripts/leaf_bursts.gd")
 ## Effect B, the smoke over the campfire, following its strength (campfire_smoke.gd).
 const CampfireSmokeDriver := preload("res://scripts/campfire_smoke.gd")
+## The moths round the campfire, shown while it burns (props/moths.gd; not graded).
+const MothsScene := preload("res://props/moths.tscn")
 ## The developer menu (F1) and its start points (dev_menu.gd), and where each puts him.
 const DevMenu := preload("res://scripts/dev_menu.gd")
 const DEV_STARTS := {"camp": Vector3(26.0, 0.02, 6.0), "roast": Vector3(35.0, 0.02, 5.0),
@@ -243,6 +245,8 @@ var forest: Forest
 var campsite: Campsite
 ## Effect B's driver (campfire_smoke.gd), or null without the campsite.
 var campfire_smoke: CampfireSmokeDriver
+## The moths round the campfire (props/moths.tscn), or null without the campsite.
+var moths: Node3D
 ## What the game hears through: on the raccoon, turned as the camera is, so sounds in
 ## the world (the forest loop from the speaker, MUSIC_NEAR) are as loud as they are
 ## where he is, and what's on the right of the screen is heard on the right.
@@ -525,6 +529,11 @@ func _ready() -> void:
 		campfire_smoke = CampfireSmokeDriver.new()
 		campfire_smoke.fire = campsite.campfire
 		add_child(campfire_smoke)
+		# The moths round the fire (props/moths.gd, 21 Nov 2026): like the smoke, they read the
+		# fire and write no game state.
+		moths = MothsScene.instantiate()
+		moths.set("fire", campsite.campfire)
+		add_child(moths)
 
 	camera = Camera3D.new()
 	camera.fov = CAMERA_FOV

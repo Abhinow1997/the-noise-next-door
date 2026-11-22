@@ -1,0 +1,81 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://props/moths.gd" id="1_driver"]
+[ext_resource type="Texture2D" uid="uid://daxi0ffodmjpc" path="res://assets/sprites/cutebugs/bugs.png" id="2_bugs"]
+[ext_resource type="Animation" path="res://animations/moth_flutter.tres" id="3_flutter"]
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_moth"]
+_data = {
+&"flutter": ExtResource("3_flutter")
+}
+
+[node name="Moths" type="Node3D"]
+script = ExtResource("1_driver")
+
+[node name="Pivot0" type="Node3D" parent="."]
+
+[node name="Moth" type="Sprite3D" parent="Pivot0"]
+pixel_size = 0.0125
+billboard = 1
+texture_filter = 0
+texture = ExtResource("2_bugs")
+hframes = 4
+vframes = 3
+frame = 4
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Pivot0/Moth"]
+libraries = {
+&"": SubResource("AnimationLibrary_moth")
+}
+callback_mode_process = 1
+
+[node name="Pivot1" type="Node3D" parent="."]
+
+[node name="Moth" type="Sprite3D" parent="Pivot1"]
+pixel_size = 0.0125
+billboard = 1
+texture_filter = 0
+texture = ExtResource("2_bugs")
+hframes = 4
+vframes = 3
+frame = 4
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Pivot1/Moth"]
+libraries = {
+&"": SubResource("AnimationLibrary_moth")
+}
+callback_mode_process = 1
+
+[node name="Pivot2" type="Node3D" parent="."]
+
+[node name="Moth" type="Sprite3D" parent="Pivot2"]
+pixel_size = 0.0125
+billboard = 1
+texture_filter = 0
+texture = ExtResource("2_bugs")
+hframes = 4
+vframes = 3
+frame = 4
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Pivot2/Moth"]
+libraries = {
+&"": SubResource("AnimationLibrary_moth")
+}
+callback_mode_process = 1
+
+[node name="Pivot3" type="Node3D" parent="."]
+
+[node name="Moth" type="Sprite3D" parent="Pivot3"]
+pixel_size = 0.0125
+billboard = 1
+texture_filter = 0
+texture = ExtResource("2_bugs")
+hframes = 4
+vframes = 3
+frame = 4
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Pivot3/Moth"]
+libraries = {
+&"": SubResource("AnimationLibrary_moth")
+}
+callback_mode_process = 1

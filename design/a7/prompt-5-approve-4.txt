@@ -1,0 +1,44 @@
+Step 3 is committed (f8f2154), with your three choices (the 5.5 px offset onto the
+balloon's body, pops counting once the camp's tasks are revealed, the spots).
+
+Approved: the two extras, your Steps 4 and 5, from the brief's revision 1730f86 ("The
+extras' timings and places"). Do Step 4, show its diff and runs, then Step 5, show its diff
+and runs, then stop.
+
+Step 4, the balloon's `pop`:
+- animations/balloon_pop.tres: cells 3, 4, 5 of the balloon sheet, each held 2 frames at
+  24 fps (keys at 0, 2/24 and 4/24 s), length 6/24 s, step 1/24, LOOP_NONE, a discrete
+  value track on the Sprite3D's frame; added to the balloon scene's AnimationLibrary beside
+  `float`.
+- props/party_balloon.gd: pop() plays `pop` once (still the only caller of play() on its
+  AnimationPlayer) and hides the balloon when it has finished. Nothing else changes.
+- A light read-back of `pop`, like the float's: in tests/test_balloon_float.gd or a new
+  test beside it, with step compared exactly and key times within half a frame.
+- tests/test_balloon_task.gd is this assignment's own new test: change only what the pop
+  clip changes (the balloon is hidden once `pop` has played, not on the bite's tick), and
+  add a check that `pop` plays once after each bite.
+
+Step 5, the moths:
+- animations/moth_flutter.tres: cells 4 and 5 of assets/sprites/cutebugs/bugs.png
+  (hframes 4, vframes 3), each held 2 frames at 24 fps (keys at 0 and 2/24 s), length 4/24
+  s, step 1/24, LOOP_LINEAR, a discrete value track on the Sprite3D's frame.
+- props/moths.tscn and props/moths.gd, their driver: four moths round the campfire, each
+  circling 0.55-0.9 m out and 0.85-1.5 m up, each 0.1 m across (pixel_size 0.1 / 8),
+  billboarded, nearest filtering, each starting its flutter at its own offset; shown while
+  the fire burning() and hidden while it isn't. Keep one writer per animated node: each
+  moth's Sprite3D `frame` is written only by its own AnimationPlayer; the driver moves a
+  pivot above it and shows or hides the moths' root, and reads the fire, writing nothing in
+  the game. Add them to the level where the brief's named changes allow, and say where and
+  why.
+- detect_3d/compress_to set to 0 in assets/sprites/cutebugs/bugs.png.import, then reimport
+  with ../Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --import
+- A light read-back of `flutter` (its seam rule too: the last cell differs from the first,
+  and the last gap equals the interval), and a short state check through the real level:
+  the moths shown while the fire burns and hidden when it's out (the fire's own calls, as
+  tests/campfire_smoke_state_test.gd or the developer start points do).
+
+After each step run through scripts/run-test.sh: its new or changed tests at 60, the
+read-backs, test_jump_states.gd, test_balloon_task.gd, tests/jump_pins.gd (the same 13
+predicted failures and nothing else), and every existing test CLAUDE.md lists in its
+pinned mode, reading each run's exit code. Show the real output. Then stop. Do not start
+Step 6. Do not commit.

@@ -5,8 +5,8 @@ extends Sprite3D
 ## its play() and seek().
 ##   - `colour` (red, yellow or blue) picks the sheet and where in the float it starts, so
 ##     the three at the party don't sway in step.
-##   - pop() is the bite's (camp_balloons.gd, game code): it sets `popped` and hides the
-##     balloon. (The `pop` clip, cells 3-5, is Step 4's.)
+##   - pop() is the bite's (camp_balloons.gd, game code): it sets `popped` and plays `pop`
+##     (animations/balloon_pop.tres, cells 3-5) once, then hides the balloon when it's done.
 ## The node's offset puts its origin on the balloon's body: the body sits in the 14 x 19 px
 ## box at (1, 1) of each 16 x 32 px cell (assets/sprites/balloons/ATTRIBUTION.md), so its
 ## middle is 5.5 px above the cell's; the scene draws the cell 5.5 px lower. The sheets
@@ -35,9 +35,15 @@ func _ready() -> void:
 	_anim.seek(FLOAT_OFFSETS[colour], true)
 
 
-## Bitten: gone. Once only.
+## Bitten: it bursts (`pop`, once), then it's gone. Once only.
 func pop() -> void:
 	if popped:
 		return
 	popped = true
-	hide()
+	_anim.animation_finished.connect(_on_finished)
+	_anim.play("pop")
+
+
+func _on_finished(anim_name: StringName) -> void:
+	if anim_name == &"pop":
+		hide()
