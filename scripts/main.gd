@@ -45,6 +45,9 @@ extends Node3D
 ## and the camper hanging it up again (scripts/bear_bag_test.gd, camp_bear_bag.gd).
 ## `-- --dev-start=<point>` starts at a point of the developer menu (F1, dev_menu.gd):
 ## den, camp, roast, free (the fire out) or fire (burning); F9 turns vsync off and on.
+## `-- --dev-unseen`, with `--dev-start=free` or `fire`, in a debug run: the campers can't see
+## him (campsite.gd `cones_on` off, as the tests and previews have it), so their reactions
+## don't break off a check (the author, 22 Nov 2026). It changes nothing in normal play.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
@@ -399,6 +402,7 @@ func _ready() -> void:
 	var bearbag_test := false
 	var smoke_test := false
 	var smoke_load_test := false
+	var dev_unseen := false
 	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -415,6 +419,8 @@ func _ready() -> void:
 			_tick_test = true
 		elif arg == "--jump-test":
 			_jump_test = true
+		elif arg == "--dev-unseen":
+			dev_unseen = true
 		elif arg == "--see-collision":
 			_see_collision = true
 		elif arg.begins_with("--shot-frame="):
@@ -622,6 +628,14 @@ func _ready() -> void:
 		campsite.campfire.start_out()
 		if dev_point == "roast":
 			_tutorial.dev_roast()
+	# `--dev-unseen`: after the tutorial's check just above, which reads cones_on to decide
+	# whether the tutorial is still to come.
+	if dev_unseen:
+		if OS.is_debug_build() and campsite and dev_point in ["free", "fire"]:
+			campsite.cones_on = false
+			print("Dev: the campers can't see him (--dev-unseen)")
+		else:
+			push_warning("--dev-unseen works only in a debug run started with --dev-start=free or fire")
 	if OS.is_debug_build():
 		var dev := DevMenu.new()
 		dev.level = self

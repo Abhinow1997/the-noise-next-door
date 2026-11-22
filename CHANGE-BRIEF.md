@@ -741,3 +741,14 @@ The seven short answers above were written for the first plan: the balloon's 2D 
    - **The contrast:** the same empty-cache import with the seven's modes taken out of the importer failed 7 checks, one for each loop. The old runtime-code way would have hidden that.
 
 (Drafted by Claude Code on 22 Nov 2026 at my request, "Draft short answers", from the code, the tests' logs and the mutations. Answer 2's numbers are from Claude Code's scratch measurement that day. Kept by me the same day: "Keep it".)
+
+---
+
+### Revised 22 Nov 2026: a developer flag that keeps the campers from seeing him
+
+During my seam check: "We need a dev flag to disable the human NPCs, 'cause they scare away for us to test the element we need to."
+- **What it does:** `-- --dev-unseen`, with `--dev-start=free` or `fire`, in a debug run, turns the campers' sight off (`campsite.gd` `cones_on`), as the tests and previews already do. They carry on with their routines but never spot him, so their reactions don't break off a check.
+- **What it doesn't change:** anything in normal play, any timing, or any test's expected value. It's set in `scripts/main.gd` after the tutorial's own check of the campers' sight, so the tutorial doesn't start.
+- **Without a free-play start, or outside a debug run,** it does nothing and prints a warning.
+
+(Drafted by Claude Code on 22 Nov 2026 from my words above and "Yes, add it".)
