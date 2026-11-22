@@ -410,3 +410,17 @@ My generated balloon sheet looks right as a picture, but in the game it's a flat
 - `tests/test_balloon_task.gd` changes only where the balloon's look does (its sprite and sheet checks become the 3D balloon's).
 
 (Drafted by Claude Code on 21 Nov 2026 from my answer, "3D balloons, moth graded". The balloons' build, the bob's and the pop's clips, and the removals are Claude Code's. Kept by me the same day: "Keep it".)
+
+---
+
+### Revised 21 Nov 2026: the tasks test settles the fire keeper too; what the girl does out there
+
+Part 2 is built: the balloons are beyond `CAMP_ZONE`, and the girl minds them after warming her hands. The build stopped on two things.
+
+**`scripts/tasks_test.gd` fails 3 of its 48 checks:** the marshmallows, "nobody noticed", "a man snatches it back". Nothing it measures changed. The girl's longer walk out and back, about 25 s more game time, moves where the fire keeper's routine has reached. Now he's stoking the fire as the raccoon unzips the backpack, sees him, and raises the alarm. The test's `_settle()` (lines 311–321) puts the camper, the man and the girl at a fixed step before each scene, but never the keeper.
+- **The fix:** `_settle()` also puts the fire keeper at a fixed step of his routine, the first (eating at the table, away from the backpack), as it does the other three.
+- **Only how it measures changes.** No expected value changes, and the count stays 48. That's what CLAUDE.md allows a test.
+
+**What the girl does when she sees him at the balloons.** The revision said she "runs to her protector and cowers". The unchanged code (`camp_person.gd:929-940`) sends her behind her protector only when he's within 6 m. At the balloons he's about 14 m away, so she backs off from the raccoon a few steps and cowers there. That's what she does anywhere her protector is far. Her reactions stay unchanged, and the brief now says what they are: seen at the balloons, she backs off and cowers; that still leaves the balloons, and him, free. The test checks that.
+
+(Drafted by Claude Code on 21 Nov 2026 from the build's report. Kept by me the same day: "Keep it".)
