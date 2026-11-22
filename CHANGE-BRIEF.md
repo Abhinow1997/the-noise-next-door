@@ -800,3 +800,53 @@ During my seam check: "We need a dev flag to disable the human NPCs, 'cause they
 - the moth's two human checks, done again on the new sheet: Registration, on its four cells, and the seam in play.
 
 (Drafted by Claude Code on 22 Nov 2026 from my words above and the image I pasted. The keying, the cycle spec, the size, filtering, cut-out, circle and half-frame start are Claude Code's. Kept by me the same day: "Keep it, build it".)
+
+---
+
+### Revised 22 Nov 2026: the moth guides him to the camp; the waves come in bursts
+
+"I don't think the moth is being utilized. It's just roaming around the fire ... enough indicators about the fire. So let's utilize the moth a bit better. So when the game starts, when a new game starts, user when he gets down, we let's bring in the moth ... make it a like sort of annoyance ... let the moth be the one who guides the like raccoon to the particular campsite, and it can be like an annoying, like a fly ... it can come to the raccoon, but it should be always like away from it. Raccoon should not be able to catch it, if just trying to sit on his head or something. But as soon as the raccoon moves, we can take it away and guide it towards the campsite." And for the waves: "like in a frequency of like maybe 5 seconds wave, like a vibration wave, and it should only be at the corner of the screen, similar to what it is at this point of time, but it should be like coming and going, sort of fading in, like a vibration, zing, zing, zing, not constantly now how it is at this point of time."
+
+**This was built before this revision, at my request:** "Do the development first, let me play it, and then we can do the draft". I played it: "Feels right". This revision records what's in the game.
+
+**The moth's job, for this assignment:** "he helps user navigate to the main area" (22 Nov 2026, in my words).
+- It replaces the job the moth had as the graded sprite clip, "an indicator of the fire being on, and like surveillance being on" (the revision "the balloons are 3D, and the moth is the graded sprite clip").
+- Once he's at the camp the moth is over the fire, so it still shows that the fire's on. That's now a side effect, not its job.
+- **The two clips now:**
+
+| | What it is | Route | Its job | Loops or commits | Its one authority |
+|---|---|---|---|---|---|
+| **The jump** | unchanged | Imported 3D rig | unchanged | **Commits** | unchanged |
+| **The moth's flutter** | One moth flapping as it guides him from his tree to the camp on a New Game, then over the fire while it burns | `Sprite3D` with an `AnimationPlayer` frame track | "he helps user navigate to the main area" (my words) | **Loops** | The moth's own `AnimationPlayer`, played and sought only by its driver, `props/moths.gd` |
+
+**The moth as a guide** (`props/moths.gd` `guide()`, called from `scripts/main.gd`):
+- **When it appears:** on a New Game, before he's first reached the camp. It also runs from the developer menu's "den" start. It waits while he's in the hollow, and flutters in from the trees once he's out.
+- **While he's still:** it buzzes round his head, 0.42 m out and 0.18 m over it, going round at 3.2 rad/s.
+  - Every 2.4 s it dips as if to land on his head (0.45 s), then darts out to 0.8 m.
+  - It never comes within 0.25 m of his head. Nothing in the game reaches it, so he can't catch it.
+- **As soon as he moves** (faster than 0.4 m/s), it flies ahead of him along the trail toward the camp (`forest.gd` `TRAIL_POINTS`):
+  - 3 m on from where he is, and 0.95 m up;
+  - never more than 4.5 m from him;
+  - no faster than 6.5 m/s (he runs at 4).
+- **At the camp's edge** ("Investigate the music" ticked, `main.gd`), it flies to the fire. From then on it's the fire's moth: over the flames while they burn, gone while the fire's out. When the tutorial starts the fire's out, so the moth stays gone until the keeper lights it.
+- **Presentation only:** it reads him, the trail, the task and the fire, and writes nothing in the game.
+- **What stays as it was:** its clip, its sheet and its one authority (`moths.gd`). The developer menu's free and fire starts skip the hollow, and with it the guide.
+- **Its job** is the one above: "he helps user navigate to the main area".
+
+**The waves** (`scripts/sound_waves.gd`):
+- **In bursts:** every 8 beats of the music (5.2 s at 91.94 BPM), three sets, one on each of the first three beats (about 0.65 s apart). Each fades in and out over 0.9 s, then it's quiet until the next burst.
+- **Before,** a set came every 2 beats and lasted 1.6 s, so they never let up.
+- **Where they show is unchanged:** at the edge of the screen the music comes from, and kept to the speaker once he's reached the camp.
+
+**What changes with it:**
+- **The game:** `props/moths.gd` (the guide), `scripts/main.gd` (handing the moth to him), `scripts/sound_waves.gd` (the bursts).
+- **`scripts/waves_test.gd`:** its expected timing changes with the bursts. It now checks:
+  - three sets in a burst's period (5.22 s);
+  - each on one of the burst's first three beats, a new check (14 checks become 15);
+  - at most 2 out at once (each lasts 0.9 s).
+- **`scripts/title_test.gd`:** "In: the party's sound waves are rolling out" now asks whether any have gone out since New Game, not whether one is out at that instant, which a quiet gap can miss. This changes how it measures, not its expected value.
+- **`tests/test_moth_guide.gd`** (new): it runs the real level from the den, with 9 checks: still by his tree, walked along the trail, then at the camp.
+- **CLAUDE.md's test list.**
+- **Scope:** the moth's guidance at the start of the game, and the waves' timing, are named changes. The tutorial, the campers and the tasks are unchanged.
+
+(Drafted by Claude Code on 22 Nov 2026 from my words above, after the build I asked for and played: "Feels right". The moth's job is mine: "update the moths usage as well focusing on this assignement he helps user navigate to the main area". The guide's distances, speeds and timings, and the bursts', are Claude Code's. Kept by me the same day: "Keep and commit".)

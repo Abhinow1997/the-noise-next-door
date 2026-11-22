@@ -1,6 +1,7 @@
 extends Node
-## The automated check for the party's sound waves (sound_waves.gd): a set of strokes
-## goes out on the beat and fades after its time; on the way (by his tree, along the
+## The automated check for the party's sound waves (sound_waves.gd): sets of strokes go
+## out on the beat in bursts (three on the first beats of every eight, since 22 Nov 2026)
+## and each fades after its time; on the way (by his tree, along the
 ## trail) they come at him from the speaker's side of him on the screen, on the edge of
 ## the screen the music comes from; once he's reached the camp they keep to the speaker
 ## (since 11 Nov 2026), out of it a little way to each side, and none at the edge with
@@ -39,14 +40,27 @@ func _run() -> void:
 	_waves = _camp._waves
 	_check("The party plays from the start (no title)", true, _camp.party.playing)
 
-	# On the beat: a set every EVERY beats, each gone after LIFE.
+	# On the beat, in bursts (since 22 Nov 2026, CHANGE-BRIEF.md "the moth guides him to the camp;
+	# the waves come in bursts"): BURST sets, one on each of the first beats of every EVERY, each
+	# gone after LIFE. Over one burst's period, which beat of it each set starts on.
 	var first := _waves.made
-	await _wait(5.22)
-	var every := SoundWaves.EVERY * 60.0 / Campsite.MUSIC_BPM
-	_check("On the beat: a set every %d beats (%.2f s): %d in 5.22 s, give or take one" % [SoundWaves.EVERY,
-		every, roundi(5.22 / every)], true, absi(_waves.made - first - roundi(5.22 / every)) <= 1)
-	_check("Each lasts %.1f s: at most %d out at once" % [SoundWaves.LIFE, ceili(SoundWaves.LIFE / every)], true,
-		_waves.sets.size() <= ceili(SoundWaves.LIFE / every)
+	var seen := first
+	var on_beats: Array[int] = []
+	var started := Time.get_ticks_msec()
+	var period := SoundWaves.EVERY * 60.0 / Campsite.MUSIC_BPM
+	while Time.get_ticks_msec() - started < period * 1000.0:
+		await get_tree().process_frame
+		if _waves.made > seen:
+			seen = _waves.made
+			on_beats.append(posmod(floori(_camp.beat), SoundWaves.EVERY))
+	var beat := 60.0 / Campsite.MUSIC_BPM
+	_check("In bursts: %d sets every %d beats (%.2f s): %d in %.2f s, give or take one" % [SoundWaves.BURST,
+		SoundWaves.EVERY, period, SoundWaves.BURST, period], true, absi(_waves.made - first - SoundWaves.BURST) <= 1)
+	_check("Each on one of the burst's first %d beats, then quiet (on beats %s of %d)" % [SoundWaves.BURST,
+		str(on_beats), SoundWaves.EVERY], true,
+		not on_beats.is_empty() and on_beats.all(func(b: int) -> bool: return b < SoundWaves.BURST))
+	_check("Each lasts %.1f s: at most %d out at once" % [SoundWaves.LIFE, ceili(SoundWaves.LIFE / beat)], true,
+		_waves.sets.size() <= ceili(SoundWaves.LIFE / beat)
 		and _waves.sets.all(func(age: float) -> bool: return age < SoundWaves.LIFE))
 
 	# On the way, they come at him from the speaker's side of him on the screen; once he's
@@ -74,8 +88,9 @@ func _run() -> void:
 			_check("%s: on the edge of the screen the music comes from" % place[0], true,
 				minf(minf(absf(from.x - view.position.x), absf(from.x - view.end.x)),
 					minf(absf(from.y - view.position.y), absf(from.y - view.end.y))) < 1.0)
+		# For the picture, a set halfway through its life: up to one burst's period away.
 		await _until(func() -> bool: return _waves.sets.any(func(age: float) -> bool:
-			return absf(age - SoundWaves.LIFE * 0.5) < 0.05), 3.0)
+			return absf(age - SoundWaves.LIFE * 0.5) < 0.05), 6.0)
 		_shot("%s_by-claude" % String(place[0]).replace(" ", "_"))
 
 	# Still in the camp, on its far side from the speaker, which is off the screen: none

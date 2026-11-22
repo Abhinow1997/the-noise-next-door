@@ -94,3 +94,7 @@ PASS  each of the seven looping states plays its own clip ({ "idle": "idle", "bo
 PASS  every clip asked for in this run is in RM.CLIPS (idle, bored, jump, jump_land, walk, run, sneak, sleep, climb)  (got [])
 landed on ticks: [328, 388, 501, 612, 743, 907, 935]
 RESULT: all checks passed (89 checks, 0 failed)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

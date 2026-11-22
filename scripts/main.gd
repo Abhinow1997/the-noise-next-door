@@ -575,6 +575,11 @@ func _ready() -> void:
 		player.keep_asleep = true
 		_napping = true
 		_sleep_view = 1.0
+	# The moth guides him to the camp, before he's first been there (props/moths.gd guide(),
+	# the author's request of 22 Nov 2026): on a New Game, from when he's out of the hollow. It
+	# reads him and the task, and writes nothing in the game.
+	if moths and campsite and not tasks.is_done("investigate") and not campsite.in_camp(player.position):
+		moths.call("guide", player, tasks)
 	if use_sprites:
 		# Drawn with the author's generated images; the 3D model underneath only
 		# casts his shadow and carries things.

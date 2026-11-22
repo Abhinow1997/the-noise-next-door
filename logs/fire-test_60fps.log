@@ -2,7 +2,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 log times: [12.6500000000002, 20.6166666666668, 28.583333333333, 36.5499999999992]
 
-Campfire check, 2026-11-22T15:29:49
+Campfire check, 2026-11-22T15:55:45
   pass  Start: the cycle on, the fire out                            expected true 0.00      got true 0.00
   pass  Start: no flames, no light                                   expected false 0.00     got false 0.00
   pass  Start: the bucket doesn't twinkle with the fire out          expected true           got true

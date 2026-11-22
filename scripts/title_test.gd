@@ -174,7 +174,10 @@ func _check_in() -> void:
 	_check("In: New Game started the party next door", true, level.campsite.party.playing)
 	_check("In: the party isn't heard, just its waves", true,
 		level.campsite.party.volume_db <= level.campsite.SILENT_DB)
-	_check("In: the party's sound waves are rolling out", true, not level.campsite._waves.sets.is_empty())
+	# Since 22 Nov 2026 the waves come in bursts with a quiet gap between, so this asks whether
+	# any have gone out since New Game started the party (none could before), not whether one is
+	# out at this instant. The same expected value.
+	_check("In: the party's sound waves are rolling out", true, level.campsite._waves.made > 0)
 	_check("In: the forest loop is easing in, not there at once", true,
 		level._music.playing and level._music.volume_db > -59.0 and level._music.volume_db < level.MUSIC_DB - 1.0)
 	_check("In: it plays from the speaker, far off here", true,

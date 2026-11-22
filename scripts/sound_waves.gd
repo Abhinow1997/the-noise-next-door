@@ -7,8 +7,12 @@ extends CanvasLayer
 ## style we have"), so they're the thought icons' hand-scribbled lines (scribbles.gd
 ## "waves": three white pen arcs, small to big, boiling like the icons) and sized to
 ## him as the icons are.
-##   - Every EVERY beats while the speaker plays (campsite.gd `beat`), a set pulses
-##     (LIFE), fading in and out and swelling a little, at the edge of the screen
+##   - Every EVERY beats while the speaker plays (campsite.gd `beat`), a burst of BURST
+##     sets, one on each of its first beats, each pulsing (LIFE), then quiet till the next.
+##     Since 22 Nov 2026 ("in a frequency of like maybe 5 seconds wave, like a vibration
+##     wave ... coming and going, sort of fading in, like a vibration, zing, zing, zing,
+##     not constantly"); before, a set every 2 beats, which never let up. Each set fades in
+##     and out, swelling a little, at the edge of the screen
 ##     exactly the way the music is from him, bowed toward him. It stays there: it
 ##     doesn't come in across the screen to him. Asked for the same day, one step at a
 ##     time: "make the waves from the edge of the screen when source is not in the
@@ -32,9 +36,11 @@ const Scribbles := preload("res://scripts/scribbles.gd")
 const Player := preload("res://scripts/player.gd")
 const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
 
-## A set every EVERY beats, each out for LIFE seconds.
-const EVERY := 2
-const LIFE := 1.6
+## A burst every EVERY beats (8 at 91.94 BPM: 5.2 s), of BURST sets on its first beats in a
+## row (zing, zing, zing), each out for LIFE seconds.
+const EVERY := 8
+const BURST := 3
+const LIFE := 0.9
 ## In units of his height on the screen (as the icons are): how far short of him a set
 ## out of the speaker stops, and how far in from the edge a set at the edge sits (and
 ## from the corners), so it's all on the screen.
@@ -96,12 +102,14 @@ func _process(delta: float) -> void:
 	if camp.party and camp.party.playing:
 		# The beat can wobble back a hair at a boundary; going back further than that,
 		# the music has looped round.
-		var n := floori(camp.beat / EVERY)
+		var n := floori(camp.beat)
 		if not _counting or n > _last or n < _last - 2:
 			_counting = true
 			_last = n
-			sets.append(0.0)
-			made += 1
+			# The burst's first BURST beats of every EVERY.
+			if posmod(n, EVERY) < BURST:
+				sets.append(0.0)
+				made += 1
 	else:
 		_counting = false
 	_overlay.queue_redraw()

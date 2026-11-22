@@ -26,8 +26,9 @@
 ### The moth's flutter (the graded sprite clip): `Sprite3D` + `AnimationPlayer` frame track
 - **Sheet:** `assets/sprites/moth_lowpoly/moth_lowpoly.png` (the author's generated image beside it, made into the sheet
   by `tools/make_moth_sheet.gd`; `ATTRIBUTION.md` there), 512 × 512 cells, `hframes` 2, `vframes` 2, cells 0–3;
-  `animations/moth_flutter.tres` (0, 1, 2, 3, 2, 1); one moth, `props/moths.tscn`, driver `props/moths.gd` (over the fire
-  while it's `burning()`).
+  `animations/moth_flutter.tres` (0, 1, 2, 3, 2, 1); one moth, `props/moths.tscn`, driver `props/moths.gd`.
+- **Its job** ("he helps user navigate to the main area"): on a New Game it guides him from his tree to the camp
+  (`guide()`, from `main.gd`, until "Investigate the music"), then it's over the fire while it's `burning()`.
 - **Balloons (not graded):** 3D. `props/party_balloon.tscn`/`.gd` (`bob`, `inflate`), `props/balloon_bunch.tscn`
   (`float_away`), clips in `animations/`. The chair, the knot (E) and the release are in `scripts/camp_balloons.gd`.
   The task is "Let the balloons go", id `balloons`.
@@ -64,6 +65,7 @@ bash scripts/run-test.sh test_jump_states.gd 60        # tests/test_jump_states.
 bash scripts/run-test.sh test_jump_edges.gd 30         # tests/test_jump_edges.gd; also 60 and 144
 bash scripts/run-test.sh test_moth_flutter.gd 60       # tests/test_moth_flutter.gd: the moth's read-back
 bash scripts/run-test.sh test_moths_state.gd 60        # tests/test_moths_state.gd
+bash scripts/run-test.sh test_moth_guide.gd 60         # tests/test_moth_guide.gd: the moth guiding him to the camp
 bash scripts/run-test.sh test_balloon_3d.gd 60         # tests/test_balloon_3d.gd: the balloons' clips (not graded)
 bash scripts/run-test.sh test_balloon_task.gd 60       # tests/test_balloon_task.gd: Let the balloons go
 ```

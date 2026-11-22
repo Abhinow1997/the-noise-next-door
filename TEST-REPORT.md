@@ -21,7 +21,7 @@ Their logs stay in `logs/` where those reports cite them: Assignment 6's are in 
 
 ## Assignment 7: animation
 
-Every run here is Godot 4.7.2 stable. Headless runs use the dummy renderer, which draws nothing. The captures are windowed Forward+ at 1280 × 720, made by me with Movie Maker. Each entry names its source revision. The clips are the jump (`jump` and `jump_land`, the imported rig, committing) and the moth's flutter (a `Sprite3D` frame track, looping), as CHANGE-BRIEF.md's revisions have them.
+Every run here is Godot 4.7.2 stable. Headless runs use the dummy renderer, which draws nothing. The captures are windowed Forward+ at 1280 × 720, made by me with Movie Maker. Each entry names its source revision. The clips are the jump (`jump` and `jump_land`, the imported rig, committing) and the moth's flutter (a `Sprite3D` frame track, looping), as CHANGE-BRIEF.md's revisions have them. The moth's job: "he helps user navigate to the main area". On a New Game it guides him from his tree to the camp, then it's over the fire.
 
 | Check | Evidence | Status |
 |---|---|---|
