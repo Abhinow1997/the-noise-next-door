@@ -369,3 +369,44 @@ The build stopped, as the last revision told it to. `scripts/tasks_test.gd` expe
   - The check's name may change to say so. Its count stays the same.
 
 (Drafted by Claude Code on 21 Nov 2026 from the build's report. Kept by me the same day: "Yes, both".)
+
+---
+
+### Revised 21 Nov 2026: the balloons are 3D, and the moth is the graded sprite clip
+
+My generated balloon sheet looks right as a picture, but in the game it's a flat card: a `Sprite3D` facing the camera beside the camp's real 3D props. "it looks weird in the game". So the balloons become real low-poly 3D, and the sprite-sheet clip the course grades moves to the moth, which is already built and checked.
+
+**The two clips now:**
+
+| | What it is | Route | Its job | Loops or commits | Its one authority |
+|---|---|---|---|---|---|
+| **The jump** | unchanged | Imported 3D rig | unchanged | **Commits** | unchanged |
+| **The moth's flutter** | Four moths flapping round the campfire while it burns | `Sprite3D` with an `AnimationPlayer` frame track | "an indicator of the fire being on, and like surveillance being on" (my words, above) | **Loops** | Each moth's own `AnimationPlayer`, played and sought only by the moths' driver, `props/moths.gd` |
+
+- **The moth's sheet** is as "The sheet, for each sprite clip" gives it: madameberry's CC0 "Ambient Pixel Art Insects", the zip as downloaded, `bugs.png` from it, 8 × 8 cells, `hframes` 4 × `vframes` 3, the moth cells 4 and 5.
+- **Its cycle spec** is the one the revision of the extras gave:
+  - cells 4, 5, each held 2 frames at 24 fps;
+  - keys at 0 and 2/24 s; length 4/24 s; `step` 1/24; `LOOP_LINEAR`; discrete.
+  - The seam rule for a frame track: the last cell (5) differs from the first (4), and the last gap (2/24 s) equals the interval. So no frame repeats across the wrap.
+- **Its read-back** is `tests/test_moth_flutter.gd`: the course's track check, discrete updates, every key inside the sheet (below 12), key times within half a frame, `step` exactly, `LOOP_LINEAR`, the seam. Its state check is `tests/test_moths_state.gd`.
+- **The mutations** move with it:
+  - the loop flip sets `flutter` to `LOOP_NONE`;
+  - the bad cell keys cell 12, which `bugs.png` doesn't have.
+- **Registration** is checked on the moth's two cells.
+- **Its job** as a gameplay signal overlaps the smoke's (the fire is lit). That's what I chose it to say.
+
+**The balloons, now 3D:**
+- **The model:** low-poly balloons built in code like the camp's other props: a faceted egg-shaped body with few sides, a small knot and a thin string, matte and flat-shaded. Each is tinted with the same red, yellow and blue as before, 0.3 m across, its middle about 0.7 m up.
+- **Their bob:** a clip saved as a resource on each balloon's own `AnimationPlayer`. It's a gentle rise and fall with a slight sway, `LOOP_LINEAR`, each balloon starting at its own offset.
+- **Their pop:** a short clip saved as a resource (a quick swell, about 0.1 s), then the balloon is hidden.
+- **Authority:** the balloon's own script plays them, the only caller of `play()` on that player.
+- **Not graded:** both clips get a light read-back.
+- **Unchanged:** the task, its place outside the camp, the girl minding them, the bite check and the pops' noise.
+
+**What goes:**
+- the 2D balloon's `float` and `pop` clips (`animations/balloon_float.tres`, `animations/balloon_pop.tres`), its `Sprite3D` scene setup, and their read-backs (`tests/test_balloon_float.gd`, `tests/test_balloon_pop.gd`);
+- the course's track check, which the moth's read-back borrows from the float test: it moves to the moth's test (or a small shared helper), unchanged;
+- my generated sheet, its import files and `tools/make_balloon_sheet.gd`: out of the repo, kept in history at `7bd4aea`. SOURCES.md notes it was made and then replaced.
+- `tests/test_balloon_task.gd` changes only where the balloon's look does (its sprite and sheet checks become the 3D balloon's).
+
+(Drafted by Claude Code on 21 Nov 2026 from my answer, "3D balloons, moth graded". The balloons' build, the bob's and the pop's clips, and the removals are Claude Code's. Kept by me the same day: "Keep it".)
