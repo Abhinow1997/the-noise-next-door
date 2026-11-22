@@ -867,3 +867,16 @@ During my seam check: "We need a dev flag to disable the human NPCs, 'cause they
 - **Steal the marshmallows** is unchanged: the tutorial crosses it off when it ends, as since 11 Nov 2026.
 
 (Drafted by Claude Code on 22 Nov 2026 from my words above.)
+
+---
+
+### Revised 22 Nov 2026: a coin and a pencil scribble for a task done
+
+"use the sound effect when u complete a task replace it with the current vesrion", with the two sounds I downloaded from Pixabay: "Get Coin" by KoiRoylers and "Scribble" (Tomoyo Ichijouji, from Freesound). Both are under the Pixabay Content License, checked the same day.
+- **The coin** plays as a task is done, in place of the raccoon's laugh. When it plays, how loud it is and how the music dips under it are as before.
+- **The pencil scribble** loops while a task is written out and crossed off, in place of the chalk scribble. How it's timed is as before.
+- **How they're made:** `tools/make_task_sounds.gd`. There's no ffmpeg here, so Godot decodes each MP3, and the tool levels and trims it. The MP3s stay out of GitHub, in `design/sfx/`; SOURCES.md has their hashes.
+- **`scripts/sound_test.gd`:** the sound it counts is renamed from `SFX-TASK-LAUGH` to `SFX-TASK-DONE`, with the same expected counts (0, 0, 1).
+- **The old sounds** (`task-laugh.wav`, `scribble-loop.wav`) stay in the repo, unplayed.
+
+(Drafted by Claude Code on 22 Nov 2026 from my words above. Kept by me after listening in the game the same day: "Sounds good, commit".)

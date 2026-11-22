@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Tutorial check, 2026-11-22T15:54:10
+Tutorial check, 2026-11-22T17:18:10
   pass  Before the camp: no cones, no dark layer                       expected false false              got false false
   pass  The pan: slowed, the camera panning, no words                  expected true true                got true true 
   pass  The pan: he's held still, and no cones                         expected true false               got true false
@@ -33,7 +33,11 @@ Tutorial check, 2026-11-22T15:54:10
   pass  Holding E: he sits up and eats it from his paws, held still    expected true true true true      got true true true true
   pass  Eaten once they'd calmed: nobody noticed                       expected true WORK WORK WORK WORK got true WORK WORK WORK WORK
   pass  Eaten: 'Yum!', the note to press Tab, he's up, the camper's own routine back expected Yum! Tab: your TO DO list false false peg roast pizza got Yum! Tab: your TO DO list false false peg roast pizza
-  pass  Tab: the TO DO list up to read, the camp's tasks on it, slowed expected true investigate party marshmallows music cooler tent bearbag balloons true got true investigate party marshmallows music cooler tent bearbag balloons true
+  pass  Tab: the TO DO list up to read, the camp's tasks on it, slowed expected true investigate marshmallows music cooler tent bearbag balloons true got true investigate marshmallows music cooler tent bearbag balloons true
   pass  Tab again: the world's open (list away, no note, full speed, he can move) expected DONE false  1.0 false    got DONE false  1.0 false
   pass  And the stolen marshmallow counts: Steal the marshmallows done, written out at the bottom expected true true                got true true
 RESULT: all checks passed (34 checks)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

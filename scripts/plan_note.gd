@@ -146,7 +146,11 @@ const WRITE_AFTER := 0.15
 const WRITE_CHAR := 0.05
 ## The chalk scribble heard while a scrap's words are written or crossed off
 ## (design/sfx/make_scribble.py makes it), how loud, and how quickly it fades in and out.
-const SCRIBBLE := "res://assets/audio/sfx/scribble-loop.wav"
+## Since 22 Nov 2026 a pencil scribble, "Scribble" by Tomoyo Ichijouji (Freesound, via Pixabay), made by
+## tools/make_task_sounds.gd and looped (its import), in place of the chalk scribble made from
+## noise (scribble-loop.wav, design/sfx/make_scribble.py); the author: "use the sound effect when u
+## complete a task replace it with the current vesrion".
+const SCRIBBLE := "res://assets/audio/sfx/scribble-pencil.wav"
 const SCRIBBLE_DB := -2.0
 const SCRIBBLE_FADE := 0.06
 ## Hovering (7 Nov 2026): how far round a task's line the mouse counts as on it.

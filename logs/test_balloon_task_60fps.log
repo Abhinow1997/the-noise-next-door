@@ -4,7 +4,7 @@ Let the balloons go: the real level at the developer menu's "free" point, 60 phy
 PASS  before she's been out: no chair, no balloons showing (0), none tied  (got chair false)
 PASS  the tasks are revealed (so only the balloons' own state stops E)  (got )
 PASS  E where the knot will be: nothing to untie, nothing let go, the task not ticked  (got )
-PASS  the task: Let the balloons go, under Rock the party, "Untie them, let them fly."  (got { "id": "balloons", "text": "Let the balloons go", "done": false, "parent": "party", "hint": "Untie them, let them fly." })
+PASS  the task: Let the balloons go, on the camp's list, "Untie them, let them fly."  (got { "id": "balloons", "text": "Let the balloons go", "done": false, "camp": true, "hint": "Untie them, let them fly." })
 PASS  party_balloon.gd: every play() and seek() is on its own AnimationPlayer (3)  (got [])
 PASS  camp_balloons.gd: its only play() or seek() is the bunch's player's play() (_bunch_anim.play()  (got ["_bunch_anim.play("])
 PASS  no other game script uses the balloon or the bunch  (got [])

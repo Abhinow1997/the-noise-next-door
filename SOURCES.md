@@ -290,6 +290,19 @@ The reference pictures made or shared after Assignment 3, in the same columns as
   - **Terms:** Google's Terms of Service, as in Assignment 2's section above.
   - **Where it is now:** replaced the same day by 3D balloons built in code ("it looks weird in the game"). The sheet, its tool and the prompt are in history at `7bd4aea`.
 
+### The sounds
+
+- **The task-done chime** (22 Nov 2026): "Get Coin" by KoiRoylers, https://pixabay.com/sound-effects/get-coin-351945/.
+  - **Licence:** the Pixabay Content License, checked 22 Nov 2026. The page tags it as AI-generated, an "8-bit retro arcade coin pickup sound effect".
+  - **Downloaded by the author:** `koiroylers-get-coin-351945.mp3`, 98,638 bytes, SHA-256 `b560c473d1a602fe8c1267e75ba0900f733ca13f6e8fbf167b69e36289202662`. It's kept in `design/sfx/`, out of GitHub as MP3s are.
+  - **Made into** `assets/audio/sfx/task-done-coin.wav` by Claude Code's [tools/make_task_sounds.gd](tools/make_task_sounds.gd): decoded by Godot's MP3 player and recorded 3 dB down (the MP3 peaks just over full scale), 44.1 kHz 16-bit stereo, then trimmed to its sound with a 50 ms fade at the end.
+  - **Use:** it plays as a task is done (`main.gd`), in place of the author's laugh (take B, `task-laugh.wav`, which stays in the repo, unplayed).
+- **The scribble as a task is written out and crossed off** (22 Nov 2026): "Scribble" by Tomoyo Ichijouji (Freesound), uploaded to Pixabay by freesound_community, https://pixabay.com/sound-effects/scribble-6144/.
+  - **Licence:** the Pixabay Content License, checked 22 Nov 2026.
+  - **Downloaded by the author:** `freesound_community-scribble-6144.mp3`, 39,288 bytes, SHA-256 `f85972ce4a13703b60ffb7db8047af7f06bf3a7feafe6cc456a7390d977f6d89`. It's kept in `design/sfx/`, out of GitHub.
+  - **Made into** `assets/audio/sfx/scribble-pencil.wav` by the same tool: raised 20 dB to the old scribble's level, trimmed, and looped by its import.
+  - **Use:** in place of the chalk scribble Claude Code made from noise (`scribble-loop.wav`, Assignment 6, which stays in the repo, unplayed).
+
 ### Code, clips and tools
 
 - **Claude Code** (with Claude Opus 5.5) wrote the clips, tests, previews and records, and read the frame strips. Its `claude -p` sessions, prompts and transcripts are in `design/a7/`. The author made every decision and gave every verdict.

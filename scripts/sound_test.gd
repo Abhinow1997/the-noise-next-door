@@ -123,7 +123,7 @@ func _check(name: String, expected, actual) -> void:
 func _check_nap() -> void:
 	_check("Nap: it counts as a nap", 1, level.naps)
 	_check("Nap: a task done in his sleep is ticked off", true, level.tasks.is_done("marshmallows"))
-	_check("Nap: no laugh in his sleep", 0, level.sound_counts.get("SFX-TASK-LAUGH", 0))
+	_check("Nap: no task chime in his sleep", 0, level.sound_counts.get("SFX-TASK-DONE", 0))
 	_check("Nap: the lullaby is playing", true, level._sleep_music.playing)
 	_check("Nap: the lullaby is at full level", true,
 		absf(level._sleep_music.volume_db - level.SLEEP_MUSIC_DB) < 0.5)
@@ -138,7 +138,7 @@ func _check_awake() -> void:
 	_check("Awake: the lullaby has stopped", false, level._sleep_music.playing)
 	_check("Awake: the forest loop is back to full", true, absf(level._music.volume_db - level.MUSIC_DB) < 0.5)
 	_check("Awake: the camera is back out", 0.0, level._sleep_view)
-	_check("Awake: still no laugh for it", 0, level.sound_counts.get("SFX-TASK-LAUGH", 0))
+	_check("Awake: still no task chime for it", 0, level.sound_counts.get("SFX-TASK-DONE", 0))
 
 
 func _check_pause_and_mute() -> void:
@@ -165,7 +165,7 @@ func _finish() -> void:
 	_check("SFX-CHITTER: 5 quick presses + 1 held press", 6, counts.get("SFX-CHITTER", 0))
 	_check("SFX-RUN: 2 runs, Shift tapped during the first", 2, counts.get("SFX-RUN", 0))
 	_check("SFX-CLIMB: 2 climbs, clinging still between", 2, counts.get("SFX-CLIMB", 0))
-	_check("SFX-TASK-LAUGH: 3 tasks in a frame, not in his sleep", 1, counts.get("SFX-TASK-LAUGH", 0))
+	_check("SFX-TASK-DONE: 3 tasks in a frame, not in his sleep", 1, counts.get("SFX-TASK-DONE", 0))
 	_check("Every task done", true, level.tasks.all_done())
 	_check("No ending yet: the music carries on", true, level._music.playing)
 	for path: String in ["res://assets/audio/music/forest-loop.wav", "res://assets/audio/sfx/run-loop.wav", "res://assets/audio/sfx/climb-loop.wav"]:

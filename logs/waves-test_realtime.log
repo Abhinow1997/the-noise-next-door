@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Sound waves check, 2026-11-22T15:59:35
+Sound waves check, 2026-11-22T17:18:55
   pass  The party plays from the start (no title)                          expected true   got true
   pass  In bursts: 3 sets every 8 beats (5.22 s): 3 in 5.22 s, give or take one expected true   got true
   pass  Each on one of the burst's first 3 beats, then quiet (on beats [2, 0, 1] of 8) expected true   got true

@@ -135,6 +135,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - **Let the balloons go,** a new task on the camp's list: just outside the camp to the south-west, the girl blows up three 3D balloons and ties them to a camp chair. E at the knot lets them go, and the bunch floats away. When she sees them gone, she calls the others to search there.
   - **The party's sound waves** now come in bursts: three on the beat every 8 beats (about 5 s), then quiet.
   - **`-- --dev-unseen`,** a developer flag that keeps the campers from seeing him.
+  - **A task done** now plays a coin chime, and its words are written out to a pencil scribble: two Pixabay sounds the author picked, in place of the laugh and the chalk scribble.
 - **The previews and their frame strips** (fixture captures, Movie Maker, 1280 × 720):
   - [previews/jump_preview.tscn](previews/jump_preview.tscn), 30 fps, with its strips `captures/jump/r0/` and `r1/`;
   - [previews/raccoon_loops_preview.tscn](previews/raccoon_loops_preview.tscn), 24 fps, cut by [tools/crop_loop_strips.gd](tools/crop_loop_strips.gd) into `captures/loops/r0/`;

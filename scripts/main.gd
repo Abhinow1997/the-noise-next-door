@@ -119,10 +119,13 @@ const STUMP_HEIGHT := 0.6
 const STUMP_LEFT := 2.2
 const STUMP_NEAR := 0.6
 
-## A to-do item ticked off: take B of the author's laugh (SFX-TASK-LAUGH).
-const TASK_LAUGH_PATH := "res://assets/audio/sfx/task-laugh.wav"
-const TASK_LAUGH_DB := -2.0
-## How far the music dips under the laugh, and how the music is muffled while paused
+## A to-do item ticked off: a coin's chime (SFX-TASK-DONE), "Get Coin" by KoiRoylers (Pixabay),
+## made by tools/make_task_sounds.gd. Since 22 Nov 2026 (the author: "use the sound effect when u
+## complete a task replace it with the current vesrion"); before, take B of the author's laugh
+## (task-laugh.wav). About as loud as the laugh was.
+const TASK_DONE_PATH := "res://assets/audio/sfx/task-done-coin.wav"
+const TASK_DONE_DB := 0.0
+## How far the music dips under the task's chime, and how the music is muffled while paused
 ## (CHANGE-BRIEF.md, music behaviour). (Its fade at the end went with the prototype's
 ## to-do list on 23 Oct 2026: level 1 has no ending yet.)
 const DUCK_DB := 4.0
@@ -196,7 +199,7 @@ const MUSIC_FADE_IN := 2.0
 ## increses"). MUSIC_DB is how loud it is MUSIC_NEAR metres from the speaker, a few metres
 ## out along the trail from the camp; it falls off 6 dB each time the distance doubles,
 ## so at his tree, about 41 m away, it's about 8 dB quieter. Right by the speaker it's
-## never more than MUSIC_CLOSE_DB over its level, which still dips under the laugh and
+## never more than MUSIC_CLOSE_DB over its level, which still dips under the task's chime and
 ## fades for a nap as before. It stops while the speaker's unplugged (camp_puzzles.gd).
 ## The bubble demo has no camp: there it plays as it always did, the same everywhere.
 ## MUSIC_NEAR was 10 m at first; the same day it went to 16 m, when the author asked for
@@ -291,7 +294,7 @@ var _focus_at := Vector3.ZERO
 var _tuner: CameraTuner
 var _nap_time := 0.0
 var _sleep_time := 0.0
-## Tasks ticked off since the last frame: one laugh for them all.
+## Tasks ticked off since the last frame: one chime for them all.
 var _ticked := 0
 var _rng := RandomNumberGenerator.new()
 var _closeup := false
@@ -315,7 +318,7 @@ var _sleep_tween: Tween
 ## toward the sleeping close-up.
 var _napping := false
 var _sleep_view := 0.0
-var _task_laugh: AudioStreamPlayer
+var _task_sound: AudioStreamPlayer
 var _paused_label: Label
 ## How many times each sound effect has started, by asset ID.
 var sound_counts := {}
@@ -608,12 +611,12 @@ func _ready() -> void:
 	_anchor = _drawn() + PIVOT
 	_place_camera()
 
-	_task_laugh = AudioStreamPlayer.new()
-	_task_laugh.bus = "SFX"
-	_task_laugh.volume_db = TASK_LAUGH_DB
-	if ResourceLoader.exists(TASK_LAUGH_PATH):
-		_task_laugh.stream = load(TASK_LAUGH_PATH)
-	add_child(_task_laugh)
+	_task_sound = AudioStreamPlayer.new()
+	_task_sound.bus = "SFX"
+	_task_sound.volume_db = TASK_DONE_DB
+	if ResourceLoader.exists(TASK_DONE_PATH):
+		_task_sound.stream = load(TASK_DONE_PATH)
+	add_child(_task_sound)
 	var keys := Keys.new()
 	keys.level = self
 	add_child(keys)
@@ -762,7 +765,7 @@ func _process(delta: float) -> void:
 	_ear.global_transform = Transform3D(camera.global_basis, _drawn() + Vector3(0, 0.35, 0))
 	if _music and campsite:
 		# Right by the speaker, no more than MUSIC_CLOSE_DB over the music's level, whatever
-		# that is just now (faded for a nap, dipped under the laugh).
+		# that is just now (faded for a nap, dipped under the task's chime).
 		_music.max_db = _music.volume_db + MUSIC_CLOSE_DB
 	_update_see_through()
 	_check_tasks(delta)
@@ -927,18 +930,18 @@ func _count_sound(id: String) -> void:
 	sound_counts[id] = sound_counts.get(id, 0) + 1
 
 
-## The laugh for a ticked-off task, with the forest loop dipping under it. It never
+## The chime for a ticked-off task, with the forest loop dipping under it. It never
 ## plays while he's in the hollow (_check_tasks), so the lullaby never dips.
-func _play_task_laugh() -> void:
-	if _task_laugh.stream == null:
+func _play_task_sound() -> void:
+	if _task_sound.stream == null:
 		return
-	_task_laugh.play()
-	_count_sound("SFX-TASK-LAUGH")
+	_task_sound.play()
+	_count_sound("SFX-TASK-DONE")
 	if _music == null:
 		return
 	_restart_music_tween()
 	_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
-	_music_tween.tween_interval(_task_laugh.stream.get_length())
+	_music_tween.tween_interval(_task_sound.stream.get_length())
 	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, 0.4)
 
 
@@ -1115,17 +1118,17 @@ func _check_tasks(delta: float) -> void:
 		_tutorial.begin()
 
 	# The camp's puzzles tick tasks off (camp_tasks.gd). The sound follows the change in
-	# state, never the other way round. One laugh a frame, however many tasks finish
+	# state, never the other way round. One chime a frame, however many tasks finish
 	# together; and none in his sleep (the author asked): a task done while he's in the
 	# hollow ticks off silently. THE PLAN (plan_note.gd) crosses them off itself.
 	if _ticked > 0:
 		if not player.resting:
-			_play_task_laugh()
+			_play_task_sound()
 		_ticked = 0
 
 
-## A task ticked off: it laughs (above), but not for following the music to the camp,
-## so there's no laugh as he gets there (the author, 8 Nov 2026: "remove the laugh as
+## A task ticked off: its chime (above), but not for following the music to the camp,
+## so there's no chime as he gets there (the author, 8 Nov 2026: "remove the laugh as
 ## well when he reaches the camp").
 func _on_task_ticked(id: String) -> void:
 	if id != "investigate":

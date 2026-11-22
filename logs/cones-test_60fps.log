@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Tutorial and cones check, 2026-11-22T15:54:50
+Tutorial and cones check, 2026-11-22T17:19:01
   pass  Before the tutorial: no cones                                  expected false false false got false false false
   pass  Before the tutorial: only the music's task on the list         expected investigate      got investigate
   pass  Before the tutorial: in plain sight, nobody sees him           expected false false false got false false false
@@ -12,7 +12,7 @@ Tutorial and cones check, 2026-11-22T15:54:50
   pass  Tutorial: the TO DO list isn't up yet                          expected false            got false
   pass  Tutorial: Esc doesn't pause it or end it                       expected true             got true
   pass  Tutorial: Tab brings up the TO DO list                         expected true             got true
-  pass  Tutorial: the list shows Rock the party and its tasks          expected investigate party marshmallows music cooler tent bearbag balloons got investigate party marshmallows music cooler tent bearbag balloons
+  pass  Tutorial: the list shows the camp's tasks                      expected investigate marshmallows music cooler tent bearbag balloons got investigate marshmallows music cooler tent bearbag balloons
   pass  Tutorial: the note says to pick one, the marshmallows marked   expected Pick the marshmallows / marshmallows got Pick the marshmallows / marshmallows
   pass  Tutorial: still slowed down while he reads                     expected true             got true
   pass  Tutorial: still no cones                                       expected false false false got false false false
@@ -43,10 +43,10 @@ Tutorial and cones check, 2026-11-22T15:54:50
   pass  Calm: the girl's cone back BACK_AFTER after starting back      expected 5.00             got 5.00
   pass  Calm again: all three at their routines                        expected WORK WORK WORK   got WORK WORK WORK
   pass  Calm again: the cones shown, and not red                       expected true true true / false false false got true true true / false false false
-  pass  Two of its tasks done: Rock the party isn't                    expected false            got false
-  pass  All six done: Rock the party is ticked off                     expected true             got true
+  pass  Two of its tasks done: not every task is                       expected false            got false
+  pass  All six done: every task is ticked off                         expected true             got true
 RESULT: all checks passed (43 checks)
-WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 8 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 1 resources still in use at exit (run with --verbose for details).
+ERROR: 4 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)
