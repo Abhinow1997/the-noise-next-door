@@ -579,3 +579,31 @@ The edge tests (`tests/test_jump_edges.gd`, `5c06182`) interrupted the jump one 
 Every other check stays.
 
 (Drafted by Claude Code on 21 Nov 2026 from the edge tests' measurements. Kept by me the same day: "Revise the brief", the choice that said the revision would state what the jump really does.)
+
+---
+
+### Revised 21 Nov 2026: the jump's frame strip
+
+The strip above is the crouch jump's, from before the remodel. This one is the jump as it is now, for the preview `previews/jump_preview.tscn`.
+
+- **The background:** the game's own level at night. He stands at the camp's edge by the fire (the developer menu's "free" point), at the game camera's pitch, yaw, field of view and distance, held where he took off, as the game's camera stays at a jump's take-off height.
+- **The setup:** the campers' cones are off for the capture, so being seen doesn't break the jump off.
+- **The trigger:** F is seen on **frame 10** at 30 fps, held, and let go once he's down. It's captured with `--fixed-fps 30 --quit-after 60`.
+- **The log:** the preview writes `logs/jump_preview_frames.log`, one line a frame (the ticks since takeoff, his height, the game's state, the clip and its position), so frame N of the strip reads against line N.
+- **The ticks:** at 30 fps each frame holds two physics ticks, and frame N shows the later one.
+
+| Frame | Ticks since takeoff | What it should show (from the preview's headless log) |
+|---|---|---|
+| 10 | 0–1 | **Takeoff:** just off the ground (0.14 m), the push-off, hind legs extending (`jump` at 0 s) |
+| 13, 14 | 6–9 | Rising (0.43, 0.48 m): stretched up, snout first (`jump` near its key at 0.125 s) |
+| 16 | 12–13 | The peak (0.512 m, tick 13): gathering |
+| 17 | 14–15 | **The top's boundary:** falling from tick 15, gathered (`jump` near its key at 0.25 s) |
+| 21 | 22–23 | Coming down (0.11 m): front paws reaching for the ground |
+| 22 | 24–25 | **Landing**, tick 25: touching down, squashed (`jump_land` at 0 s) |
+| 27 | 34–35 | The landing's end: rising out of the squash, `jump_land` held at its last pose |
+| 28 | 36–37 | **The landing's end**, tick 37: back in his stance (`idle`) |
+| 40 | 60–61 | In his stance |
+
+The frames to keep are 10, 13, 14, 16, 17, 21, 22, 27, 28 and 40. The rest of the sequence is deleted, as the course asks.
+
+(Drafted by Claude Code on 21 Nov 2026 from the preview's headless run at 30 fps. What each frame should show is Claude Code's reading of the log, a prediction for me to check against the capture. Kept by me the same day: "Keep and commit".)
