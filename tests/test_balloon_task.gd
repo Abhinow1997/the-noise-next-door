@@ -8,10 +8,11 @@ extends SceneTree
 ## `cones_on` off, as bear_bag_test.gd and tent_test.gd do) so none of them spots him and
 ## gives chase, but hearing as ever; driven through the game loop with real key presses
 ## (Input.parse_input_event), read each physics tick after the bite check. It checks:
-##   - the balloons: three, red, yellow and blue, each the low-poly sheet's 3 x 2 grid with its own
-##     tint, 0.3 m across, its middle 0.7 m up, just outside the camp (beyond CAMP_ZONE, inside
-##     the walkways), clear of the camp's things and colliders, with no collision; each
-##     AnimationPlayer playing `float` (current_animation) while it's up, not in step;
+##   - the balloons: three, red, yellow and blue, each a low-poly 3D mesh with its own tint
+##     (CHANGE-BRIEF.md, "the balloons are 3D"), 0.3 m across its body, its middle 0.7 m up, just
+##     outside the camp (beyond CAMP_ZONE, inside the walkways), clear of the camp's things and
+##     colliders, with no collision; each AnimationPlayer playing `bob` (current_animation)
+##     while it's up, not in step;
 ##   - the girl (CHANGE-BRIEF.md's revisions of 21 Nov 2026): her routine dance, warm, then
 ##     minding the balloons; from warming her hands she walks out to them and stays her drawn
 ##     GIRL_DANCE_TIME, then goes back to dancing; the pops below are made while she minds them;
@@ -21,7 +22,7 @@ extends SceneTree
 ##   - the task: on the list under Rock the party, with its hint;
 ##   - three jumps (F held), one under each balloon: each pops it within the bite (ticks 5-14
 ##     after F is seen); `pop` (animations/balloon_pop.tres) starts on that tick and plays once,
-##     through cells 3, 4, 5, and the balloon is hidden once it has played, not on the bite's
+##     swelling it, and the balloon is hidden once it has played, not on the bite's
 ##     tick (Step 4); each pop heard by every camper within 8 m of it (HEAR_CHITTER: they
 ##     turn to it, camp_person.gd `_noise_at`) and by none further; the task not ticked after
 ##     one or two, ticked on the third;
@@ -49,14 +50,11 @@ const QUIET := Vector3(20.0, 0.02, 6.5)
 const HEAR := 8.0
 const REACH := 0.25
 const COLOURS := ["red", "yellow", "blue"]
-## One low-poly sheet for all three, each tinted (CHANGE-BRIEF.md's revision of 21 Nov 2026: it
-## replaced the pixel-art sheets): the tints from the camp's matte palette (props/party_balloon.gd).
-const SHEET := "res://assets/sprites/balloon_lowpoly/balloon_lowpoly.png"
+## Each a low-poly 3D balloon, tinted (CHANGE-BRIEF.md's revision of 21 Nov 2026, "the balloons
+## are 3D": it replaced the sprite sheet): the tints from the camp's matte palette
+## (props/party_balloon.gd), and how wide its body is (m).
 const TINTS := {"red": Color("b25d57"), "yellow": Color("e2c25a"), "blue": Color("2f5d8a")}
-## The body's box in each 255 x 512 px cell (tools/make_balloon_sheet.gd): 163 px across, its
-## middle 126.5 px from the cell's left and 143 px from its top.
-const BODY_W := 163.0
-const BODY_MID := Vector2(126.5, 143.0)
+const BODY_ACROSS := 0.3
 ## How far round each balloon (m, at the height of a person) nothing may collide, and how near
 ## her spot she must stand to have got there (camp_person.gd ARRIVE puts her on it).
 const CLEAR := 0.5
@@ -80,9 +78,9 @@ var _was_jumping := false
 ## tick), clip (current_animation on it)}.
 var _pops: Array[Dictionary] = []
 var _seen_popped := {}
-## For each popped balloon, after its pop tick: {cells: the frames it showed while still
-## visible, starts: how often `pop` began (from its start), hidden: the tick it was first
-## hidden, last: `pop`'s position last tick}.
+## For each popped balloon, after its pop tick: {swell: the largest scale its Float reached
+## while still visible, starts: how often `pop` began (from its start), hidden: the tick it was
+## first hidden, last: `pop`'s position last tick}.
 var _after := {}
 
 
@@ -124,7 +122,7 @@ func step() -> void:
 	elif not jumping:
 		_jt = -1
 	_was_jumping = jumping
-	for b: Sprite3D in balloons_node.get("balloons"):
+	for b: Node3D in balloons_node.get("balloons"):
 		var anim := b.get_node("AnimationPlayer") as AnimationPlayer
 		if b.get("popped") and not _seen_popped.has(b):
 			_seen_popped[b] = true
@@ -135,12 +133,11 @@ func step() -> void:
 				heard.append([person.name, d, at.distance_to(b.global_position) < 0.01])
 			_pops.append({"balloon": b, "tick": _tick, "jt": _jt, "heard": heard, "visible": b.visible,
 				"clip": String(anim.current_animation)})
-			_after[b] = {"cells": [], "starts": 0, "hidden": -1, "last": INF, "pop_tick": _tick}
+			_after[b] = {"swell": 1.0, "starts": 0, "hidden": -1, "last": INF, "pop_tick": _tick}
 		elif _after.has(b):
 			var a: Dictionary = _after[b]
 			if b.visible:
-				if not b.frame in a.cells:
-					a.cells.append(b.frame)
+				a.swell = maxf(a.swell, (b.get_node("Float") as Node3D).scale.x)
 				# `pop` began again from its start: its position went back.
 				if anim.assigned_animation == "pop" and anim.current_animation_position < a.last - 0.001:
 					a.starts += 1
@@ -178,8 +175,8 @@ func _until(cond: Callable, most: int) -> bool:
 	return cond.call()
 
 
-func _real() -> Array[Sprite3D]:
-	var out: Array[Sprite3D] = []
+func _real() -> Array[Node3D]:
+	var out: Array[Node3D] = []
 	out.assign(balloons_node.get("balloons").slice(0, 3))
 	return out
 
@@ -230,20 +227,29 @@ func _structure() -> void:
 	probe.exclude = [player.get_rid()]
 	for b in real:
 		var c: String = b.get("colour")
-		var sheet := b.texture.resource_path if b.texture else ""
-		_check("%s: the low-poly sheet, sliced 3 x 2, with its own tint" % c,
-			sheet == SHEET and b.hframes == 3 and b.vframes == 2 and b.modulate.is_equal_approx(TINTS[c]),
-			"%s %d x %d %s" % [sheet, b.hframes, b.vframes, b.modulate.to_html(false)])
-		_check("%s: 0.3 m across (its body's 163 px at pixel_size)" % c, absf(b.pixel_size * BODY_W - 0.3) < 0.001, b.pixel_size * BODY_W)
+		# The 3D balloon (CHANGE-BRIEF.md, "the balloons are 3D"): its body a mesh in its tint,
+		# 0.3 m across, with its middle on the balloon's origin, 0.7 m up.
+		var body := b.get_node_or_null("Float/Body") as MeshInstance3D
+		var verts := PackedVector3Array()
+		var tint := Color.BLACK
+		if body and body.mesh:
+			var arrays := body.mesh.surface_get_arrays(0)
+			verts = arrays[Mesh.ARRAY_VERTEX]
+			tint = (arrays[Mesh.ARRAY_COLOR] as PackedColorArray)[0]
+		_check("%s: a low-poly mesh, with its own tint" % c, body != null and verts.size() > 0 and b.find_children("*", "Sprite3D", true, false).is_empty()
+			and tint.is_equal_approx(TINTS[c]), tint.to_html(false))
+		var across := 0.0
+		var low := INF
+		var high := -INF
+		for v in verts:
+			across = maxf(across, Vector2(v.x, v.z).length() * 2.0)
+			low = minf(low, v.y)
+			high = maxf(high, v.y)
+		_check("%s: 0.3 m across its body" % c, absf(across - BODY_ACROSS) < 0.005, "%.4f m" % across)
 		var up: float = b.global_position.y - camp_at.y
-		# Where the body's middle is drawn, from the sprite's own drawn rectangle (get_item_rect():
-		# one cell, in pixels, the offset in it, +y up as the quad is built; its top edge is
-		# the cell's top row): at the node's origin if the offset's sign is right. (Its AABB
-		# won't do: a billboard's is enlarged to cover every turn.)
-		var rect: Rect2 = b.get_item_rect()
-		var mid := Vector2(rect.position.x + BODY_MID.x, rect.end.y - BODY_MID.y) * b.pixel_size
-		_check("%s: its middle 0.7 m up (offset %s puts the body's middle on the origin: drawn at %.4f, %.4f m)" % [c, b.offset, mid.x, mid.y],
-			absf(up - 0.7) < 0.01 and b.offset == Vector2(1, -113) and mid.length() < 0.5 * b.pixel_size, "%.3f m up" % up)
+		var mid := (low + high) * 0.5
+		_check("%s: its middle 0.7 m up (the body's middle %.4f m from the balloon's origin)" % [c, mid],
+			absf(up - 0.7) < 0.01 and absf(mid) < 0.01 and body.position == Vector3.ZERO, "%.3f m up" % up)
 		# Just outside the camp (CHANGE-BRIEF.md, "out of the camp with the girl"): beyond
 		# CAMP_ZONE from its middle, inside the walkways (campsite.gd: 6 m further), nothing
 		# collidable within CLEAR of it at a person's height.
@@ -258,10 +264,10 @@ func _structure() -> void:
 		var bodies := b.find_children("*", "CollisionObject3D", true, false).size() + b.find_children("*", "CollisionShape3D", true, false).size()
 		_check("%s: no collision" % c, bodies == 0, bodies)
 		var anim := b.get_node("AnimationPlayer") as AnimationPlayer
-		_check("%s: its AnimationPlayer plays `float` while it's up" % c, anim.current_animation == "float", anim.current_animation)
+		_check("%s: its AnimationPlayer plays `bob` while it's up" % c, anim.current_animation == "bob", anim.current_animation)
 	var at := real.map(func(b) -> float: return (b.get_node("AnimationPlayer") as AnimationPlayer).current_animation_position)
 	var apart := absf(at[0] - at[1]) > 0.1 and absf(at[1] - at[2]) > 0.1 and absf(at[0] - at[2]) > 0.1
-	_check("not in step: each starts its float at its own offset (positions %s s)" % str(at.map(func(p) -> String: return "%.3f" % p)), apart, at)
+	_check("not in step: each starts its bob at its own offset (positions %s s)" % str(at.map(func(p) -> String: return "%.3f" % p)), apart, at)
 
 	var task: Dictionary = {}
 	for t: Dictionary in camp.get("tasks").list:
@@ -283,7 +289,7 @@ func _structure() -> void:
 			on_anim += 1
 		else:
 			off.append(m.get_string(0))
-	# play("float"), seek() and, since Step 4, play("pop"): three.
+	# play("bob"), seek() and play("pop"): three.
 	_check("party_balloon.gd: every play() and seek() is on its own AnimationPlayer (%d)" % on_anim, off.is_empty() and on_anim == 3, off)
 	var game: String = files.get("res://scripts/camp_balloons.gd", "")
 	_check("camp_balloons.gd calls no play() or seek(), and has no AnimationPlayer",
@@ -359,18 +365,17 @@ func _task() -> void:
 		if mine.size() == 1:
 			var jt: int = mine[0].jt
 			_check("%s: popped within the bite, ticks 5-14 after F is seen (on tick %d)" % [c, jt], jt >= 5 and jt <= 14, jt)
-			# The pop clip (Step 4): `pop` starts on the bite's tick, the balloon still showing;
-			# it plays once through cells 3, 4, 5, and the balloon is hidden when it ends.
+			# The pop clip: `pop` starts on the bite's tick, the balloon still showing; it plays
+			# once, swelling it (the 3D balloon's: scale 1 to 1.35), and the balloon is hidden
+			# when it ends.
 			var a: Dictionary = _after[b]
 			_check("%s: on the bite's tick, `pop` starts and the balloon is still showing" % c,
 				mine[0].clip == "pop" and mine[0].visible, "%s, visible %s" % [mine[0].clip, mine[0].visible])
-			var cells: Array = a.cells.duplicate()
-			cells.sort()
-			_check("%s: `pop` plays once (started %d time(s)), showing cells %s" % [c, a.starts, cells],
-				a.starts == 1 and cells == [3, 4, 5], "%d, %s" % [a.starts, cells])
+			_check("%s: `pop` plays once (started %d time(s)), swelling it to %.2f" % [c, a.starts, a.swell],
+				a.starts == 1 and a.swell > 1.2, "%d, %.2f" % [a.starts, a.swell])
 			var after: int = a.hidden - a.pop_tick
-			_check("%s: hidden once `pop` has played, %d ticks after the bite (its 6/24 s is 15)" % [c, after],
-				after >= 15 and after <= 17, after)
+			_check("%s: hidden once `pop` has played, %d ticks after the bite (its 3/24 s is 7.5)" % [c, after],
+				after >= 8 and after <= 10, after)
 			var wrong: Array = []
 			for h: Array in mine[0].heard:
 				if (h[1] <= HEAR) != h[2]:
@@ -381,7 +386,7 @@ func _task() -> void:
 		for other in real:
 			if not other.get("popped"):
 				var a := other.get_node("AnimationPlayer") as AnimationPlayer
-				_check("%s still up: `float` playing" % other.get("colour"), a.current_animation == "float", a.current_animation)
+				_check("%s still up: `bob` playing" % other.get("colour"), a.current_animation == "bob", a.current_animation)
 		var want := i == 2
 		_check("after %d popped: the task %s" % [i + 1, "ticked" if want else "not ticked yet"], tasks.is_done("balloons") == want,
 			tasks.is_done("balloons"))
@@ -433,8 +438,8 @@ func _girl_scared() -> void:
 
 # --- The bite's edges, with balloons the test adds ----------------------------------
 
-func _extra() -> Sprite3D:
-	var b := BalloonScene.instantiate() as Sprite3D
+func _extra() -> Node3D:
+	var b := BalloonScene.instantiate() as Node3D
 	balloons_node.add_child(b)
 	balloons_node.get("balloons").append(b)
 	return b

@@ -35,7 +35,7 @@ const REACH := 0.25
 ## Set before it's added (campsite.gd): the camp.
 var camp
 ## The balloons, in SPOTS's order.
-var balloons: Array[Sprite3D] = []
+var balloons: Array[Node3D] = []
 
 var _player: Player
 
@@ -44,7 +44,7 @@ func _ready() -> void:
 	# After the player's own tick (priority 0), so his jump's state is this tick's.
 	process_physics_priority = 1
 	for spot: Array in SPOTS:
-		var balloon := Balloon.instantiate() as Sprite3D
+		var balloon := Balloon.instantiate() as Node3D
 		balloon.set("colour", spot[0])
 		balloon.position = Vector3(spot[1].x, MIDDLE_UP, spot[1].y)
 		add_child(balloon)
@@ -53,7 +53,7 @@ func _ready() -> void:
 
 ## How many are popped.
 func popped_count() -> int:
-	return balloons.filter(func(b: Sprite3D) -> bool: return b.get("popped")).size()
+	return balloons.filter(func(b: Node3D) -> bool: return b.get("popped")).size()
 
 
 func _physics_process(_delta: float) -> void:

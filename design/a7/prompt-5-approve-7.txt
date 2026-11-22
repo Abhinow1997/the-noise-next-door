@@ -1,0 +1,45 @@
+Part 2 is committed (7441e87). I kept two more dated revisions of the brief: "the tasks test settles
+the fire keeper too; what the girl does out there" (1defa67) and, just before it, "the balloons are
+3D, and the moth is the graded sprite clip" (5879f5b). Read both at the end of CHANGE-BRIEF.md.
+
+Approved, in two parts. Show each part's diff and runs, then stop.
+
+Part A, the tasks test:
+- scripts/tasks_test.gd, _settle() only: also put the fire keeper at a fixed step of his routine,
+  the first (eating at the table, away from the backpack), as it does the other three. No expected
+  value changes; its count stays 48. Run --tasks-test 60: it must pass 48/48.
+
+Part B, the 3D balloons and the moth graded:
+- The balloon becomes real low-poly 3D, built in code like the camp's other props (scripts/lowpoly.gd
+  has the faceted, flat-shaded helpers the camp uses): a faceted egg-shaped body with few sides, a
+  small knot and a thin string, matte; tinted with the same red, yellow and blue (TINTS in
+  props/party_balloon.gd); 0.3 m across its body, its middle about 0.7 m up where camp_balloons.gd
+  places it; no collision. props/party_balloon.tscn's root becomes a Node3D with the script, its
+  AnimationPlayer kept. Nothing about the task changes: camp_balloons.gd's places, the bite, the
+  pops' noise, the girl.
+- Its clips, saved as resources, played only by the balloon's own script (the only caller of play()
+  and seek() on its AnimationPlayer):
+  - `bob`: a gentle rise and fall (about 4 cm) with a slight sway, about 2 s, LOOP_LINEAR, step
+    1/24, each balloon from its own offset as now (animations/balloon_bob.tres);
+  - `pop`: a quick swell (about 0.1 s, LOOP_NONE, step 1/24), then the balloon is hidden
+    (animations/balloon_pop.tres, its new content).
+  Each gets a light read-back: tracks resolve (the course's check), loop mode, step exactly, length.
+- The 2D balloon goes: no Sprite3D, no sheet, no `float` clip. Remove animations/balloon_float.tres's
+  use, and replace tests/test_balloon_float.gd and tests/test_balloon_pop.gd with the 3D balloon's
+  read-back (one new test is fine). tests/test_moth_flutter.gd borrows the course's track check from
+  test_balloon_float.gd: move that check, unchanged, into the moth's test or a small shared helper in
+  tests/, so nothing depends on the old file.
+- tests/test_balloon_task.gd: change only where the balloon's look does (its sprite, sheet and
+  pixel-size checks become the 3D balloon's: a mesh, its tint, 0.3 m across its body, its middle
+  where it was). Everything else in it stays.
+- The moth's flutter is now the graded sprite clip; its read-back (tests/test_moth_flutter.gd)
+  stays as strict as it is.
+- Don't delete files: I'll remove the old ones myself (animations/balloon_float.tres, the two old
+  balloon tests, assets/sprites/balloon_lowpoly/, tools/make_balloon_sheet.gd). At the end, list
+  every file that nothing refers to any more, and anything that still refers to them.
+
+After each part run through scripts/run-test.sh: the balloon read-back(s), test_balloon_task.gd,
+test_moth_flutter.gd, test_moths_state.gd, test_jump_states.gd, test_raccoon_rig.gd,
+tests/jump_pins.gd (the same 13 predicted failures and nothing else), and every existing test
+CLAUDE.md lists in its pinned mode, reading each run's exit code. Show the real output. Then stop.
+Do not start Step 6. Do not commit.

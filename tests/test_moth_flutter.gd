@@ -1,11 +1,12 @@
 extends SceneTree
 ## Assignment 7, Step 5 (Step 5 of its plan): the read-back of the moths' `flutter` (CHANGE-BRIEF.md,
-## revision of 21 Nov 2026, "The extras' timings and places"; not graded), a light one like
-## tests/test_balloon_float.gd. It loads props/moths.tscn and reads back:
+## revision of 21 Nov 2026, "The extras' timings and places"; since that day's "the balloons are
+## 3D, and the moth is the graded sprite clip", the graded sprite clip's read-back). It loads
+## props/moths.tscn and reads back:
 ##   - four moths, each a Sprite3D on bugs.png sliced 4 x 3, 0.1 m across (pixel_size 0.1 / 8),
 ##     billboarded, nearest filtering, under its own pivot, with its own AnimationPlayer
 ##     (callback_mode_process IDLE, autoplay empty);
-##   - every track in every clip resolves (the course's check, as in test_balloon_float.gd);
+##   - every track in every clip resolves (the course's check, tests/track_check.gd);
 ##   - `flutter`: one value track on the Sprite3D's frame, UPDATE_DISCRETE; keys cells 4, 5 at 0
 ##     and 2/24 s, within half a frame (1/48 s), never ==; every cell inside the sheet; length
 ##     4/24 s (within half a frame), step 1/24 s exactly, LOOP_LINEAR;
@@ -18,7 +19,8 @@ extends SceneTree
 ## It prints PASS or FAIL per check and a count, and quits with exit code 1 if any check fails.
 ## Written by Claude Code on 21 Nov 2026.
 
-const FloatTest := preload("res://tests/test_balloon_float.gd")
+## The course's track check (moved, unchanged, from the old 2D balloon's test).
+const TrackCheck := preload("res://tests/track_check.gd")
 const SCENE := "res://props/moths.tscn"
 const SHEET := "res://assets/sprites/cutebugs/bugs.png"
 const FPS := 24.0
@@ -74,7 +76,7 @@ func _run() -> void:
 	if players.is_empty():
 		return
 	for p in players:
-		var problems := FloatTest.track_problems(p)
+		var problems := TrackCheck.track_problems(p)
 		_check(problems.is_empty(), "%s: every track in every clip resolves" % p.get_parent().get_parent().name, "; ".join(problems))
 
 	var player := players[0]
