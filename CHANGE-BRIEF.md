@@ -355,3 +355,17 @@ The float's keys (0, 1, 2, 1 at 0, 0.25, 0.5 and 0.75 s) and the pop's (3, 4, 5,
 - **These are named changes** to the campers' routines, which were otherwise out of bounds. Only the girl's routine changes, by this one step. If an existing test expects her old routine, the plan stops and says which test and line.
 
 (Drafted by Claude Code on 21 Nov 2026 from my answers: "give me a prompt u need i will create the assest for u", then the image, then "Use this copy"; and, for the place, "have the girl use somewhere in the out side of the camp area we initially scare her make her run away to pop them", then "Minding the balloons" and "Any time". The keying, alignment, tints, size, offset, filtering and lighting, and the routine step's length, are Claude Code's. Kept by me the same day: "Yes, both".)
+
+---
+
+### Revised 21 Nov 2026: the girl's new step comes after warming her hands (the tasks test)
+
+The build stopped, as the last revision told it to. `scripts/tasks_test.gd` expects the girl's old routine: after warming her hands she's back dancing within 15 s (lines 100–103).
+- **Where the step goes:** after warming her hands. Her routine becomes dance → warm → mind the balloons → dance. That way the test's line 84 ("roast drink warm") still holds as it is.
+- **`scripts/tasks_test.gd:100–103` changes to match**, and only there:
+  - after `warm` is cut short, she walks out to the balloons;
+  - that step is cut short too, the same way (`_step_left = 0.01`);
+  - then she's back dancing, as the check still expects (`true`).
+  - The check's name may change to say so. Its count stays the same.
+
+(Drafted by Claude Code on 21 Nov 2026 from the build's report. Kept by me the same day: "Yes, both".)
