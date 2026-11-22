@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS the scene res://props/party_balloon.tscn loads
+PASS its root is a Node3D named Balloon, with its script
+PASS no Sprite3D
+PASS its Float node holds the Body and String meshes, built
+PASS low-poly: the camp's one matte material (scripts/lowpoly.gd)
+PASS no collision
+PASS its own AnimationPlayer, callback_mode_process IDLE, autoplay empty
+PASS not blown up yet: hidden, and playing nothing
+PASS no `pop` (it went with the bite)
+PASS the balloon: every track in every clip resolves to a real node and property or bone
+PASS the balloon: every track moves only Float (Float:position, Float:rotation, Float:scale, Float:position)
+PASS the clip inflate exists
+  inflate: 2 tracks, length 3.0000000000 s, step 0.0416666679 s, loop_mode 0
+PASS inflate: loop_mode is LOOP_NONE
+PASS inflate: step is 1/24 s
+PASS inflate: length is 3.0000 s (within 1/48 s)
+PASS inflate: from a small bud (scale (0.14, 0.07, 0.14)) to full size ((1.0, 1.0, 1.0))
+PASS the clip bob exists
+  bob: 2 tracks, length 2.0000000000 s, step 0.0416666679 s, loop_mode 1
+PASS bob: loop_mode is LOOP_LINEAR
+PASS bob: step is 1/24 s
+PASS bob: length is 2.0000 s (within 1/48 s)
+PASS inflate(): it shows and swells from a bud (scale 0.140)
+PASS after 3 s: full size (scale (1.0, 1.0, 1.0)), and bobbing
+PASS the scene res://props/balloon_bunch.tscn loads
+PASS its root is a Node3D named Bunch, with a Lift node and no script
+PASS its own AnimationPlayer, callback_mode_process IDLE, autoplay empty
+PASS the bunch: every track in every clip resolves to a real node and property or bone
+PASS the bunch: every track moves only Lift (Lift:position, Lift:rotation, Lift:visible)
+PASS the clip float_away exists
+  float_away: 3 tracks, length 5.0000000000 s, step 0.0416666679 s, loop_mode 0
+PASS float_away: loop_mode is LOOP_NONE
+PASS float_away: step is 1/24 s
+PASS float_away: length is 5.0000 s (within 1/48 s)
+PASS float_away: rises about 8 m (8.00 m)
+PASS float_away: its visible track is discrete, shown then hidden at the end
+PASS float_away, halfway: rising (3.37 m up), still showing
+PASS float_away, done: 8 m up (8.00 m) and gone
+35 passed, 0 failed
