@@ -424,3 +424,81 @@ Part 2 is built: the balloons are beyond `CAMP_ZONE`, and the girl minds them af
 **What the girl does when she sees him at the balloons.** The revision said she "runs to her protector and cowers". The unchanged code (`camp_person.gd:929-940`) sends her behind her protector only when he's within 6 m. At the balloons he's about 14 m away, so she backs off from the raccoon a few steps and cowers there. That's what she does anywhere her protector is far. Her reactions stay unchanged, and the brief now says what they are: seen at the balloons, she backs off and cowers; that still leaves the balloons, and him, free. The test checks that.
 
 (Drafted by Claude Code on 21 Nov 2026 from the build's report. Kept by me the same day: "Keep it".)
+
+---
+
+### Revised 21 Nov 2026: the jump plays as it did before, in three phases of its own; the bite comes out
+
+"remodel the jump for the assignment's requirement but it can't be just a jump and bite, it will be like it was previously". The crouch and the bite made the jump into a balloon-popping move. It goes back to the jump the game had, a general move for reaching things (my job line). Its phases now come from that jump itself.
+
+**The movement, back to before** (`scripts/player.gd` as at `dc8ff17`'s jump):
+- he takes off on the tick F is seen, with no crouch, and the same lift;
+- letting go of F while he rises still cuts the height (`JUMP_CUT`);
+- `JUMP_BUFFER`, `JUMP_COYOTE` and `AIR_CONTROL` as before;
+- he soaks up the landing for 0.2 s (`LAND_TIME`, 12 ticks).
+
+Step 1's crouch, `TAKEOFF_TICK`, the 10-tick landing, and `bite_open()`, `use_bite()` and `mouth_point()` all go.
+
+**The phase table, replacing the one above and its first revision.** At 24 fps, `Animation.step` 1/24 s, for a held jump. Frame 0 is takeoff, the tick F is seen.
+
+| Phase | Frames | Begins on | Physics ticks | What the player may do | What the game reads |
+|---|---|---|---|---|---|
+| **Startup:** the push and rise | 6 | frame 0 (takeoff) | 0–14 | Let go of F to cut the height; steer at `AIR_CONTROL` | `jumping` true (the cones see him); rising |
+| **Active:** the top and the fall | 4 | frame 6 (the top) | 15–24 | Steer; a press up to 0.12 s before landing is kept | `jumping`; falling |
+| **Recovery:** the landing | 12 ticks (4.8 frames) | landing (tick 25 held) | landing + 0–11 | A kept or new press starts the next jump at once | `landed`, heard 6 m round |
+
+- A held jump peaks between ticks 14 and 15. The pins measured that it lands 25 ticks after takeoff, so the top falls exactly on frame 6 and the landing on frame 10.
+- A tap (F let go early) peaks lower and sooner, and lands after 12 ticks. The startup is shorter; the clip simply hands over to `jump_land` when he's down.
+
+**The keys built from it:**
+- **`jump`**, re-keyed in Blender (`design/character/raccoon_v2/anim.py`, rebuilt with `anim_jump.py`, re-exported), length 10 frames, `LOOP_NONE`. Keys at frames 0 (the push-off, hind legs extending), 3 (stretched up, snout first), 6 (gathered at the top) and 10 (front paws reaching down), each key's time listed beside its frame.
+- **`jump_land`** stays as it is (4 frames). The landing's 12 ticks hold its last pose for the 2 ticks after it ends.
+- **A hop off a tree** plays `jump` from frame 0, its push-off, in place of frame 2.
+
+**The bite comes out.** There's no bite in the jump. The balloons stay where they are, out by the girl, who still minds them, but they can't be popped until I give the balloon task its design. `scripts/camp_balloons.gd`'s bite check comes out. `tests/test_balloon_task.gd` keeps its checks of the balloons, their place and the girl, and its pop checks come out until that design.
+
+**What the tests show:**
+- **`tests/test_jump_states.gd`** changes with this revision: no crouch, no bite, the 12-tick landing, `jump` from frame 0 off a tree.
+- **The pins (`tests/jump_pins.gd`)** go back to passing on the jump's timing: takeoff on the tick after F, a held jump landing 25 ticks later at 0.511 m, a tap's 12 ticks and 0.228 m, a 12-tick landing, the buffered press as before. The only pins the brief still says will change are the clips: `jump` and `jump_land` where the run clip was (the two "posed through the run clip", the clips in order, and the clip on the tick after takeoff). That's Step 6's re-pin.
+- **`tests/test_raccoon_rig.gd`** reads `jump`'s new length (10/24 s) and its keys at 0, 3, 6 and 10.
+
+(Drafted by Claude Code on 21 Nov 2026 from my answers: "Approve the remodel" and "Take the bite out now". The phases' boundaries and the clip's new keys are Claude Code's. Kept by me the same day: "Yes, all".)
+
+---
+
+### Revised 21 Nov 2026: the balloon task is "Let the balloons go"
+
+"the ballons can be blown up by the girl maybe tie somewhere a bit outside on something near the camp and we can get it off and float them away to annoy the campers". This replaces popping, which the last revision took out. The balloons stay 3D, at the spot outside the camp, and the girl's step stays where it is in her routine.
+
+**The girl blows them up:**
+- On her first balloon step she sets out a folding camp chair at the spot, built in code like the camp's props.
+- She blows up the three balloons one by one: each grows from a small, limp bud to full size over about 3 s, an `inflate` clip saved as a resource on the balloon's own `AnimationPlayer`.
+- She ties each string to the chair as it's done, then goes back to the party.
+- On her later balloon steps she minds them, as now.
+- Until she's blown them up, there's nothing there to untie.
+
+**He lets them go:**
+- The three strings are knotted together low on the chair, in his reach. He walks up and presses E (grab) to tug the knot loose. That's the grab he already has; there's no jump in it.
+- The bunch floats away: it rises about 8 m over about 5 s, swaying, then it's gone. That's a `float_away` clip, saved as a resource, on the bunch.
+- That ticks the task. As before, he can do it whenever he can reach the knot unseen, or once he's scared her off.
+
+**The girl calls the others:**
+- When she sees the balloons float away, or comes back to find the chair empty, she's upset. She takes fright as she does on seeing him, and calls the others.
+- Each of them comes to look where the balloons were tied, searching round the chair as they search after a fright (`camp_person.gd`'s search). That's a risk if he's still about.
+- Then they go back to their routines.
+- This is a named change to the campers' reactions: one new trigger (the balloons gone) for reactions they already have. How they search and what they do on seeing him are unchanged.
+
+**The task:** "Let the balloons go", under Rock the party, with the hint "Untie them, let them fly." (5 words). It replaces "Pop the balloons" in `camp_tasks.gd`. The five tests the last task revision named keep its id, `balloons`.
+
+**What goes and what changes:**
+- The `pop` clip goes, and `inflate` and `float_away` come in. `bob` stays while they're tied.
+- `scripts/camp_balloons.gd`: the chair, the inflating, the knot and the release, plus the girl's call.
+- `scripts/campsite.gd`: her step now blows them up the first time.
+- `props/party_balloon.gd` and `.tscn`: the new clips. The balloon's own script stays the only caller of `play()` on its player; the bunch's release is played by `camp_balloons.gd` on the bunch's own player, its only caller.
+- `tests/test_balloon_task.gd` and `tests/test_balloon_3d.gd` change to match:
+  - she blows them up and ties them;
+  - E at the knot frees them, they float away, and the task ticks;
+  - seeing it, or finding the chair empty, she calls the others, who search there.
+- If an existing test expects the campers not to react to the balloons, the build stops and says which.
+
+(Drafted by Claude Code on 21 Nov 2026 from my words above and my answers: "A camp chair or stake", "E at the knot", "The girl calls the others". The chair, the clips' timings and the hint are Claude Code's. Kept by me the same day: "Yes, all".)
