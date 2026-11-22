@@ -8,7 +8,8 @@ extends SceneTree
 ## `cones_on` off, as bear_bag_test.gd and tent_test.gd do) so none of them spots him and
 ## gives chase, but hearing as ever; driven through the game loop with real key presses
 ## (Input.parse_input_event), read each physics tick after the bite check. It checks:
-##   - the balloons: three, red, yellow and blue, each on its sheet's 3 x 2 grid, 0.3 m across,
+##   - the balloons: three, red, yellow and blue, each the low-poly sheet's 3 x 2 grid with its own
+##     tint, 0.3 m across,
 ##     its middle 0.7 m up, clear of the table's top, with no collision; each AnimationPlayer
 ##     playing `float` (current_animation) while it's up, not in step with the others;
 ##   - one authority: in props/party_balloon.gd every play() and seek() is on its own
@@ -41,11 +42,14 @@ const QUIET := Vector3(20.0, 0.02, 6.5)
 const HEAR := 8.0
 const REACH := 0.25
 const COLOURS := ["red", "yellow", "blue"]
-const SHEETS := {
-	"red": "res://assets/sprites/balloons/balloon_red_4.png",
-	"yellow": "res://assets/sprites/balloons/balloon_yellow.png",
-	"blue": "res://assets/sprites/balloons/balloon_blue_4.png",
-}
+## One low-poly sheet for all three, each tinted (CHANGE-BRIEF.md's revision of 21 Nov 2026: it
+## replaced the pixel-art sheets): the tints from the camp's matte palette (props/party_balloon.gd).
+const SHEET := "res://assets/sprites/balloon_lowpoly/balloon_lowpoly.png"
+const TINTS := {"red": Color("b25d57"), "yellow": Color("e2c25a"), "blue": Color("2f5d8a")}
+## The body's box in each 255 x 512 px cell (tools/make_balloon_sheet.gd): 163 px across, its
+## middle 126.5 px from the cell's left and 143 px from its top.
+const BODY_W := 163.0
+const BODY_MID := Vector2(126.5, 143.0)
 ## The table's top, from its middle (campsite.gd _table_legs: 1.28 x 0.83 m).
 const TABLE_HALF := Vector2(0.64, 0.415)
 
@@ -206,12 +210,19 @@ func _structure() -> void:
 	for b in real:
 		var c: String = b.get("colour")
 		var sheet := b.texture.resource_path if b.texture else ""
-		_check("%s: its own sheet, sliced 3 x 2" % c, sheet == SHEETS[c] and b.hframes == 3 and b.vframes == 2,
-			"%s %d x %d" % [sheet, b.hframes, b.vframes])
-		_check("%s: 0.3 m across (its body's 14 px at pixel_size)" % c, absf(b.pixel_size * 14.0 - 0.3) < 0.001, b.pixel_size * 14.0)
+		_check("%s: the low-poly sheet, sliced 3 x 2, with its own tint" % c,
+			sheet == SHEET and b.hframes == 3 and b.vframes == 2 and b.modulate.is_equal_approx(TINTS[c]),
+			"%s %d x %d %s" % [sheet, b.hframes, b.vframes, b.modulate.to_html(false)])
+		_check("%s: 0.3 m across (its body's 163 px at pixel_size)" % c, absf(b.pixel_size * BODY_W - 0.3) < 0.001, b.pixel_size * BODY_W)
 		var up: float = b.global_position.y - camp_at.y
-		_check("%s: its middle 0.7 m up (the node's offset puts its origin on the body's middle)" % c,
-			absf(up - 0.7) < 0.01 and b.offset == Vector2(0, -5.5), "%.3f m, offset %s" % [up, b.offset])
+		# Where the body's middle is drawn, from the sprite's own drawn rectangle (get_item_rect():
+		# one cell, in pixels, the offset in it, +y up as the quad is built; its top edge is
+		# the cell's top row): at the node's origin if the offset's sign is right. (Its AABB
+		# won't do: a billboard's is enlarged to cover every turn.)
+		var rect: Rect2 = b.get_item_rect()
+		var mid := Vector2(rect.position.x + BODY_MID.x, rect.end.y - BODY_MID.y) * b.pixel_size
+		_check("%s: its middle 0.7 m up (offset %s puts the body's middle on the origin: drawn at %.4f, %.4f m)" % [c, b.offset, mid.x, mid.y],
+			absf(up - 0.7) < 0.01 and b.offset == Vector2(1, -113) and mid.length() < 0.5 * b.pixel_size, "%.3f m up" % up)
 		var rel: Vector3 = b.global_position - table_mid
 		_check("%s: clear of the table's top" % c, absf(rel.x) > TABLE_HALF.x or absf(rel.z) > TABLE_HALF.y,
 			"%.2f, %.2f from its middle" % [rel.x, rel.z])

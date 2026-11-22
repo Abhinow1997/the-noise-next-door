@@ -10,7 +10,7 @@ extends SceneTree
 ##   - length 1.0 s, step 1/24 s, LOOP_LINEAR;
 ##   - the seam for a frame track: the last key's cell differs from the first's, and the gap from
 ##     the last key to the length equals the key interval;
-##   - the Sprite3D: hframes 3, vframes 2, one of the five balloon sheets; the AnimationPlayer:
+##   - the Sprite3D: hframes 3, vframes 2, the low-poly balloon sheet; the AnimationPlayer:
 ##     callback_mode_process IDLE, autoplay empty.
 ## A headless run draws nothing: this reads the clip's structure, not how the float looks.
 ## Run it from the project folder:
@@ -27,13 +27,9 @@ const VFRAMES := 2
 const CELLS: Array[int] = [0, 1, 2, 1]
 const TIMES: Array[float] = [0.0, 0.25, 0.5, 0.75]
 const LENGTH := 1.0
-const SHEETS: Array[String] = [
-	"res://assets/sprites/balloons/balloon_red_4.png",
-	"res://assets/sprites/balloons/balloon_yellow.png",
-	"res://assets/sprites/balloons/balloon_green_4.png",
-	"res://assets/sprites/balloons/balloon_purple_2.png",
-	"res://assets/sprites/balloons/balloon_blue_4.png",
-]
+## The low-poly balloon sheet, tinted per balloon (CHANGE-BRIEF.md's revision of 21 Nov 2026: it
+## replaced the five pixel-art sheets).
+const SHEET := "res://assets/sprites/balloon_lowpoly/balloon_lowpoly.png"
 
 var _passed := 0
 var _failed := 0
@@ -78,7 +74,7 @@ func _run() -> void:
 	_check(sprite.hframes == HFRAMES, "hframes is %d" % HFRAMES, str(sprite.hframes))
 	_check(sprite.vframes == VFRAMES, "vframes is %d" % VFRAMES, str(sprite.vframes))
 	var sheet := sprite.texture.resource_path if sprite.texture != null else ""
-	_check(sheet in SHEETS, "the texture is one of the five balloon sheets", sheet)
+	_check(sheet == SHEET, "the texture is the low-poly balloon sheet", sheet)
 	_check(player.callback_mode_process == AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_IDLE,
 			"callback_mode_process is ANIMATION_CALLBACK_MODE_PROCESS_IDLE", str(player.callback_mode_process))
 	_check(player.autoplay == "", "autoplay is empty", "'%s'" % player.autoplay)

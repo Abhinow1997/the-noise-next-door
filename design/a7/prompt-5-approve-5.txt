@@ -1,0 +1,44 @@
+The extras are committed (94bb565). The brief has a new dated revision, kept by me (a0f968b):
+"the balloon is a low-poly sheet I generated, and it's out of the camp with the girl". Read it
+at the end of CHANGE-BRIEF.md. The new sheet and the script that made it are committed
+(7bd4aea): assets/sprites/balloon_lowpoly/balloon_lowpoly.png, made from my generated image
+beside it by tools/make_balloon_sheet.gd. Don't edit either image or that script.
+
+Approved, as that revision says. Plan it briefly first in your reply, then do it, in two parts,
+showing each part's diff and runs:
+
+Part 1, the sheet:
+- props/party_balloon.tscn: the low-poly sheet (same hframes 3, vframes 2, same cells for
+  `float` and `pop`, so the clips don't change), pixel_size 0.3 / 163, offset (1, -113) px so
+  the origin is the body's middle (check the sign against how the old offset worked), smooth
+  filtering with mipmaps, shaded.
+- Its .import: lossless, mipmaps on, detect_3d/compress_to 0; reimport with
+  ../Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --import
+- props/party_balloon.gd: the colour picks a tint (the Sprite3D's modulate: a red, a yellow and
+  a blue in the camp's matte palette), not a sheet; its float offsets as before.
+- The read-backs' and the task test's expected sheet: the low-poly one, tinted, in place of
+  "one of the five balloon sheets". Nothing else in them changes.
+- Leave assets/sprites/balloons/ (the old sheets) in place: I'll remove them myself once
+  nothing refers to them. Say whether anything still does.
+
+Part 2, the place and the girl:
+- scripts/camp_balloons.gd: the three balloons at a clear spot just outside the camp, beyond
+  CAMP_ZONE from the camp's middle, on ground she can walk to and that's clear of the camp's
+  things and colliders. Name the spot and why you picked it.
+- The girl's routine (where campsite.gd builds the routines): one new step, minding the
+  balloons: she walks out to them and stays by them about as long as a dance
+  (GIRL_DANCE_TIME), then goes back to the party. The rest of her routine unchanged. Seeing
+  him, she does what she already does (camp_person.gd): no change to her reactions or anyone
+  else's.
+- Popping any time, no new rule; each pop still heard HEAR_CHITTER round.
+- tests/test_balloon_task.gd: update it for the new spot (beyond CAMP_ZONE), add checks that the
+  girl's routine has the new step and that she walks out to the balloons and stays about a
+  dance's length, and that seeing him there she runs to her protector as she always does.
+- If an existing test expects her old routine, stop and say which test and line, and what it
+  expects; don't change it.
+
+After each part run through scripts/run-test.sh: test_balloon_float.gd, test_balloon_pop.gd,
+test_balloon_task.gd, test_jump_states.gd, test_moths_state.gd, tests/jump_pins.gd (the same 13
+predicted failures and nothing else) and every existing test CLAUDE.md lists in its pinned
+mode, reading each run's exit code. Show the real output. Then stop. Do not start Step 6. Do
+not commit.
