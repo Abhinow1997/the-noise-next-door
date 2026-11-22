@@ -556,3 +556,26 @@ The jump has its phase table, and the moth's flutter its cycle spec. The raccoon
 - **The jump's own requirements** (phase table, edge tests, pins, the strip and the tuning) stay the jump's, as the course asks of the committing action.
 
 (Drafted by Claude Code on 21 Nov 2026 at my request: "Yes, add them", then "do requirements for all the animations not just jump". The numbers and the gaits' phases are from `anim.py` and the read-back. Kept by me the same day: "Keep it".)
+
+---
+
+### Revised 21 Nov 2026: what the jump really does at its edges (the edge tests)
+
+The edge tests (`tests/test_jump_edges.gd`, `5c06182`) interrupted the jump one tick before, on and after each boundary, at 30, 60 and 144 fps. The jump is the original game's, unchanged, and in two places the phase table above promised more than it does. The game stays as it is; the table says what it really does ("Revise the brief").
+
+- **Air control starts the tick after takeoff.** On the takeoff tick itself he still steers at full control. The game picks how hard he can steer before it starts the jump on that tick. Startup's "steer at `AIR_CONTROL`" holds from tick 1.
+- **A press is kept for landing only within 5 ticks of it (0.083 s), not 0.12 s.** The kept press can only take off on the tick after he lands, and `JUMP_BUFFER`'s 0.12 s has run out by then for a press made earlier.
+  - Measured on a held jump that lands on tick 25: a press on tick 20 (5 ticks before) is kept, and the next jump takes off on tick 26.
+  - Presses on ticks 18 and 19 (7 and 6 ticks before) are dropped: no second jump, and the full 12-tick landing.
+  - The active phase's "a press up to 0.12 s before landing is kept" now reads "within 5 ticks (0.083 s) of landing".
+- **The top.** A held jump peaks on tick 13 (0.511 m). It's still rising into tick 14 (+0.024 m/s) and falling from tick 15, so letting go of F changes nothing from tick 15 on. The active phase still begins on tick 15. The table's "peaks between ticks 14 and 15" now reads "rises until tick 14, falls from tick 15". Letting go on tick 14 only lowers the very last of the rise.
+- **The two clocks at 30 fps.** At 60 and 144 fps the clip shows each change one tick after the game, as predicted (0.017 s). At 30 fps a frame is two ticks, so the lag is one or two ticks: up to 0.033 s. Short answer 5's "largest disagreement" is 0.017 s at 60 fps or more, and 0.033 s at 30 fps.
+- **The frame rate changes a quick tap.** Input arrives once a frame, so at 30 fps a tap's release is seen a tick later than at 60, and it peaks a little higher (0.269 m against 0.228 m). A held jump is the same at every rate.
+
+**The edge test changes to match,** and only its expected values for these:
+- air control from tick 1;
+- a press within 5 ticks of landing kept, and 6 or 7 ticks before it dropped.
+
+Every other check stays.
+
+(Drafted by Claude Code on 21 Nov 2026 from the edge tests' measurements. Kept by me the same day: "Revise the brief", the choice that said the revision would state what the jump really does.)

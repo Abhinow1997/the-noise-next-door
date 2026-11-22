@@ -3,9 +3,12 @@ extends SceneTree
 ## ..., a 10-tick landing" and "An interrupt in each phase does what the table says"), against
 ## the phase table of the brief's revision of 21 Nov 2026, "the jump plays as it did before, in
 ## three phases of its own". Ticks are counted from takeoff, the tick F is seen (tick 0):
-##   startup, the push and rise: ticks 0-14. Let go of F to cut the height; steer at AIR_CONTROL.
-##   active, the top and the fall: ticks 15-24 held. Steer; a press up to 0.12 s (JUMP_BUFFER)
-##     before landing is kept (and takes off the tick after he lands).
+##   startup, the push and rise: ticks 0-14. Let go of F to cut the height; steer at AIR_CONTROL
+##     from tick 1 (on the takeoff tick itself he still steers at full control).
+##   active, the top and the fall: ticks 15-24 held. Steer; a press within 5 ticks (0.083 s) of
+##     landing is kept (and takes off the tick after he lands); earlier ones are dropped.
+## (The table as the brief's revision "what the jump really does at its edges" corrected it, from
+## this test's first run, 5c06182, where it asserted 0.12 s and air control on the takeoff tick.)
 ##   recovery, the landing: landing + 0-11 (tick 25 held). A kept or new press starts the next
 ##     jump at once.
 ##
@@ -33,11 +36,11 @@ extends SceneTree
 ##     his peak is lower if it was still ahead; from the top on, it changes nothing (the same
 ##     height on every tick, the same landing);
 ##   - F again in startup or early in active does nothing: no takeoff, the full landing; within
-##     JUMP_BUFFER before landing it's kept and takes off the tick after he lands; in the
+##     5 ticks of landing it's kept and takes off the tick after he lands; in the
 ##     landing it takes off at once, cutting the landing; after the landing's end it's an
 ##     ordinary jump from the ground;
-##   - W steers: its first tick's gain in speed is ACCEL's on the ground and AIR_CONTROL of it
-##     in the air (startup and active); in the landing it steers (its share is printed); after
+##   - W steers: its first tick's gain in speed is ACCEL's on the ground and on the takeoff tick,
+##     and AIR_CONTROL of it in the air from tick 1 (startup and active); in the landing it steers (its share is printed); after
 ##     the landing's end it's the ground's again;
 ##   - after each case's last landing he's back on the ground as normal.
 ## The clip on every tick: `jump` while he's jumping, `jump_land` while he lands, a ground clip
@@ -81,6 +84,10 @@ const TOP := 15
 const HELD_LANDS := 25
 const LAND_TICKS := 12
 const TOL_Y := 0.0001
+## A press is kept for landing only within this many ticks of it (0.083 s), and air control
+## starts the tick after takeoff (CHANGE-BRIEF.md, revision "what the jump really does at its
+## edges", from this test's first run: 5c06182).
+const KEPT_TICKS := 5
 
 var level: Node
 var player: CharacterBody3D
@@ -546,13 +553,13 @@ func _judge(a: Dictionary) -> void:
 			var second: int = a.takeoffs[1] if a.takeoffs.size() > 1 else -999
 			if s <= l0:
 				var before := float(l0 - s) / Engine.physics_ticks_per_second
-				var kept := before <= PL.JUMP_BUFFER + 0.000001
+				var kept := l0 - s <= KEPT_TICKS
 				if kept:
-					_check("%s: %.3f s before landing, within JUMP_BUFFER %.2f s: kept, the next jump takes off the tick after he lands (%d)"
-						% [label, before, PL.JUMP_BUFFER, l0 + 1], second == l0 + 1, "takeoffs %s, landed %d" % [a.takeoffs, l0])
+					_check("%s: %.3f s (%d ticks) before landing, within %d ticks: kept, the next jump takes off the tick after he lands (%d)"
+						% [label, before, l0 - s, KEPT_TICKS, l0 + 1], second == l0 + 1, "takeoffs %s, landed %d" % [a.takeoffs, l0])
 				else:
-					_check("%s: %.3f s before landing, earlier than JUMP_BUFFER %.2f s: does nothing (no takeoff, the full %d-tick landing)"
-						% [label, before, PL.JUMP_BUFFER, LAND_TICKS], a.takeoffs.size() == 1 and len0 == LAND_TICKS,
+					_check("%s: %.3f s (%d ticks) before landing, earlier than %d ticks: does nothing (no takeoff, the full %d-tick landing)"
+						% [label, before, l0 - s, KEPT_TICKS, LAND_TICKS], a.takeoffs.size() == 1 and len0 == LAND_TICKS,
 						"takeoffs %s, landing %d" % [a.takeoffs, len0])
 			else:
 				_check("%s: a new press in or after the landing takes off at once (tick %d), the landing %d ticks"
@@ -568,8 +575,9 @@ func _judge(a: Dictionary) -> void:
 		"w":
 			var gain: float = (recs[t0i + s].spd - recs[t0i + s - 1].spd) / (PL.ACCEL / Engine.physics_ticks_per_second)
 			var l_end: int = l0 + len0
-			if s < 0 or s >= l_end:
-				_check("%s: on the ground (%s): steers with full control (its first tick's speed gain %.2f of ACCEL's)"
+			if s <= 0 or s >= l_end:
+				# On the takeoff tick itself too: air control starts the tick after (the brief's revision).
+				_check("%s: on the ground or on the takeoff tick (%s): steers with full control (its first tick's speed gain %.2f of ACCEL's)"
 					% [label, ph, gain], absf(gain - 1.0) < 0.1, "%.2f" % gain)
 			elif s < l0:
 				_check("%s: in the air (%s): steers at AIR_CONTROL %.2f (its first tick's speed gain %.2f of ACCEL's)"
