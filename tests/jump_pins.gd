@@ -1,12 +1,28 @@
 extends SceneTree
 ## Assignment 7, Step 2: the behaviour pins (CHANGE-BRIEF.md, "The evidence split": the pins
-## row). They pin what the game does now, before any clip is set up, and must still pass when
-## the change is done, except where the brief says they change. The brief predicts these will:
-##   - the jump's clips: today he's posed through the run clip ("run", with model.leap set);
-##     after, `jump` then `jump_land`;
-##   - takeoff: today on the tick after F is seen; after, 5 ticks later (the crouch);
-##   - the landing: today LAND_TIME 0.2 s (12 ticks); after, 10 ticks.
-## Everything else here must stay as it is.
+## row). They pinned what the game did before any clip was set up, and must still pass when
+## the change is done, except where the brief says they change.
+##
+## Re-pinned in Step 6 (21 Nov 2026). CHANGE-BRIEF.md's revision of 21 Nov 2026, "the jump
+## plays as it did before, in three phases of its own", puts the movement back as at dc8ff17
+## (takeoff on the tick F is seen, LAND_TIME 12 ticks, no crouch), so the takeoff and landing
+## pins keep their values. It names the only pins that still change: "the clips: `jump` and
+## `jump_land` where the run clip was (the two "posed through the run clip", the clips in order,
+## and the clip on the tick after takeoff)". Those four, and nothing else, changed:
+##   - "held: posed through the run clip with leap set" and the same for the tap: now posed
+##     through `jump` alone, with model.leap unset on every air tick. The brief's state table
+##     plays `jump` from takeoff to `landed`, and CLAUDE.md ("One authority") keeps the leap
+##     seek out during `jump` and `jump_land`, so the leap is never set;
+##   - "the clips in order": each jump's `run` becomes `jump`, `jump_land`, then "" (a
+##     finished one-shot reads current_animation "": `jump_land` is 4 frames, 10 ticks, and the
+##     landing is 12, so its last pose is held for 2 ticks; the brief: "The landing's 12 ticks
+##     hold its last pose for the 2 ticks after it ends"), then idle. The buffered pair is
+##     `jump`, `jump_land` (one tick: the kept press cuts the landing), `jump` again,
+##     `jump_land`, "", idle;
+##   - "the clip shows the held jump the tick after takeoff": now `jump` on that tick, not
+##     `run`. The one-tick lag itself (the two clocks) is unchanged.
+## Every other pin keeps its expected value; the labels of the takeoff and landing pins no
+## longer say the brief moves them, since that revision took those changes back.
 ##
 ## In the real level (main.tscn), started at the developer menu's "free" point (the fire out,
 ## no title), the raccoon is set down well out of the camp, where no camper can see him (the
@@ -16,7 +32,7 @@ extends SceneTree
 ## tick, after the player's, it reads his clip (the rig's AnimationPlayer.current_animation),
 ## his `jumping`, the model's `jumping` and `leap`, his height and the `landed` signal.
 ## It checks:
-##   - the clips in order through the run, as they are today;
+##   - the clips in order through the run (re-pinned: `jump` and `jump_land` for each jump);
 ##   - takeoff on the tick after F is seen, every time;
 ##   - a held jump lands 26 ticks after takeoff, peaking at 0.51 m; a tap lands after 12,
 ##     peaking at 0.18 m (player.gd's JUMP_* constants, on 60 ticks a second);
@@ -171,6 +187,8 @@ func _record() -> void:
 			j.air_clips[anim.current_animation] = true
 		if float(model.get("leap")) < 0.0:
 			j.leap_unset = true
+		else:
+			j.leap_set = true
 	elif _was_jumping and _jumps.size() > 0 and not _jumps[-1].has("landed"):
 		_jumps[-1].jumping_through = false
 	if _was_model_jumping and not model_jumping and _jumps.size() > 0:
@@ -243,7 +261,7 @@ func _report() -> void:
 		var kept: Dictionary = _jumps[3]
 		for pair: Array in [["held", held], ["tap", tap], ["buffered", first]]:
 			var j: Dictionary = pair[1]
-			_check("%s: takes off on the tick after F (pinned; the brief moves it to 5 ticks)" % pair[0],
+			_check("%s: takes off on the tick after F" % pair[0],
 				int(j.get("takeoff", -99)) - int(j.get("press", 0)) == 1, int(j.get("takeoff", -99)) - int(j.get("press", 0)))
 		# Measured on 21 Nov 2026. The brief's worked-out figure was 26 ticks: the game counts
 		# him down on the tick his capsule is back on the floor, one tick before the sum's
@@ -260,11 +278,14 @@ func _report() -> void:
 			int(first.get("landed", -99)) - int(first.get("takeoff", 0)))
 		for pair: Array in [["held", held], ["tap", tap]]:
 			var j: Dictionary = pair[1]
-			_check("%s: the landing pose lasts LAND_TIME, 12 ticks (pinned; the brief makes it 10)" % pair[0],
+			_check("%s: the landing pose lasts LAND_TIME, 12 ticks" % pair[0],
 				int(j.get("land_end", -99)) - int(j.get("landed", 0)) == 12, int(j.get("land_end", -99)) - int(j.get("landed", 0)))
 			_check("%s: `jumping` true from takeoff to landing" % pair[0], j.get("jumping_through", false), j.get("jumping_through"))
-			_check("%s: posed through the run clip with leap set (pinned; the brief makes it `jump`)" % pair[0],
-				j.air_clips.size() == 1 and j.air_clips.has(&"run") and not j.get("leap_unset", false), j.air_clips.keys())
+			# Re-pinned (the brief's revision "the jump plays as it did before"): was the run
+			# clip with leap set.
+			_check("%s: posed through `jump` with leap unset (re-pinned; was the run clip with leap set)" % pair[0],
+				j.air_clips.size() == 1 and j.air_clips.has(&"jump") and not j.get("leap_set", false),
+				"%s, leap set on an air tick: %s" % [j.air_clips.keys(), j.get("leap_set", false)])
 		# He's counted down after the tick's takeoff check, so the kept press takes off on the
 		# next tick.
 		_check("buffered: pressed 0.1 s before landing, the kept jump takes off the tick after he lands",
@@ -273,17 +294,25 @@ func _report() -> void:
 		_check("buffered: the kept jump, F held, peaks at 0.51 m (within 0.02)", absf(float(kept.get("peak", 0.0)) - 0.511) < 0.02,
 			"%.3f m" % float(kept.get("peak", 0.0)))
 	_check("`landed` once a jump", _landed_ticks.size() == _jumps.size(), "%d landed, %d jumps" % [_landed_ticks.size(), _jumps.size()])
-	# The clips' names in order, without the section marks: as they are today.
+	# The clips' names in order, without the section marks. Re-pinned (the brief's revision "the
+	# jump plays as it did before"): each jump's "run" is now jump, jump_land, then "" while the
+	# finished jump_land's last pose is held; the buffered pair's kept press cuts the first
+	# landing to one tick of jump_land.
 	var names: Array[String] = []
 	for c in _clips:
 		if not c.begins_with("--"):
 			names.append(c.get_slice(":", 1))
-	_check("the clips in order (pinned; the brief puts jump and jump_land where each run is)",
-		names == ["idle", "walk", "run", "walk", "idle", "run", "idle", "run", "idle", "run", "idle"], ", ".join(names))
-	# The two clocks today: the clip follows the game a tick late (the AnimationPlayer
-	# advances on the process tick, after the physics tick that changed his state).
+	_check("the clips in order (re-pinned: jump and jump_land where each jump's run was)",
+		names == ["idle", "walk", "run", "walk", "idle",
+			"jump", "jump_land", "", "idle",
+			"jump", "jump_land", "", "idle",
+			"jump", "jump_land", "jump", "jump_land", "", "idle"], ", ".join(names))
+	# The two clocks: the clip follows the game a tick late (the AnimationPlayer advances on
+	# the process tick, after the physics tick that changed his state). Re-pinned: the clip on
+	# that tick is `jump`, was `run`.
 	if _jumps.size() == 4:
-		_check("the clip shows the held jump the tick after takeoff", _clips.has("%d:run" % (int(_jumps[0].takeoff) + 1)),
+		_check("the clip shows the held jump the tick after takeoff (re-pinned: `jump`, was `run`)",
+			_clips.has("%d:jump" % (int(_jumps[0].takeoff) + 1)),
 			"takeoff %d" % _jumps[0].takeoff)
 		_check("the clip is back to idle the tick after the landing pose ends",
 			_clips.has("%d:idle" % (int(_jumps[0].get("land_end", -99)) + 1)), "land_end %s" % _jumps[0].get("land_end"))
