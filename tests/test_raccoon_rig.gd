@@ -14,7 +14,15 @@ extends SceneTree
 ##     of a hold); each key time is printed beside the frame it comes from;
 ##   - jump's last pose is its own, not a copy of its first (a one-shot);
 ##   - loop modes: the seven loops LOOP_LINEAR, jump and jump_land LOOP_NONE;
-##   - value_track_get_update_mode asked only of value tracks (CLAUDE.md, "Headless facts").
+##   - value_track_get_update_mode asked only of value tracks (CLAUDE.md, "Headless facts");
+##   - each of the seven loops (the brief's revision of 21 Nov 2026, "every raccoon animation
+##     meets the assignment's requirements"): its length is its cycle spec's frames / 24 (within
+##     half a frame), and its seam: every track's value at 0 and at the length match, read with
+##     the Animation's own *_track_interpolate() for the track's type (rotations is_equal_approx,
+##     a quaternion or its negative; positions and scales within 1 mm). Where a track has no key
+##     at the length, LOOP_LINEAR's wrap answers the length with the first key, which proves
+##     nothing, so its last key (the value the source holds to the end) is compared too. The
+##     jump's two one-shots are left out: their last pose is their own.
 ## The exporter samples every frame, so a track that moves has a key on nearly every frame: the key
 ## check proves the boundary frames are on the 24 fps grid, not which frames were posed in Blender.
 ## A headless run draws nothing: this reads the clips' structure, not how the jump looks.
@@ -32,6 +40,10 @@ const ONE_SHOTS: Array[String] = ["jump", "jump_land"]
 ## Each one-shot's length and the phase table's frames it must have keys on.
 const FRAMES := {"jump": 10, "jump_land": 4}
 const KEY_FRAMES := {"jump": [0, 3, 6, 10], "jump_land": [0, 4]}
+## Each loop's cycle spec, in frames at 24 fps (the brief's revision of 21 Nov 2026).
+const LOOP_FRAMES := {"idle": 96, "walk": 24, "run": 16, "sneak": 48, "bored": 96, "sleep": 96, "climb": 24}
+## The seam's tolerance for positions and scales: 1 mm.
+const SEAM_MM := 0.001
 
 var _passed := 0
 var _failed := 0
@@ -108,6 +120,88 @@ func _run() -> void:
 	for clip_name in ONE_SHOTS:
 		if player.has_animation(clip_name):
 			_check_one_shot(clip_name, player.get_animation(clip_name))
+
+	for clip_name in LOOPS:
+		if player.has_animation(clip_name):
+			_check_loop(clip_name, player.get_animation(clip_name))
+
+
+## A loop's length against its cycle spec, and its seam: every track the same at 0 and at the
+## length.
+func _check_loop(clip_name: String, clip: Animation) -> void:
+	var frames: int = LOOP_FRAMES[clip_name]
+	_check(_near(clip.length, frames / FPS), "%s: length is its cycle spec's %d/24 s (%.4f s, within 1/48 s)" % [
+			clip_name, frames, frames / FPS], "%.10f" % clip.length)
+	var bad: Array[String] = []
+	var keyed_at_end := 0
+	var held_to_end := 0
+	var worst_rot := 0.0
+	var worst_mm := 0.0
+	for t in clip.get_track_count():
+		var n := clip.track_get_key_count(t)
+		if n == 0:
+			continue
+		var bone := str(clip.track_get_path(t)).get_slice(":", 1)
+		var start: Variant = _interpolate(clip, t, 0.0)
+		var end: Variant = _interpolate(clip, t, clip.length)
+		var ends: Array = [end]
+		if _near(clip.track_get_key_time(t, n - 1), clip.length):
+			keyed_at_end += 1
+		else:
+			# No key at the length: the value there came round the wrap from the first key.
+			held_to_end += 1
+			ends.append(clip.track_get_key_value(t, n - 1))
+		for e: Variant in ends:
+			if typeof(start) == TYPE_QUATERNION:
+				var a := start as Quaternion
+				var b := e as Quaternion
+				worst_rot = maxf(worst_rot, a.angle_to(b))
+				if not (a.is_equal_approx(b) or a.is_equal_approx(-b)):
+					bad.append("%s %s: %s at 0, %s at the end (%.5f rad apart)" % [
+							bone, _type_name(clip.track_get_type(t)), a, b, a.angle_to(b)])
+			elif typeof(start) == TYPE_VECTOR3:
+				var d := ((start as Vector3) - (e as Vector3)).length()
+				worst_mm = maxf(worst_mm, d)
+				if d > SEAM_MM:
+					bad.append("%s %s: %s at 0, %s at the end (%.2f mm apart)" % [
+							bone, _type_name(clip.track_get_type(t)), start, e, d * 1000.0])
+			elif typeof(start) == TYPE_FLOAT:
+				if absf(float(start) - float(e)) > SEAM_MM:
+					bad.append("%s: %.5f at 0, %.5f at the end" % [clip.track_get_path(t), start, e])
+			elif not _same(start, e):
+				bad.append("%s: %s at 0, %s at the end" % [clip.track_get_path(t), start, e])
+	print("  %s seam: %d tracks keyed at the length, %d held to it from an earlier key; largest rotation gap %.6f rad, largest position or scale gap %.4f mm" % [
+			clip_name, keyed_at_end, held_to_end, worst_rot, worst_mm * 1000.0])
+	_check(bad.is_empty(), "%s: the seam: every track's value at 0 matches its value at the length (%d tracks)" % [
+			clip_name, clip.get_track_count()],
+			"; ".join(bad.slice(0, 6)) + (" (and %d more)" % (bad.size() - 6) if bad.size() > 6 else ""))
+
+
+## A track's value at `time`, by the Animation's own interpolation for its type.
+func _interpolate(clip: Animation, t: int, time: float) -> Variant:
+	match clip.track_get_type(t):
+		Animation.TYPE_POSITION_3D:
+			return clip.position_track_interpolate(t, time)
+		Animation.TYPE_ROTATION_3D:
+			return clip.rotation_track_interpolate(t, time)
+		Animation.TYPE_SCALE_3D:
+			return clip.scale_track_interpolate(t, time)
+		Animation.TYPE_BLEND_SHAPE:
+			return clip.blend_shape_track_interpolate(t, time)
+		Animation.TYPE_VALUE:
+			return clip.value_track_interpolate(t, time)
+	return null
+
+
+func _type_name(type: int) -> String:
+	match type:
+		Animation.TYPE_POSITION_3D:
+			return "position"
+		Animation.TYPE_ROTATION_3D:
+			return "rotation"
+		Animation.TYPE_SCALE_3D:
+			return "scale"
+	return "track type %d" % type
 
 
 ## A one-shot's length, its keys on the phase table's frames, and its last pose its own.

@@ -30,7 +30,15 @@ extends SceneTree
 ##   - F from climb: the hop off, shown as `jump` from frame 0 (its push-off), then
 ##     `jump_land`; no `jumping` and no `landed` in it;
 ##   - in every jump the leap seek doesn't run: model.leap < 0 and `jump`'s position only
-##     goes forward.
+##     goes forward;
+##   - each of the seven looping states plays its own clip, read as current_animation where
+##     the run above reaches it (the brief's revision of 21 Nov 2026, "every raccoon animation"):
+##     idle standing, walk with W, run with W and Shift, sneak with Ctrl and W, bored standing
+##     still past BORED_AFTER, sleep in the hollow (put there by start_asleep, as the title does;
+##     no key sends him to sleep), climb on the home pine (W into its trunk); then all seven
+##     together;
+##   - the one-tick lag on a gait change: walking, Shift is pressed; from the physics tick his
+##     speed first passes RUN_FROM (the model's input) to the tick `run` is first asked for.
 ## The clip follows the game by one tick (the AnimationPlayer advances on the process tick,
 ## after the physics tick that changed his state); that lag is measured and printed. A
 ## one-shot that has run out reads current_animation "" while its last pose is held; those
@@ -66,6 +74,8 @@ var _failed := 0
 var _rec: Dictionary = {}
 var _requested := {}
 var _landed: Array[int] = []
+## Each looping state's clip as current_animation read it when the run reached that state.
+var _seven := {}
 
 
 func _initialize() -> void:
@@ -111,6 +121,7 @@ func step() -> void:
 		"jid": int(model.get("jump_id")),
 		"resting": bool(player.get("resting")),
 		"climbing": bool(player.get("climbing")),
+		"spd": float(model.get("speed")),
 	}
 	if _rec.asg != "":
 		_requested[_rec.asg] = true
@@ -192,6 +203,10 @@ func _run() -> void:
 	await _settle()
 	await _from_moving("sneak", [KEY_CTRL, KEY_W], 360)
 
+	# The two clocks on a gait change: walk, then Shift.
+	await _settle()
+	await _walk_to_run()
+
 	# F during the landing.
 	await _settle()
 	await _f_in_landing()
@@ -207,6 +222,13 @@ func _run() -> void:
 	# F up a tree.
 	await _settle()
 	await _from_climb()
+
+	# The seven looping states, each as current_animation read it where the run reached it.
+	var wrong_states: Array = []
+	for clip: String in ["idle", "walk", "run", "sneak", "bored", "sleep", "climb"]:
+		if _seven.get(clip, "(not reached)") != clip:
+			wrong_states.append("%s: %s" % [clip, _seven.get(clip, "(not reached)")])
+	_check("each of the seven looping states plays its own clip (%s)" % _seven, wrong_states.is_empty(), wrong_states)
 
 	# Every clip asked for in this run is one the code names.
 	var stray: Array = []
@@ -380,13 +402,22 @@ func _wraps(clip: String, most: int) -> String:
 	return "no wrap in %.2f s" % (most / 60.0)
 
 
+## One of the seven looping states, reached through real input: current_animation is its own
+## clip. Kept for the summary check at the end.
+func _state_plays(clip: String, how: String) -> void:
+	_seven[clip] = _rec.cur
+	_check("the %s state (%s): current_animation is `%s`" % [clip, how, clip], _rec.cur == clip, _rec.cur)
+
+
 func _from_idle_and_bored() -> void:
 	await _until(func() -> bool: return _rec.cur == "idle", 120)
+	_state_plays("idle", "standing, no key held")
 	var idle_len: float = anim.get_animation("idle").length
 	var why := await _wraps("idle", 600)
 	_check("idle loops: standing still, it wraps past its %.1f s and plays on" % idle_len, why == "", why)
 	await _until(func() -> bool: return _rec.asg == "bored", 600)
 	_check("standing still: bored after BORED_AFTER", _rec.asg == "bored", _rec.asg)
+	_state_plays("bored", "standing still past BORED_AFTER %.0f s" % RM.BORED_AFTER)
 	var recs := await _press_and_watch([])
 	_check_jump("F from bored", recs, "idle")
 	await _wait(20)
@@ -399,6 +430,7 @@ func _from_moving(clip: String, keys: Array, most: int) -> void:
 	for k in keys:
 		_key(k, true)
 	await _until(func() -> bool: return _rec.cur == clip, 120)
+	_state_plays(clip, "holding %s" % " and ".join(keys.map(func(k: int) -> String: return OS.get_keycode_string(k))))
 	var length: float = anim.get_animation(clip).length
 	var why := await _wraps(clip, most)
 	_check("%s loops: held, it wraps past its %.3f s and plays on" % [clip, length], why == "", why)
@@ -406,6 +438,34 @@ func _from_moving(clip: String, keys: Array, most: int) -> void:
 	_check_jump("F from %s" % clip, recs, clip)
 	for k in keys:
 		_key(k, false)
+
+
+## The two clocks on a gait change, as _check_jump measures them for the jump: walking (W),
+## Shift is pressed; the model's input (speed past RUN_FROM) changes on a physics tick, and
+## `run` is asked for on the process tick after it.
+func _walk_to_run() -> void:
+	_key(KEY_W, true)
+	await _until(func() -> bool: return _rec.cur == "walk", 120)
+	await _wait(30)
+	var walking: bool = _rec.cur == "walk"
+	_key(KEY_SHIFT, true)
+	var fast := -1
+	var asked := -1
+	for i in 120:
+		await ticked
+		if fast < 0 and _rec.spd > RM.RUN_FROM:
+			fast = _tick
+		if asked < 0 and _rec.asg == "run":
+			asked = _tick
+			break
+	_key(KEY_SHIFT, false)
+	_key(KEY_W, false)
+	var lag := asked - fast
+	print("walk to run: speed past RUN_FROM %.2f m/s on tick %d, `run` asked for on tick %d: %d tick(s), %.4f s"
+		% [RM.RUN_FROM, fast, asked, lag, lag / float(Engine.physics_ticks_per_second)])
+	_check("walk to run (Shift while walking): `run` is asked for one tick after his speed passes RUN_FROM (the two clocks, %.4f s)"
+		% (1.0 / Engine.physics_ticks_per_second), walking and fast > 0 and asked > 0 and lag == 1,
+		"walking %s, %d tick(s)" % [walking, lag])
 
 
 func _f_in_landing() -> void:
@@ -456,6 +516,9 @@ func _wake_with(key: int) -> Array:
 	await _wait(30)
 	var label := "F" if key == KEY_F else "W"
 	_check("asleep: sleep", _rec.cur == "sleep", _rec.cur)
+	if not _seven.has("sleep"):
+		# The sleep state's own check is the one above.
+		_seven["sleep"] = _rec.cur
 	_key(key, true)
 	var pressed := _tick
 	var run_at := -1
@@ -501,6 +564,8 @@ func _from_climb() -> void:
 	_key(KEY_W, false)
 	await _wait(40)
 	_check("up the home pine (W into the trunk): climb", up and _rec.cur == "climb", "climbing %s, %s" % [up, _rec.cur])
+	# The climb state's own check is the one above.
+	_seven["climb"] = _rec.cur if up else "(not climbing)"
 	var landed_before := _landed.size()
 	var recs := await _press_and_watch([])
 	_check_jump("F from climb (the hop off)", recs, "idle")
