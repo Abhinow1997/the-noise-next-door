@@ -24,14 +24,16 @@
 - **Readers of the jump:** `cone_driver.gd:96`; `_on_landed()` (`campsite.gd:559`, `HEAR_STEPS` 6 m); `tasks_test.gd:267-281`.
 
 ### The moth's flutter (the graded sprite clip): `Sprite3D` + `AnimationPlayer` frame track
-- **Sheet:** `assets/sprites/cutebugs/bugs.png` (CC0, `ATTRIBUTION.md` there), 8 × 8 cells, `hframes` 4, `vframes` 3; moth
-  cells 4–5; `animations/moth_flutter.tres`; `props/moths.tscn`, driver `props/moths.gd` (shown while `burning()`).
+- **Sheet:** `assets/sprites/moth_lowpoly/moth_lowpoly.png` (the author's generated image beside it, made into the sheet
+  by `tools/make_moth_sheet.gd`; `ATTRIBUTION.md` there), 512 × 512 cells, `hframes` 2, `vframes` 2, cells 0–3;
+  `animations/moth_flutter.tres` (0, 1, 2, 3, 2, 1); one moth, `props/moths.tscn`, driver `props/moths.gd` (over the fire
+  while it's `burning()`).
 - **Balloons (not graded):** 3D. `props/party_balloon.tscn`/`.gd` (`bob`, `inflate`), `props/balloon_bunch.tscn`
   (`float_away`), clips in `animations/`. The chair, the knot (E) and the release are in `scripts/camp_balloons.gd`.
   The task is "Let the balloons go", id `balloons`.
 
 ### Tests: always `bash scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
-- `--name` runs `main.tscn` with that flag (parsed in `scripts/main.gd:403-474`); anything else runs `res://tests/<file>`
+- `--name` runs `main.tscn` with that flag (parsed in `scripts/main.gd:407-480`); anything else runs `res://tests/<file>`
   with `--script`. Headless. `<fps>` adds `--fixed-fps <fps>`; `realtime` omits it (audio, the clock). Timeout 120 s.
   Log `logs/<name>_<fps>fps.log` or `_realtime.log`; exit 1 on `SHADER ERROR`, `SCRIPT ERROR` or `Failed loading resource`, 124 on timeout.
 ```
@@ -69,7 +71,8 @@ bash scripts/run-test.sh test_balloon_task.gd 60       # tests/test_balloon_task
 - Baseline (21 Nov 2026, this wrapper): every test above passes at its 11 Nov count except `cost_effects.gd`, 3/4 (its
   smoke case finds the fire out; open). The waves and title `--fixed-fps` failures are expected: don't "fix" them.
   The Assignment 7 tests, all passing at `ab5de2b`: rig 51, pins 26, jump states 89, edges 239 at 30 fps and 238 at
-  60 and 144, moth flutter 40, moths state 15, balloon 3D 35, balloon task 69 (about 30 s; the rest under 15 s).
+  60 and 144, balloon 3D 35, balloon task 69 (about 30 s; the rest under 15 s). The moth's, on its new sheet (22 Nov):
+  flutter 22, state 15.
 ## Headless facts
 - A headless run uses a dummy renderer (no video adapter): no GPU particle process, so a GPU effect's CPU price is
   near zero. On 4.7.2 a one-shot `GPUParticles3D` never emits `finished` (7 Nov 2026): free a burst on a timer.
@@ -87,6 +90,9 @@ bash scripts/run-test.sh test_balloon_task.gd 60       # tests/test_balloon_task
   lost its frame-3 key), so the rig's read-back counts a track as held through a frame within 0.1°.
 - The two clocks, measured (21 Nov 2026): the rig's clip changes one physics tick after the game, 0.017 s, for the
   jump at 60 and 144 fps and for a gait change at 60; for the jump at 30 fps, one or two ticks (up to 0.033 s).
+- A `frame` track on continuous updates (22 Nov 2026, a scratch copy of the moth's clip): with nearest interpolation
+  it shows the same as discrete; with linear, `frame` takes the nearest cell, so cells change halfway between keys and
+  keys two cells apart show the cell between. So only the update-mode check catches it, not the picture.
 ## Current change
 @CHANGE-BRIEF.md
 
@@ -108,8 +114,8 @@ Exactly one node writes to each animated node. Never add a second writer to one 
   the `AnimationPlayer`.
 - **Each balloon's `AnimationPlayer`:** that balloon's own script (`props/party_balloon.gd`), its only caller of
   `play()` and `seek()`. **The bunch's:** `scripts/camp_balloons.gd`, which plays `float_away` once on release.
-- **Each moth's `AnimationPlayer`:** their driver, `props/moths.gd`, which plays and seeks `flutter`; it reads
-  `burning()`, writes nothing in the game.
+- **The moth's `AnimationPlayer`:** its driver, `props/moths.gd`, which plays `flutter` and seeks it half a frame in;
+  it reads `burning()`, writes nothing in the game.
 - **Not this change's, already two writers:** the dancers' `AnimationPlayer`s are played by `scripts/camp_person.gd`
   (`_play()` :1080) and sought and sped by `scripts/campsite.gd` (:358-359, :643) for the beat. Leave as is; don't copy.
 
@@ -119,7 +125,7 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
 - **Seen working in this repo:** `AnimationPlayer` `play(name, blend)`, `seek(t, true)`, `speed_scale`,
   `current_animation`, `assigned_animation`, `current_animation_position`, `current_animation_length`, `get_animation_list()`,
   `get_animation()`; `Animation.loop_mode`, `Animation.LOOP_LINEAR` (`raccoon_model.gd`). `Sprite3D` `pixel_size`,
-  `billboard`, `alpha_cut` (`SpriteBase3D.ALPHA_CUT_*`), `texture_filter` (`BaseMaterial3D.TEXTURE_FILTER_*`) (`main.gd:1264-1275`).
+  `billboard`, `alpha_cut` (`SpriteBase3D.ALPHA_CUT_*`), `texture_filter` (`BaseMaterial3D.TEXTURE_FILTER_*`) (`main.gd:1289-1298`).
 - **Read back on 4.7.2** (the brief; ClassDB and scratch checks, 21 Nov 2026): the rig's `callback_mode_process` 1
   (`ANIMATION_CALLBACK_MODE_PROCESS_IDLE`) and `step` 1/24; `Animation.LOOP_NONE`/`LOOP_LINEAR`/`LOOP_PINGPONG`, `step`,
   `length`, `TYPE_VALUE`, `TYPE_POSITION_3D`, `value_track_set_update_mode()`/`get`, `UPDATE_DISCRETE`, `track_get_path()`,
@@ -139,9 +145,7 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
 - Presentation reads game state and never writes it; the knot, the release, the girl's call and the task are game code.
 
 ## Unconfirmed
-- How a continuous `frame` track rounds between keys (short answer 2): unmeasured. The moth's track is discrete, and
-  its read-back checks that.
 - How each clip reads in motion, and every seam over five wraps: the author's eyes, in play and in the previews
   (`previews/raccoon_loops_preview.tscn`, `previews/jump_preview.tscn`), not yet written in TEST-REPORT.md.
-- `--jump-test` (`scripts/main.gd:416,775-779`) only presses jump for a screenshot; it checks nothing.
+- `--jump-test` (`scripts/main.gd:420,789-793`) only presses jump for a screenshot; it checks nothing.
 - `run-test.sh`'s third argument is only the timeout, so `--*-shots=<folder>` options can't go through it.

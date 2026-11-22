@@ -1,13 +1,14 @@
 extends SceneTree
-## Assignment 7, Step 5 (Step 5 of its plan): the moths round the campfire through the real level
-## (CHANGE-BRIEF.md, revision of 21 Nov 2026, "The extras' timings and places"; not graded).
+## Assignment 7, Step 5 (Step 5 of its plan): the moth over the campfire through the real level
+## (CHANGE-BRIEF.md, revision of 21 Nov 2026, "The extras' timings and places"; its expected values
+## since the revision of 22 Nov 2026, "one moth, on my own low-poly sheet, over the fire").
 ## main.tscn at the developer menu's "fire" point (the fire burning at load, as
 ## tests/campfire_smoke_state_test.gd's load mode starts), the raccoon out of the way. Each
 ## process tick, after the moths' driver (props/moths.gd), it reads them. It checks:
 ##   - shown while the fire burns (camp_fire.gd burning()), on every tick of the run;
-##   - each moth fluttering (`flutter`, current_animation), from its own offset, showing cells 4
-##     and 5 only; each on its circle, 0.55-0.9 m out from the fire's middle and 0.85-1.5 m up,
-##     and moving;
+##   - one moth, fluttering (`flutter`, current_animation), started half a frame in (1/48 s,
+##     props/moths.gd), showing cells 0 to 3; on its circle, 0.4 m out from the fire's middle and
+##     1.15-1.25 m up (1.2 m with its bob), and moving;
 ##   - doused (the fire's own douse(), as the bucket tipping does): hidden once it's out;
 ##   - lit again by the keeper (the fire's own add_log(), `lit`): shown again;
 ##   - one writer each: props/moths.gd writes no Sprite3D frame, plays and seeks only the moths'
@@ -17,7 +18,7 @@ extends SceneTree
 ## Run it from the project folder:
 ##   bash scripts/run-test.sh test_moths_state.gd 60
 ## It prints PASS or FAIL per check and quits with exit code 1 if any check fails.
-## Written by Claude Code on 21 Nov 2026.
+## Written by Claude Code on 21 Nov 2026; the one moth's values on 22 Nov 2026.
 
 signal sampled
 
@@ -96,15 +97,12 @@ func _run() -> void:
 
 	var sprites: Array = moths.find_children("*", "Sprite3D", true, false)
 	var players: Array = sprites.map(func(s: Sprite3D) -> AnimationPlayer: return s.get_node("AnimationPlayer"))
-	_check("four moths, each fluttering (current_animation `flutter`)",
-		players.size() == 4 and players.all(func(p: AnimationPlayer) -> bool: return p.current_animation == "flutter"),
+	_check("one moth, fluttering (current_animation `flutter`)",
+		players.size() == 1 and players.all(func(p: AnimationPlayer) -> bool: return p.current_animation == "flutter"),
 		players.map(func(p: AnimationPlayer) -> String: return p.current_animation))
-	var at: Array = players.map(func(p: AnimationPlayer) -> float: return snappedf(p.current_animation_position, 0.001))
-	var apart := true
-	for i in at.size():
-		for j in range(i + 1, at.size()):
-			apart = apart and absf(at[i] - at[j]) > 0.01
-	_check("not in step: each from its own offset (positions %s s)" % str(at), apart, at)
+	var circles: Array = moths.get_script().get_script_constant_map().get("CIRCLES", [])
+	var start: float = circles[0][4] if circles.size() == 1 else -1.0
+	_check("its flutter starts half a frame in (%.4f s, 1/48 s)" % start, is_equal_approx(start, 1.0 / 48.0), start)
 
 	# Their circles, over two seconds.
 	var out := Vector2(INF, -INF)
@@ -119,15 +117,15 @@ func _run() -> void:
 			out = Vector2(minf(out.x, r), maxf(out.y, r))
 			up = Vector2(minf(up.x, d.y), maxf(up.y, d.y))
 			cells[s.frame] = true
-	_check("each 0.55-0.9 m out from the fire's middle (%.3f-%.3f m)" % [out.x, out.y], out.x >= 0.549 and out.y <= 0.901, out)
-	_check("each 0.85-1.5 m up (%.3f-%.3f m)" % [up.x, up.y], up.x >= 0.849 and up.y <= 1.501, up)
+	_check("0.4 m out from the fire's middle (%.3f-%.3f m)" % [out.x, out.y], out.x >= 0.399 and out.y <= 0.401, out)
+	_check("1.15-1.25 m up (%.3f-%.3f m)" % [up.x, up.y], up.x >= 1.149 and up.y <= 1.251, up)
 	var moved := true
 	for i in sprites.size():
 		moved = moved and (sprites[i] as Sprite3D).global_position.distance_to(first[i]) > 0.01
-	_check("each moving on its circle", moved, "")
+	_check("moving on its circle", moved, "")
 	var seen := cells.keys()
 	seen.sort()
-	_check("showing cells 4 and 5 only (%s)" % str(seen), seen == [4, 5], seen)
+	_check("showing cells 0 to 3, every one of them (%s)" % str(seen), seen == [0, 1, 2, 3], seen)
 
 	# Doused, as the bucket tipping does: hidden once it's out.
 	fire.call("douse")

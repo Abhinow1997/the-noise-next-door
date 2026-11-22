@@ -1,0 +1,72 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://previews/moth_preview.gd" id="1_preview"]
+[ext_resource type="Texture2D" uid="uid://ckw8xsph5hf31" path="res://assets/sprites/moth_lowpoly/moth_lowpoly.png" id="2_moth"]
+[ext_resource type="Animation" path="res://animations/moth_flutter.tres" id="3_flutter"]
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_moth"]
+_data = {
+&"flutter": ExtResource("3_flutter")
+}
+
+[sub_resource type="Environment" id="Environment_bg"]
+background_mode = 1
+background_color = Color(0.125, 0.14, 0.157, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_cell"]
+shading_mode = 0
+albedo_color = Color(0.36, 0.36, 0.38, 1)
+
+[sub_resource type="StandardMaterial3D" id="Material_cross"]
+shading_mode = 0
+albedo_color = Color(0.22, 0.22, 0.24, 1)
+
+[sub_resource type="QuadMesh" id="QuadMesh_cell"]
+material = SubResource("Material_cell")
+size = Vector2(4, 4)
+
+[sub_resource type="QuadMesh" id="QuadMesh_across"]
+material = SubResource("Material_cross")
+size = Vector2(4, 0.06)
+
+[sub_resource type="QuadMesh" id="QuadMesh_down"]
+material = SubResource("Material_cross")
+size = Vector2(0.06, 4)
+
+[node name="MothPreview" type="Node3D"]
+process_priority = 100
+script = ExtResource("1_preview")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_bg")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+projection = 1
+size = 6.0
+
+[node name="Cell" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.2)
+mesh = SubResource("QuadMesh_cell")
+
+[node name="Across" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+mesh = SubResource("QuadMesh_across")
+
+[node name="Down" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1)
+mesh = SubResource("QuadMesh_down")
+
+[node name="Moth" type="Sprite3D" parent="."]
+pixel_size = 0.0078125
+alpha_cut = 2
+texture_filter = 3
+texture = ExtResource("2_moth")
+hframes = 2
+vframes = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Moth"]
+libraries = {
+&"": SubResource("AnimationLibrary_moth")
+}
+callback_mode_process = 1

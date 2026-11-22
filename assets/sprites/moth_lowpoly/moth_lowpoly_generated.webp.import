@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://daxi0ffodmjpc"
-path="res://.godot/imported/bugs.png-cbb6a7f066c564232f63dc54ebbf791e.ctex"
+uid="uid://tttef2uc5mq6"
+path="res://.godot/imported/moth_lowpoly_generated.webp-a6bf42187f92571ffa81c6616b5f5487.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/cutebugs/bugs.png"
-dest_files=["res://.godot/imported/bugs.png-cbb6a7f066c564232f63dc54ebbf791e.ctex"]
+source_file="res://assets/sprites/moth_lowpoly/moth_lowpoly_generated.webp"
+dest_files=["res://.godot/imported/moth_lowpoly_generated.webp-a6bf42187f92571ffa81c6616b5f5487.ctex"]
 
 [params]
 
@@ -37,4 +37,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=0
+detect_3d/compress_to=1

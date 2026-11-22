@@ -2,12 +2,12 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 Moths: the real level at the developer menu's "fire" point
 PASS  burning at load: the moths shown  (got burning true, shown true)
-PASS  four moths, each fluttering (current_animation `flutter`)  (got ["flutter", "flutter", "flutter", "flutter"])
-PASS  not in step: each from its own offset (positions [0.017, 0.058, 0.1, 0.142] s)  (got [0.017, 0.058, 0.1, 0.142])
-PASS  each 0.55-0.9 m out from the fire's middle (0.550-0.900 m)  (got (0.549998, 0.900002))
-PASS  each 0.85-1.5 m up (0.900-1.450 m)  (got (0.900035, 1.45))
-PASS  each moving on its circle  (got )
-PASS  showing cells 4 and 5 only ([4, 5])  (got [4, 5])
+PASS  one moth, fluttering (current_animation `flutter`)  (got ["flutter"])
+PASS  its flutter starts half a frame in (0.0208 s, 1/48 s)  (got 0.02083333333333)
+PASS  0.4 m out from the fire's middle (0.400-0.400 m)  (got (0.399998, 0.400001))
+PASS  1.15-1.25 m up (1.150-1.250 m)  (got (1.150035, 1.249996))
+PASS  moving on its circle  (got )
+PASS  showing cells 0 to 3, every one of them ([0, 1, 2, 3])  (got [0, 1, 2, 3])
 PASS  doused: the fire goes out, and the moths are hidden  (got burning false, shown false)
 PASS  out: still hidden  (got false)
 PASS  lit again by the keeper: the moths shown again  (got lit 1, shown true)

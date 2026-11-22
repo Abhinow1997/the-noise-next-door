@@ -1,28 +1,27 @@
 extends Node3D
-## The moths round the campfire (CHANGE-BRIEF.md, revision of 21 Nov 2026, "The extras' timings
-## and places"; not graded): four, each a Sprite3D on bugs.png's cells 4 and 5, 0.1 m across,
-## billboarded with nearest filtering, fluttering to `flutter` (animations/moth_flutter.tres) on
-## its own AnimationPlayer. The author's words for them: "an indicator of the fire being on,
-## and like surveillance being on."
-## This is their driver, presentation only. It reads the fire (camp_fire.gd burning()) and
-## writes nothing in the game. One writer to each animated node:
-##   - each moth's Sprite3D `frame`: its own AnimationPlayer only;
-##   - each AnimationPlayer: this script only, which plays `flutter` on it once, from its own
-##     offset, so they don't flap in step;
-##   - each pivot above a moth (its circle round the fire), and the root's `visible` (shown
-##     while the fire burns, hidden while it doesn't): this script only.
-## Built on 21 Nov 2026 by Claude Code.
+## The moth over the campfire (CHANGE-BRIEF.md, revision of 22 Nov 2026, "one moth, on my own
+## low-poly sheet, over the fire"; first built as four pixel-art moths on 21 Nov): one Sprite3D on
+## the author's low-poly sheet (assets/sprites/moth_lowpoly/moth_lowpoly.png, 2 x 2 cells), 0.15 m
+## across its spread wings, billboarded with smooth filtering, fluttering to `flutter`
+## (animations/moth_flutter.tres) on its own AnimationPlayer. The author's words for it: "an
+## indicator of the fire being on, and like surveillance being on."
+## This is its driver, presentation only. It reads the fire (camp_fire.gd burning()) and writes
+## nothing in the game. One writer to each animated node:
+##   - the moth's Sprite3D `frame`: its own AnimationPlayer only;
+##   - the AnimationPlayer: this script only, which plays `flutter` on it once, from half a frame
+##     in, so at 24 and 60 fps its wrap doesn't land exactly on the clip's length (where the
+##     engine shows the last cell: TEST-REPORT.md, the cycle seam);
+##   - the pivot above the moth (its circle over the fire), and the root's `visible` (shown while
+##     the fire burns, hidden while it doesn't): this script only.
+## Built on 21 Nov 2026 by Claude Code; one moth on the new sheet since 22 Nov 2026.
 
-## Each moth's circle: how far out from the fire's middle (m, 0.55-0.9), how high its middle
-## (m, kept within 0.85-1.5 with its bob), how fast it goes round (rad/s; the sign is which
-## way), where round it starts (rad), and where in the flutter it starts (s; the clip is 4/24 s).
+## The moth's circle: how far out from the fire's middle (m), how high its middle (m, with its
+## bob), how fast it goes round (rad/s; the sign is which way), where round it starts (rad), and
+## where in the flutter it starts (s; the clip is 6/24 s): half a frame, 1/48 s.
 const CIRCLES := [
-	[0.55, 0.95, 2.2, 0.0, 0.0],
-	[0.7, 1.25, -1.7, 1.6, 1.0 / 24.0],
-	[0.8, 1.05, 1.4, 3.3, 2.0 / 24.0],
-	[0.9, 1.4, -2.0, 4.8, 3.0 / 24.0],
+	[0.4, 1.2, 1.4, 0.0, 1.0 / 48.0],
 ]
-## How far each bobs up and down as it circles (m), and how fast (rad/s).
+## How far it bobs up and down as it circles (m), and how fast (rad/s).
 const BOB := 0.05
 const BOB_SPEED := 5.0
 
@@ -49,7 +48,7 @@ func _process(delta: float) -> void:
 	_follow(delta)
 
 
-## Over the fire, shown while it burns, each moth on its circle.
+## Over the fire, shown while it burns, the moth on its circle.
 func _follow(delta: float) -> void:
 	if fire == null:
 		visible = false
