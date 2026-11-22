@@ -619,3 +619,61 @@ The frames to keep are 10, 13, 14, 16, 17, 21, 22, 27, 28 and 40. The rest of th
 - **TUNING.md** has the revision: what I saw, the change, Claude Code's prediction, the strips r0 and r1 and Claude's comparison, and my verdict.
 
 (Kept by me on 21 Nov 2026 after play, from Claude Code's proposal in Step 7: "Yes, make r1", then "Yes, keep r1".)
+
+---
+
+### Revised 22 Nov 2026: a frame strip for each of the seven loops
+
+"the thing we did for jump u havent done for other animations of the raccoon". The seven loops have their cycle specs, read-backs, mutations and state checks (the revision "every raccoon animation meets the assignment's requirements"). But that revision left the strip and the tuning to the jump. From now on, each loop gets a strip as the jump did, read against its cycle spec, and my verdict.
+- **This replaces,** for the strip and the tuning only, "The jump's own requirements (phase table, edge tests, pins, the strip and the tuning) stay the jump's".
+- **The phase table, the pins and the edge tests stay the jump's.** They test a committing action's timing at its boundaries, and a loop has no takeoff or landing. Each loop's timing (its length, `step` and seam) is already checked by the rig's read-back.
+
+**The preview:** `previews/raccoon_loops_preview.tscn`, as built.
+- It shows the seven loops side by side in the camp at night, at the game camera's angle and distance.
+- Each copy plays its loop at rate 1 through the model's own `forced_animation`, so the model's script stays its `AnimationPlayer`'s only writer.
+- **It gains a log,** `logs/raccoon_loops_preview_frames.log`:
+  - one line a frame: each clip's position, its frame (the position × 24) and its wraps so far;
+  - once, at the top: each copy's place on the screen, for the cropping.
+
+**The capture** (mine, windowed, with Movie Maker):
+- **24 fps, the clips' own rate,** so each captured frame is one frame of every clip: `--fixed-fps 24 --quit-after 240` (10 s).
+- **Each strip is read from the clip's second wrap.** The first wrap blends in from his standing pose (0.2–0.3 s).
+- **Each strip ends on the seam into the third wrap,** which comes at 8 s for the 4 s loops.
+
+**The strips:**
+- A committed tool script, `tools/crop_loop_strips.gd`, run headless, crops each kept frame round that loop's copy, at the place the log gives. Nothing is resampled.
+- Each strip goes in `captures/loops/r0/<clip>/`, and the full frames aren't kept.
+- For each frame below, the captured frame is the one where the log shows the clip on that frame in its second wrap.
+
+**The frames each strip keeps** (clip frames at 24 fps). The last two of each row are the seam: the clip's last frame, then frame 0 of the next wrap.
+
+| Clip (frames) | Frames kept | What each should show (from `anim.py` and the cycle spec) |
+|---|---|---|
+| `idle` (96) | 0, 24, 29, 48, 60, 72, 95 → 0 | Looking ahead (0); glancing to one side, near its farthest (24); the blink (29); back past the middle (48); the left ear's flick (60); glancing the other way (72); the seam |
+| `walk` (24) | 0, 1, 7, 13, 19, 23 → 0 | The hand-over, front-left and hind-right taking his weight (0); all four down, the body at its highest (1); front-right and hind-left mid-swing, the body at its lowest (7); all four down, the other hand-over (13); front-left and hind-right mid-swing, the body low again (19); the seam |
+| `run` (16) | 0, 4, 7, 8, 12, 15 → 0 | The hind feet landing together (0); the hind feet driving, the front reaching (4); the hind feet pushing off, just before the flight at about 7.5 (7); the front feet landing (8); the front feet driving (12); the front feet pushing off, just before the flight at about 15.5 (15); the seam, the hind feet landing again |
+| `sneak` (48) | 0, 6, 12, 18, 24, 30, 36, 42, 47 → 0 | Three paws down in every frame. The front-left paw lifted mid-step (6), the hind-right (18), the front-right (30) and the hind-left (42). One paw setting down as the next lifts (0, 12, 24, 36); the seam |
+| `bored` (96) | 0, 24, 36, 53, 77, 95 → 0 | Slumped on his rump, breathed in, the sigh at its top (0); breathed out, at his lowest (24); the tail's tip at the top of its flick (36); the slow blink (53); starting to breathe in (77); the seam |
+| `sleep` (96) | 0, 48, 95 → 0 | Curled up, the same in every frame (see below); the seam |
+| `climb` (24) | 0, 6, 12, 18, 23 → 0 | Front-left and hind-right gripping as front-right and hind-left finish their reach (0); front-right and hind-left reaching up mid-swing (6); all four gripping (12); front-left and hind-right reaching up mid-swing (18); front-left and hind-right finishing their reach (23); the seam |
+
+**Then:**
+- **My reading:** Claude Code reads each strip against this table in TUNING.md. These are Claude's claims, on fixture captures.
+- **My verdict:** in play and in the preview, at normal speed and at `--time-scale 0.25`, each loop over five wraps.
+- **A change only where I ask for one.** It's a tuning revision, as the jump's r1 was: what I saw, the one change, Claude's prediction, a second strip and my verdict.
+- **How a changed loop is rebuilt:** only in `anim.py`, rebuilt alone, re-exported and fingerprinted, as r1 was. Its length, frames and seam don't change, and the rig's read-back still passes. A gait's timing stays as it is, since the gaits are timed so his paws don't slide (`raccoon_model.gd`'s `GAITS`).
+
+**Found while drafting: `sleep` holds one pose.**
+- `anim.py`'s `sleep()` doesn't change with time. Read back on 22 Nov 2026, no bone in the rig's `sleep` turns more than 0.04° over its 4 s.
+- The revision of 21 Nov said "`idle`, `bored` and `sleep` have no footfalls: they're slow cycles of the head, the tail and the ears". That's true of `idle` and `bored` only.
+- Its strip will show it holding still. Whether he breathes in his sleep is mine to decide after the strip, as a tuning revision.
+
+**What changes with it:**
+- the loops preview's log and its screen places;
+- `tools/crop_loop_strips.gd`;
+- `captures/loops/r0/`;
+- a section for the loops in TUNING.md.
+
+No game script, clip or test changes.
+
+(Drafted by Claude Code on 22 Nov 2026 from my words above and "Yes, draft it". The frames to keep and what each should show are Claude Code's, from `anim.py`; `sleep`'s stillness is its read-back. Kept by me the same day: "Keep it".)

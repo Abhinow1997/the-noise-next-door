@@ -50,3 +50,7 @@ desktop.ini
 /design/a7/session-6.jsonl
 # The seven loops' session transcript (1.09 MB): over the course's 1 MB; session-7-excerpt.jsonl records its size and SHA-256.
 /design/a7/session-7.jsonl
+
+# The loops' full Movie Maker capture (CHANGE-BRIEF.md, 22 Nov 2026): only the strips cut from it
+# (captures/loops/r0/) are kept.
+/captures/loops/full/

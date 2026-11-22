@@ -83,3 +83,69 @@ These are Claude Code's claims, read from the ten frames after my verdict above,
 ### r1: my verdict in play (21 Nov 2026)
 
 Asked "Does the push off the hind legs read now when you play it?": **"Yes, keep r1"**. Kept.
+
+---
+
+## Assignment 7: the raccoon's seven loops
+
+From CHANGE-BRIEF.md's revision of 22 Nov 2026, "a frame strip for each of the seven loops": each loop gets a strip as the jump did, read against its cycle spec, and my verdict. A loop changes only where I ask for one.
+
+### Loops r0: my verdict (22 Nov 2026)
+
+**The strips:** `captures/loops/r0/<clip>/` (fixture capture).
+- They're cut by `tools/crop_loop_strips.gd` from my Movie Maker capture of `previews/raccoon_loops_preview.tscn`, at 24 fps, the clips' own rate (`--quit-after 240`).
+- Each strip comes from its clip's second wrap and ends on the seam into the third. The frames kept are the brief's.
+- Each frame is named `frame<captured frame>_f<clip frame>.png`. The log of the same run is `logs/raccoon_loops_preview_frames.log`.
+
+**What I saw,** going through each strip's frames, before Claude's reading. Dictated; Claude Code fixed the punctuation, wrote "bored" for the dictation's "Board", and left out the asides while I moved between frames (marked …).
+
+> **idle:** "So I'm looking through and going through the idle frame. So, feels good, like he is just standing and glancing about. He does a small blink, which is fine. I mean, it's an indicator to, like, just standing around: maybe the player needs to do something, so it's fine. It works for me for this particular one."
+
+> **walk:** "… Yeah, feels natural, good enough. Like, I can see the leg movement is also well. Like, we have folds in our legs, which feels a little bit more natural than it was originally. Um, we work and we'll work with this particular one."
+
+> **run:** "For run as well, we've gone through. Feels good, like, the bends and all for the body and the legs that we are doing feels natural."
+
+> **sneak:** "For sneak, he changes his stance, bends down, and has, like, a radius, like, has a, like, a curious eye. I don't know that, like, shape of it, but it feels natural in terms of what he's doing. Like, he's more focused and, like, he's trying to sneak around, so it gives a good indicator for that as well."
+
+> **bored:** "Bored as well, just sitting on his hind legs and just sort of sleeping. Feels like a little bit like eyes closed and sleep sort of motion, but I feel okay with that particular element. It also has an indicator of it being a ZZZ on its head, so it's okay."
+
+> **sleep:** "For sleep, yeah, I mean, there's no movement in that particular sleep, which is fine. We don't have a natural sleep animation apart from, like, when we'll be cutting into cutscenes, so that's fine for me."
+
+> **climb:** "For climb as well, it's fine. Maybe we'll need to work on climb in the future, but for now, I'm just gonna go ahead and we'll move ahead with climb."
+
+> **All seven:** "So we will go ahead with that and make the notes for these particular things for the animations, and let's proceed ahead."
+
+### Loops r0: Claude's reading of the strips (fixture capture, 22 Nov 2026)
+
+These are Claude Code's claims, against the brief's table of what each frame should show. They were read from the 168 × 126 px crops, with pixel differences between frames, and held back until my verdict above was in. They aren't checks.
+
+| Clip | The brief says | The strip shows | Beside my verdict |
+|---|---|---|---|
+| `idle` | Glancing one way (24) and the other (72), the blink (29), the ear flick (60) | The head turns read: a little away at 24, toward the camera by 60 and most at 72, back ahead by 95. At this size the blink and the ear flick are a few pixels: the change from 24 to 29 (1,194 px) is mostly the head still turning. | I saw the blink; Claude couldn't make it out in the crops. My eyes stand. |
+| `walk` | A trot: all four feet down at 1 and 13, the body highest there and lowest at 7 and 19 | The diagonal stepping reads, and the biggest change is from 1 to 7 (4,433 px). The body's rise and fall isn't visible at this size. | Agree: the legs read, with the joints folding. |
+| `run` | Hind feet land at 0 and push off at 7; front feet land at 8 and push off at 15 | It reads as a lope: stretched out at 7 and 8 (hind legs back after the push-off, front legs reaching to land), gathered at 12, 15 and 0. | Agree. |
+| `sneak` | Three paws down; a paw lifted at 6, 18, 30 and 42 | Low and crouched all through. The front paw lifting at 6, and curled under at 30, reads. The hind steps (18, 42) are hidden under his body at this angle and size. | Agree: a focused creep. |
+| `bored` | The sigh (in at 0, out by 24), the tail's flick (36), a slow blink (53) | It reads as one held, slumped pose with half-shut eyes. Only the sigh shows as a change (0 to 24, 2,379 px). From 24 to 36 and 36 to 53, about 150 px change each: the tail lies behind him out of view, and the blink is too small to see. | Agree: it reads sleepy, eyes half shut (the clip's lids are at 0.45). The bored face over his head says the rest. |
+| `sleep` | The same in every frame | Identical: 0 px change from 0 to 48, as the read-back said. | Agree. |
+| `climb` | Diagonal pairs reaching up and gripping | In the preview he's on flat ground, not a trunk. His head, looking up the trunk, runs into the bush beside him and is half hidden. The legs alternate, spread widest at 12. Which pair is which can't be told at this size. | Agree it's fine for now. It's best judged up a tree in play, where the game turns him onto the trunk. |
+
+**The seams:**
+- Every loop's last frame runs into frame 0 with no visible jump.
+- Frame 0 one wrap later is the same pose:
+  - `walk`, checked pixel by pixel: none of his own pixels changed. What changed is the run copy beside him, its shadow, the idle copy's head and the label's digit.
+  - `idle`, `bored`, `sleep` and `climb`: only the label's digit changed.
+  - `run` and `sneak`: 56 and 69 px changed in their own columns, where their neighbours' tails and shadows reach. Claude didn't separate those.
+- The rig's read-back checks each loop's seam in its tracks; this is the same seen in the pictures.
+
+**What the strips can't show:**
+- which side's paw is which;
+- the walk's bob;
+- small moves of the eyes, ears and tail.
+
+Each crop also takes in a neighbour's tail at its edge and the label's bottom line, since the copies stand 1.15 m apart. A later capture with the copies about 1.6 m apart would give clean crops.
+
+### Loops r0: kept (22 Nov 2026)
+
+All seven loops are kept as they are, with no tuning revision: "So we will go ahead with that … and let's proceed ahead".
+- **`climb`:** "Maybe we'll need to work on climb in the future". That's for later, not this change.
+- **`sleep`** stays still: "there's no movement in that particular sleep, which is fine".
