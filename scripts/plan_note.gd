@@ -29,7 +29,8 @@ extends Control
 ##     remove them also remove the rock the party section just normal listing of the tasks
 ##     also reduce the font size for them"): no hints under the list, no main task (Rock the
 ##     party) on the page or on a scrap, its tasks listed plainly without an indent, and the
-##     writing smaller. The tasks themselves (camp_tasks.gd) are as they were.
+##     writing smaller. The tasks themselves (camp_tasks.gd) were as they were until 22 Nov
+##     2026, when Rock the party came out of them too.
 ##   - Since 11 Nov 2026 (the author: "when u complete a task can we have scribe of the
 ##     task that was completed and make scribing noise", with a sketch of a big strip along
 ##     the bottom with the task on it): a task just done comes up on a scrap DONE_SCALE
@@ -341,13 +342,10 @@ func highlighted() -> String:
 	return _hover
 
 
-## The tasks the page lists: those shown (camp_tasks.gd `shown`), without a main task.
+## The tasks the page lists: those shown (camp_tasks.gd `shown`). Since 22 Nov 2026 there's no
+## main task to leave out (Rock the party came out of camp_tasks.gd).
 func listed() -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	for task: Dictionary in tasks.shown():
-		if not task.get("main", false):
-			out.append(task)
-	return out
+	return tasks.shown()
 
 
 func _input(event: InputEvent) -> void:
@@ -401,7 +399,7 @@ func _on_ticked(id: String) -> void:
 			scrap.leaves = _clock + STRIKE_TIME + HOLD
 			return
 	for task: Dictionary in tasks.list:
-		if task.id == id and not task.get("main", false):
+		if task.id == id:
 			# Written out as it comes up, then crossed off.
 			var scrap := _add_scrap(task, false)
 			scrap.writes = _clock + WRITE_AFTER

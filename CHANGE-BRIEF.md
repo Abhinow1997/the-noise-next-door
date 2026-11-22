@@ -850,3 +850,20 @@ During my seam check: "We need a dev flag to disable the human NPCs, 'cause they
 - **Scope:** the moth's guidance at the start of the game, and the waves' timing, are named changes. The tutorial, the campers and the tasks are unchanged.
 
 (Drafted by Claude Code on 22 Nov 2026 from my words above, after the build I asked for and played: "Feels right". The moth's job is mine: "update the moths usage as well focusing on this assignement he helps user navigate to the main area". The guide's distances, speeds and timings, and the bursts', are Claude Code's. Kept by me the same day: "Keep and commit".)
+
+---
+
+### Revised 22 Nov 2026: Rock the party comes out of the code
+
+"Rock the party remove this it should be just tasks", then "Remove it from code".
+- **Where it stood:** since 8 Nov 2026 the TO DO page has shown no main task, just the tasks. Rock the party was left in `scripts/camp_tasks.gd` as a hidden main task over the camp's six, ticked when all six were done.
+- **The change:** it comes out of the code. The camp's six tasks are a plain list, each marked `camp`, and the tutorial still reveals them together. Nothing changes on the screen.
+- **What changes with it:**
+  - `scripts/camp_tasks.gd` and `scripts/plan_note.gd`: no main task;
+  - four tests' expected values, named here, with each check's count unchanged:
+    - `scripts/cones_test.gd`: its list without `party`, and "Rock the party is ticked off" becomes "every task is ticked off" (`all_done()`), with the same values;
+    - `scripts/tasks_test.gd` and `scripts/tutorial_test.gd`: their expected lists without `party`;
+    - `tests/test_balloon_task.gd`: the balloon task on the camp's list (`camp`), not under `party`.
+- **Steal the marshmallows** is unchanged: the tutorial crosses it off when it ends, as since 11 Nov 2026.
+
+(Drafted by Claude Code on 22 Nov 2026 from my words above.)

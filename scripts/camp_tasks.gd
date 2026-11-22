@@ -17,6 +17,11 @@ extends RefCounted
 ## "identify the music" and the in the rock the party main task should have sub tasks
 ## like steal marshmellows and all others which we have". The name is Claude Code's
 ## reading of that. Rock the party is done when all of its sub-tasks are.
+## Since 8 Nov 2026 the TO DO page has shown no main task, just the tasks (plan_note.gd). On 22
+## Nov 2026 Rock the party came out of the code as well (the author: "Rock the party remove this
+## it should be just tasks", then "Remove it from code"; CHANGE-BRIEF.md's revision of that day):
+## the camp's tasks are a plain list, each marked `camp`, which the tutorial reveals together
+## (`revealed`). There's no main task to tick: all_done() says when every task is done.
 
 ## On 7 Nov 2026 each task got a hint, how it's done, which the TO DO list writes under
 ## itself while the mouse is on that task (plan_note.gd). Claude Code's words.
@@ -27,34 +32,32 @@ signal ticked(id: String)
 var list: Array[Dictionary] = [
 	{"id": "investigate", "text": "Investigate the music", "done": false, "key": true,
 		"hint": "Follow the music's waves."},
-	{"id": "party", "text": "Rock the party", "done": false, "main": true,
-		"hint": "Do the tasks below."},
-	{"id": "marshmallows", "text": "Steal the marshmallows", "done": false, "parent": "party",
+	{"id": "marshmallows", "text": "Steal the marshmallows", "done": false, "camp": true,
 		"hint": "Unzip the backpack, take it."},
-	{"id": "music", "text": "Turn the music off", "done": false, "parent": "party",
+	{"id": "music", "text": "Turn the music off", "done": false, "camp": true,
 		"hint": "Pull the plug, get away."},
-	{"id": "cooler", "text": "Raid the cooler", "done": false, "parent": "party",
+	{"id": "cooler", "text": "Raid the cooler", "done": false, "camp": true,
 		"hint": "Open it, take the sausages."},
 	# Added on 8 Nov 2026 (camp_tent.gd). No hint: the author, "don't give any additional
 	# details on it".
-	{"id": "tent", "text": "Dismantle the tent", "done": false, "parent": "party", "hint": ""},
+	{"id": "tent", "text": "Dismantle the tent", "done": false, "camp": true, "hint": ""},
 	# Added on 10 Nov 2026 (camp_bear_bag.gd).
-	{"id": "bearbag", "text": "Raid the bear bag", "done": false, "parent": "party",
+	{"id": "bearbag", "text": "Raid the bear bag", "done": false, "camp": true,
 		"hint": "Drop it, grab a treat."},
 	# Added on 21 Nov 2026 (camp_balloons.gd; CHANGE-BRIEF.md, Assignment 7), as Pop the
 	# balloons; Let the balloons go the same day (the brief's revision), keeping its id.
-	{"id": "balloons", "text": "Let the balloons go", "done": false, "parent": "party",
+	{"id": "balloons", "text": "Let the balloons go", "done": false, "camp": true,
 		"hint": "Untie them, let them fly."},
 ]
-## Whether the main task and its sub-tasks are on the list yet.
+## Whether the camp's tasks are on the list yet (the tutorial reveals them).
 var revealed := false
 
 
-## The tasks the list shows: the first one, and the rest once they're revealed.
+## The tasks the list shows: the first one, and the camp's once they're revealed.
 func shown() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for task: Dictionary in list:
-		if revealed or not (task.get("main", false) or task.has("parent")):
+		if revealed or not task.get("camp", false):
 			out.append(task)
 	return out
 
@@ -63,15 +66,12 @@ func reveal() -> void:
 	revealed = true
 
 
-## Ticks task `id` off, if it isn't already; and its main task, once that's all of them.
+## Ticks task `id` off, if it isn't already.
 func done(id: String) -> void:
 	for task: Dictionary in list:
 		if task.id == id and not task.done:
 			task.done = true
 			ticked.emit(id)
-			var parent: String = task.get("parent", "")
-			if parent != "" and list.all(func(t: Dictionary) -> bool: return t.get("parent", "") != parent or t.done):
-				done(parent)
 
 
 func is_done(id: String) -> bool:

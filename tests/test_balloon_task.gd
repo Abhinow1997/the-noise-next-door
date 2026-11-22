@@ -10,7 +10,8 @@ extends SceneTree
 ## each physics tick after the game's. It checks:
 ##   - before her first visit: no chair, no balloons, and nothing to untie (E at the knot's place
 ##     does nothing);
-##   - the task: on the list under Rock the party, "Let the balloons go", with its hint;
+##   - the task: on the camp's list (Rock the party came out on 22 Nov 2026), "Let the balloons
+##     go", with its hint;
 ##   - one authority: in props/party_balloon.gd every play() and seek() is on its own
 ##     AnimationPlayer; camp_balloons.gd calls play() only on the bunch's player, and nothing
 ##     else plays or seeks; no other game script uses the balloon or the bunch;
@@ -272,8 +273,8 @@ func _structure() -> void:
 	for t: Dictionary in camp.get("tasks").list:
 		if t.id == "balloons":
 			task = t
-	_check("the task: Let the balloons go, under Rock the party, \"Untie them, let them fly.\"",
-		task.get("text") == "Let the balloons go" and task.get("parent") == "party" and task.get("hint") == "Untie them, let them fly.", task)
+	_check("the task: Let the balloons go, on the camp's list, \"Untie them, let them fly.\"",
+		task.get("text") == "Let the balloons go" and task.get("camp", false) and task.get("hint") == "Untie them, let them fly.", task)
 
 	var files := {}
 	for dir: String in ["res://scripts", "res://props"]:

@@ -67,11 +67,12 @@ func _physics_process(_delta: float) -> void:
 
 func _run() -> void:
 	await _wait(1.0)
-	# Since 26 Oct 2026 the camp's three are the sub-tasks of one main task, Rock the party.
+	# Since 26 Oct 2026 the camp's three were the sub-tasks of one main task, Rock the party,
+	# which came out on 22 Nov 2026 (CHANGE-BRIEF.md's revision of that day): a plain list.
 	# Dismantle the tent joined them on 8 Nov 2026 (camp_tent.gd), Raid the bear bag on
 	# 10 Nov 2026 (camp_bear_bag.gd), and Pop the balloons on 21 Nov 2026 (camp_balloons.gd).
-	_check("The to-do list: the music, then Rock the party and its six",
-		"investigate party marshmallows music cooler tent bearbag balloons",
+	_check("The to-do list: the music, then the camp's six",
+		"investigate marshmallows music cooler tent bearbag balloons",
 		" ".join(level.tasks.list.map(func(t: Dictionary) -> String: return t.id)))
 	_check("Routines: the camper starts pegging out his tent", "peg", _camper.activity())
 	_check("Routines: the low-poly man starts dancing", "dance", _man.activity())

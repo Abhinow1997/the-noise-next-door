@@ -45,8 +45,8 @@ extends Node
 ##      "Runnn!" sets him running back toward his tree on his own for RUN_OFF (player.gd
 ##      `run_off`), then the keys have him; and the bush is closed to him (hide_spot.gd
 ##      `closed`) till they're all back at work.
-##   6. The list: a note says Tab; Tab brings up the TO DO list with Rock the party and
-##      its tasks on it (camp_tasks.gd `reveal`), the game slowed; Tab again puts it away,
+##   6. The list: a note says Tab; Tab brings up the TO DO list with the camp's tasks on it
+##      (camp_tasks.gd `reveal`; Rock the party, their main task, came out on 22 Nov 2026), the game slowed; Tab again puts it away,
 ##      and the world's open, with no more notes. Since 11 Nov 2026 the marshmallow he
 ##      stole counts: Steal the marshmallows is ticked off then (the author: "after the
 ##      tutorial is done we can cross out steal the marshmallows").

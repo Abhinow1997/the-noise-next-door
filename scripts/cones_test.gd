@@ -4,7 +4,8 @@ extends Node
 ## raccoon in plain sight at the camp and checks:
 ##   - before the tutorial: no cones, nobody sees him, only the music's task on the list;
 ##   - the tutorial: the game pauses with a note to press Tab, Esc doesn't unpause it,
-##     Tab brings up THE PLAN with Rock the party and its sub-tasks, Tab again carries on;
+##     Tab brings up THE PLAN with the camp's tasks (Rock the party, their main task, came out
+##     on 22 Nov 2026), Tab again carries on;
 ##     since 7 Nov 2026, when the tutorial was remade (camp_tutorial.gd), the game slows
 ##     down behind a dark layer instead of pausing, Tab brings up the TO DO list with the
 ##     marshmallows marked to start with, and Enter picks them and carries on. The guide's
@@ -13,7 +14,7 @@ extends Node
 ##     fade, then none; the chase and the shoo as before;
 ##   - once he's got away: each of them confused ("?", SEARCH) for SEARCH_TIME, then
 ##     walking back, their cone back BACK_AFTER seconds after they start;
-##   - Rock the party ticked off once its sub-tasks are.
+##   - every task ticked off once the camp's are (Rock the party's check, since 22 Nov 2026).
 ## Durations are measured on the camp's clock, so they're the same at any frame rate
 ## (run it with --fixed-fps 30, 60 and 144). Run it headless from the project folder:
 ##   godot --headless --path . -- --cones-test
@@ -104,8 +105,9 @@ func _ready() -> void:
 		_check("Tutorial: Tab brings up the TO DO list", true, _plan.open and _plan.up() >= 1.0)
 		# Raid the bear bag joined the list on 10 Nov 2026 (camp_bear_bag.gd), and Pop the
 		# balloons on 21 Nov 2026 (camp_balloons.gd; CHANGE-BRIEF.md's revision of that day).
-		_check("Tutorial: the list shows Rock the party and its tasks",
-			"investigate party marshmallows music cooler tent bearbag balloons", _shown_ids())
+		# Rock the party came out of the list on 22 Nov 2026 (CHANGE-BRIEF.md's revision of that day).
+		_check("Tutorial: the list shows the camp's tasks",
+			"investigate marshmallows music cooler tent bearbag balloons", _shown_ids())
 		_check("Tutorial: the note says to pick one, the marshmallows marked",
 			CampTutorial.PICK_NOTE + " / marshmallows", _plan.note_showing() + " / " + _plan.highlighted())
 		_check("Tutorial: still slowed down while he reads", true, Engine.time_scale <= CampTutorial.SLOW + 0.01)
@@ -152,14 +154,15 @@ func _ready() -> void:
 		_shot_of(Vector3(Campsite.FIRE.x, 0.0, Campsite.FIRE.y), "05_cones_back")
 		for id: String in ["marshmallows", "music"]:
 			_tasks.done(id)
-		_check("Two of its tasks done: Rock the party isn't", false, _tasks.is_done("party"))
+		# Since 22 Nov 2026 there's no Rock the party to tick: every task done is all_done().
+		_check("Two of its tasks done: not every task is", false, _tasks.all_done())
 		_tasks.done("cooler")
 		# Dismantle the tent, added on 8 Nov 2026, is the fourth; Raid the bear bag, added on
 		# 10 Nov 2026, the fifth; Pop the balloons, added on 21 Nov 2026, the sixth.
 		_tasks.done("tent")
 		_tasks.done("bearbag")
 		_tasks.done("balloons")
-		_check("All six done: Rock the party is ticked off", true, _tasks.is_done("party")))
+		_check("All six done: every task is ticked off", true, _tasks.all_done()))
 	_at(45.5, _finish)
 
 
