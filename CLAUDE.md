@@ -21,8 +21,8 @@
   `cone_driver.gd:96`; `_on_landed()` (`campsite.gd:539`, `HEAR_STEPS` 6 m); `tasks_test.gd:260-274`.
 
 ### The balloon's float: `Sprite3D` + `AnimationPlayer` frame track
-- **Sheets:** `assets/sprites/balloons/balloon_{red_4,yellow,blue_4}.png` (also green, purple), 48 × 64 px, `hframes` 3,
-  `vframes` 2; float cells 0–2, pop 3–5 (`assets/sprites/balloons/ATTRIBUTION.md`; CC-BY-SA 4.0, credit line there).
+- **Sheet:** `assets/sprites/balloon_lowpoly/balloon_lowpoly.png` (the author's, generated; made by
+  `tools/make_balloon_sheet.gd`), 765 × 1024, 255 × 512 cells, `hframes` 3, `vframes` 2; float 0–2, pop 3–5; tinted per balloon.
 - **Placement:** by the party's `TABLE` and `SPEAKER` (`scripts/campsite.gd:81,83`); a pop heard `HEAR_CHITTER` 8 m (:105).
 - **Moth (extra):** `assets/sprites/cutebugs/bugs.png` (`ATTRIBUTION.md` there, CC0), shown while `burning()`
   (`scripts/camp_fire.gd`). Both sheets have `detect_3d/compress_to=1` today (their `.png.import`, line 40).
