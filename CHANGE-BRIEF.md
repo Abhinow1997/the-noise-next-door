@@ -502,3 +502,57 @@ Step 1's crouch, `TAKEOFF_TICK`, the 10-tick landing, and `bite_open()`, `use_bi
 - If an existing test expects the campers not to react to the balloons, the build stops and says which.
 
 (Drafted by Claude Code on 21 Nov 2026 from my words above and my answers: "A camp chair or stake", "E at the knot", "The girl calls the others". The chair, the clips' timings and the hint are Claude Code's. Kept by me the same day: "Yes, all".)
+
+---
+
+### Revised 21 Nov 2026: every raccoon animation meets the assignment's requirements, not only the jump
+
+The jump has its phase table, and the moth's flutter its cycle spec. The raccoon's seven looping clips are already in the rig's read-back (`tests/test_raccoon_rig.gd`: every bone track resolves, `step` is exactly 1/24, `LOOP_LINEAR`, from an empty import cache). They now get written cycle specs, and their seam is checked. Their keys aren't changed: the gaits are timed so his paws don't slide (`raccoon_model.gd`'s `GAITS`).
+
+**The cycle specs.** All are made by `design/character/raccoon_v2/anim.py` at 24 fps, `Animation.step` 1/24 s, imported with `Animation.LOOP_LINEAR` set in `raccoon_v2.glb.import`'s per-animation settings. Each has 26 bone tracks (rotation and position, continuous):
+
+| Clip | Frames | Length | How it's made (`anim.py`) |
+|---|---|---|---|
+| `idle` | 96 | 4.0 s | standing, glancing about |
+| `walk` | 24 | 1.0 s | a trot, timed off its foot contacts |
+| `run` | 16 | 0.667 s | a lope, the head steadied afterwards (`steady_head`) |
+| `sneak` | 48 | 2.0 s | a stalk, one paw at a time |
+| `bored` | 96 | 4.0 s | slumped on his rump |
+| `sleep` | 96 | 4.0 s | curled up |
+| `climb` | 24 | 1.0 s | belly to the trunk |
+
+**The seam rule, for a continuous track:** each track's value at time 0 matches its value at the clip's length. `anim.py` makes them that way: it samples each loop at u = f / frames for f from 0 to frames, from a pose that repeats every cycle, so the last frame is the first again (for `run`, after its head is steadied too).
+
+**The check:** `tests/test_raccoon_rig.gd` gains, for each of the seven loops, that every track's value at 0 and at the length match. Rotations are compared with `is_equal_approx`, accepting a quaternion or its negative, which are the same turn. Positions and scales are compared within 1 mm. A clip that hitched at the wrap would fail it. The jump's one-shots are left out: their last pose is their own.
+
+**Every requirement the course sets for a looping clip, for each of the seven** ("do requirements for all the animations, not just jump"). A phase table is the course's requirement for a committing action, so the jump keeps its own; a loop's equivalent is its cycle spec and seam.
+- **The cycle spec:** each clip's above. For the four gaits, `anim.py`'s own foot timing is written out in frames as their phases:
+
+| Clip (frames) | Its phases at 24 fps, from `anim.py` |
+|---|---|
+| `walk` (24) | A trot. Front-left and hind-right down on frames 0–14, front-right and hind-left from 12 to about frame 2 of the next cycle (the pairs overlap: all four down at the hand-overs, about frames 1 and 13). The body is highest at the hand-overs and lowest mid-support (about frames 7 and 19). |
+| `run` (16) | A lope. The hind feet land together on frame 0 and push off by about frame 7; the front feet land on frame 8 and push off by about frame 15. No foot is down at about frames 7.5 and 15.5, when the body rises. |
+| `sneak` (48) | A stalk, three paws always down. The swings: hind-left frames 37–48, front-left 1–12, hind-right 13–24, front-right 25–36. |
+| `climb` (24) | Diagonal pairs on the trunk: front-left and hind-right from frame 0, front-right and hind-left from frame 12. |
+
+  `idle`, `bored` and `sleep` have no footfalls: they're slow cycles of the head, the tail and the ears (`anim.py` gives no action any breathing).
+- **The read-back,** for all seven:
+  - every bone track resolves;
+  - the length is the spec's (frames / 24);
+  - `step` is exactly 1/24;
+  - `LOOP_LINEAR`, from an empty import cache;
+  - the seam, as above.
+- **The mutations** (Step 6): the loop-flip mutation is run on each of the seven in turn (`LOOP_NONE` in the importer's settings), and the read-back must fail each one. The broken-subname mutation covers their bone tracks too.
+- **The state machine:** the structure test already asserts every clip the state machine can ask for exists, all nine. The state test (`tests/test_jump_states.gd`) gains a check, through real input, that each of the seven states plays its clip, read as `current_animation`:
+  - idle: standing;
+  - walk: W;
+  - run: W with Shift;
+  - sneak: Ctrl with W;
+  - bored: standing still past `BORED_AFTER`;
+  - sleep: in the hollow;
+  - climb: on a trunk.
+- **The two clocks:** all nine are on the rig's one `AnimationPlayer`, on the process tick. The one-tick lag measured for the jump is measured for a gait change too.
+- **My eyes:** a preview scene, `previews/raccoon_loops_preview.tscn`, shows the seven loops side by side in the real camp at night, each looping, so I can watch each one's seam over at least five wraps at normal speed and at `--time-scale 0.25`. I write what I see in TEST-REPORT.md for each.
+- **The jump's own requirements** (phase table, edge tests, pins, the strip and the tuning) stay the jump's, as the course asks of the committing action.
+
+(Drafted by Claude Code on 21 Nov 2026 at my request: "Yes, add them", then "do requirements for all the animations not just jump". The numbers and the gaits' phases are from `anim.py` and the read-back. Kept by me the same day: "Keep it".)
