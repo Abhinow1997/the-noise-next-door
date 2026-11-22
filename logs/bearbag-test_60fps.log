@@ -1,7 +1,7 @@
 Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 
 
-Raid the bear bag check, 2026-11-22T16:57:05
+Raid the bear bag check, 2026-11-22T17:56:03
   pass  Start: it hangs, its three treats in it                            expected true false 3     got true false 3
   pass  Start: out of his reach (its bottom over 1.2 m up)                 expected true             got true
   pass  Start: the tree's his to climb, with its limb                      expected true             got true
@@ -44,7 +44,7 @@ Raid the bear bag check, 2026-11-22T16:57:05
   pass  E drops him off it, onto the ground                                expected false false true got false false true
   pass  Down, they can see him again                                       expected false            got false
 RESULT: all checks passed (41 checks)
-WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
-ERROR: 2 resources still in use at exit (run with --verbose for details).
+ERROR: 1 resources still in use at exit (run with --verbose for details).
    at: clear (core/io/resource.cpp:822)

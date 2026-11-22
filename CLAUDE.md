@@ -47,7 +47,7 @@ bash scripts/run-test.sh --cones-test 30          # and 60, 144; so too --cone-s
 bash scripts/run-test.sh --waves-test realtime    # and --title-test; under --fixed-fps each fails one check: expected
 ```
 - **Baseline** (22 Nov 2026, `logs/a7-baseline-*`): earlier tests at their 11 Nov counts but `cost_effects.gd` 3/4 (fire
-  out; open). A7: rig 51, pins 26, states 89, edges 239/238/238, moth 22, moths 15, guide 9, balloons 35, 69.
+  out; open). A7: rig 51, pins 26, states 89, edges 239/238/238, moth 22, moths 15, guide 9, balloons 35, 69, now 71.
 ## Headless facts
 - Headless is a dummy renderer: no GPU particle process (a GPU effect's CPU price is near zero), and on 4.7.2 a one-shot
   `GPUParticles3D` never emits `finished` (7 Nov 2026): free a burst on a timer.
@@ -105,10 +105,10 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
 - Movement, collision, input and keys. The jump moves as the game's own (`dc8ff17`): takeoff on the tick F is seen, a
   12-tick landing (`LAND_TIME` 0.2 s). The one input change: F wakes him in the hollow into the leap out. The other leaps
   and hops keep the run clip; only a hop off a tree shows `jump` and `jump_land`.
-- The campers, except the brief's named changes (the girl's balloon step after warming her hands; the balloons gone as a
-  trigger for reactions they already have). The tutorial, the other tasks, the fire's life; `shaders/`, Assignment 6's
-  effects, every other look except the named ones (the moth's guide, the waves' bursts); the renderer, `project.godot`;
-  the seven raccoon clips' keys (only their loop mode moved, into the `.import`).
+- The campers, except the brief's named changes (the girl's balloon step after warming her hands, then her `sit` on the
+  chair; the balloons gone as a trigger for reactions they already have). The tutorial, the other tasks, the fire's life;
+  `shaders/`, Assignment 6's effects, every other look except the named ones (the moth's guide, the waves' bursts); the
+  renderer, `project.godot`; the seven raccoon clips' keys (only their loop mode moved, into the `.import`).
 - What any existing test expects, unless a revision of the brief names the change. A test may change how it measures
   only with the same expected value.
 - Presentation reads game state and never writes it; the knot, the release, the girl's call and the task are game code.

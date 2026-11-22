@@ -69,7 +69,7 @@ The logs are in `logs/a7-baseline-before/` and `logs/a7-baseline-after/`, each w
   - the jump's states 89;
   - edges 239, 238 and 238;
   - the moth's read-back 40 and the moths' state 15, on the pixel-art moths. On the new sheet (22 Nov), 22 and 15.
-  - the balloons 35 and 69.
+  - the balloons 35 and 69. With the chair moved by the table and the girl sitting on it (22 Nov, the brief's revision), the task's test has 71, all passing, and every other camp test keeps its count.
 
 ### Pins
 

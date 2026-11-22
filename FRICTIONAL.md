@@ -131,6 +131,13 @@ A dated log of Assignment 7's work as it happened: what I tried and expected, wh
 - **CLAUDE.md** had grown to 153 lines; Claude Code trimmed it to 119 (`9e5fd21`).
 - **The README** got its Assignment 7 section (`2c28950`).
 
+### 22 Nov 2026: contact sheets, Rock the party out, the task sounds, and the chair by the table
+
+- **Contact sheets:** "do we have the sprint sheets for the animations of the raccons we did ?", then "Yes, make them". One sheet for each strip, the jump's r0 and r1 and each of the seven loops; no sheet for the moth ("No, commit these", `e96486a`).
+- **Rock the party:** "Rock the party remove this it should be just tasks", then "Remove it from code". The camp's tasks are a plain list now (`c8a01ab`).
+- **The task sounds:** "use the sound effect when u complete a task replace it with the current vesrion", with two Pixabay sounds I picked. After listening: "Sounds good, commit" (`1d8d479`).
+- **The chair by the table:** "can u move the chair near the table we have at camp ? and make the girl dance and come and sit on the chair for some time", "so we can use the ballons". Claude Code keyed her a `sit` clip in Blender, moved the chair, knot and balloons, and changed the balloon task's test to match. Kept: "Keep and commit".
+
 ### What I accepted, changed or turned down
 
 From the record of what I chose in the chat; each brief revision says the same in its own line.

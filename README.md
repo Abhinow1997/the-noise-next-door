@@ -132,7 +132,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - their loop modes moved out of code into the importer's settings ([assets/characters/raccoon_v2.glb.import](assets/characters/raccoon_v2.glb.import)), proved from an empty import cache;
   - a frame strip of each, with my verdict: all seven kept.
 - **The other game work** that came with it:
-  - **Let the balloons go,** a new task on the camp's list: just outside the camp to the south-west, the girl blows up three 3D balloons and ties them to a camp chair. E at the knot lets them go, and the bunch floats away. When she sees them gone, she calls the others to search there.
+  - **Let the balloons go,** a new task on the camp's list: by the table in the party's corner, the girl blows up three 3D balloons and ties them to a camp chair, then sits on it for a while between her dances (a new `sit` clip on her rig). E at the knot, behind her chair, lets them go, and the bunch floats away. When she sees them gone, she calls the others to search there.
   - **The party's sound waves** now come in bursts: three on the beat every 8 beats (about 5 s), then quiet.
   - **`-- --dev-unseen`,** a developer flag that keeps the campers from seeing him.
   - **A task done** now plays a coin chime, and its words are written out to a pencil scribble: two Pixabay sounds the author picked, in place of the laugh and the chalk scribble.
@@ -152,7 +152,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 
 - **The jump and the moth's guide:** run `godot --path .` and choose New Game. W, A, S or D wakes him, and the moth comes in as he lands. Follow it to the camp, and press F to jump, tapped or held. To skip the title, run `godot --path . -- --dev-start=den`.
 - **The moth over the fire:** run `godot --path . -- --dev-start=fire`. Add `--dev-unseen` after it, so the campers don't get in the way.
-- **The balloons:** in free play (`-- --dev-start=free`), wait for the girl's balloon step after she warms her hands, then go south-west of the camp to the chair, and press E at the knot.
+- **The balloons:** in free play (`-- --dev-start=free`), wait for the girl's balloon step after she warms her hands, by the table. Once she's blown them up and is sitting, creep to the back of her chair and press E at the knot. Add `--dev-unseen` to keep her from seeing you.
 - **The previews,** windowed. Make each folder first.
   - `godot --path . --resolution 1280x720 res://previews/jump_preview.tscn --write-movie captures/jump/new/frame.png --fixed-fps 30 --quit-after 60 -- --dev-start=free`
   - `godot --path . --resolution 1280x720 res://previews/raccoon_loops_preview.tscn --write-movie captures/loops/full/frame.png --fixed-fps 24 --quit-after 240 -- --raccoon-loops-preview`, then `godot --headless --path . --script res://tools/crop_loop_strips.gd -- --frames=captures/loops/full`

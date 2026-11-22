@@ -15,23 +15,27 @@ extends SceneTree
 ##   - one authority: in props/party_balloon.gd every play() and seek() is on its own
 ##     AnimationPlayer; camp_balloons.gd calls play() only on the bunch's player, and nothing
 ##     else plays or seeks; no other game script uses the balloon or the bunch;
-##   - the girl blows them up: her routine dance, warm, then the balloons; from warming her
-##     hands she walks out; there she sets out the chair, then blows up red, yellow and blue one
-##     by one (each shown as a small bud, playing `inflate`, INFLATE apart and GAP between),
-##     tying each to the chair; with the third tied she goes back to dancing;
+##   - the girl blows them up: her routine dance, warm, the balloons, then sitting on the chair
+##     (since 22 Nov 2026, the revision "the chair by the table, and the girl sits on it"); from
+##     warming her hands she walks over to the table; there she sets out the chair, then blows up
+##     red, yellow and blue one by one (each shown as a small bud, playing `inflate`, INFLATE
+##     apart and GAP between), tying each to the chair; with the third tied she goes on to sit;
 ##   - then the balloons: tinted low-poly meshes, 0.3 m across, their middles about 0.7 m up,
-##     just outside the camp, clear of colliders, no collision, each playing `bob`, not in step;
-##     their strings all end on one knot, low on the chair;
-##   - later visits: she minds them, staying her drawn GIRL_DANCE_TIME; seeing him there she takes
-##     fright, flees and cowers, as she always does;
-##   - E at the knot (his grab) frees them, with her minding them: the bunch plays `float_away`,
-##     rises 8 m and is gone after 5 s, and the task ticks; she sees it, takes fright facing the
-##     chair and calls the others: each one who was calm or wondering comes to a spot round the
-##     chair confused ("?", SEARCH) and searches there (the `confused` clip), then goes back to
-##     their routine; so does she, once she's calmed down;
-##   - in a second level, E at the knot with her dancing in the camp: nobody reacts while they
-##     float away; when her step takes her back to the empty chair, she takes fright and calls
-##     the others, who come and search there.
+##     by the table, inside the camp, clear of colliders, no collision, each playing `bob`, not
+##     in step; their strings all end on one knot, low on the chair;
+##   - later visits: she doesn't stay to mind them, but goes straight on to the chair and sits
+##     (her `sit` clip, her hips on the seat, facing the chair's way) for her drawn
+##     GIRL_SIT_TIME, then dances again; seeing him by the chair she takes fright, flees and
+##     cowers, as she always does;
+##   - E at the knot (his grab) frees them, with her sitting on the chair: the bunch plays
+##     `float_away`, rises 8 m and is gone after 5 s, and the task ticks; she sees it, takes
+##     fright facing the chair and calls the others: each one who was calm or wondering comes to
+##     a spot round the chair confused ("?", SEARCH) and searches there (the `confused` clip),
+##     then goes back to their routine; so does she, once she's calmed down;
+##   - in a second level, E at the knot with her away across the camp, out of sight (the test
+##     puts her there: all her routine is now within her sight of the chair): nobody reacts
+##     while they float away; when her step takes her back to the empty chair, she takes fright
+##     and calls the others, who come and search there.
 ## A headless run draws nothing: this checks the game's state, not how the balloons look. The
 ## source scan can't see an indirect call.
 ## Run it from the project folder:
@@ -223,12 +227,14 @@ func _send_girl(i: int, left: float) -> void:
 	girl.set("_step_left", left)
 
 
-## Puts him by the knot, facing it, his mouth just short of it; presses and lets go of E.
+## Puts him by the knot, out to the chair's side (the chair's own +X, since 22 Nov 2026 turned to
+## face the fire), facing it, his mouth just short of it; presses and lets go of E.
 func _press_e_at_knot() -> void:
 	var knot: Vector3 = balloons_node.call("knot_at")
-	player.call("place", Vector3(knot.x + 0.55, 0.02, knot.z))
-	# Facing -X, toward the knot.
-	player.rotation.y = PI / 2.0
+	var from: Vector3 = balloons_node.to_global(CampBalloonsScript.KNOT + Vector3(0.55, 0.0, 0.0))
+	player.call("place", Vector3(from.x, 0.02, from.z))
+	# He faces his -Z: toward the knot.
+	player.rotation.y = atan2(-(knot.x - from.x), -(knot.z - from.z))
 	await _wait(10)
 	_key(KEY_E, true)
 	await _wait(2)
@@ -245,7 +251,7 @@ func _run() -> void:
 	_structure()
 	await _girl_blows_them_up()
 	_balloons_up()
-	await _girl_minds_them()
+	await _girl_sits()
 	await _girl_scared()
 	await _let_go_seen()
 	await _let_go_found()
@@ -307,20 +313,36 @@ func _structure() -> void:
 
 # --- The girl blows them up -----------------------------------------------------------
 
+## A place given in the balloons' own space (x, z: their PLACE, turned to face the fire), in the
+## world (x, z).
+func _spot(local: Vector2) -> Vector2:
+	var at: Vector3 = balloons_node.to_global(Vector3(local.x, 0.0, local.y))
+	return Vector2(at.x, at.z)
+
+
 ## Her routine and her first time out there (CHANGE-BRIEF.md, "Let the balloons go"): the chair,
-## then each balloon in turn, then back to the party. Driven as tasks_test.gd drives the
+## then each balloon in turn, then on to sit on the chair. Driven as tasks_test.gd drives the
 ## routines: her warming is cut short (_step_left), and she goes on by herself.
 func _girl_blows_them_up() -> void:
 	var routine: Array = girl.get("routine")
 	var names: Array = routine.map(func(a: Dictionary) -> String: return a.name)
-	var minding: Vector2 = ForestScript.CAMP + CampBalloonsScript.PLACE + CampBalloonsScript.MINDER
-	_check("her routine: dance, warm, then the balloons (%s)" % " ".join(names), names == ["dance", "warm", "balloons"], names)
-	if names.size() < 3:
+	var minding := _spot(CampBalloonsScript.MINDER)
+	_check("her routine: dance, warm, the balloons, then sitting on the chair (%s)" % " ".join(names),
+		names == ["dance", "warm", "balloons", "sit"], names)
+	if names.size() < 4:
 		return
 	var step: Dictionary = routine[2]
 	_check("her balloon step: by them, for about a dance's length (GIRL_DANCE_TIME %s s)" % str(step.time),
 		Vector2(step.at.x, step.at.z).distance_to(minding) < 0.01 and step.time == CampsiteScript.GIRL_DANCE_TIME,
 		"%s, %s" % [step.at, step.time])
+	var sit: Dictionary = routine[3]
+	var seat := _spot(CampBalloonsScript.SIT)
+	# A person faces their +Z (camp_person.gd); the chair faces its -Z.
+	var sit_way := Vector3.BACK.rotated(Vector3.UP, sit.yaw)
+	var chair_way := -balloons_node.global_basis.z
+	_check("her sit step: on the chair (SIT), facing its way, playing `sit`, for GIRL_SIT_TIME %s s" % str(sit.time),
+		Vector2(sit.at.x, sit.at.z).distance_to(seat) < 0.01 and sit_way.dot(chair_way) > 0.999 and sit.clip == "sit"
+			and sit.time == CampsiteScript.GIRL_SIT_TIME, "%s, facing %.3f, %s, %s" % [sit.at, sit_way.dot(chair_way), sit.clip, sit.time])
 	var path := NavigationServer3D.map_get_path((camp as Node3D).get_world_3d().navigation_map, routine[1].at, step.at, true)
 	var reaches: bool = path.size() > 1 and Vector2(path[-1].x, path[-1].z).distance_to(minding) < ON_SPOT
 	_check("the walkways reach her spot from the fire (%d points)" % path.size(), reaches, path[-1] if path.size() > 0 else "no path")
@@ -331,15 +353,17 @@ func _girl_blows_them_up() -> void:
 	var there := await _until(func() -> bool: return girl.call("at_activity"), 3600)
 	var arrived := _tick
 	var at := Vector2(girl.global_position.x, girl.global_position.z)
-	_check("from warming her hands she walks out: on her spot, %.2f m from the camp's middle" % at.distance_to(ForestScript.CAMP),
-		there and at.distance_to(minding) < ON_SPOT and at.distance_to(ForestScript.CAMP) > CampsiteScript.CAMP_ZONE,
+	var table: Vector2 = CampsiteScript.TABLE[0]
+	_check("from warming her hands she walks over to the table: on her spot, %.2f m from the table, %.2f m from the camp's middle"
+		% [at.distance_to(table), at.distance_to(ForestScript.CAMP)],
+		there and at.distance_to(minding) < ON_SPOT and at.distance_to(ForestScript.CAMP) < CampsiteScript.CAMP_ZONE,
 		"%.2f m from her spot" % at.distance_to(minding))
 	await _wait(5)
 	var chair: Node3D = balloons_node.get("chair")
 	_check("she sets out the chair as she gets there", chair.visible and balloons_node.get("chair_out"), chair.visible)
 
 	# Each in turn: red, yellow, blue, shown as a bud and inflating; tied INFLATE after.
-	var gone_back := await _until(func() -> bool: return girl.call("activity") == "dance", 60 * 20)
+	var gone_back := await _until(func() -> bool: return girl.call("activity") == "sit", 60 * 20)
 	var left_at := _tick
 	var real := _real()
 	var starts: Array = real.map(func(b: Node3D) -> int: return int(_shown_at.get(b, -1)))
@@ -359,7 +383,7 @@ func _girl_blows_them_up() -> void:
 	_check("all three tied to the chair", int(balloons_node.get("tied")) == 3, balloons_node.get("tied"))
 	var took := (left_at - arrived) / 60.0
 	var want := CampBalloonsScript.SET_OUT + 3.0 * CampBalloonsScript.INFLATE + 2.0 * CampBalloonsScript.GAP
-	_check("with the third tied she goes back to dancing: there %.2f s (SET_OUT + three INFLATE + two GAP = %.2f s)" % [took, want],
+	_check("with the third tied she goes on to sit on the chair: there %.2f s (SET_OUT + three INFLATE + two GAP = %.2f s)" % [took, want],
 		gone_back and absf(took - want) < 0.2, girl.call("activity"))
 
 
@@ -369,6 +393,7 @@ func _balloons_up() -> void:
 		real.map(func(b) -> String: return b.get("colour")))
 	var camp_at: Vector3 = (camp as Node3D).global_position
 	var middle: Vector2 = ForestScript.CAMP
+	var table: Vector2 = CampsiteScript.TABLE[0]
 	var space := (camp as Node3D).get_world_3d().direct_space_state
 	var probe := PhysicsShapeQueryParameters3D.new()
 	var ball := SphereShape3D.new()
@@ -393,10 +418,11 @@ func _balloons_up() -> void:
 		_check("%s: 0.3 m across its body" % c, absf(across - BODY_ACROSS) < 0.005, "%.4f m" % across)
 		var up: float = b.global_position.y - camp_at.y
 		_check("%s: its middle about 0.7 m up (%.3f m)" % [c, up], absf(up - 0.7) < 0.05, "%.3f m up" % up)
-		var out := Vector2(b.global_position.x, b.global_position.z).distance_to(middle)
-		_check("%s: just outside the camp, %.2f m from its middle (beyond CAMP_ZONE %.1f, inside the walkways' %.1f)"
-			% [c, out, CampsiteScript.CAMP_ZONE, CampsiteScript.CAMP_ZONE + 6.0],
-			out > CampsiteScript.CAMP_ZONE and out < CampsiteScript.CAMP_ZONE + 6.0, out)
+		var flat := Vector2(b.global_position.x, b.global_position.z)
+		var out := flat.distance_to(middle)
+		var by := flat.distance_to(table)
+		_check("%s: by the table, %.2f m from it, inside the camp, %.2f m from its middle (CAMP_ZONE %.1f)"
+			% [c, by, out, CampsiteScript.CAMP_ZONE], by < 3.5 and out < CampsiteScript.CAMP_ZONE, "%.2f m, %.2f m" % [by, out])
 		probe.transform = Transform3D(Basis(), Vector3(b.global_position.x, camp_at.y + 0.9, b.global_position.z))
 		var hits := space.intersect_shape(probe, 4)
 		_check("%s: clear of the camp's things and colliders (nothing within %.1f m)" % [c, CLEAR], hits.is_empty(),
@@ -419,20 +445,41 @@ func _balloons_up() -> void:
 	_check("the chair: built in code (a low-poly mesh), no collider", chair_node is MeshInstance3D and chair_bodies == 0, chair_bodies)
 
 
-## Later visits: she minds them, staying about a dance's length, then dances again.
-func _girl_minds_them() -> void:
+## Later visits: she doesn't stay to mind them, but goes straight on to the chair and sits there
+## for a while (GIRL_SIT_TIME), then dances again.
+func _girl_sits() -> void:
 	_send_girl(1, 0.01)
 	await _until(func() -> bool: return girl.call("activity") == "balloons", 1800)
-	var drawn: float = girl.get("_step_left")
-	await _until(func() -> bool: return girl.call("at_activity"), 3600)
+	await _until(func() -> bool: return girl.call("at_activity") or girl.call("activity") != "balloons", 3600)
 	var arrived := _tick
-	await _until(func() -> bool: return girl.call("activity") != "balloons", 3600)
+	await _until(func() -> bool: return girl.call("activity") != "balloons", 600)
 	var stayed := (_tick - arrived) / 60.0
-	_check("her next time out she minds them: stays %.2f s (drawn %.2f s, from GIRL_DANCE_TIME), all three still tied, then back to dancing"
-		% [stayed, drawn], absf(stayed - drawn) < 0.1 and int(balloons_node.get("tied")) == 3 and girl.call("activity") == "dance",
+	var drawn: float = girl.get("_step_left")
+	_check("her next time out she doesn't stay to mind them: on at once to the chair (%.2f s at her balloon step), all three still tied"
+		% stayed, stayed < 0.1 and girl.call("activity") == "sit" and int(balloons_node.get("tied")) == 3,
 		"%.2f s, then %s" % [stayed, girl.call("activity")])
-	# Back out to them, staying, for the fright below.
-	_send_girl(2, 400.0)
+	await _until(func() -> bool: return girl.call("at_activity"), 3600)
+	var sat_from := _tick
+	# Her clip follows her step on the process tick after, blending in.
+	await _wait(30)
+	var anim := girl.get("anim") as AnimationPlayer
+	var sk := girl.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var hips := sk.to_global(sk.get_bone_global_pose(sk.find_bone("bacino")).origin)
+	var seat: Vector3 = balloons_node.to_global(Vector3(CampBalloonsScript.CHAIR.x, CampBalloonsScript.SEAT.y, CampBalloonsScript.CHAIR.y))
+	var across := Vector2(hips.x - seat.x, hips.z - seat.z).length()
+	var above := hips.y - seat.y
+	var off := Vector2(girl.global_position.x, girl.global_position.z).distance_to(_spot(CampBalloonsScript.SIT))
+	var faces := Vector3.BACK.rotated(Vector3.UP, girl.rotation.y).dot(-balloons_node.global_basis.z)
+	var clip := anim.current_animation
+	await _until(func() -> bool: return girl.call("activity") != "sit", 60 * 40)
+	var sat := (_tick - sat_from) / 60.0
+	_check(("she sits on the chair: %.2f m from her spot, facing its way (%.3f), playing `%s`, her hips %.3f m across from the seat's"
+		+ " middle and %.3f m above it; for %.2f s (drawn %.2f s, from GIRL_SIT_TIME), then back to dancing")
+		% [off, faces, clip, across, above, sat, drawn],
+		off < ON_SPOT and faces > 0.99 and clip == "sit" and across < 0.1 and above > 0.0 and above < 0.2
+			and absf(sat - drawn) < 0.1 and girl.call("activity") == "dance", girl.call("activity"))
+	# Back on the chair, staying, for the fright below.
+	_send_girl(3, 400.0)
 	await _until(func() -> bool: return girl.call("at_activity"), 3600)
 
 
@@ -501,10 +548,11 @@ func _callable() -> Array:
 		return p != girl and p.get("state") in [S.WORK, S.RETURN, S.INVESTIGATE, S.SEARCH])
 
 
-## With her minding them, he tugs the knot loose: they float away, the task ticks, she sees it.
+## With her sitting on the chair, he tugs the knot loose behind her: they float away, the task
+## ticks, she sees it.
 func _let_go_seen() -> void:
 	var S := CampPersonScript.State
-	_send_girl(2, 400.0)
+	_send_girl(3, 400.0)
 	await _until(func() -> bool: return girl.call("at_activity"), 3600)
 	var tasks = camp.get("tasks")
 	_check("before: the knot can be untied, the task not ticked", balloons_node.call("can_untie") and not tasks.is_done("balloons"), "")
@@ -538,8 +586,11 @@ func _let_go_seen() -> void:
 	await _check_call("seen going", callable)
 
 
-## In a fresh level: blown up, then let go while she's dancing in the camp. Nobody reacts while
-## they float away; back at her step, she finds the chair empty and calls the others.
+## In a fresh level: blown up, then let go while she's away across the camp, out of sight. All
+## her routine is now within her sight of the chair, so the test puts her there, on her dancing
+## step, as if she'd just got there (in play, she'd be out of it when he's scared her off).
+## Nobody reacts while they float away; back at her step, she finds the chair empty and calls
+## the others.
 func _let_go_found() -> void:
 	var S := CampPersonScript.State
 	level.queue_free()
@@ -551,14 +602,27 @@ func _let_go_found() -> void:
 	player.call("place", QUIET)
 	_send_girl(1, 0.01)
 	await _until(func() -> bool: return int(balloons_node.get("tied")) == 3, 60 * 60)
-	await _until(func() -> bool: return girl.call("activity") == "dance" and girl.call("at_activity"), 60 * 40)
-	girl.set("_step_left", 400.0)
-	await _until(func() -> bool: return camp.get("people").all(func(p: Node3D) -> bool: return p.get("state") == S.WORK), 60 * 20)
+	await _until(func() -> bool: return girl.call("activity") == "sit" and girl.call("at_activity"), 60 * 40)
+	# Across the camp: on the far side of the fire from the chair, on the walkways.
+	var fire: Vector2 = CampsiteScript.FIRE
+	var chair_flat := Vector2(_chair_at().x, _chair_at().z)
+	var beyond := fire + (fire - chair_flat).normalized() * 5.0
+	var away := NavigationServer3D.map_get_closest_point((camp as Node3D).get_world_3d().navigation_map,
+		Vector3(beyond.x, 0.0, beyond.y))
+	_send_girl(0, 400.0)
+	girl.set("_arrived", true)
+	girl.global_position = Vector3(away.x, girl.global_position.y, away.z)
+	girl.call("reset_physics_interpolation")
+	# Everyone at their routine (the fire keeper may be on his way back from tending the fire).
+	var settled_from := _tick
+	await _until(func() -> bool: return camp.get("people").all(func(p: Node3D) -> bool: return p.get("state") == S.WORK), 60 * 90)
+	print("INFO  everyone at their routine %.2f s after she was put across the camp: %s" % [(_tick - settled_from) / 60.0,
+		" ".join(camp.get("people").map(func(p: Node3D) -> String: return "%s %s" % [p.name, S.keys()[p.get("state")]]))])
 	var far := _flat_dist(girl.global_position, _chair_at())
 	_mark()
 	await _press_e_at_knot()
 	var tasks = camp.get("tasks")
-	_check("a second level, she's dancing %.1f m away (beyond her %.0f m sight): E at the knot lets them go, the task ticked"
+	_check("a second level, she's away across the camp, %.1f m from the chair (beyond her %.0f m sight): E at the knot lets them go, the task ticked"
 		% [far, CampPersonScript.SIGHT], far > CampPersonScript.SIGHT and balloons_node.get("released") and tasks.is_done("balloons"), "")
 	player.call("place", QUIET)
 	await _wait(5 * 60 + 30)

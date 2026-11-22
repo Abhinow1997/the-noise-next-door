@@ -18,6 +18,10 @@
 #              arms (DANCE below)
 #   scared, cower  (added 23 Oct 2026, the campers' reactions) as animate_chubby.py has them: she's always scared
 #   confused   (added 10 Nov 2026) as animate_chubby.py has it, a little lower on her head (REACT below)
+#   sit        100 frames, looping (added 22 Nov 2026, the author: "make the girl dance and come and sit on the chair
+#              for some time"): sitting on the balloons' camp chair by the table, her hands in her lap, breathing and
+#              looking about (sit_clip below). In place like the rest: her hips go SIT_BACK back and SIT_DROP down over
+#              her planted feet, so the game puts her root SIT_BACK in front of the seat's middle
 # All in place, facing -Y (+Z in Godot): the game moves her and plays walk and run at speed / their speed above.
 #
 # prepare_simple_girl.py ends by running this file. On its own, it re-keys the four actions on the saved .blend, saves
@@ -123,13 +127,46 @@ def clips(body):
     return bend, take
 
 
+# Sitting (22 Nov 2026): her hip joints are 0.881 m up at rest, her knees 0.502 and her ankles 0.097 (measured on the
+# rig). On the chair's seat, 0.42 m high, her hips come down to about 0.52 m and back over her feet, so her thighs lie
+# about level and her shins stand under her knees. The game's chair (camp_balloons.gd) has its seat's middle SIT_BACK
+# behind where it stands her.
+SIT_BACK = 0.37
+SIT_DROP = 0.36
+
+
+def sit_clip(body):
+    """sit: on a chair, her hands in her lap (half way along each thigh, on top of it once she's sitting), a breath in
+    and out, a look one way and the other, back where it began."""
+    lap = {}
+    for k, sd in body.side.items():
+        hip, knee = body.head(sd["thigh"]), body.tail(sd["thigh"])
+        x = (hip.x + knee.x) / 2 * 0.95
+        z = (hip.z + knee.z) / 2 + 0.06
+        lap[k] = (sd["thigh"], Vector((x, body.front(x, z) - 0.015, z)),
+                  (Vector((-sd["s"] * 0.15, -0.9, -0.35)), Vector((0, 0.25, -1))))      # fingers forward, palm down
+    seat = dict(pel=Vector((0, SIT_BACK, -SIT_DROP)), hips_p=-4.0, tum_p=6.0, chest_p=1.0, neck_p=-3.0, head_p=4.0,
+                head_y=0.0, knee_out=6.0, l_ik=1.0, r_ik=1.0, l_pole_w=0.4, r_pole_w=0.4, l_at=lap["l"], r_at=lap["r"])
+    return Keys(REST, [
+        (0, seat),
+        (22, dict(pel=Vector((0, SIT_BACK, -SIT_DROP + 0.006)), chest_p=-1.0, head_p=2.0)),   # a breath in
+        (40, dict(pel=Vector((0, SIT_BACK, -SIT_DROP)), chest_p=1.0, head_y=16.0, head_p=5.0)),  # looks one way
+        (58, dict(head_y=16.0)),
+        (72, dict(head_y=-12.0, head_p=3.0)),                                                   # and the other
+        (86, dict(head_y=-12.0)),
+        (100, dict(seat)),                                                                       # as it began
+    ])
+
+
 def animate(rig, body, only=None, log=print):
     """animate_chubby.animate with her numbers."""
     L["WALK"], L["RUN"], L["clips"], L["DANCE"] = WALK, RUN, clips, DANCE
     L["REACT"] = REACT
+    L["EXTRA_CLIPS"] = {"sit": sit_clip}
     L["CLIPS"] = [("walk", WALK["frames"], True), ("run", RUN["frames"], True), ("bend", 72, False), ("take_away", 72, False),
                   ("dance", DANCE["frames"], True)] + [("scared", 30, False), ("cower", 50, True),
-                                                                        ("confused", L["CONFUSED_FRAMES"], True)]
+                                                                        ("confused", L["CONFUSED_FRAMES"], True),
+                                                                        ("sit", 100, True)]
     return L["animate"](rig, body, only=only, log=log)
 
 
@@ -144,7 +181,9 @@ if __name__ == "__main__":
     src = open(__file__, encoding="utf-8").read()
     t = bpy.data.texts.get("simple_girl_animate") or bpy.data.texts.new("simple_girl_animate")
     t.clear(); t.write(src)
-    animate(rig, body)
+    # SIMPLE_GIRL_ONLY (names, comma-separated) re-keys only those actions, leaving the rest as they are.
+    only = os.environ.get("SIMPLE_GIRL_ONLY")
+    animate(rig, body, only=only.split(",") if only else None)
     bpy.ops.wm.save_as_mainfile(filepath=OUT + ".blend", compress=True)
     export_glb(rig, OUT + ".glb")
     print("SAVED", OUT + ".blend", "| EXPORTED", OUT + ".glb", os.path.getsize(OUT + ".glb"), "bytes")

@@ -880,3 +880,51 @@ During my seam check: "We need a dev flag to disable the human NPCs, 'cause they
 - **The old sounds** (`task-laugh.wav`, `scribble-loop.wav`) stay in the repo, unplayed.
 
 (Drafted by Claude Code on 22 Nov 2026 from my words above. Kept by me after listening in the game the same day: "Sounds good, commit".)
+
+---
+
+### Revised 22 Nov 2026: the chair by the table, and the girl sits on it
+
+"u know what can u move the chair near the table we have at camp ? and make the girl dance and come and sit on the chair for some time", then "so we can use the ballons" and "and the ballon task".
+
+**The place.**
+- **The chair and the balloons** move from just outside the camp (beyond `CAMP_ZONE`, 12.5 m out) to the party's corner by the table: `camp_balloons.gd` `PLACE`, 0.8 m east and 4.3 m north of the fire. That's 2.75 m east of the table, 1.55 m east of the speaker and 2.4 m from where she dances.
+- **The chair is turned to face the fire** (`campsite.gd`).
+- **The knot moves** from the chair's front to its back right leg, still low (0.08 m up), so the balloons don't float in her lap once she's sitting.
+- **The three balloons** fan out from the knot, to the chair's side and behind its back, each 0.3 m out and 65° round from the next. Each one's middle is 0.69 m up (the brief's "about 0.7 m"), and at least 0.31 m from her elbow as she sits (measured).
+
+**The girl's routine:** dance → warm → the balloons → sit → dance.
+- **Her first time at the balloons** she blows them up as before (the chair, then each one: about 11 s), then goes on to sit, not back to dancing.
+- **Later,** her balloon step is only on her way to the chair: she goes straight on to sit. She no longer stays a dance's length to mind them.
+- **Sitting:** on the chair, facing its way (toward the fire), for 20–30 s (`campsite.gd` `GIRL_SIT_TIME`), playing a new clip, `sit`. Then she dances again.
+- **Seeing him,** she does what she always does: takes fright, flees and cowers. Unchanged.
+
+**Her `sit` clip** (a named change to a camper's clips; not graded):
+- keyed in Blender by `tools/blender/animate_simple_girl.py` with the chubby man's solver, and exported into `simple_girl.glb`. `animate_chubby.py` gains a hook for extra clips (`EXTRA_CLIPS`), empty for the two men;
+- 100 frames at 25 fps (4 s), the campers' rate; looping, set in `simple_girl.glb.import`'s per-animation settings, as her other loops are;
+- her hips over the seat's middle (measured 0.03 m across and 0.11 m above it), her hands in her lap, a breath, and a look one way and then the other;
+- re-keyed alone (`SIMPLE_GIRL_ONLY=sit`). Her other eight clips are unchanged, checked by comparing their keys before and after.
+
+**Letting them go, now.** The task, the knot (E), the bunch's float and her call are unchanged.
+- She calls the others either way: at once if she's calm and sees them go, or when her step next takes her past the chair.
+- Every step of her routine is now within her sight of the chair (7 m), so it's usually at once, unless he's scared her off first.
+- Sitting, she faces the fire with the knot behind her.
+
+**The tests.**
+- **`tests/test_balloon_task.gd`** changes with this revision, from 69 checks to 71:
+  - her routine has four steps, `sit` last, and a new check of that step (on the chair, facing its way, `sit`, `GIRL_SIT_TIME`);
+  - she walks over to the table, inside the camp, not out beyond `CAMP_ZONE`. Each balloon is by the table (within 3.5 m of it), inside the camp, not just outside it;
+  - with the third tied she goes on to sit, not to dance;
+  - later visits: "she minds them for a dance's length" becomes two checks. She goes straight on to the chair, all three still tied. Then she sits there (on her spot, facing its way, playing `sit`, her hips over the seat) for her drawn `GIRL_SIT_TIME`, then dances;
+  - E is pressed with her sitting on the chair, not minding them;
+  - the second level: with all her routine in sight of the chair, the test puts her across the camp (9.7 m from the chair, beyond her 7 m sight) before E, where it used to wait for her to dance out of sight. Its expected values are the same.
+  - How it measures: her spots are read in the balloons' turned space, he's put by the knot from the chair's side, and it waits up to 90 s, not 20, for the fire keeper to be back from tending the fire.
+- **Every other test passes unchanged:** tasks 48, camp 31, cones 43, tutorial 34, plan 22, sound, bear bag 41, tent 16, balloon 3D 35, moth guide 9, moths state 15.
+
+**What changes with it:**
+- the game: `scripts/camp_balloons.gd` and `scripts/campsite.gd`;
+- the girl: `assets/characters/simple_girl.blend`, `.glb` and `.glb.import`, `tools/blender/animate_simple_girl.py` and `animate_chubby.py`;
+- `tests/test_balloon_task.gd`;
+- the README's balloon lines, SOURCES.md (her new clip) and CLAUDE.md's campers line.
+
+(Drafted by Claude Code on 22 Nov 2026 from my words above. The chair's spot and turn, the knot, the balloons' fan, the sit's length and the clip are Claude Code's. Kept by me the same day: "Keep and commit".)

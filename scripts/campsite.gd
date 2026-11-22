@@ -133,6 +133,9 @@ const PIZZA_TIME := Vector2(12, 18)
 const DANCE_TIME := Vector2(35, 55)
 const DRINK_TIME := Vector2(3.0, 3.4)
 const GIRL_DANCE_TIME := Vector2(30, 45)
+## How long the girl sits on the balloons' chair (22 Nov 2026: "make the girl dance and come and sit on
+## the chair for some time").
+const GIRL_SIT_TIME := Vector2(20, 30)
 const WARM_TIME := Vector2(12, 18)
 ## The camper's mallet, put down by the peg while he's away from it (in his own space).
 const MALLET_DOWN := Vector3(0.25, 0.04, 0.45)
@@ -390,13 +393,14 @@ func _ready() -> void:
 	bear_bag.forest = forest
 	bear_bag.position = _v3(FIRE + CampBearBag.TREE)
 	add_child(bear_bag)
-	# Let the balloons go: just outside the camp, where the girl's step takes her
-	# (camp_balloons.gd, 21 Nov 2026). The first time she's there she sets out a chair and
-	# blows them up; after, she minds them.
+	# Let the balloons go: by the table since 22 Nov 2026, where the girl's step takes her
+	# (camp_balloons.gd). The first time she's there she sets out a chair and blows them up; after,
+	# she sits on the chair for a while. The chair faces the fire.
 	balloons = CampBalloons.new()
 	balloons.camp = self
 	balloons.minder = dancers[1]
 	balloons.position = _v3(Forest.CAMP + CampBalloons.PLACE)
+	balloons.rotation.y = _balloons_yaw()
 	add_child(balloons)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
 	var driver := ConeDriver.new()
@@ -429,8 +433,13 @@ func _routines(peg: Vector3, cooler: Node3D) -> Array:
 	# balloons (camp_balloons.gd), facing them, about as long as a dance, then back to dancing.
 	# Her first time there she blows them up instead, and goes back once they're tied
 	# (camp_balloons.gd, "Let the balloons go").
-	var minding: Vector2 = Forest.CAMP + CampBalloons.PLACE + CampBalloons.MINDER
-	var to_balloons: Vector2 = CampBalloons.PLACE - (CampBalloons.PLACE + CampBalloons.MINDER)
+	# Since 22 Nov 2026 the balloons are by the table, the chair facing the fire, and after them she
+	# sits on the chair (her `sit` clip) for a while before she dances again.
+	var minding := _balloon_spot(CampBalloons.MINDER)
+	var to_balloons := _balloon_spot(Vector2.ZERO) - minding
+	var seat := _balloon_spot(CampBalloons.SIT)
+	# She faces the chair's way (its -Z); a person faces their +Z, so half a turn on from its yaw.
+	var facing := _balloons_yaw() + PI
 	return [
 		[_activity("peg", peg, deg_to_rad(CAMPER_FACING), "hammer", 1.0, PEG_TIME),
 			_activity("roast", _v3(FIRE + ROAST), toward_fire.call(FIRE + ROAST), "roast", 1.0, ROAST_TIME, "bend"),
@@ -439,10 +448,23 @@ func _routines(peg: Vector3, cooler: Node3D) -> Array:
 			_activity("drink", Vector3(drink.x, 0, drink.z), atan2(-front.x, -front.z), "take_away", 1.0, DRINK_TIME)],
 		[_activity("dance", _v3(girl_at), toward_fire.call(girl_at), "dance", dance, GIRL_DANCE_TIME),
 			_activity("warm", _v3(FIRE + WARM), toward_fire.call(FIRE + WARM), "idle", 1.0, WARM_TIME, "dance", 0.4),
-			_activity("balloons", _v3(minding), atan2(to_balloons.x, to_balloons.y), "idle", 1.0, GIRL_DANCE_TIME, "dance", 0.4)],
+			_activity("balloons", _v3(minding), atan2(to_balloons.x, to_balloons.y), "idle", 1.0, GIRL_DANCE_TIME, "dance", 0.4),
+			_activity("sit", _v3(seat), facing, "sit", 1.0, GIRL_SIT_TIME, "idle")],
 		[_activity("eat", _v3(FIRE + KEEPER_EAT), 0.0, "idle", 1.0, KEEPER_EAT_TIME, "dance", 0.4),
 			_activity("stoke", _v3(FIRE + STOKE), toward_fire.call(FIRE + STOKE), "bend", 1.0, STOKE_TIME)],
 	]
+
+
+## The way the balloons' chair faces (its -Z, camp_balloons.gd), as a yaw: toward the fire.
+func _balloons_yaw() -> float:
+	var to_fire: Vector2 = FIRE - (Forest.CAMP + CampBalloons.PLACE)
+	return atan2(-to_fire.x, -to_fire.y)
+
+
+## A place given from the balloons' PLACE in their own (turned) space, in the camp (x, z).
+func _balloon_spot(local: Vector2) -> Vector2:
+	var turned := Basis(Vector3.UP, _balloons_yaw()) * Vector3(local.x, 0.0, local.y)
+	return Forest.CAMP + CampBalloons.PLACE + Vector2(turned.x, turned.z)
 
 
 func _activity(name: String, at: Vector3, yaw: float, clip: String, speed: float, time: Vector2,

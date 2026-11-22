@@ -2,14 +2,19 @@ extends Node3D
 ## Let the balloons go, a level 1 task at the camp (camp_tasks.gd "balloons"; CHANGE-BRIEF.md's
 ## revisions of 21 Nov 2026, last "the balloon task is 'Let the balloons go'"). Game code: what
 ## happens, and when, is decided here on the physics tick, never from the clips.
-##   - The place: just outside the camp (PLACE, beyond CAMP_ZONE), where the girl minds them
-##     (campsite.gd _routines, her "balloons" step, MINDER).
+##   - The place: since 22 Nov 2026 by the table in the party's corner (PLACE; the author: "can u move
+##     the chair near the table we have at camp ? and make the girl dance and come and sit on the chair
+##     for some time", "so we can use the ballons"); before, just outside the camp. The node is turned
+##     so the chair faces the fire (campsite.gd). The girl's "balloons" step takes her to MINDER.
+##   - She sits on the chair: after her balloons step comes her "sit" step (campsite.gd _routines), on
+##     the chair at SIT, playing her `sit` clip. Once they're blown up, her balloons step is only on the
+##     way to her seat: arriving, she goes straight on to it.
 ##   - The girl blows them up: the first time she gets to her step there (`minder`), she sets
 ##     out a folding camp chair (built here, like the camp's props; no collider) and, after
 ##     SET_OUT, blows up the three balloons one by one (props/party_balloon.tscn, red, yellow,
 ##     blue), INFLATE seconds each with GAP between: each balloon plays its own `inflate`. As
 ##     each is done she ties it to the chair: the strings meet in one knot low on the chair's
-##     front leg (KNOT). With all three tied she goes back to the party (camp_person.gd
+##     back right leg (KNOT). With all three tied she goes on to sit (camp_person.gd
 ##     finish_activity). Interrupted, she carries on next time she's there. Until all three
 ##     are tied there's nothing to untie.
 ##   - He lets them go: E (his grab, camp_input.gd) at the knot tugs it loose, once the
@@ -30,12 +35,10 @@ const Interactable := preload("res://scripts/interactable.gd")
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const CampPerson := preload("res://scripts/camp_person.gd")
 
-## Where they're tied, from the camp's middle (Forest.CAMP, x, z): 13.6 m south-west of it,
-## beyond CAMP_ZONE (12.5 m), on the open ground south of the trees (forest.gd _is_open: no
-## tree grows south of z 10.5), on the side of the camp the raccoon comes in from, inside
-## the walkways (campsite.gd _bake_walkways: 18.5 m out) so she can walk there, and clear of
-## the camp's things (the nearest, the other tent, is 10 m off).
-const PLACE := Vector2(-6.5, 12.0)
+## Where they're tied, from the camp's middle (Forest.CAMP, x, z): by the table, in the party's
+## corner (campsite.gd FIRE + (0.8, -4.3): 1.55 m east of the speaker, 2.75 m east of the table,
+## 2.4 m from where she dances). Until 22 Nov 2026 it was (-6.5, 12.0), outside the camp.
+const PLACE := Vector2(-1.7, -5.1)
 ## Where the girl stands minding them, from PLACE: 1.1 m on the camp's side.
 const MINDER := Vector2(0.0, -1.1)
 ## The chair, from PLACE: where its middle stands (x, z), facing her (-Z); its seat's height,
@@ -45,12 +48,20 @@ const SEAT := Vector3(0.48, 0.42, 0.42)
 const BACK_TOP := 0.85
 const CANVAS := Color("3f6a5c")
 const FRAME := Color("8d9196")
-## The knot, from PLACE: low on the chair's front right leg, in his reach.
-const KNOT := Vector3(0.24, 0.08, 0.09)
+## The knot, from PLACE: low on the chair's back right leg, in his reach. (In front of the chair
+## until 22 Nov 2026; there they'd have floated in her lap once she sat.)
+const KNOT := Vector3(0.24, 0.08, 0.48)
 ## Each balloon's colour and which way its string leans up from the knot (x, y, z; normalised):
-## a bunch leaning out in front of the chair, toward her. Its string is STRING_LENGTH long
-## (party_balloon.gd TAIL), so each one's middle is about 0.7 m up.
-const SPOTS := [["red", Vector3(-0.5, 1.0, -0.3)], ["yellow", Vector3(0.0, 1.0, -0.45)], ["blue", Vector3(0.5, 1.0, -0.3)]]
+## a bunch fanned round the chair's back right leg, out to its side and behind its back, each
+## 0.3 m out from the knot and 65 degrees round from the next (0.32 m apart, middle to middle).
+## Its string is STRING_LENGTH long (party_balloon.gd TAIL), so each one's middle is 0.69 m up,
+## and at least 0.31 m from her elbow as she sits (measured 22 Nov 2026).
+const SPOTS := [["red", Vector3(0.2954, 0.6103, -0.0521)], ["yellow", Vector3(0.1721, 0.6103, 0.2457)],
+	["blue", Vector3(-0.15, 0.6103, 0.2598)]]
+## Where she stands to sit, from PLACE: the seat's middle (the chair's), less her sit's SIT_BACK
+## (tools/blender/animate_simple_girl.py: her hips go 0.37 m back over her feet), facing the
+## chair's way. Then her hips are over the seat's middle, at its height.
+const SIT := Vector2(CHAIR.x, CHAIR.y - 0.37)
 const STRING_LENGTH := 0.68
 const STRING := Color("ddd6c6")
 ## The girl's timing: setting the chair out, blowing each up (the length of `inflate`), and
@@ -140,6 +151,9 @@ func _physics_process(delta: float) -> void:
 		if there or (floating and calm and near <= CampPerson.SIGHT):
 			reported = true
 			minder.call_out(to_global(Vector3(CHAIR.x, 0.0, CHAIR.y)))
+	elif there:
+		# Once they're blown up, her balloons step is only on her way to her seat (her next step).
+		minder.finish_activity()
 
 
 ## Her first visits: the chair, then each balloon in turn, while she's there.

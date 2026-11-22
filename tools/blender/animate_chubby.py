@@ -753,6 +753,10 @@ CLIPS = [("walk", WALK["frames"], True), ("run", RUN["frames"], True), ("bend", 
          ("dance", DANCE["frames"], True), ("hammer", HAMMER_FRAMES, True)] + REACT_CLIPS
 
 
+# Extra key-posed clips, from a character's own script (see animate()); none for him.
+EXTRA_CLIPS = {}
+
+
 def animate(rig, body, only=None, log=print):
     """Key the actions in CLIPS on rig (replacing any of the same names, TiZeta's walk among them), each parked in a
     muted NLA track so the glTF exporter finds them all; the rig is left at rest with no action."""
@@ -764,6 +768,11 @@ def animate(rig, body, only=None, log=print):
              "bend": lambda f, n: keyed_pose(b, bend, f), "take_away": lambda f, n: keyed_pose(b, take, f),
              "dance": lambda f, n: dance_pose(b, f / n, DANCE)}
     for name, keys in react_clips(b, REACT).items():
+        poses[name] = lambda f, n, keys=keys: keyed_pose(b, keys, f)
+    # Extra key-posed clips a character's own script adds (EXTRA_CLIPS, name -> a function of the body that returns
+    # its Keys); none here. Added on 22 Nov 2026 for the girl's sit (animate_simple_girl.py).
+    for name, make in EXTRA_CLIPS.items():
+        keys = make(b)
         poses[name] = lambda f, n, keys=keys: keyed_pose(b, keys, f)
     if any(name == "hammer" for name, _, _ in CLIPS) and (not only or "hammer" in only):
         hammer = hammer_clip(b)
