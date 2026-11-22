@@ -1,0 +1,23 @@
+Read CLAUDE.md first; it imports CHANGE-BRIEF.md. Read TUNING.md's last section, "r1: what I saw in play,
+and the change": I approved one change and it's described there, with Claude Code's prediction. The
+project is the repository root; the test wrapper is scripts/run-test.sh. Blender 5.2 runs headless through
+    bash C:/Users/Dotbix/AppData/Local/Temp/claude/ee5d64a0a52a5041/011ad35c-6a41-4bdb-8130-d99006c935e9/scratchpad/blender.sh -b assets/characters/raccoon_v2.blend --python <script> [-- --save]
+and Godot reimports with ../Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --import
+
+Make only that change:
+- In design/character/raccoon_v2/anim.py, re-pose `jump`'s push-off key (frame 0) with the hind legs
+  bunched under his hips: thighs folded, hind paws forward under his belly (the foot_ik targets
+  forward and up, the hips lowered a little), so they drive straight out to the stretch at frame 3,
+  eased fast out of the bunch. Keep keys 3, 6 and 10, the clip's length (10 frames), LOOP_NONE and
+  `jump_land` exactly as they are.
+- Rebuild only `jump` with design/character/raccoon_v2/anim_jump.py, save the .blend, export with
+  assets/characters/export_raccoon_v2.py, reimport.
+- Prove nothing else moved: fingerprint every clip's tracks and keys before and after (as the last jump
+  rebuild did); the seven loops and `jump_land` must hash identically, and `jump` must keep its length
+  and its key times at frames 0, 3, 6 and 10. Show the hind-leg bones' rotation at frame 0 before and
+  after, and at frame 3.
+- Update the read-back's expected values only if they change (tests/test_raccoon_rig.gd); the phase
+  table doesn't change, so its key times shouldn't.
+Run through scripts/run-test.sh: test_raccoon_rig.gd, test_jump_states.gd, jump_pins.gd and
+test_jump_edges.gd at 60 (all must pass as before), and show the real output. Then stop so I can
+recapture and play. Do not touch .gdshader files, game scripts or any other clip. Do not commit.

@@ -532,15 +532,17 @@ def stance(pose):
 
 
 def jump_push(pose):                                   # frame 0: the push-off
-    pose.pelvis = Vector((0, 0.01, -0.05))             # still low, rising off the hind legs
+    # r1 (TUNING.md, 21 Nov 2026): the hind legs bunched under his hips, to drive straight
+    # out to the stretch at frame 3 (r0 had them already near straight, 0.05 m back).
+    pose.pelvis = Vector((0, 0.01, -0.07))             # hips lowered onto the bunched legs
     pose.turn("pelvis", X, -0.16)                      # front lifting first
     pose.turn("spine", X, -0.02)                       # unrolling from the gather
     pose.turn("chest", X, -0.02)
     pose.turn("neck", X, -0.12)                        # head up, eyeing where he's going
     pose.turn("head", X, -0.12)
     for k in ("foot_ik.L", "foot_ik.R"):
-        pose.paw[k] = Vector((0, 0.05, 0))             # hind legs extending back, pushing
-        pose.paw_pitch[k] = 0.75                       # up on the toes
+        pose.paw[k] = Vector((0, -0.13, 0.03))         # hind paws forward under his belly, thighs folded
+        pose.paw_pitch[k] = 0.3                        # flat under him, to roll onto the toes
     for k in ("hand_ik.L", "hand_ik.R"):
         pose.paw[k] = Vector((0, 0.0, 0.05))           # front paws lifting off
         pose.paw_pitch[k] = 0.4
@@ -631,9 +633,9 @@ make("climb", 24, climb)
 #   frame 3  = 0.125 s   stretched up, snout first
 #   frame 6  = 0.25 s    gathered at the top
 #   frame 10 = 0.4167 s  front paws reaching down (the landing, a held jump's tick 25)
-# Out of the push fast and slowing into the stretch (0-3), as the rise slows; easing over
-# the top (3-6); falling into the reach, slow then faster (6-10). jump_land: out of the
-# squash, settling (0-4).
+# Out of the push (r1: the bunch) fast and slowing into the stretch (0-3), as the rise slows;
+# easing over the top (3-6); falling into the reach, slow then faster (6-10). jump_land: out
+# of the squash, settling (0-4).
 make_oneshot("jump", [(0, jump_push), (3, jump_stretch), (6, jump_gather), (10, jump_reach)],
              {0: ("QUAD", "EASE_OUT"), 3: ("SINE", "EASE_IN_OUT"), 6: ("QUAD", "EASE_IN")})
 make_oneshot("jump_land", [(0, land_squash), (4, stance)], {0: ("QUAD", "EASE_OUT")})

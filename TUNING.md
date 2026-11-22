@@ -47,3 +47,39 @@ These are Claude Code's claims, read from the ten frames after my verdict above,
 - **Takeoff (frame 10)** doesn't show the push-off strongly: the 0.08 s blend into `jump` mixes it with his standing pose on the very frame the jump begins. The push mostly reads between frames 10 and 13.
 - **The turn from upright to level** (frames 14 → 16, the clip's keys at 0.125 s and 0.25 s) is fast.
 - Everything else matches the table: the stretch, the top on tick 15, the reach, the touchdown on tick 25, the stance by tick 37.
+
+### r1: what I saw in play, and the change (21 Nov 2026)
+
+**What I saw** (dictated after playing; Claude Code fixed only the punctuation):
+
+> The takeoff seems a little off, not quite there. The hind legs don't particularly move, so we can update the frames on those if possible.
+
+(I also asked for a firmer F press to send him farther. A keyboard reads how long F is held, not how hard, and that would be a change to the jump's movement, not this animation, so it's decided separately.)
+
+**The one change** (Claude Code's proposal, "Yes, make r1"): the push-off key, frame 0 of `jump`, is re-posed in `design/character/raccoon_v2/anim.py` with the hind legs bunched under his hips, thighs folded and hind paws forward under his belly. They drive straight out by the stretch at frame 3, eased fast out of the bunch.
+- **What doesn't change:** the other keys (3, 6, 10), the clip's length and timing, `jump_land`, the seven loops and the phase table. So the pins and the edge tests don't change either.
+
+**Claude's prediction for strip r1** (same capture, F seen on frame 10):
+- **frame 10:** his hindquarters lower than in r0, hind paws forward under his belly. It's still partly blended with his standing pose, since the clip blends in over 0.08 s.
+- **frames 13 and 14:** the hind legs fully straightened back and down, visibly longer than in r0, the push now readable from 10 to 13.
+- **frames 16 to 40:** the same as r0.
+
+**Made** (the agent's session, `design/a7/prompt-9.txt`; checked by Claude Code):
+- **The pose:** in `anim.py`'s push-off, the hind paws are pulled forward under his belly (0.13 m forward, 0.03 m up), the toes are flatter (pitch 0.75 → 0.3), and the hips are lowered 2 cm. Rebuilt alone, re-exported, reimported.
+- **What moved:** the seven loops and `jump_land` hash identically; `jump` keeps its 10 frames and its keys at 0, 3, 6 and 10.
+- **The hind legs, frame 0 to frame 3:** the thigh now swings 72.6° (22.7° in r0), and the shin goes from folded 83° to straight.
+- **The read-back changed with it:** the stronger push straightens the shins by frame 2, and they stay within 0.04° of straight through frame 4, so the importer drops their frame-3 key. The check now counts a track as held through a frame when its keys either side are within 0.1° (it was about 0.00001), as I chose: "Yes, 0.1° tolerance". No expected value changed.
+- **Tests:** rig read-back 51/51, jump states 89/89, pins 26/26, edges 238/238.
+
+### r1: Claude's comparison of strip r1 with its prediction (fixture capture, 21 Nov 2026)
+
+`captures/jump/r1/` is the author's capture of the same preview, trimmed to the same ten frames. These are Claude Code's claims, read side by side with r0.
+- **Frames 16 to 40:** the same as r0, as predicted.
+- **Frame 10:** hardly different from r0. The prediction said his hindquarters would sit lower with the hind paws forward. On the takeoff frame the clip has only just started and is still blending in from his standing pose (`JUMP_BLEND` 0.08 s, about 2.4 frames at 30 fps), so the new bunched pose barely shows.
+- **Frames 13 and 14:** the same as r0. The prediction said the hind legs would look longer. They don't, because the stretch key (frame 3) didn't change, so the legs end in the same straight pose. That part of the prediction was wrong.
+- **So the strip can't show r1's change well.** The new drive from the bunch happens between frames 10 and 13: the thigh swings 72.6° instead of 22.7°. That's on frames 11 and 12, which the strip doesn't keep, and it's partly hidden under the blend from standing.
+- **Whether the push reads now** is for the author's eyes in play, at normal speed and at `--time-scale 0.25`. If it still doesn't, the blend into `jump` is what's left hiding it.
+
+### r1: my verdict in play (21 Nov 2026)
+
+Asked "Does the push off the hind legs read now when you play it?": **"Yes, keep r1"**. Kept.

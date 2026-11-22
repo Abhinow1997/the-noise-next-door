@@ -250,7 +250,7 @@ func _check_one_shot(clip_name: String, clip: Animation) -> void:
 				keyed += 1
 				if first_time < 0.0:
 					first_time = found
-			elif before != -1 and after != -1 and _same(
+			elif before != -1 and after != -1 and _held(
 					clip.track_get_key_value(t, before), clip.track_get_key_value(t, after)):
 				held.append(str(clip.track_get_path(t)).get_slice(":", 1))
 			elif before != -1 and after == -1:
@@ -278,6 +278,27 @@ func _check_one_shot(clip_name: String, clip: Animation) -> void:
 			differs += 1
 	_check(differs > 0, "%s: its last pose is its own, not a copy of its first (%d of %d tracks differ)" % [
 			clip_name, differs, clip.get_track_count()], "every track ends where it starts")
+
+
+## Whether a track whose key at a phase-table frame was dropped by the importer is held through
+## that frame: its keys either side within HELD_DEG (a rotation, as a quaternion or its negative)
+## or HELD_M (a position or scale). Since r1 (TUNING.md, 21 Nov 2026) the push straightens the
+## shins by frame 2 and they stay within 0.04 degrees of straight through frame 4, so the importer
+## drops their frame-3 key; is_equal_approx, about 0.00001, was too strict to call that held.
+## Only how "held" is measured changed: the frames the keys must be at are the same.
+const HELD_DEG := 0.1
+const HELD_M := 0.0001
+
+
+func _held(a: Variant, b: Variant) -> bool:
+	if typeof(a) != typeof(b):
+		return false
+	match typeof(a):
+		TYPE_VECTOR3:
+			return (a as Vector3).distance_to(b) <= HELD_M
+		TYPE_QUATERNION:
+			return rad_to_deg((a as Quaternion).angle_to(b)) <= HELD_DEG
+	return _same(a, b)
 
 
 func _same(a: Variant, b: Variant) -> bool:

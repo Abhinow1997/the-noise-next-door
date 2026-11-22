@@ -607,3 +607,15 @@ The strip above is the crouch jump's, from before the remodel. This one is the j
 The frames to keep are 10, 13, 14, 16, 17, 21, 22, 27, 28 and 40. The rest of the sequence is deleted, as the course asks.
 
 (Drafted by Claude Code on 21 Nov 2026 from the preview's headless run at 30 fps. What each frame should show is Claude Code's reading of the log, a prediction for me to check against the capture. Kept by me the same day: "Keep and commit".)
+
+---
+
+### Revised 21 Nov 2026: the jump's push-off key, bunched (tuning r1)
+
+- **`jump`'s key at frame 0** (the push-off) now has the hind legs bunched under his hips: thighs folded, hind paws forward under his belly, the hips 2 cm lower. They drive straight out to the stretch at frame 3. Before, they started near straight, "hind legs extending".
+- **Nothing else changes:** the frames, the timing, the other keys (3, 6, 10), `jump_land` and the phase table.
+- **Why:** from my play, "the hind legs don't particularly move". Measured in the clip, the thigh's swing from frame 0 to frame 3 grew from 22.7° to 72.6°.
+- **With it,** `tests/test_raccoon_rig.gd` counts a key the importer dropped as held when the keys either side are within 0.1°, so the shins, straight by frame 2, pass at frame 3.
+- **TUNING.md** has the revision: what I saw, the change, Claude Code's prediction, the strips r0 and r1 and Claude's comparison, and my verdict.
+
+(Kept by me on 21 Nov 2026 after play, from Claude Code's proposal in Step 7: "Yes, make r1", then "Yes, keep r1".)
