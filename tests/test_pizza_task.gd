@@ -3,27 +3,30 @@ extends SceneTree
 ##
 ## In the real level (main.tscn at the developer menu's "free" point, the camp's tasks revealed, as
 ## tests/test_balloon_task.gd runs it), with the campers blind to him (campsite.gd `cones_on` off);
-## driven through the game loop with real key presses (Input.parse_input_event), read each physics
-## tick after the game's. It checks:
+## driven through the game loop with real key presses (Input.parse_input_event, and the move keys
+## through Input.action_press), read each physics tick after the game's. It checks:
 ##   - the task: on the camp's list, "Eat the pizza", its hint 5 words at most;
 ##   - to start with: the cloth on the table, the boxes on it with five slices, nothing pulled;
-##   - E held at the cloth's hem: he plays `drag` (raccoon_model.gd `dragging`) every tick he
-##     holds it, and the cloth comes toward him; let go early, nothing comes down;
-##   - held to the end (PULL_TIME): the boxes come off the table's end and land on the ground, the
-##     cloth in a heap; the clatter's heard CLATTER round: someone within it wonders (INVESTIGATE),
-##     nobody beyond it does; the cloth can't be pulled again;
+##   - E at the cloth's hem takes it in his jaws (player.gd `grip`); a move key away from the table
+##     backs him away facing it, playing `drag` (raccoon_model.gd `dragging`) every tick, and the
+##     cloth comes with him; E lets go: the cloth stays where it's got to, nothing comes down;
+##   - taken again and pulled on: the boxes go over the end, and the cloth comes off with them as
+##     he lets go, coming down in the same time as they fall; they land on the ground, on the
+##     cloth's heap; the clatter's heard CLATTER round: someone within it wonders (INVESTIGATE),
+##     nobody beyond it does; the cloth can't be taken again;
 ##   - E held at the open box: a slice in his paws and him sitting up eating (`eating`); let go
 ##     early, it's back in the box; held to the end (EAT_FOR), it's gone and the task's done.
 ## Run it from the project folder:
 ##   bash scripts/run-test.sh test_pizza_task.gd 60
 ## It prints PASS or FAIL per check and a count, and quits with exit code 1 if any check fails.
-## Written by Claude Code on 23 Nov 2026.
+## Written by Claude Code on 23 Nov 2026; the pull by grip and move keys the same day.
 
 signal ticked
 
 const DevMenu := preload("res://scripts/dev_menu.gd")
 const CampPizzaScript := preload("res://scripts/camp_pizza.gd")
 const CampPersonScript := preload("res://scripts/camp_person.gd")
+const MOVES := ["move_left", "move_right", "move_forward", "move_back"]
 
 var level: Node
 var camp: Node
@@ -82,6 +85,13 @@ func _key(keycode: int, pressed: bool) -> void:
 	Input.parse_input_event(ev)
 
 
+func _tap(keycode: int) -> void:
+	_key(keycode, true)
+	await _wait(2)
+	_key(keycode, false)
+	await _wait(2)
+
+
 func _wait(n: int) -> void:
 	for i in n:
 		await ticked
@@ -106,23 +116,66 @@ func _stand(from: Vector3, at: Vector3) -> void:
 	player.velocity = Vector3.ZERO
 
 
+## Holds the move keys that point him along `way` on the ground (the keys are turned by the
+## camera's yaw: player.gd `_input_dir`); `way` zero lets them all go.
+func _move(way: Vector3) -> void:
+	for action: String in MOVES:
+		Input.action_release(action)
+	if way == Vector3.ZERO:
+		return
+	var yaw: float = level.camera.global_rotation.y
+	var keys := way.rotated(Vector3.UP, -yaw)
+	if keys.x > 0.01:
+		Input.action_press("move_right", keys.x)
+	elif keys.x < -0.01:
+		Input.action_press("move_left", -keys.x)
+	if keys.z > 0.01:
+		Input.action_press("move_back", keys.z)
+	elif keys.z < -0.01:
+		Input.action_press("move_forward", -keys.z)
+
+
+func _highest(mesh_node: MeshInstance3D) -> float:
+	var top := -INF
+	for p: Vector3 in mesh_node.mesh.get_faces():
+		top = maxf(top, (mesh_node.global_transform * p).y)
+	return top
+
+
 func _clip() -> String:
 	var anim: AnimationPlayer = player.model.get("_anim")
 	return anim.assigned_animation if anim else ""
 
 
-## Holds E for `ticks` physics ticks, noting each tick whether he's dragging and playing `drag`,
-## and whether he's eating with a slice in his paws; then lets go.
+## Backs him away from the table for `ticks` physics ticks (or till `stop`), noting each tick whether
+## he's dragging and playing `drag`, and the most he turned from facing the cloth.
+func _pull(ticks: int, stop := Callable()) -> Dictionary:
+	var seen := {"ticks": 0, "drag_ticks": 0, "drag_clip_ticks": 0, "worst_face": 0.0}
+	_move(pizza.pull_axis())
+	for i in ticks:
+		await ticked
+		if stop.is_valid() and stop.call():
+			break
+		seen.ticks += 1
+		if player.model.dragging:
+			seen.drag_ticks += 1
+		if i >= 2 and _clip() == "drag":
+			seen.drag_clip_ticks += 1
+		if player.get("gripping") != null:
+			var to: Vector3 = pizza.face_point() - player.global_position
+			var nose := -player.global_basis.z
+			seen.worst_face = maxf(seen.worst_face, rad_to_deg(Vector2(nose.x, nose.z).angle_to(Vector2(to.x, to.z))))
+	_move(Vector3.ZERO)
+	await _wait(2)
+	return seen
+
+
+## Holds E for `ticks` physics ticks, noting each tick whether he's eating with a slice in his paws.
 func _hold_e(ticks: int) -> Dictionary:
-	var seen := {"drag_ticks": 0, "drag_clip_ticks": 0, "eat_ticks": 0, "slice_ticks": 0}
+	var seen := {"eat_ticks": 0, "slice_ticks": 0}
 	_key(KEY_E, true)
 	for i in ticks:
 		await ticked
-		if player.model.dragging:
-			seen.drag_ticks += 1
-		# The clip's picked on the process tick after the physics tick that set `dragging`.
-		if i >= 2 and _clip() == "drag":
-			seen.drag_clip_ticks += 1
 		if player.model.eating:
 			seen.eat_ticks += 1
 		if player.model.paws and player.model.paws.get_child_count() > 0:
@@ -149,43 +202,65 @@ func _run() -> void:
 
 	# To start with.
 	_check("to start with: the cloth on the table, the boxes on it, five slices, nothing pulled",
-		pizza.on_table() and not pizza.pulled and not pizza.down and pizza.slices_left() == 5,
-		"on_table %s pulled %s down %s slices %d" % [pizza.on_table(), pizza.pulled, pizza.down, pizza.slices_left()])
+		pizza.on_table() and not pizza.pulled and not pizza.down and not pizza.off and pizza.slices_left() == 5,
+		"on_table %s pulled %s down %s off %s slices %d" % [pizza.on_table(), pizza.pulled, pizza.down, pizza.off,
+			pizza.slices_left()])
 
-	# E held at the hem, let go early.
+	# E at the hem: in his jaws. Backed off a little, then let go.
 	_stand(pizza.pull_from(), pizza.pull_point())
 	await _wait(10)
-	var cloth: Node3D = pizza.get("_cloth")
-	var early := await _hold_e(int(CampPizzaScript.PULL_TIME * 60 * 0.5))
-	_check("E held at the hem: he's dragging every tick he holds it", early.drag_ticks >= int(CampPizzaScript.PULL_TIME * 30) - 3,
-		"%d of %d" % [early.drag_ticks, int(CampPizzaScript.PULL_TIME * 30)])
-	_check("E held at the hem: the rig plays `drag` (from the tick after)", early.drag_clip_ticks >= int(CampPizzaScript.PULL_TIME * 30) - 5,
-		early.drag_clip_ticks)
-	_check("let go halfway: nothing comes down, and the cloth had come toward him", not pizza.pulled and pizza.on_table()
-		and cloth.position.x < -0.01, "pulled %s cloth x %.3f" % [pizza.pulled, cloth.position.x])
+	await _tap(KEY_E)
+	_check("E at the hem: he has it in his jaws", player.get("gripping") == pizza, player.get("gripping"))
+	var start := player.global_position
+	var little := await _pull(20)
+	var backed := (player.global_position - start).dot(pizza.pull_axis())
+	_check("a move key away from the table: he backs off, facing it", backed > 0.05 and little.worst_face < 10.0,
+		"backed %.2f m, turned at most %.1f°" % [backed, little.worst_face])
+	_check("dragging: `dragging` and the rig's `drag` clip on every tick", little.drag_ticks == little.ticks
+		and little.drag_clip_ticks >= little.ticks - 3, "%d and %d of %d" % [little.drag_ticks, little.drag_clip_ticks, little.ticks])
+	_check("the cloth comes with him, the boxes on it", pizza.slide > 0.03 and pizza.on_table(),
+		"slide %.3f m, on the table %s" % [pizza.slide, pizza.on_table()])
+	var slid: float = pizza.slide
+	await _tap(KEY_E)
+	_check("E again: he lets go, the cloth stays where it's got to, nothing down",
+		player.get("gripping") == null and not pizza.pulled and is_equal_approx(pizza.slide, slid),
+		"gripping %s pulled %s slide %.3f" % [player.get("gripping"), pizza.pulled, pizza.slide])
 	await _wait(5)
 	_check("let go: he's not dragging, nor playing `drag`", not player.model.dragging and _clip() != "drag",
 		"%s %s" % [player.model.dragging, _clip()])
 
-	# Held to the end.
-	await _wait(200)
-	_stand(pizza.pull_from(), pizza.pull_point())
-	await _wait(10)
+	# Taken again and pulled right off.
+	await _wait(120)
 	var people: Array = camp.get("people")
-	await _hold_e(int(CampPizzaScript.PULL_TIME * 60) + 6)
-	_check("held to the end: the cloth's pulled", pizza.pulled, pizza.pulled)
 	var calm_before := {}
 	for person in people:
 		calm_before[person] = int(person.get("state")) == CampPersonScript.State.WORK
-	var landed := await _until(func() -> bool: return pizza.down, 60)
+	_stand(pizza.pull_point() + pizza.pull_axis() * 0.39, pizza.pull_point())
+	await _wait(10)
+	await _tap(KEY_E)
+	_check("the hem taken again", player.get("gripping") == pizza, player.get("gripping"))
+	await _pull(200, func() -> bool: return pizza.pulled)
+	_check("pulled on: the boxes go over the end, the cloth comes off with them, he lets go",
+		pizza.pulled and pizza.off and player.get("gripping") == null,
+		"pulled %s off %s gripping %s slide %.2f" % [pizza.pulled, pizza.off, player.get("gripping"), pizza.slide])
+	# Halfway down, the cloth is as far through its fall as the boxes are through theirs.
+	var cloth: MeshInstance3D = pizza.get("_cloth")
+	var top_at_start := _highest(cloth)
+	await _until(func() -> bool: return pizza.get("_cloth_k") >= 0.5 or pizza.down, 60)
+	var cloth_k: float = pizza.get("_cloth_k")
+	var boxes_y: float = pizza.boxes.global_position.y
+	_check("coming down together: the cloth halfway down as the boxes are halfway through their fall",
+		cloth_k >= 0.4 and cloth_k < 1.0 and boxes_y < pizza.get("_fall_from").origin.y and _highest(cloth) < top_at_start,
+		"cloth %.2f through, boxes at %.2f m, cloth's top %.2f m (was %.2f)" % [cloth_k, boxes_y, _highest(cloth), top_at_start])
+	await _until(func() -> bool: return pizza.down, 60)
 	var boxes: Node3D = pizza.boxes
 	var table: Node3D = pizza.table
 	var end := table.global_transform * Vector3(CampPizzaScript.EDGE_X, 0.0, 0.0)
-	_check("down: the boxes land on the ground off the table's end", landed and absf(boxes.global_position.y) < 0.01
-		and (boxes.global_position - end).dot(-table.global_basis.x) > 0.0,
-		"down %s y %.3f past the end %.2f m" % [landed, boxes.global_position.y, (boxes.global_position - end).dot(-table.global_basis.x)])
-	var heap: Node3D = pizza.get("_heap")
-	_check("down: the cloth off the table, in a heap", not cloth.visible and heap.visible, "%s %s" % [cloth.visible, heap.visible])
+	_check("down: the boxes land past the table's end, on the cloth, as it settles",
+		pizza.down and is_equal_approx(pizza.get("_cloth_k"), 1.0) and absf(boxes.global_position.y - CampPizzaScript.ON_HEAP) < 0.01
+		and (boxes.global_position - end).dot(pizza.pull_axis()) > 0.0,
+		"down %s cloth %.2f y %.3f past the end %.2f m" % [pizza.down, pizza.get("_cloth_k"), boxes.global_position.y,
+			(boxes.global_position - end).dot(pizza.pull_axis())])
 	var near := []
 	var far := []
 	for person in people:
@@ -199,14 +274,17 @@ func _run() -> void:
 		"%d near: %s" % [near.size(), " ".join(near.map(func(p) -> String: return S.keys()[int(p.get("state"))]))])
 	_check("nobody beyond it does", far.all(func(p) -> bool: return int(p.get("state")) != S.INVESTIGATE),
 		"%d far: %s" % [far.size(), " ".join(far.map(func(p) -> String: return S.keys()[int(p.get("state"))]))])
-	_check("the cloth can't be pulled again", not pizza.get("_pull").usable_by(player), "")
+	var heap: Vector3 = table.global_transform * pizza.get("_lying_at")
+	_check("the cloth lies on the ground, heaped under the boxes", _highest(cloth) < 0.1
+		and _flat(heap, boxes.global_position) < 0.3, "its highest point %.3f m, %.2f m from the boxes" % [
+			_highest(cloth), _flat(heap, boxes.global_position)])
+	_check("it can't be taken again", not pizza.get("_grab").usable_by(player), "")
 
 	# Eating: let go early, then held to the end.
 	var box_at: Vector3 = pizza.eat_point()
 	# Off the open box away from the table, far enough that his snout (about 0.4 m ahead of his
 	# middle) is short of it.
-	var away: Vector3 = ((pizza.pull_from() - pizza.pull_point()) * Vector3(1, 0, 1)).normalized()
-	var from: Vector3 = box_at + away * 0.6
+	var from: Vector3 = box_at + pizza.pull_axis() * 0.6
 	_stand(from, box_at)
 	await _wait(10)
 	var bite := await _hold_e(int(CampPizzaScript.EAT_FOR * 60 * 0.4))

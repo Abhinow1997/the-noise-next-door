@@ -81,6 +81,8 @@ const RUN_TURN := 0.7
 ## its direction swings round no faster than GRIP allows (sideways m/s²). His feet push
 ## him up to SLIP (radians) toward where he wants to go before he faces it.
 const ACCEL := 10.0
+## How fast he backs away dragging something in his jaws, or eases back toward it (m/s; `grip`).
+const DRAG_SPEED := 0.45
 const DECEL := 14.0
 const GRIP := 30.0
 const SLIP := 0.44
@@ -118,6 +120,8 @@ var camera: Camera3D
 var trees: Array[Dictionary] = []
 var model: RaccoonModel
 var held: RigidBody3D
+## Since 23 Nov 2026: something he's dragging in his jaws (`grip`), or null.
+var gripping: Node = null
 ## A snack in his mouth that isn't a body he holds (the tutorial's stolen roasted
 ## marshmallow, roast_plate.gd): while he has it, E doesn't grab or drop; holding E
 ## eats it there (an Interactable), once it's allowed.
@@ -271,12 +275,15 @@ func _physics_process(delta: float) -> void:
 		_limb_process(delta)
 	elif climbing:
 		_climb_process(delta)
+	elif gripping:
+		_drag_process(delta)
 	else:
 		_walk_process(delta)
 	# After walking, which may have just taken off, so the model knows it the same tick.
 	model.jumping = jumping or _land_tick >= 0 or (_tree_hop and _hop_t >= 0.0)
 	model.landing = _land_tick >= 0
-	# Since 23 Nov 2026: dragging at something with E held (interactable.gd `drag`).
+	# Since 23 Nov 2026: dragging something in his jaws (`gripping`), or at something with E held
+	# (interactable.gd `drag`).
 	model.dragging = _dragging()
 	_loop(_run_sfx, running, "SFX-RUN", delta)
 	_loop(_climb_sfx, climb_moving, "SFX-CLIMB", delta)
@@ -295,8 +302,62 @@ func _loop(sfx: AudioStreamPlayer, on: bool, id: String, delta: float) -> void:
 		sfx.stop()
 
 
-## True while he's holding E at a job he drags at (interactable.gd `drag`).
+## Takes `thing` in his jaws to drag it (23 Nov 2026, the tablecloth: camp_pizza.gd; the author:
+## "the cloth needs to be pulled like the natrual movement e grab and pull"). Till he lets go he
+## faces it and moves only along its pull axis, away from it or back toward it, at DRAG_SPEED,
+## playing his `drag` clip (_drag_process). `thing` gives `pull_axis()` (level, pointing away
+## from it) and `face_point()`, and is told `released(player)` when he lets go. E or F lets go,
+## and so does a fright.
+func grip(thing: Node) -> void:
+	if held:
+		_drop()
+	gripping = thing
+	_speed = 0.0
+	_yaw_rate = 0.0
+	velocity = Vector3.ZERO
+
+
+## Lets go of what he's dragging, if anything.
+func let_go() -> void:
+	if gripping == null:
+		return
+	var thing := gripping
+	gripping = null
+	if thing.has_method("released"):
+		thing.released(self)
+
+
+## Dragging: facing the thing, backing away from it or easing toward it along its pull axis, as
+## the move keys point; no turning, running, sneaking or jumping.
+func _drag_process(delta: float) -> void:
+	if not is_instance_valid(gripping):
+		gripping = null
+		return
+	var dir := _input_dir(_move_input())
+	var axis: Vector3 = gripping.call("pull_axis")
+	var amount := clampf(dir.dot(axis), -1.0, 1.0) if dir.length_squared() > 0.01 else 0.0
+	var along := Vector3(velocity.x, 0.0, velocity.z).dot(axis)
+	along = move_toward(along, DRAG_SPEED * amount, ACCEL * delta)
+	velocity.x = axis.x * along
+	velocity.z = axis.z * along
+	velocity.y = 0.0 if is_on_floor() else velocity.y - _gravity * delta
+	var at: Vector3 = gripping.call("face_point")
+	var want := atan2(-(at.x - global_position.x), -(at.z - global_position.z))
+	rotation.y = rotate_toward(rotation.y, want, turn_speed * delta)
+	_yaw_rate = 0.0
+	sneaking = false
+	move_and_slide()
+	_speed = absf(along)
+	model.speed = Vector2(velocity.x, velocity.z).length()
+	model.walk_amount = 0.0
+	model.crouch = move_toward(model.crouch, 0.0, delta * 5.0)
+
+
+## True while he's dragging something in his jaws (`gripping`) or holding E at a job he drags at
+## (interactable.gd `drag`).
 func _dragging() -> bool:
+	if gripping != null:
+		return true
 	for spot: Node in get_tree().get_nodes_in_group("interactable"):
 		if spot.has_method("dragged_by") and spot.dragged_by(self):
 			return true
@@ -555,6 +616,7 @@ func startle(from: Vector3) -> void:
 		_stop_hiding()
 	if held:
 		_drop()
+	let_go()
 	var away := global_position - from
 	away.y = 0.0
 	away = away.normalized() if away.length() > 0.01 else global_basis.z
@@ -1043,6 +1105,11 @@ func _end_limb() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if resting or _hop_t >= 0.0 or input_locked or hiding_in:
+		return
+	# Dragging something (`grip`): E or F lets go of it.
+	if gripping and (event.is_action_pressed("grab") or event.is_action_pressed("jump")):
+		let_go()
+		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("grab"):
 		if snack:
