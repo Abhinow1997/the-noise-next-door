@@ -22,6 +22,10 @@
 #     thing on her face;
 #   - stands her on the ground with the middle of her feet at the origin, facing the front (-Y in Blender, +Z in
 #     Godot), at HEIGHT metres tall, in her own standing pose;
+#   - smooths her edges (added 23 Nov 2026, the author: "make the edges on them smother ... take the girl 1st", then
+#     "Smooth twice"): a Subdivision Surface modifier, SMOOTH_LEVELS deep, ahead of her Armature, so the rig bends
+#     the smoothed mesh. Her mesh itself is left as it was, so her clips, which are measured on it, don't change; the
+#     .glb is exported with the modifier applied (animate_simple_girl.py's export settings);
 #   - runs tools/blender/animate_simple_girl.py, which keys walk, run, bend and take_away;
 # then saves assets/characters/simple_girl.blend and exports assets/characters/simple_girl.glb. Otherwise her shape and
 # smooth shading are as TiZeta made them.
@@ -46,6 +50,9 @@ SKIN, SKIN_ROUGHNESS = "C99C85", 0.6   # the camper's skin (camper.blend's C2_sk
 FACE_SMOOTH_PASSES = 6  # her face's shape (mouth, brow, nose) evened out
 # her cartoon eyebrows: height of their inner ends, gap from the middle, length, thickness, arch (m), colour
 BROW = dict(z=1.570, gap=0.010, length=0.034, thick=0.008, arch=0.007, colour="5A2A1C", roughness=0.9)
+# her edges smoothed (23 Nov 2026): Catmull-Clark subdivision, twice (2,132 triangles become 37,584). Once took the
+# corners off her hair and arms; twice looked almost the same, and it's what the author picked
+SMOOTH_LEVELS = 2
 
 
 def only(*objects):
@@ -242,6 +249,19 @@ size = Vector((max(w.x for w in ws) - min(w.x for w in ws), max(w.y for w in ws)
                max(w.z for w in ws) - min(w.z for w in ws)))
 print("SIMPLE GIRL", sum(len(p.vertices) - 2 for p in body.data.polygons), "triangles,", len(rig.data.bones), "bones,",
       "size %.3f x %.3f x %.3f m, lowest %.3f" % (tuple(size) + (min(w.z for w in ws),)))
+
+# --- Smoother edges: a Subdivision Surface ahead of her Armature, so her outline (her hair, her arms) is rounded and
+# the rig bends the rounded mesh; it carries her weights, her texture's UVs and her three materials through. Her mesh
+# stays as it is above, so the clips below are measured on it as before -------------------------------------------
+smooth = body.modifiers.new("Subdivision", "SUBSURF")
+smooth.levels = smooth.render_levels = SMOOTH_LEVELS
+smooth.use_limit_surface = True
+smooth.uv_smooth = "PRESERVE_BOUNDARIES"     # her texture stays put where its pieces meet
+smooth.boundary_smooth = "ALL"               # her hair's open edges and the tips of her fringe are rounded too
+body.modifiers.move(body.modifiers.find(smooth.name), 0)
+assert [m.type for m in body.modifiers] == ["SUBSURF", "ARMATURE"], [m.type for m in body.modifiers]
+smoothed = body.evaluated_get(bpy.context.evaluated_depsgraph_get()).data
+print("SMOOTHED %d levels: %d triangles" % (SMOOTH_LEVELS, sum(len(p.vertices) - 2 for p in smoothed.polygons)))
 
 # --- Her animations: tools/blender/animate_simple_girl.py keys walk, run, bend and take_away (with the chubby man's
 # solver, the same rig), and holds the .glb's export settings -------------------------------------------------------
