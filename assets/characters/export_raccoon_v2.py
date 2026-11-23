@@ -7,8 +7,9 @@ Run it from the repo root after changing the .blend:
 Nothing is saved back to the .blend. What goes in:
 - the Raccoon mesh, with its Mirror modifier applied, skinned to the rig's deform bones
   (the paw controls stay behind; the poses they drive are baked into the animations);
-- the nine actions, sampled every frame: the seven loops (idle, walk, run, sneak, bored,
-  sleep, climb) and the two one-shots (jump, jump_land; design/character/raccoon_v2/anim_jump.py).
+- the ten actions, sampled every frame: the eight loops (idle, walk, run, sneak, bored,
+  sleep, climb, and since 23 Nov 2026 drag, design/character/raccoon_v2/anim_drag.py) and the
+  two one-shots (jump, jump_land; design/character/raccoon_v2/anim_jump.py).
   Their loop modes are set in Godot, in raccoon_v2.glb.import's per-animation settings.
 
 He faces -Y in the .blend, so he faces +Z in the glTF; scripts/raccoon_model.gd turns him
@@ -20,7 +21,7 @@ import os
 import bpy
 
 OUT = os.path.join(os.path.dirname(bpy.data.filepath), "raccoon_v2.glb")
-ACTIONS = ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "jump", "jump_land"]
+ACTIONS = ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "drag", "jump", "jump_land"]
 
 if bpy.context.mode != "OBJECT":
     bpy.ops.object.mode_set(mode="OBJECT")

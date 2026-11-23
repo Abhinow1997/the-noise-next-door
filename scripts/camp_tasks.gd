@@ -48,6 +48,9 @@ var list: Array[Dictionary] = [
 	# balloons; Let the balloons go the same day (the brief's revision), keeping its id.
 	{"id": "balloons", "text": "Let the balloons go", "done": false, "camp": true,
 		"hint": "Untie them, let them fly."},
+	# Added on 23 Nov 2026 (camp_pizza.gd): pull the table's cloth, the boxes drop, eat a slice.
+	{"id": "pizza", "text": "Eat the pizza", "done": false, "camp": true,
+		"hint": "Pull the cloth, then eat."},
 ]
 ## Whether the camp's tasks are on the list yet (the tutorial reveals them).
 var revealed := false

@@ -72,7 +72,7 @@ func _run() -> void:
 	# Dismantle the tent joined them on 8 Nov 2026 (camp_tent.gd), Raid the bear bag on
 	# 10 Nov 2026 (camp_bear_bag.gd), and Pop the balloons on 21 Nov 2026 (camp_balloons.gd).
 	_check("The to-do list: the music, then the camp's six",
-		"investigate marshmallows music cooler tent bearbag balloons",
+		"investigate marshmallows music cooler tent bearbag balloons pizza",
 		" ".join(level.tasks.list.map(func(t: Dictionary) -> String: return t.id)))
 	_check("Routines: the camper starts pegging out his tent", "peg", _camper.activity())
 	_check("Routines: the low-poly man starts dancing", "dance", _man.activity())
@@ -237,7 +237,9 @@ func _run() -> void:
 	level.tasks.done("tent")
 	level.tasks.done("bearbag")
 	level.tasks.done("balloons")
-	_check("All seven tasks done", true, level.tasks.all_done())
+	# Eat the pizza (23 Nov 2026) is played through in tests/test_pizza_task.gd.
+	level.tasks.done("pizza")
+	_check("All eight tasks done", true, level.tasks.all_done())
 	await _wait(1.0)
 	_shot("07_loot_in_his_stash_all_ticked_by-claude")
 

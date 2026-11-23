@@ -31,6 +31,25 @@ extends Node
 ##      frightened is confused where they stand (camp_person.gd `lose_him`).
 ##   4. Lost: the camera's on the one who saw him, confused ("?", SEARCH), for a moment;
 ##      then they all go back to work.
+##      Since 23 Nov 2026 (the author: only the camper at the camp while he waits for them to
+##      look away, the others away from it), the wait has one camper to watch. Once he's in the
+##      bush, the low-poly man, the girl and the fire keeper each go off the campsite, north past
+##      the table and the string lights (AWAY), as soon as they're back at their routine. For the
+##      confused ones that's after their search. For the keeper it's once the log he's fetching has
+##      lit the fire. From then the fire holds till the tutorial's done (camp_fire.gd `cycle`, back
+##      on with `open`), so it doesn't call him back. The same day (the author: "too much waiting
+##      for them to look away shoten it out"), the roasting starts as before, once they're all at
+##      work and the fire's lit, while the others are still walking off. The camper keeps roasting
+##      till all three are off the campsite, and only then serves the first one. As he takes it,
+##      their own routines come back and they head back to the camp.
+##      The same day (the author: "Make one of the maybe the girl when she's coming back bring the
+##      pizza in ... a couple of boxes ... stacked ... inside the pizza"), the table has no pizza
+##      while the tutorial runs. The girl comes back carrying two stacked pizza boxes
+##      (pizza_boxes.gd) and goes first to the table's end by the pizza (PIZZA_AT). She bends and
+##      puts them down on the table, the top one open with the pizza in it, then goes on with her
+##      routine. If the tutorial's done before she's put them down, they're put down then, so the
+##      open world always starts with the pizza on the table. With no intro (the checks that skip
+##      it), the pizza's on the table as before.
 ##   5. The roasting (roast_plate.gd), once they're all back at work: the camper roasts a
 ##      marshmallow, turns round to put it on a plate on the log and goes back for more,
 ##      with a note to sneak out if he's in the bush. The first one on the plate: the
@@ -49,7 +68,11 @@ extends Node
 ##      (camp_tasks.gd `reveal`; Rock the party, their main task, came out on 22 Nov 2026), the game slowed; Tab again puts it away,
 ##      and the world's open, with no more notes. Since 11 Nov 2026 the marshmallow he
 ##      stole counts: Steal the marshmallows is ticked off then (the author: "after the
-##      tutorial is done we can cross out steal the marshmallows").
+##      tutorial is done we can cross out steal the marshmallows"). Since 23 Nov 2026 it's
+##      ticked off as he eats it, the moment it's his for good, before the note to press Tab
+##      (the author: "steal the marshmellows is being checked off soo late literally after the
+##      tutrial completes"). It's not ticked as he takes it, because he can still be caught
+##      with it then.
 ## While it holds the game it holds the raccoon still (player.gd `input_locked`) and Esc
 ## doesn't pause (main.gd). It's the only game script that changes Engine.time_scale,
 ## and only while it holds the game: it puts it back to 1 when it lets go.
@@ -97,6 +120,20 @@ const HIDE_DARK := 0.45
 const LOST_AFTER := 0.8
 const LOST_WAIT := 12.0
 const LOST_SHOW := 3.0
+## The wait (23 Nov 2026): where the low-poly man, the girl and the fire keeper go off the
+## campsite while he waits in the bush (x, z from the camp's middle, Forest.CAMP), in that order.
+## They're north, past the table and the string lights, 13.3–14.0 m out, in a little group; the
+## camp reaches 12.5 m (campsite.gd CAMP_ZONE). It's about 10.5 m from where the two dance, 8 m
+## from the keeper's table, and 14–16 m from the bush and the plate. The two dancers dance
+## there, and the keeper stands about.
+const AWAY := [Vector2(-1.4, -14.0), Vector2(-0.4, -13.3), Vector2(-2.4, -13.3)]
+## The pizza (23 Nov 2026): where the girl stands to put its boxes on the table, in the table's own
+## space (x, z). That's at its west end, 0.62 m from where the pizza sits (campsite.gd `_set_table`),
+## facing along it (+X). How long she bends there, and how long before the end of that the boxes go
+## down (s).
+const PIZZA_AT := Vector2(-1.0, 0.12)
+const PIZZA_BEND := 1.7
+const PIZZA_PUT := 0.9
 ## The first roasted marshmallow on the plate: how wide it's lit, and how long the
 ## raccoon's hungry thought stays up at most (it goes as he takes it).
 const PLATE_RADIUS := 110.0
@@ -166,6 +203,16 @@ var _frozen := false
 ## set off the caught beat ("caught").
 var _taken_at := -INF
 var _caught_pending := false
+## The wait: whether the others are to go off the campsite now; each one sent (AWAY), with their
+## own routine and where they'd got to in it, to put back as he takes the roasted marshmallow;
+## and whether the fire's held for the keeper.
+var _away_on := false
+var _away := {}
+var _fire_held := false
+## Where the pizza's got to ("" on the table, hidden; "carried"; "down"), and her own routine while
+## she takes it to the table. The boxes are the camp's (campsite.gd `pizza`, camp_pizza.gd).
+var _pizza := ""
+var _pizza_kept := {}
 
 
 func _ready() -> void:
@@ -181,6 +228,9 @@ func _ready() -> void:
 		layer.add_child(spotlight)
 	if plan and plan.has_signal("picked"):
 		plan.picked.connect(_pick)
+	# No pizza on the table till the girl brings it in (_bring_pizza); with no intro, it's put back.
+	if campsite and campsite.pizza:
+		campsite.pizza.boxes.visible = false
 
 
 ## True while it holds the game: the pan and the laugh till he's seen, the moment it
@@ -199,6 +249,7 @@ func dev_roast() -> void:
 	_laughed_at = campsite.clock
 	step = Step.INTRO
 	stage = "calming"
+	_away_on = true
 
 
 ## He's seen the party (main.gd): it starts START_AFTER seconds of play later.
@@ -228,6 +279,7 @@ func _process(delta: float) -> void:
 						_arrive()
 		Step.INTRO:
 			_intro(real)
+	_keep_pizza()
 	if player:
 		player.input_locked = running()
 	# No food thought from facing food till it's done: none as he gets to the camp (the
@@ -278,6 +330,8 @@ func _start_intro() -> void:
 
 
 func _intro(real: float) -> void:
+	if _away_on:
+		_keep_away()
 	match stage:
 		"pan":
 			_pan_t += real
@@ -304,6 +358,10 @@ func _intro(real: float) -> void:
 				_freeze(false)
 				for person in campsite.people:
 					person.lose_him()
+				# All but the camper go off the campsite while he waits, each once they're back at
+				# their routine (_keep_away): the calm ones at once.
+				_away_on = true
+				_keep_away()
 				spotlight.clear()
 				_hid_at = campsite.clock
 				plan.note(HIDDEN_NOTE)
@@ -328,7 +386,9 @@ func _intro(real: float) -> void:
 				stage = "calming"
 		"calming":
 			# The roasting starts once they've all gone back to work, and the keeper has the
-			# fire lit (he builds it from the pan on, camp_fire.gd).
+			# fire lit (he builds it from the pan on, camp_fire.gd). Since 23 Nov 2026 the others
+			# are walking off the campsite by then; the first one isn't served till they're off
+			# it ("roast").
 			if _all_calm() and campsite.campfire.burning():
 				_start_roasting()
 		"caught":
@@ -348,6 +408,11 @@ func _intro(real: float) -> void:
 		"roast":
 			if player.hiding_in == null and plan.note_showing() == SNEAK_NOTE:
 				plan.note("")
+			# The wait (23 Nov 2026): he keeps roasting the first one till the others are off the
+			# campsite, so the camper's alone at the camp when it's served.
+			var camper = campsite.camper
+			if not _all_away() and camper.activity() == "roast" and camper._step_left < 0.5:
+				camper._step_left = 0.5
 		"escape":
 			# Seen with it, the first time since he took it: caught.
 			if _caught_pending and roast.carrying() and campsite.last_seen >= _taken_at:
@@ -444,6 +509,8 @@ func _on_taken() -> void:
 	# with the vision cones and the actions in the game"): "escape" in _intro.
 	_freeze(false)
 	spotlight.clear()
+	# The wait's over: the others head back to the camp.
+	_bring_back()
 	_taken_at = campsite.clock
 	_caught_pending = true
 	stage = "escape"
@@ -464,10 +531,170 @@ func _on_eaten() -> void:
 	if step != Step.INTRO:
 		return
 	_flash(YUM_LINE)
+	_bring_back()
+	# He's stolen a marshmallow and eaten it, his for good: that task's done now, written out
+	# and crossed off at the bottom over the note to press Tab (plan_note.gd), with the coin
+	# (main.gd). Since 23 Nov 2026; it was at the tutorial's very end, after the list.
+	tasks.done("marshmallows")
 	roast.stop()
 	plan.note(OPEN_NOTE)
 	stage = ""
 	step = Step.TASKS
+
+
+# --- The wait: the others off the campsite -------------------------------------------
+
+## The low-poly man, the girl and the fire keeper: the ones who go off the campsite, in AWAY's
+## order.
+func _away_people() -> Array:
+	var who: Array = campsite.dancers.duplicate()
+	if campsite.keeper:
+		who.append(campsite.keeper)
+	return who.slice(0, AWAY.size())
+
+
+## Through the wait, from his getting into the bush (and from the developer menu's roasting
+## start). Each one goes off the campsite once they're back at their routine (WORK): the calm
+## ones at once, the confused ones after their search where they stand. The keeper goes once the
+## fire's lit. The log he's fetching is his last, because the fire holds from when he's at it
+## (camp_fire.gd `cycle` off: no burning down, no call for another log) till the tutorial's done
+## (`open`). While it's still out and he isn't at it, it's left to call him.
+func _keep_away() -> void:
+	var keeper = campsite.keeper
+	var fire = campsite.campfire
+	if not _fire_held:
+		if fire.burning():
+			fire.cycle = false
+			_fire_held = true
+		else:
+			fire.cycle = keeper == null or keeper.state != S.TEND
+	for person in _away_people():
+		if _away.has(person) or person.state != S.WORK:
+			continue
+		if person == keeper and not fire.burning():
+			continue
+		_send(person)
+
+
+## Sends one of them off to their place in AWAY, to stay there; their own routine is kept to put
+## back.
+func _send(person) -> void:
+	var i: int = _away_people().find(person)
+	_away[person] = {"routine": person.routine.duplicate(), "step": person._step, "left": person._step_left}
+	var spot: Vector2 = AWAY[i]
+	# Facing the other two, in a little group.
+	var others := Vector2.ZERO
+	for j in AWAY.size():
+		if j != i:
+			others += AWAY[j] / float(AWAY.size() - 1)
+	var to := others - spot
+	var at := Vector3(Forest.CAMP.x + spot.x, 0.0, Forest.CAMP.y + spot.y)
+	# The dancers dance on there, on the music's beat as at the party (campsite.gd keeps it); the
+	# keeper stands about as he does at the table.
+	var stay: Dictionary
+	if person in campsite.dancers:
+		stay = campsite._activity("away", at, atan2(to.x, to.y), "dance", Campsite.MUSIC_BPM / Campsite.DANCE_BPM,
+			Vector2(1.0e6, 1.0e6))
+	else:
+		stay = campsite._activity("away", at, atan2(to.x, to.y), "idle", 1.0, Vector2(1.0e6, 1.0e6), "dance", 0.4)
+	person.routine.assign([stay])
+	person._step = 0
+	person._step_left = 1.0e6
+	person._arrived = false
+
+
+## True once all three have gone and are off the campsite (campsite.gd `in_camp`).
+func _all_away() -> bool:
+	for person in _away_people():
+		if not _away.has(person) or campsite.in_camp(person.global_position):
+			return false
+	return true
+
+
+## As he takes the roasted marshmallow: their own routines come back, where they'd got to, and
+## they head back to the camp. While the roasting's on, the keeper goes back to eating behind
+## the table, as roast_plate.gd `start` has him. The fire holds on till the tutorial's done
+## (`open`): it was lit with one log, and below FEED_BELOW it would call him away again.
+func _bring_back() -> void:
+	_away_on = false
+	var girl = campsite.dancers[1] if campsite.dancers.size() > 1 else null
+	var girl_was_away: bool = girl != null and _away.has(girl)
+	for person in _away:
+		var kept: Dictionary = _away[person]
+		person.routine.assign(kept.routine)
+		person._step = kept.step
+		person._step_left = kept.left
+		person._arrived = false
+		if person == campsite.keeper and roast != null and roast.running:
+			person._step = 0
+			person._step_left = 1.0e6
+	_away.clear()
+	# She comes back with the pizza.
+	if girl_was_away:
+		_bring_pizza(girl)
+
+
+# --- The pizza: the girl brings it in -------------------------------------------------
+
+## As she comes back from AWAY: two stacked boxes in her hand with the table's pizza in the top one,
+## and a step first in her routine, to the table's end (PIZZA_AT) to put them down. Her own routine,
+## where it had got to, is kept for after.
+func _bring_pizza(girl) -> void:
+	var table: Node3D = campsite.pizza.table if campsite.pizza else null
+	if _pizza != "" or table == null:
+		return
+	campsite.pizza.boxes.visible = true
+	campsite.pizza.boxes.carry(girl)
+	_pizza = "carried"
+	_pizza_kept = {"routine": girl.routine.duplicate(), "step": girl._step, "left": girl._step_left}
+	var at: Vector3 = table.global_transform * Vector3(PIZZA_AT.x, 0.0, PIZZA_AT.y)
+	var along: Vector3 = table.global_basis.x
+	var put: Dictionary = campsite._activity("bring_pizza", Vector3(at.x, 0.0, at.z), atan2(along.x, along.z), "bend", 1.0,
+		Vector2(PIZZA_BEND, PIZZA_BEND))
+	var routine: Array = [put]
+	routine.append_array(_pizza_kept.routine)
+	girl.routine.assign(routine)
+	girl._step = 0
+	girl._step_left = PIZZA_BEND
+	girl._arrived = false
+
+
+## Each frame: once she's at the table's end and halfway through bending, the boxes go down on the
+## table, open. Once she's done there, her own routine comes back where it was.
+func _keep_pizza() -> void:
+	if _pizza == "" or campsite.dancers.size() < 2:
+		return
+	var girl = campsite.dancers[1]
+	if _pizza == "carried" and girl.activity() == "bring_pizza" and girl.at_activity() \
+			and girl._step_left <= PIZZA_PUT:
+		_put_pizza_down()
+	if _pizza == "down" and not _pizza_kept.is_empty() and girl.activity() != "bring_pizza":
+		_give_back_routine(girl)
+
+
+## The boxes on the table's cloth, the top one open with the pizza in it (camp_pizza.gd).
+func _put_pizza_down() -> void:
+	campsite.pizza.put_on_table()
+	_pizza = "down"
+
+
+func _give_back_routine(girl) -> void:
+	girl.routine.assign(_pizza_kept.routine)
+	girl._step = _pizza_kept.step
+	girl._step_left = _pizza_kept.left
+	girl._arrived = false
+	_pizza_kept = {}
+
+
+## The tutorial's done: the pizza's on the table for the open world. If she's still carrying it, it's
+## put down there and she goes on with her routine; if she never came back with it, it's as it was.
+func _finish_pizza() -> void:
+	if _pizza == "carried":
+		_put_pizza_down()
+	if not _pizza_kept.is_empty() and campsite.dancers.size() > 1:
+		_give_back_routine(campsite.dancers[1])
+	if _pizza == "" and campsite.pizza:
+		campsite.pizza.boxes.visible = true
 
 
 ## True while all of them are at work on their routines: none alarmed, none on the way
@@ -482,6 +709,9 @@ func _all_calm() -> bool:
 ## Without the intro: the dark layer at once, with the note to press Tab.
 func _arrive() -> void:
 	step = Step.ARRIVAL
+	# With no intro there's nobody to bring the pizza: it's on the table, as it always was.
+	if campsite.pizza and _pizza == "":
+		campsite.pizza.boxes.visible = true
 	_hold(true)
 	var fire: Vector2 = Campsite.FIRE
 	spotlight.point(Vector3(fire.x - 0.4, 0.5, fire.y - 2.0), 230.0, ARRIVAL_LINE)
@@ -511,12 +741,12 @@ func _close_list() -> void:
 	plan.note("")
 	_hold(false)
 	step = Step.DONE
+	# The open world starts with the pizza on the table, whether or not she's put it there yet.
+	_finish_pizza()
 	# The open world: the fire's circle, firelight and bucket start working (camp_fire.gd).
 	if campsite.campfire:
 		campsite.campfire.open()
-	# He's stolen a marshmallow: that task's done (written out and crossed off at the
-	# bottom, plan_note.gd).
-	tasks.done("marshmallows")
+	# Steal the marshmallows was ticked off as he ate it (_on_eaten).
 	finished.emit()
 
 

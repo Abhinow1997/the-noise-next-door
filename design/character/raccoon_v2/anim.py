@@ -1,5 +1,5 @@
 # Keyframes the raccoon's looping actions on RaccoonRig: idle, walk, run, sneak, bored,
-# sleep, climb. Each is a function of the loop phase u in [0, 1), sampled every frame, so
+# sleep, climb, and (since 23 Nov 2026) drag. Each is a function of the loop phase u in [0, 1), sampled every frame, so
 # the last frame matches the first. Also two one-shots, jump and jump_land (make_oneshot):
 # key poses on the phase table's frames (CHANGE-BRIEF.md), eased between, not cyclic.
 # Run inside Blender: exec(open(path).read()).
@@ -517,6 +517,50 @@ def climb(u, pose):
     tail_curve(pose, -0.35, 0.06 * math.sin(TAU * u), wave=0.06, u=u)
 
 
+# --- Drag: jaws gripping, braced, heaving back (23 Nov 2026) --------------------------------
+# The author: "we need a new animation for the raccon where he is dragging this we might use for
+# other things as well in the game". First for the tablecloth (scripts/camp_pizza.gd): played while
+# he holds E at anything marked `drag` (interactable.gd). In place, a loop of two tugs: each one
+# heaves him back onto his haunches (fast, the first 35% of the tug), his head yanking back with
+# the grip, then he eases forward to take up the slack (the rest). Front paws planted ahead and
+# braced, hind paws set back; a hind paw shuffles between tugs, the left after the first, the
+# right after the second; the tail swings for balance; ears flat and eyes squeezed with the effort.
+
+def drag_heave(w):
+    """0 at rest, 1 at the top of a heave, for tug phase w in [0, 1): fast back, slow forward."""
+    w %= 1.0
+    return ease(w / 0.35) if w < 0.35 else 1.0 - ease((w - 0.35) / 0.65)
+
+
+def drag(u, pose):
+    w = (2.0 * u) % 1.0
+    heave = drag_heave(w)
+    side = 1.0 if u < 0.5 else -1.0                    # which tug of the two
+    sway = math.sin(TAU * u)
+    pose.pelvis = Vector((0.008 * sway, 0.035 + 0.035 * heave, -0.045 - 0.02 * heave))  # back and down
+    pose.turn("pelvis", X, -0.08 - 0.09 * heave)      # rocking back onto his haunches
+    pose.turn("pelvis", Y, 0.03 * sway)
+    pose.turn("spine", X, 0.03 + 0.02 * heave)         # back rounded with the pull
+    pose.turn("chest", X, 0.04)
+    pose.turn("neck", X, 0.12 - 0.10 * heave)          # head low, drawn back as he heaves
+    pose.turn("head", X, 0.06 - 0.18 * heave)          # the snout yanking back and up with the grip
+    pose.turn("head", Z, 0.05 * sway)                  # worrying it side to side a little
+    for k in ("hand_ik.L", "hand_ik.R"):
+        pose.paw[k] = Vector((0, -0.08, 0.0))          # planted ahead, braced
+        pose.paw_pitch[k] = -0.15                      # heels down, toes up: digging in
+    for k in ("foot_ik.L", "foot_ik.R"):
+        mine = 1.0 if (k.endswith(".L") and side > 0) or (k.endswith(".R") and side < 0) else 0.0
+        # Between heaves (w from 0.45 to 0.95) this tug's hind paw lifts and resets.
+        s = min(max((w - 0.45) / 0.5, 0.0), 1.0)
+        lift = mine * math.sin(math.pi * s)
+        pose.paw[k] = Vector((0, 0.05 - 0.02 * lift, 0.025 * lift))
+        pose.paw_pitch[k] = 0.15 * lift
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, -0.25 - 0.15 * heave)          # flattened with the effort
+    tail_curve(pose, 0.55 + 0.2 * heave, 0.22 * sway, wave=0.1, u=u, speed=2)
+    eyes(pose, 1.0 - 0.45 * heave)
+
+
 # --- Jump: push off, stretch up snout first, gather at the top, reach down (one-shot) ------
 # From CHANGE-BRIEF.md's revision of 21 Nov 2026, "the jump plays as it did before, in three
 # phases of its own", at 24 fps for a held jump, frame 0 the takeoff (the tick F is seen):
@@ -628,6 +672,8 @@ make("sneak", 48, sneak)
 make("bored", 96, bored)
 make("sleep", 96, sleep)
 make("climb", 24, climb)
+# Since 23 Nov 2026: drag, 24 frames (1 s), two tugs; rebuilt alone by anim_drag.py.
+make("drag", 24, drag)
 # The one-shots. jump (revision of 21 Nov 2026), 10 frames at 24 fps; each key's time:
 #   frame 0  = 0.0 s     the push-off
 #   frame 3  = 0.125 s   stretched up, snout first
@@ -646,7 +692,7 @@ ad = rig.animation_data
 ad.action = None
 for t in list(ad.nla_tracks):
     ad.nla_tracks.remove(t)
-for name in ("idle", "walk", "run", "sneak", "bored", "sleep", "climb", "jump", "jump_land"):
+for name in ("idle", "walk", "run", "sneak", "bored", "sleep", "climb", "drag", "jump", "jump_land"):
     act = bpy.data.actions.get(name)
     if act:
         tr = ad.nla_tracks.new()

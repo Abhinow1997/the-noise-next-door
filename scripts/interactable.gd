@@ -37,6 +37,9 @@ const NOISE_EVERY := 0.5
 @export var prompt_height := 0.5
 ## Worked from out along a tree's limb, not from the ground.
 @export var up_tree := false
+## Since 23 Nov 2026: a job he drags at, jaws gripping (the tablecloth, camp_pizza.gd). While he
+## holds E at it, the raccoon plays his `drag` clip (player.gd sets raccoon_model.gd `dragging`).
+@export var drag := false
 
 var enabled := Callable()
 var camp
@@ -74,6 +77,11 @@ func usable_by(player: Player) -> bool:
 	var nose := -player.global_basis.z
 	nose.y = 0.0
 	return to.length() < 0.15 or rad_to_deg(nose.angle_to(to)) <= facing
+
+
+## True while `player` is holding E at it and it's a job he drags at (`drag`).
+func dragged_by(player: Player) -> bool:
+	return drag and working and _player == player
 
 
 ## E pressed at it (camp_input.gd).

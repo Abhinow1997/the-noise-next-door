@@ -276,6 +276,8 @@ func _physics_process(delta: float) -> void:
 	# After walking, which may have just taken off, so the model knows it the same tick.
 	model.jumping = jumping or _land_tick >= 0 or (_tree_hop and _hop_t >= 0.0)
 	model.landing = _land_tick >= 0
+	# Since 23 Nov 2026: dragging at something with E held (interactable.gd `drag`).
+	model.dragging = _dragging()
 	_loop(_run_sfx, running, "SFX-RUN", delta)
 	_loop(_climb_sfx, climb_moving, "SFX-CLIMB", delta)
 
@@ -291,6 +293,14 @@ func _loop(sfx: AudioStreamPlayer, on: bool, id: String, delta: float) -> void:
 		sound_started.emit(id)
 	elif not on and sfx.playing and _quiet[id] >= LOOP_HOLD:
 		sfx.stop()
+
+
+## True while he's holding E at a job he drags at (interactable.gd `drag`).
+func _dragging() -> bool:
+	for spot: Node in get_tree().get_nodes_in_group("interactable"):
+		if spot.has_method("dragged_by") and spot.dragged_by(self):
+			return true
+	return false
 
 
 func is_hopping() -> bool:

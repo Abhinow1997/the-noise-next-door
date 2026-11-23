@@ -43,8 +43,8 @@ const JUMP_BLEND := 0.08
 ## takeoff and a hop off a tree alike.
 const ONE_SHOTS := ["jump", "jump_land"]
 ## Every clip _process_rigged() can ask the rig's AnimationPlayer for (the structure test
-## checks each is in it).
-const CLIPS := ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "jump", "jump_land"]
+## checks each is in it). `drag` since 23 Nov 2026 (design/character/raccoon_v2/anim_drag.py).
+const CLIPS := ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "drag", "jump", "jump_land"]
 ## Turning on the spot faster than this (rad/s), he steps round rather than gliding.
 const TURN_STEP := 2.5
 ## His weight, on the rigged model. He banks into a turn by LEAN_GAIN of the angle the
@@ -159,6 +159,9 @@ var pitch := 0.0
 ## between bites).
 var eating := false
 var eat_bite := -1.0
+## Since 23 Nov 2026: dragging at something, jaws gripping (player.gd, from interactable.gd's
+## `drag`): the `drag` clip.
+var dragging := false
 
 var body: Node3D
 var head: Node3D
@@ -561,6 +564,10 @@ func _rigged_state(delta: float) -> String:
 	if jumping:
 		_still = 0.0
 		return "jump_land" if landing else "jump"
+	# Since 23 Nov 2026: dragging at something with E held, in place (player.gd `dragging`).
+	if dragging:
+		_still = 0.0
+		return "drag"
 	var still := false
 	var state := "idle"
 	# A leap holds poses from the run; asleep, he's curled up from the moment he

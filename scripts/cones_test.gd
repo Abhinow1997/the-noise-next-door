@@ -107,7 +107,7 @@ func _ready() -> void:
 		# balloons on 21 Nov 2026 (camp_balloons.gd; CHANGE-BRIEF.md's revision of that day).
 		# Rock the party came out of the list on 22 Nov 2026 (CHANGE-BRIEF.md's revision of that day).
 		_check("Tutorial: the list shows the camp's tasks",
-			"investigate marshmallows music cooler tent bearbag balloons", _shown_ids())
+			"investigate marshmallows music cooler tent bearbag balloons pizza", _shown_ids())
 		_check("Tutorial: the note says to pick one, the marshmallows marked",
 			CampTutorial.PICK_NOTE + " / marshmallows", _plan.note_showing() + " / " + _plan.highlighted())
 		_check("Tutorial: still slowed down while he reads", true, Engine.time_scale <= CampTutorial.SLOW + 0.01)
@@ -158,11 +158,13 @@ func _ready() -> void:
 		_check("Two of its tasks done: not every task is", false, _tasks.all_done())
 		_tasks.done("cooler")
 		# Dismantle the tent, added on 8 Nov 2026, is the fourth; Raid the bear bag, added on
-		# 10 Nov 2026, the fifth; Pop the balloons, added on 21 Nov 2026, the sixth.
+		# 10 Nov 2026, the fifth; Pop the balloons, added on 21 Nov 2026, the sixth; Eat the pizza,
+		# added on 23 Nov 2026, the seventh.
 		_tasks.done("tent")
 		_tasks.done("bearbag")
 		_tasks.done("balloons")
-		_check("All six done: every task is ticked off", true, _tasks.all_done()))
+		_tasks.done("pizza")
+		_check("All seven done: every task is ticked off", true, _tasks.all_done()))
 	_at(45.5, _finish)
 
 

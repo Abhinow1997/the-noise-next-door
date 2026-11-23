@@ -5,7 +5,7 @@ extends SceneTree
 ## modes it sees are the importer's, from raccoon_v2.glb.import's _subresources) and reads back:
 ##   - every track in every clip resolves to a real node and property, bone or blend shape (the
 ##     course's check, as in tests/test_balloon_float.gd, branching on track type);
-##   - all nine clips exist;
+##   - all ten clips exist (nine until `drag` came, 23 Nov 2026);
 ##   - jump's length is 10/24 s and jump_land's 4/24 s (within half a frame); every clip's step is
 ##     1/24 s exactly (is_equal_approx). (jump was 12/24 s, keyed at 0, 2, 4, 6 and 12, until the
 ##     brief's revision of 21 Nov 2026, "the jump plays as it did before, in three phases of its own");
@@ -13,9 +13,9 @@ extends SceneTree
 ##     (1/48 s), never ==, on every track not held through that frame (the importer drops the keys
 ##     of a hold); each key time is printed beside the frame it comes from;
 ##   - jump's last pose is its own, not a copy of its first (a one-shot);
-##   - loop modes: the seven loops LOOP_LINEAR, jump and jump_land LOOP_NONE;
+##   - loop modes: the eight loops (the seven and `drag`) LOOP_LINEAR, jump and jump_land LOOP_NONE;
 ##   - value_track_get_update_mode asked only of value tracks (CLAUDE.md, "Headless facts");
-##   - each of the seven loops (the brief's revision of 21 Nov 2026, "every raccoon animation
+##   - each of the eight loops (the seven, and `drag` since 23 Nov 2026; the brief's revision of 21 Nov 2026, "every raccoon animation
 ##     meets the assignment's requirements"): its length is its cycle spec's frames / 24 (within
 ##     half a frame), and its seam: every track's value at 0 and at the length match, read with
 ##     the Animation's own *_track_interpolate() for the track's type (rotations is_equal_approx,
@@ -35,13 +35,14 @@ extends SceneTree
 const RIG := "res://assets/characters/raccoon_v2.glb"
 const FPS := 24.0
 const HALF_FRAME := 1.0 / 48.0
-const LOOPS: Array[String] = ["idle", "walk", "run", "sneak", "bored", "sleep", "climb"]
+## `drag` since 23 Nov 2026 (design/character/raccoon_v2/anim_drag.py): a loop like the seven.
+const LOOPS: Array[String] = ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "drag"]
 const ONE_SHOTS: Array[String] = ["jump", "jump_land"]
 ## Each one-shot's length and the phase table's frames it must have keys on.
 const FRAMES := {"jump": 10, "jump_land": 4}
 const KEY_FRAMES := {"jump": [0, 3, 6, 10], "jump_land": [0, 4]}
 ## Each loop's cycle spec, in frames at 24 fps (the brief's revision of 21 Nov 2026).
-const LOOP_FRAMES := {"idle": 96, "walk": 24, "run": 16, "sneak": 48, "bored": 96, "sleep": 96, "climb": 24}
+const LOOP_FRAMES := {"idle": 96, "walk": 24, "run": 16, "sneak": 48, "bored": 96, "sleep": 96, "climb": 24, "drag": 24}
 ## The seam's tolerance for positions and scales: 1 mm.
 const SEAM_MM := 0.001
 
@@ -95,12 +96,12 @@ func _run() -> void:
 	_check(problems.is_empty(), "every track in every clip resolves to a real node and property, bone or blend shape",
 			"; ".join(problems))
 
-	# All nine clips.
+	# All ten clips (nine until drag, 23 Nov 2026).
 	var missing: Array[String] = []
 	for clip_name in LOOPS + ONE_SHOTS:
 		if not player.has_animation(clip_name):
 			missing.append(clip_name)
-	_check(missing.is_empty(), "all nine clips exist (%s)" % ", ".join(LOOPS + ONE_SHOTS),
+	_check(missing.is_empty(), "all ten clips exist (%s)" % ", ".join(LOOPS + ONE_SHOTS),
 			"missing %s; the list is %s" % [missing, player.get_animation_list()])
 
 	for clip_name in LOOPS + ONE_SHOTS:

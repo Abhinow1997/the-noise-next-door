@@ -50,6 +50,7 @@ const CampFire := preload("res://scripts/camp_fire.gd")
 const CampTent := preload("res://scripts/camp_tent.gd")
 const CampBearBag := preload("res://scripts/camp_bear_bag.gd")
 const CampBalloons := preload("res://scripts/camp_balloons.gd")
+const CampPizza := preload("res://scripts/camp_pizza.gd")
 const CampInput := preload("res://scripts/camp_input.gd")
 const SoundWaves := preload("res://scripts/sound_waves.gd")
 const ConeDriver := preload("res://scripts/cone_driver.gd")
@@ -266,6 +267,11 @@ var dancers: Array[CampPerson] = []
 var keeper: CampPerson
 ## The bush he can hide in (BUSH): a hiding spot (hide_spot.gd).
 var bush: Area3D
+## The table's pizza, its five slices (_set_table). Since 23 Nov 2026 the tutorial has the girl bring
+## it in, in its boxes, as the others come back (camp_tutorial.gd, pizza_boxes.gd).
+var table_pizza: Node3D
+## Eat the pizza (camp_pizza.gd, 23 Nov 2026): the cloth on the table, the pizza's boxes on it.
+var pizza: CampPizza
 var people: Array[CampPerson] = []
 ## What the people know between them: the clock (s), when and where he was last seen,
 ## and when someone last took fright.
@@ -402,6 +408,12 @@ func _ready() -> void:
 	balloons.position = _v3(Forest.CAMP + CampBalloons.PLACE)
 	balloons.rotation.y = _balloons_yaw()
 	add_child(balloons)
+	# Eat the pizza (23 Nov 2026): a cloth over the table's pizza end, the boxes on it, to pull off.
+	pizza = CampPizza.new()
+	pizza.camp = self
+	pizza.table = table
+	pizza.slices = table_pizza
+	add_child(pizza)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
 	var driver := ConeDriver.new()
 	driver.camp = self
@@ -907,6 +919,7 @@ func _set_table(table: Node3D) -> void:
 	var pizza := Node3D.new()
 	pizza.position = Vector3(-0.38, 0.742, 0.12)
 	table.add_child(pizza)
+	table_pizza = pizza
 	for k in 5:
 		var slice := _model(PIZZA_SLICE, pizza)
 		slice.rotation.y = k * PI / 4.0
