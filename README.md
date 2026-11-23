@@ -186,7 +186,11 @@ The docs, each with its Assignment 7 work:
 - the log, [FRICTIONAL.md](FRICTIONAL.md);
 - the provenance, [SOURCES.md](SOURCES.md#assignment-7-animation).
 
-The `claude -p` prompts and transcripts are in [design/a7/](design/a7/). The film will be linked in [SUBMISSION.md](SUBMISSION.md).
+The `claude -p` prompts and transcripts are in [design/a7/](design/a7/).
+
+- **The films,** both showing the game at `8bf28c9` (filenames and SHA-256s in [SUBMISSION.md](SUBMISSION.md)):
+  - [my film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDh3g9v5CjdSoc_wf69fjn1AfPQL-eozaA0xLDam-3FWho?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=5xesxV), 2 min 56 s;
+  - [an AI explainer](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQC4lwa9p-i1QrWaftKZpkMzAeOxTeK8lDKBQIsIRVsB0tc?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=7TudRp), 8 min 15 s, a NotebookLM Video Overview made from this repo's Assignment 7 docs. It may simplify or misstate details; the repo is the record.
 
 ## Assignment 6: particle effects
 

@@ -3,7 +3,6 @@
 > The SHA that `a7` points at, and the source ZIP's checksum, are in the note sent to Canvas with `submission.zip`. A commit can't contain its own SHA, and the ZIP is made from the tagged commit. The Assignment 6 version of this file is at the `a6` tag.
 >
 > **Still to fill before tagging:**
-> - the film's URL, filename, SHA-256 and the game-source revision it shows (marked **[to fill]** below);
 > - my two checks still to do: both clips over the darkest and lightest ground, and the new moth's registration by eye (TEST-REPORT.md). Then this note goes.
 
 **Assignment:** Assignment 7 - Doing Animation with Claude and Godot
@@ -16,7 +15,7 @@
 
 **Git tag and submitted commit SHA:** `a7`. Its SHA is in the Canvas note.
 
-**Game-source revision shown in the film:** **[to fill]**, the commit the film is rendered from. Any later commit adds only docs and logs, and the Canvas note confirms that it changes no game source.
+**Game-source revision shown in the films:** the game source as at `8bf28c9`, for both videos. My film was recorded on 22 Nov 2026 with the branch at `7a0aca2`; the AI explainer was made from the docs as at `160c0eb`. No commit after `8bf28c9` changes the game source: the later ones add only docs, the NotebookLM pack and logs, and the Canvas note confirms it for the tagged commit.
 
 **Godot version, renderer, and operating system:** Godot 4.7.2 stable (official build `ed1daf0bf`), Forward+ (`project.godot`, `config/features`), Windows 11 Home (build 26300). The checks run in Git Bash through `scripts/run-test.sh`. The captures are windowed Movie Maker runs at 1280 × 720.
 
@@ -52,9 +51,15 @@
   - metalx1000's CC-BY-SA 4.0 balloons (at `d878213`);
   - my Gemini balloon sheet (at `7bd4aea`).
 
-**Final film URL and filename:** **[to fill]**
+**Final film URL and filename:**
+- **My film:** https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDh3g9v5CjdSoc_wf69fjn1AfPQL-eozaA0xLDam-3FWho?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=5xesxV
+  - Filename: `VideoRecording - Assignement -7.mp4` (2 min 56 s, 191,845,067 bytes)
+- **An AI explainer,** a NotebookLM Video Overview made from this repo's Assignment 7 docs (SOURCES.md): https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQC4lwa9p-i1QrWaftKZpkMzAeOxTeK8lDKBQIsIRVsB0tc?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=7TudRp
+  - Filename: `AI Explainer - Assignement - 7.mp4` (8 min 15 s, 38,470,678 bytes)
 
-**Final film SHA-256:** **[to fill]**
+**Final film SHA-256:**
+- My film: `dee8934c5b8916787866406b74c0aa546688991b087b741b339aece4ea663306`
+- The AI explainer: `46c1c69fa997e26388168c6989e013728238e2ac7257499b6a89f4b65ea9b0ba`
 
 **Summary of my work:**
 - **My specification** (CHANGE-BRIEF.md), committed before the first prompt (`599da06`), with a dated revision for every change since, each kept by me.
@@ -74,6 +79,7 @@
 - **The raccoon's seven loops:** a strip of each and my verdict on each, all kept (`74297f9`, TUNING.md).
 - **The moth:** I generated its sheet with Gemini and asked for one moth over the fire (`b1736e3`). Then I asked for it to guide him to the camp, played it, and kept it (`b1865bf`).
 - **My checks in play** (TEST-REPORT.md): the cycle seam, the jump in play with interrupts, the strips' verdicts, and where I disagreed with Claude's readings.
+- **The films:** my film, and an AI explainer that NotebookLM made from this repo's Assignment 7 docs.
 - **Claude Code's other work:** the reviews; the game work at my requests ("Let the balloons go", the waves' bursts, `--dev-unseen`); the clean before-and-after baseline; and the write-ups. SOURCES.md and FRICTIONAL.md say who did what.
 
 **Checks run (command and result):** from the repo root in Git Bash, all through `bash scripts/run-test.sh`, with the mode stated:
@@ -110,6 +116,7 @@
 - **The sleep clip holds one pose,** with no breathing. I kept it.
 - **At an exact wrap Godot shows the moth's last cell,** an engine quirk. The moth starts half a frame in, which avoids it at 24, 30 and 60 fps. At 144 fps it still drops one frame of the wings-raised pose in 48.
 - **No headless run shows the look.** How the clips read is checked only by the strips and my eyes.
+- **The AI explainer is NotebookLM's summary of my docs.** It may simplify or misstate details; the repo is the record.
 - **Two earlier checks fail under `--fixed-fps`,** as before this assignment: waves and title. Both pass in realtime.
 
 **Changed games since Assignment 2:** No. It's still The Noise Next Door.
