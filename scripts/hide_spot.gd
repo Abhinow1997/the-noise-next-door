@@ -22,6 +22,19 @@ signal hiding_changed(inside: bool)
 ## How far from its middle, straight toward the camera, his eyes peek out (m): just
 ## outside its leaves on the side the player sees.
 @export var peek_out := 0.9
+## How far a move key hops him out of it (m); 0 for the usual (player.gd DIVE_OUT). Since 23 Nov
+## 2026, for the keeper's box inside the green tent (camp_supplies.gd).
+@export var hop_out := 0.0
+## For the keeper's box (keeper_box.gd, 23 Nov 2026, after play: "the eyes look off when he is in
+## it"), whose eyes peek out of the gap under its lifted edge:
+##   - `own_eyes`: what it belongs to places his eyes (`eyes()`), not this;
+##   - `hold_eyes`: while true they stay in (while the gap's shut, or the box is carried);
+##   - `eye_scale`: how big they are against the bush's.
+var own_eyes := false
+var hold_eyes := false
+var eye_scale := 1.0
+## He's in it: dived in and not out again.
+var occupied := false
 
 ## What rustles as he dives in and out (set before it's added).
 var leaves: Node3D
@@ -78,6 +91,10 @@ func _ready() -> void:
 func covers(body: Node3D) -> bool:
 	if closed or not monitoring or not body is PhysicsBody3D:
 		return false
+	# Hiding in it, he's in it, whether or not his collider's on (it's off while he rides in the keeper's
+	# box, carried: player.gd `riding`, 23 Nov 2026).
+	if body.get("hiding_in") == self:
+		return true
 	return overlaps_body(body) and (not needs_sneak or body.get("sneaking") == true)
 
 
@@ -122,10 +139,11 @@ func _make_wall() -> StaticBody3D:
 ## He's dived in (true) or come out (false): it rustles, and his eyes peek out or go.
 func dived(inside: bool) -> void:
 	_rustle_t = 0.0
+	occupied = inside
 	if inside and _eyes == null:
 		_eyes = _make_eyes()
 	if _eyes:
-		_eyes.visible = inside
+		_eyes.visible = inside and not hold_eyes
 		_blink = _rng.randf_range(BLINK_EVERY.x, BLINK_EVERY.y)
 	hiding_changed.emit(inside)
 
@@ -133,6 +151,11 @@ func dived(inside: bool) -> void:
 ## True while his eyes are peeking out of it (for the tests).
 func peeking() -> bool:
 	return _eyes != null and _eyes.visible
+
+
+## His eyes, or null till he's first dived in.
+func eyes() -> Node3D:
+	return _eyes
 
 
 func _process(delta: float) -> void:
@@ -149,16 +172,19 @@ func _process(delta: float) -> void:
 			leaves.rotation.x = a
 			leaves.rotation.z = -a * 0.7
 			leaves.scale = _leaves_scale * Vector3(1.0 + a * 0.6, 1.0 - a * 0.9, 1.0 + a * 0.6)
+	if _eyes:
+		_eyes.visible = occupied and not hold_eyes
 	if _eyes and _eyes.visible:
 		var camera := get_viewport().get_camera_3d()
 		if camera:
-			var middle := global_position + Vector3.UP * height * EYE_UP
-			_eyes.global_position = middle + (camera.global_position - middle).normalized() * peek_out
+			if not own_eyes:
+				var middle := global_position + Vector3.UP * height * EYE_UP
+				_eyes.global_position = middle + (camera.global_position - middle).normalized() * peek_out
 			_eyes.look_at(camera.global_position)
 		_blink -= delta
 		if _blink <= 0.0:
 			_blink = _rng.randf_range(BLINK_EVERY.x, BLINK_EVERY.y)
-		_eyes.scale = Vector3(1.0, 0.12 if _blink < BLINK else 1.0, 1.0)
+		_eyes.scale = Vector3(1.0, 0.12 if _blink < BLINK else 1.0, 1.0) * eye_scale
 
 
 ## Two round eyes with dark pupils, looking out at the camera (its -Z), unshaded so they

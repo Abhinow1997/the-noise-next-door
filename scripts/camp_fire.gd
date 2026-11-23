@@ -57,6 +57,26 @@ const DOUSE_TIME := 0.5
 ## the flames.
 const WOODPILE := Vector2(4.1, 2.2)
 const BUCKET := Vector2(-1.15, 1.25)
+## Since 23 Nov 2026 the bucket is a pot, hung over the pit from a tripod of three sticks (the
+## author: "We will replace the bucket which we are using to douse ... the fire ... three sticks
+## ... the pot"; their pick, "Tip the pot"). The names stay `bucket`: `bucket` is now the foot of
+## the tripod's leg he tips it by, on the side the bucket stood (TIP_LEG, from the fire, and how far
+## out its foot is), where he works at it from (`bucket_spot`). The legs' feet are LEG_OUT from the
+## pit's middle, a third of a turn apart; they cross at APEX; the pot hangs from there, its bottom
+## POT_LOW up, POT_R across and POT_H deep.
+const TIP_LEG := Vector2(-0.707, 0.707)
+const LEG_OUT := 0.62
+const APEX := 1.15
+const LEG_R := 0.022
+const POT_LOW := 0.4
+const POT_R := 0.16
+const POT_H := 0.17
+## Tipped, the pot turns over this far, pouring into the pit.
+const POT_TIP := 115.0
+const STICK := Color("6b4a2e")
+const ROPE := Color("4a4238")
+const IRON := Color("33363a")
+const IRON_RIM := Color("50555b")
 ## Tipping the bucket: how long E is held, how far that's heard, and how far the hiss.
 const TIP_TIME := 1.0
 const TIP_NOISE := 2.0
@@ -89,9 +109,16 @@ var flare := 0.0
 var bucket_tipped := false
 var bucket: StaticBody3D
 var woodpile: StaticBody3D
+## The tripod and the pot are up over the pit (23 Nov 2026). They are from the start, except in
+## the tutorial, where the keeper brings them in his box and puts them up (camp_tutorial.gd).
+var pot_up := true
 
 var _dousing := false
+## The pot, turning on its handle as it's tipped (it was the bucket's mesh); and the tripod and
+## all that hangs on it.
 var _bucket_mesh: Node3D
+var _pot_rest := Transform3D.IDENTITY
+var _tripod: Node3D
 var _wet: MeshInstance3D
 var _glint: Node3D
 var _tip: Interactable
@@ -175,13 +202,19 @@ func add_log() -> void:
 ## The keeper sets the bucket back up, full again.
 func set_bucket_upright() -> void:
 	bucket_tipped = false
-	_bucket_mesh.transform = Transform3D.IDENTITY
+	_bucket_mesh.transform = _pot_rest
 	_wet.visible = false
 
 
-## True while he could tip the bucket over.
+## True while he could tip the bucket (the pot) over.
 func can_tip() -> bool:
-	return open_world and cycle and not dying and not _dousing and not bucket_tipped and strength > 0.0
+	return pot_up and open_world and cycle and not dying and not _dousing and not bucket_tipped and strength > 0.0
+
+
+## The tripod and pot up over the pit, or not (the keeper puts them up in the tutorial).
+func set_pot_up(on: bool) -> void:
+	pot_up = on
+	_tripod.visible = on
 
 
 ## Where the keeper stands to take a log, and to set the bucket up.
@@ -245,14 +278,15 @@ func _watch() -> void:
 		nearest.alert()
 
 
-## Held E at the bucket (or a fixture, such as a preview): over it goes, toward the pit.
+## Held E at the tripod's leg (or a fixture, such as a preview): the pot swings over on its handle,
+## away from him, and pours into the pit.
 func douse() -> void:
 	bucket_tipped = true
 	_dousing = true
 	flare = 0.0
-	var toward := (-BUCKET).normalized()
-	var axis := Vector3(toward.x, 0, toward.y).cross(Vector3.DOWN).normalized()
-	_bucket_mesh.transform = Transform3D(Basis(axis, deg_to_rad(84.0)), Vector3(toward.x, 0, toward.y) * 0.14)
+	var away := -TIP_LEG.normalized()
+	var axis := Vector3(away.x, 0, away.y).cross(Vector3.DOWN).normalized()
+	_bucket_mesh.transform = Transform3D(Basis(axis, deg_to_rad(POT_TIP)), _pot_rest.origin)
 	_wet.visible = true
 	camp.noise(global_position, HISS)
 	doused.emit()
@@ -278,30 +312,53 @@ func _build_woodpile() -> void:
 	# the camp, which the camp check times (it failed with the pile at its farther place).
 
 
+## The tripod over the pit and the pot hanging from it (23 Nov 2026; it was a bucket beside the pit,
+## at BUCKET). `bucket` is the foot of the leg he tips it by.
 func _build_bucket() -> void:
-	bucket = StaticBody3D.new()
-	bucket.position = Vector3(BUCKET.x, 0, BUCKET.y)
-	add_child(bucket)
+	_tripod = Node3D.new()
+	add_child(_tripod)
+	var apex := Vector3(0, APEX, 0)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in 3:
+		var way := TIP_LEG.normalized().rotated(TAU * i / 3.0)
+		var foot := Vector3(way.x * LEG_OUT, 0.0, way.y * LEG_OUT)
+		var beyond := apex + (apex - foot).normalized() * 0.14
+		var leg := LowPoly.loft([foot, beyond], [Vector2(LEG_R, LEG_R), Vector2(LEG_R * 0.8, LEG_R * 0.8)], 6,
+			LowPoly.solid(STICK))
+		st.append_from(leg, 0, Transform3D.IDENTITY)
+	# The lashing where they cross, and the cord down to the pot's handle.
+	var hook := Vector3(0, POT_LOW + POT_H + 0.12, 0)
+	st.append_from(LowPoly.box(Vector3(0.075, 0.07, 0.075), ROPE), 0, Transform3D(Basis(), apex))
+	st.append_from(LowPoly.loft([apex, hook], [Vector2(0.006, 0.006), Vector2(0.006, 0.006)], 5, LowPoly.solid(ROPE)),
+		0, Transform3D.IDENTITY)
+	_add_mesh(LowPoly.commit(st), _tripod)
+	# The pot: it turns on its handle, at its rim, as it's tipped.
 	_bucket_mesh = Node3D.new()
-	bucket.add_child(_bucket_mesh)
-	var tub := LowPoly.loft([Vector3(0, 0, 0), Vector3(0, 0.27, 0), Vector3(0, 0.3, 0)],
-		[Vector2(0.11, 0.11), Vector2(0.14, 0.14), Vector2(0.145, 0.145)], 10,
-		func(segment: int, _side: int, _n: Vector3) -> Color:
-			return WATER if segment == 2 else (BUCKET_RIM if segment == 1 else BUCKET_TIN))
-	_add_mesh(tub, _bucket_mesh)
-	var col := CollisionShape3D.new()
-	var shape := CylinderShape3D.new()
-	shape.radius = 0.14
-	shape.height = 0.3
-	col.shape = shape
-	col.position = Vector3(0, 0.15, 0)
-	bucket.add_child(col)
-	# The water it spilt, dark on the ground between it and the pit.
-	var toward := (-BUCKET).normalized()
-	_wet = _add_mesh(LowPoly.loft([Vector3(0, 0.004, 0), Vector3(0, 0.006, 0)], [Vector2(0.32, 0.22), Vector2(0.32, 0.22)],
+	_bucket_mesh.position = Vector3(0, POT_LOW + POT_H, 0)
+	_pot_rest = _bucket_mesh.transform
+	_tripod.add_child(_bucket_mesh)
+	var pot := LowPoly.loft([Vector3(0, -POT_H, 0), Vector3(0, -POT_H * 0.45, 0), Vector3(0, -0.012, 0), Vector3(0, 0, 0)],
+		[Vector2(POT_R * 0.8, POT_R * 0.8), Vector2(POT_R, POT_R), Vector2(POT_R * 0.94, POT_R * 0.94),
+			Vector2(POT_R * 0.97, POT_R * 0.97)], 10,
+		func(segment: int, _side: int, _n: Vector3) -> Color: return IRON_RIM if segment == 2 else IRON)
+	_add_mesh(pot, _bucket_mesh)
+	var inside := SurfaceTool.new()
+	inside.begin(Mesh.PRIMITIVE_TRIANGLES)
+	inside.append_from(LowPoly.loft([Vector3(0, -0.04, 0), Vector3(0, -0.035, 0)],
+		[Vector2(POT_R * 0.9, POT_R * 0.9), Vector2(POT_R * 0.9, POT_R * 0.9)], 10, LowPoly.solid(WATER)), 0, Transform3D.IDENTITY)
+	# Its handle: up from each side of the rim to the cord.
+	for side: float in [-1.0, 1.0]:
+		inside.append_from(LowPoly.loft([Vector3(side * POT_R * 0.97, 0.0, 0.0), Vector3(0, 0.12, 0)],
+			[Vector2(0.005, 0.005), Vector2(0.005, 0.005)], 4, LowPoly.solid(IRON)), 0, Transform3D.IDENTITY)
+	_add_mesh(LowPoly.commit(inside), _bucket_mesh)
+	# The leg he tips it by: where he works at it, and what twinkles and takes E.
+	bucket = StaticBody3D.new()
+	bucket.position = Vector3(TIP_LEG.normalized().x * LEG_OUT, 0, TIP_LEG.normalized().y * LEG_OUT)
+	_tripod.add_child(bucket)
+	# The water it poured, dark on the pit.
+	_wet = _add_mesh(LowPoly.loft([Vector3(0, 0.004, 0), Vector3(0, 0.006, 0)], [Vector2(0.4, 0.4), Vector2(0.4, 0.4)],
 		9, LowPoly.solid(WET)), self)
-	_wet.position = bucket.position + Vector3(toward.x, 0, toward.y) * 0.38
-	_wet.rotation.y = atan2(toward.x, toward.y)
 	_wet.visible = false
 	# What twinkles: from its foot, as loot does, so the sparkles sit on it.
 	_glint = Node3D.new()
@@ -315,7 +372,7 @@ func _build_bucket() -> void:
 	_tip.noise = TIP_NOISE
 	_tip.camp = camp
 	_tip.reach = 0.6
-	_tip.prompt_height = 0.15
+	_tip.prompt_height = 0.35
 	_tip.position = Vector3(0, 0.25, 0)
 	_tip.enabled = can_tip
 	_tip.finished.connect(douse)

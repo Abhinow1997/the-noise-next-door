@@ -84,7 +84,8 @@ func _ready() -> void:
 		level.tasks.done("tent")
 		level.tasks.done("bearbag")
 		level.tasks.done("balloons")
-		level.tasks.done("pizza"))
+		level.tasks.done("pizza")
+		level.tasks.done("supplies"))
 
 	# Pause and mute: switched on and off again; the game mustn't care.
 	_at(1000, _check_pause_and_mute)

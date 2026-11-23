@@ -51,6 +51,9 @@ var list: Array[Dictionary] = [
 	# Added on 23 Nov 2026 (camp_pizza.gd): pull the table's cloth, the boxes drop, eat a slice.
 	{"id": "pizza", "text": "Eat the pizza", "done": false, "camp": true,
 		"hint": "Pull the cloth, then eat."},
+	# Added on 23 Nov 2026 (camp_supplies.gd): ride in the keeper's box into the green tent, eat a cookie.
+	{"id": "supplies", "text": "Raid the supply tent", "done": false, "camp": true,
+		"hint": "Hide in the keeper's box."},
 ]
 ## Whether the camp's tasks are on the list yet (the tutorial reveals them).
 var revealed := false

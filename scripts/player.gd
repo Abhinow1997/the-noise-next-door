@@ -122,6 +122,13 @@ var model: RaccoonModel
 var held: RigidBody3D
 ## Since 23 Nov 2026: something he's dragging in his jaws (`grip`), or null.
 var gripping: Node = null
+## Since 23 Nov 2026: riding hidden in the keeper's box while it's carried (camp_supplies.gd): his
+## collider's off, so whoever carries it doesn't walk into him.
+var riding := false:
+	set(on):
+		riding = on
+		if _shape:
+			_shape.disabled = on
 ## A snack in his mouth that isn't a body he holds (the tutorial's stolen roasted
 ## marshmallow, roast_plate.gd): while he has it, E doesn't grab or drop; holding E
 ## eats it there (an Interactable), once it's allowed.
@@ -679,8 +686,23 @@ func _hide_process(_delta: float) -> void:
 		var spot := hiding_in
 		_stop_hiding()
 		_dive_wait = DIVE_AGAIN
+		# A spot can ask for a shorter hop out (hide_spot.gd `hop_out`: the keeper's box inside the
+		# green tent, where DIVE_OUT would take him through its wall).
+		var out: float = spot.get("hop_out") if spot.get("hop_out") != null and spot.get("hop_out") > 0.0 else DIVE_OUT
 		_hop(global_transform, Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.z)),
-			spot.global_position + dir * DIVE_OUT + Vector3(0, 0.02, 0)), DIVE_TIME, DIVE_HEIGHT, _end_startle)
+			spot.global_position + dir * out + Vector3(0, 0.02, 0)), DIVE_TIME, DIVE_HEIGHT, _end_startle)
+
+
+## Hops him to `at`, landing facing `face` (23 Nov 2026: out of the green tent by its flap,
+## camp_supplies.gd), as he hops out of a hiding spot.
+func hop_to(at: Vector3, face: Vector3) -> void:
+	if _hop_t >= 0.0 or hiding_in or resting or climbing:
+		return
+	let_go()
+	var d := face - at
+	_dive_wait = DIVE_AGAIN
+	_hop(global_transform, Transform3D(Basis(Vector3.UP, atan2(-d.x, -d.z)), at + Vector3(0, 0.02, 0)),
+		DIVE_TIME * 1.6, DIVE_HEIGHT, _end_startle)
 
 
 ## Out of the hiding spot where he is: seen again, with whatever he carries.
