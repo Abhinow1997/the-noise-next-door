@@ -114,6 +114,6 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
 - Presentation reads game state and never writes it; the knot, the release, the girl's call and the task are game code.
 
 ## Unconfirmed
-- Both clips against the darkest and lightest ground, and the new moth's registration by eye: the author's, still to do.
+- The new moth's seam over five wraps on its own (its look in play was the guide's, "Feels right"); the rest done.
 - `--jump-test` (`scripts/main.gd:423,797-800`) only presses jump for a screenshot; it checks nothing.
 - `run-test.sh`'s third argument is only the timeout, so `--*-shots=<folder>` options can't go through it.

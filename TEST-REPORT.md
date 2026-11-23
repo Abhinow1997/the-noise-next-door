@@ -33,10 +33,10 @@ Every run here is Godot 4.7.2 stable. Headless runs use the dummy renderer, whic
 | State machine | The structure test against the resource, and the state test driving real input through `Input.parse_input_event` | **Done.** The jump's states 89/89; the moths 15/15 |
 | Edges | Every phase boundary, with an interrupt one frame before, on and one frame after each | **Done.** 239 checks at 30 fps, 238 at 60 and 144; three findings, settled by a brief revision |
 | Frame strips (fixture) | The strips behind every revision in TUNING.md, labelled as fixture captures | **Done.** The jump r0 and r1; the raccoon's loops r0 |
-| The cycle seam (HUMAN CHECK) | The looping clip through at least five wraps at normal speed: no stutter, no duplicated frame, no jump | **To look at again on the new moth.** On the four pixel-art moths (22 Nov), in play: "the moths are fine" |
+| The cycle seam (HUMAN CHECK) | The looping clip through at least five wraps at normal speed: no stutter, no duplicated frame, no jump | **On the new moth,** in play as it guided him to the camp: "Feels right" (22 Nov). A five-wrap look at its seam alone isn't recorded. On the four pixel-art moths (22 Nov), in play: "the moths are fine" |
 | The action in play (HUMAN CHECK) | The committing action in normal play many times, with an interrupt in each phase; the three phases read as distinct | **Done** (22 Nov), in play: "Feels fine, even for different distinct workflows". I noted the distance |
-| Registration (HUMAN CHECK) | The cycle's strip: the character doesn't drift within its cells | **Measured on the new sheet; my look not done.** The body sits within 1.5 px of 512 in all four cells |
-| Against the background (HUMAN CHECK) | Both clips over the darkest and lightest level art they can appear on | **Not done** |
+| Registration (HUMAN CHECK) | The cycle's strip: the character doesn't drift within its cells | **Done** (22 Nov). Measured on the new sheet: the body sits within 1.5 px of 512 in all four cells. Then my look: "Checks done" |
+| Against the background (HUMAN CHECK) | Both clips over the darkest and lightest level art they can appear on | **Done** (22 Nov), in play: "Checks done" |
 | Two clocks | The tick each clip advances on and the tick gameplay reads, measured, with the largest disagreement in seconds | **Done.** One physics tick, 0.017 s, at 60 and 144 fps; up to 0.033 s at 30 fps |
 | Claude against me | Each of Claude's strip readings beside my verdict, with at least one point where I disagreed, or "none" | **Done for every strip so far.** The disagreements are named below |
 
@@ -232,8 +232,10 @@ My words are as I dictated them; Claude Code fixed only the punctuation.
 
 The jump's distance is its movement, which this change doesn't touch (CLAUDE.md, "Out of scope"). It's noted here, and it would need a revision of the brief if I want it.
 
-**Still to do:**
-- **Registration, on the new sheet:** measured by `tools/make_moth_sheet.gd`. The moth's left eye sits within 1.5 px in all four cells, and the abdomen's tip is on row 377 in each. My look is still to do: the four frames, or the preview's strip (`previews/moth_preview.tscn` into `captures/moth/r0/`, keeping frames 0–5).
-- **The cycle seam, on the new moth:** a look in play, with `-- --dev-start=fire --dev-unseen`.
+**Done since (22 Nov 2026),** in my words, "Checks done":
+- **Registration, on the new sheet:** measured by `tools/make_moth_sheet.gd` (the moth's left eye within 1.5 px in all four cells, the abdomen's tip on row 377 in each), then my look.
 - **Against the background:** the jump and the moth over the darkest and lightest ground they appear on.
+
+**Not recorded:**
+- **The cycle seam, on the new moth, on its own:** I watched the new moth in play as it guided him to the camp ("Feels right"), but a five-wrap look at its seam alone isn't recorded.
 - **The raccoon's loops over five wraps** in their preview: optional, the brief's "my eyes" check. Their strips' seams read clean (TUNING.md, "Loops r0").

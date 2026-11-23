@@ -149,6 +149,13 @@ A dated log of Assignment 7's work as it happened: what I tried and expected, wh
   - **SUBMISSION.md's balloon task count:** 71, not 69.
 - **The agent sessions' last result events,** read by Claude Code on 22 Nov 2026, after the fact: every `claude -p` session in `design/a7/` ended `success`, and none stopped at `--max-turns`. Most had a few permission denials (11 in session 6, mostly Godot run directly rather than through `scripts/run-test.sh`): the scoped permissions refusing, as meant. `git diff --stat a6 HEAD -- shaders/` prints nothing.
 
+### 22 Nov 2026: the films, my last checks, the push and the tag
+
+- **The films:** my film and a NotebookLM explainer, both made by me and uploaded to my OneDrive. Claude Code hashed each file and added the links, filenames and SHA-256s to SUBMISSION.md, the README and SOURCES.md (`66788bd`). Before the explainer, NotebookLM's first producer notes called the moth's flutter "2D" and the two clocks something to "sync", so Claude Code wrote a corrected prompt.
+- **Asked:** "ok push the branch nothing should remain for me make sure". The branch went to GitHub for the first time; a fresh clone of it imported cleanly and passed the rig 51, the moth 22, the pins 26, the states 89 and the balloon task 71.
+- **My last two checks:** both clips over the darkest and lightest ground, and the new moth's registration by eye. "Checks done, tag it".
+- **The tag:** `a7` moved off its placeholder at `dc8ff17` to the commit that adds this entry, and pushed. The ZIP and the Canvas note are made from it.
+
 ### What I accepted, changed or turned down
 
 From the record of what I chose in the chat; each brief revision says the same in its own line.
@@ -183,6 +190,6 @@ From the record of what I chose in the chat; each brief revision says the same i
 - **Climb** needs more work ("Maybe we'll need to work on climb in the future").
 - **The jump's distance:** maybe a little more, not decided.
 - **`tests/cost_effects.gd`** fails 1 of 4 (its smoke case finds the fire out). It failed the same way before this assignment's first change, and it's still open.
-- **Two of my checks are still to do:** both clips over the darkest and lightest ground, and the new moth's registration by eye.
+- **The new moth's seam on its own:** watched in play as it guided him ("Feels right"), but a five-wrap look at it alone isn't recorded.
 - **The moth's exact-wrap quirk:** at 144 fps it still drops one frame in 48.
-- **Not done yet:** the film, SUBMISSION.md, and moving the `a7` tag to the final commit.
+- **Once tagged, still mine:** uploading `submission.zip` and its note to Canvas, and checking that a reviewer can open the two films' links.

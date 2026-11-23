@@ -1,9 +1,6 @@
 # SUBMISSION: Assignment 7
 
 > The SHA that `a7` points at, and the source ZIP's checksum, are in the note sent to Canvas with `submission.zip`. A commit can't contain its own SHA, and the ZIP is made from the tagged commit. The Assignment 6 version of this file is at the `a6` tag.
->
-> **Still to fill before tagging:**
-> - my two checks still to do: both clips over the darkest and lightest ground, and the new moth's registration by eye (TEST-REPORT.md). Then this note goes.
 
 **Assignment:** Assignment 7 - Doing Animation with Claude and Godot
 
@@ -117,6 +114,7 @@
 - **At an exact wrap Godot shows the moth's last cell,** an engine quirk. The moth starts half a frame in, which avoids it at 24, 30 and 60 fps. At 144 fps it still drops one frame of the wings-raised pose in 48.
 - **No headless run shows the look.** How the clips read is checked only by the strips and my eyes.
 - **The AI explainer is NotebookLM's summary of my docs.** It may simplify or misstate details; the repo is the record.
+- **The new moth's seam:** its read-back checks the seam rule, and I watched it in play as it guided him ("Feels right"). A five-wrap look at its seam on its own isn't recorded.
 - **Two earlier checks fail under `--fixed-fps`,** as before this assignment: waves and title. Both pass in realtime.
 
 **Changed games since Assignment 2:** No. It's still The Noise Next Door.

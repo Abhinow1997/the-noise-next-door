@@ -176,7 +176,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 - **The jump's distance:** "Maybe we can increase the distance for the jump, like, a little bit ... Or maybe keep it." It's noted, not changed: the jump's movement is outside this assignment.
 - **The sleep clip holds one pose,** with no breathing. I kept it.
 - **At an exact wrap Godot shows the moth's last cell,** an engine quirk. The moth starts half a frame in to avoid it at 24, 30 and 60 fps. At 144 fps it still drops one frame of the wings-raised pose in 48.
-- **No headless run can show the look.** How the clips read is checked by the strips and my eyes, and two of those checks are still mine to do: both clips over the darkest and lightest ground, and the new moth's registration by eye.
+- **No headless run can show the look.** How the clips read is checked by the strips and my eyes in play, including both clips over the darkest and lightest ground and the new moth's registration (22 Nov).
 - **Two earlier checks fail under `--fixed-fps`,** as before: waves and title. Both pass in realtime.
 
 The docs, each with its Assignment 7 work:
