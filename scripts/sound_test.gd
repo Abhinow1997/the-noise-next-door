@@ -40,7 +40,7 @@ func _ready() -> void:
 	_at(170, func() -> void:
 		Input.action_release("run")
 		Input.action_release("move_right"))
-	_at(200, func() -> void: player.global_position = level.Forest.START)
+	_at(200, func() -> void: player.place(level.Forest.START))
 	_at(210, func() -> void:
 		Input.action_press("move_right")
 		Input.action_press("run"))
@@ -50,7 +50,7 @@ func _ready() -> void:
 
 	# Climbing: onto the nearest trunk, up, cling still, then down a little.
 	_at(300, func() -> void:
-		player.global_position = level.Forest.START
+		player.place(level.Forest.START)
 		var nearest: Dictionary = level.forest.climbable[0]
 		for tree: Dictionary in level.forest.climbable:
 			if tree.base.distance_to(player.global_position) < nearest.base.distance_to(player.global_position):
@@ -61,21 +61,34 @@ func _ready() -> void:
 	_at(380, Input.action_press.bind("move_back"))
 	_at(395, Input.action_release.bind("move_back"))
 
-	# Tasks: five ticked off over four frames, two of them in the same frame.
-	var den: Vector3 = level.Forest.HOME
-	_at(420, func() -> void: level.bin.rotation = Vector3(PI / 2, 0, 0))
-	_at(440, func() -> void:
-		level.lid.global_position = den + Vector3(1.4, 0.3, 0.6)
-		level.gnome.global_position = den + Vector3(-1.4, 0.3, 0.6))
-	_at(460, func() -> void:
-		for k in 3:
-			level.cans[k].global_position = den + Vector3(-0.6 + 0.6 * k, 0.3, 1.3))
-	_at(480, func() -> void: level._sleep_time = 3.0)
+	# A nap: from the trunk into the hollow, asleep long enough to count as a nap, with
+	# two tasks ticked off while he sleeps (silently: there's no laughing in his sleep;
+	# following the music is ticked off here too, as he never goes to the camp),
+	# then woken, leaping out and landing.
+	_at(400, func() -> void: player.rest(level.forest.rest_spot, level.forest.rest_exit))
+	_at(650, func() -> void:
+		level.tasks.done("investigate")
+		level.tasks.done("marshmallows"))
+	_at(700, _check_nap)
+	_at(700, Input.action_press.bind("move_back"))
+	_at(705, Input.action_release.bind("move_back"))
+	_at(860, _check_awake)
+
+	# Tasks (level 1's, camp_tasks.gd; the camp's puzzles tick them off): the others
+	# ticked off in the same frame, for one laugh (the first was ticked off in his sleep).
+	# Dismantle the tent, added on 8 Nov 2026, is ticked off with them, and Raid the bear
+	# bag, added on 10 Nov 2026, and Pop the balloons, added on 21 Nov 2026.
+	_at(940, func() -> void:
+		level.tasks.done("music")
+		level.tasks.done("cooler")
+		level.tasks.done("tent")
+		level.tasks.done("bearbag")
+		level.tasks.done("balloons"))
 
 	# Pause and mute: switched on and off again; the game mustn't care.
-	_at(500, _check_pause_and_mute)
-	# The end: after the last laugh and the fade, the music has stopped.
-	_at(780, _finish)
+	_at(1000, _check_pause_and_mute)
+	# No ending yet: with every task done, the music carries on.
+	_at(1280, _finish)
 
 
 func _physics_process(_delta: float) -> void:
@@ -105,6 +118,29 @@ func _check(name: String, expected, actual) -> void:
 	_results.append([name, str(expected), str(actual), "pass" if ok else "FAIL"])
 
 
+## Asleep, the nap counted, and the task ticked off in his sleep with no laugh: the
+## lullaby has taken over, and the camera is in close.
+func _check_nap() -> void:
+	_check("Nap: it counts as a nap", 1, level.naps)
+	_check("Nap: a task done in his sleep is ticked off", true, level.tasks.is_done("marshmallows"))
+	_check("Nap: no task chime in his sleep", 0, level.sound_counts.get("SFX-TASK-DONE", 0))
+	_check("Nap: the lullaby is playing", true, level._sleep_music.playing)
+	_check("Nap: the lullaby is at full level", true,
+		absf(level._sleep_music.volume_db - level.SLEEP_MUSIC_DB) < 0.5)
+	_check("Nap: the forest loop is faded right down", true, level._music.volume_db <= -59.0)
+	_check("Nap: the camera has eased in close", 1.0, level._sleep_view)
+
+
+## Woken and out of the hollow: the forest loop is back, the lullaby has stopped, and
+## the nap never laughed.
+func _check_awake() -> void:
+	_check("Awake: he's out and on the ground", true, not level.player.resting and level.player.is_on_floor())
+	_check("Awake: the lullaby has stopped", false, level._sleep_music.playing)
+	_check("Awake: the forest loop is back to full", true, absf(level._music.volume_db - level.MUSIC_DB) < 0.5)
+	_check("Awake: the camera is back out", 0.0, level._sleep_view)
+	_check("Awake: still no task chime for it", 0, level.sound_counts.get("SFX-TASK-DONE", 0))
+
+
 func _check_pause_and_mute() -> void:
 	var music := AudioServer.get_bus_index("Music")
 	var sfx := AudioServer.get_bus_index("SFX")
@@ -129,14 +165,20 @@ func _finish() -> void:
 	_check("SFX-CHITTER: 5 quick presses + 1 held press", 6, counts.get("SFX-CHITTER", 0))
 	_check("SFX-RUN: 2 runs, Shift tapped during the first", 2, counts.get("SFX-RUN", 0))
 	_check("SFX-CLIMB: 2 climbs, clinging still between", 2, counts.get("SFX-CLIMB", 0))
-	_check("SFX-TASK-LAUGH: 5 tasks over 4 frames", 4, counts.get("SFX-TASK-LAUGH", 0))
-	_check("Every task done", true, level.tasks.all(func(t: Dictionary) -> bool: return t.done))
-	_check("End: the music has stopped after its fade", false, level._music.playing)
+	_check("SFX-TASK-DONE: 3 tasks in a frame, not in his sleep", 1, counts.get("SFX-TASK-DONE", 0))
+	_check("Every task done", true, level.tasks.all_done())
+	_check("No ending yet: the music carries on", true, level._music.playing)
 	for path: String in ["res://assets/audio/music/forest-loop.wav", "res://assets/audio/sfx/run-loop.wav", "res://assets/audio/sfx/climb-loop.wav"]:
 		var s := load(path) as AudioStreamWAV
 		var frames := roundi(s.get_length() * s.mix_rate)
 		_check("Loop marker over the whole file: " + path.get_file(), true,
 			s.loop_mode == AudioStreamWAV.LOOP_FORWARD and s.loop_begin == 0 and absi(s.loop_end - frames) <= 1)
+	# The lullaby plays its opening once, then loops from where its main section repeats.
+	var lullaby := load(level.SLEEP_MUSIC_PATH) as AudioStreamWAV
+	var lullaby_frames := roundi(lullaby.get_length() * lullaby.mix_rate)
+	_check("Loop marker from the repeat to the end: lullaby-loop.wav", true,
+		lullaby.loop_mode == AudioStreamWAV.LOOP_FORWARD and lullaby.loop_begin == 1807920
+		and absi(lullaby.loop_end - lullaby_frames) <= 1)
 
 	print("")
 	print("Sound check, %s" % Time.get_datetime_string_from_system())

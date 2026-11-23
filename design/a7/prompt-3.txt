@@ -1,0 +1,76 @@
+Read CLAUDE.md first. The sprite sheets are assets/sprites/balloons/balloon_red_4.png,
+balloon_yellow.png, balloon_green_4.png, balloon_purple_2.png and balloon_blue_4.png, all
+sliced the same way. Their source, license, cell size, grid and frame order are in
+CHANGE-BRIEF.md ("The sheet, for each sprite clip"), with the frame count, frame rate and
+loop rule for the balloon's float ("The cycle spec: the balloon's float"). The project is
+the repository root, so the course's godot/animations/ and godot/tests/ are animations/
+and tests/ here.
+
+Set up the clip `float` on a Sprite3D named Balloon in a new scene,
+props/party_balloon.tscn, as a Sprite3D with an AnimationPlayer frame track, using Godot 4
+properties for the version in CLAUDE.md. Save the clip itself as a resource,
+animations/balloon_float.tres, used by the scene's AnimationPlayer through an
+AnimationLibrary. Slice the sheet from the brief, not by guessing from the image: hframes
+3, vframes 2, the float on cells 0, 1, 2 and 1. Set Animation.step to one frame period at
+the brief's frame rate, 24 fps. Give the Sprite3D the brief's size (the balloon 0.3 m
+across: its body is 14 px wide, so pixel_size 0.3 / 14), billboarded, with nearest
+filtering so the pixel art stays sharp, and the red sheet. Set the AnimationPlayer's
+callback_mode_process to ANIMATION_CALLBACK_MODE_PROCESS_IDLE and leave its autoplay
+empty: in Step 5 the balloon's own script will be the only caller of play(). The brief
+also names setting detect_3d/compress_to to 0 in the five balloon sheets' .import files,
+so the editor doesn't compress them once they're used in 3D: do that too, and reimport
+with ../Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --import
+
+Add a read-back test, tests/test_balloon_float.gd, run as a --script test. It loads the
+scene and asserts, against the brief's values:
+- every track in every clip resolves to a real node and property, with the course's
+  check below, which branches on track type;
+- the float's track is a value track on the Sprite3D's frame, and uses discrete updates
+  (ask value_track_get_update_mode only of value tracks);
+- every frame key is inside the sheet: below hframes * vframes;
+- the key values are 0, 1, 2, 1 and their times 0, 0.25, 0.5 and 0.75 s, compared with a
+  tolerance of half a frame period (1/48 s), never with ==;
+- the length is 1.0 s, step is 1/24 s, and loop_mode is Animation.LOOP_LINEAR;
+- the seam rule for a frame track: the last key's cell differs from the first's, and the
+  gap from the last key to the length equals the key interval;
+- hframes 3 and vframes 2 on the Sprite3D, its texture one of the five balloon sheets,
+  callback_mode_process IDLE and autoplay empty.
+Print a PASS or FAIL line per check and a final count, and quit with exit code 1 if any
+check fails.
+
+The course's track check:
+
+static func track_problems(player: AnimationPlayer) -> Array[String]:
+    var problems: Array[String] = []
+    var root := player.get_node_or_null(player.root_node)
+    if root == null:
+        problems.append("root_node %s resolves to nothing" % player.root_node)
+        return problems
+    for clip_name in player.get_animation_list():
+        var clip := player.get_animation(clip_name)
+        for t in clip.get_track_count():
+            var path := clip.track_get_path(t)
+            var node := root.get_node_or_null(NodePath(path.get_concatenated_names()))
+            if node == null:
+                problems.append("%s track %d: no node at %s" % [clip_name, t, path])
+                continue
+            if path.get_subname_count() == 0:
+                continue
+            var sub := path.get_subname(0)
+            match clip.track_get_type(t):
+                Animation.TYPE_POSITION_3D, Animation.TYPE_ROTATION_3D, Animation.TYPE_SCALE_3D:
+                    var skeleton := node as Skeleton3D
+                    if skeleton == null or skeleton.find_bone(sub) == -1:
+                        problems.append("%s track %d: no bone %s on %s" % [clip_name, t, sub, node.name])
+                Animation.TYPE_BLEND_SHAPE:
+                    var mesh := node as MeshInstance3D
+                    if mesh == null or mesh.find_blend_shape_by_name(sub) == -1:
+                        problems.append("%s track %d: no blend shape %s on %s" % [clip_name, t, sub, node.name])
+                _:
+                    if not (sub in node):
+                        problems.append("%s track %d: %s has no property %s" % [clip_name, t, node.name, sub])
+    return problems
+
+Run it through scripts/run-test.sh (bash scripts/run-test.sh test_balloon_float.gd 60)
+and show the real output. Do not wire the clip into the state machine yet, do not place
+any balloon in the level, and do not edit any other script or scene. Do not commit.

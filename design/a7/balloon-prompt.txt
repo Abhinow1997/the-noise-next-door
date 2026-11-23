@@ -1,0 +1,19 @@
+The prompt Claude Code wrote on 21 Nov 2026 for the author to generate the low-poly balloon's sprite
+sheet with Google Gemini (the author's own generation; see SOURCES.md and CHANGE-BRIEF.md). Whether the
+author used it word for word or added follow-up prompts wasn't recorded.
+
+A sprite sheet for a video game: one party balloon, 6 frames, arranged in a grid of 3 columns and 2 rows of equal cells, each cell twice as tall as it is wide. Portrait image, 3:4 (for example 768 x 1024). Flat solid pure green background (#00FF00) everywhere, with no shadows, no floor, no gradient, no border lines between the cells.
+
+Style: a low-poly 3D game asset, like a faceted model with flat-shaded polygons and soft matte lighting from the upper left. Simple, clean shapes. No outlines, no black borders, no pixel art, no text, no logos, no characters. The balloon is a plain off-white / cream colour with soft grey shading on the facets and one small soft highlight, so it can be tinted later. A small darker knot at the bottom of the balloon. A thin dark grey string hanging from the knot down to near the bottom of the cell. Seen from the front and slightly from above.
+
+Top row, the balloon floating (a loop):
+- Cell 1: the balloon, its string hanging straight down.
+- Cell 2: exactly the same balloon in exactly the same place and size, the string curving gently to the left.
+- Cell 3: exactly the same balloon in exactly the same place and size, the string curving a little more to the left.
+The balloon itself must not move, grow or change between these three cells: only the string sways. In each cell the balloon is centred left to right, its body in the upper half of the cell.
+
+Bottom row, the balloon popping (once):
+- Cell 4: the same balloon in the same place, just starting to burst: a small tear and a slight pucker.
+- Cell 5: the balloon bursting: a jagged torn shape with several shreds flying outward, the string falling.
+- Cell 6: only a few small shreds and the falling string, scattered, smaller.
+Everything stays inside its own cell.

@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Campfire smoke state check (cold), 2026-11-08T17:40:53
+  pass  #1 At load: emitting, amount_ratio, amount, strength                           expected false 0.00 40 0.00 got false 0.00 40 0.00
+  pass  #3 Before it's lit: not emitting, amount_ratio 0                               expected false 0.00 0   got false 0.00 0
+  pass  #4 Lit by the keeper: emitting, amount_ratio = strength = 0.30                 expected 1 true 0.30 0.30 got 1 true 0.30 0.30
+  pass  #5 Each log: amount_ratio = strength the frame after it goes on, 2 values or more [[0.3, 0.3], [0.55, 0.55], [0.79, 0.79], [1.0, 1.0]] expected true true      got true true
+  pass  #8 Burning down 3 s unfed: amount_ratio fell, and = strength                   expected true true      got true true
+  pass  #10 Esc: the tree paused, the smoke not processing                             expected true false     got true false
+  pass  #10 Paused 1 s: amount_ratio, emitting, amount, strength unchanged             expected [0.97966665029526, true, 40, 0.97966666666668] got [0.97966665029526, true, 40, 0.97966666666668]
+  pass  #10 Esc again: running, strength moving again, amount_ratio = strength         expected false true true true got false true true true
+  pass  #11 Hidden 3 s: not visible in the tree                                        expected false          got false
+  pass  #11 Hidden: amount_ratio still follows strength (fell, and equal)              expected true true      got true true
+  pass  #11 Hidden: emitting, amount and the scene's settings unchanged                expected true [40, 3.5, 3.5, false, 0.0, false, [P: (-1.5, 0.0, -1.5), S: (3.0, 4.0, 3.0)], -9223371985734597052, -9223371985667488183] got true [40, 3.5, 3.5, false, 0.0, false, [P: (-1.5, 0.0, -1.5), S: (3.0, 4.0, 3.0)], -9223371985734597052, -9223371985667488183]
+  pass  #11 Shown again: visible, amount_ratio = strength                              expected true true      got true true
+  pass  #9 Holding E tips the bucket: doused once                                      expected 1              got 1
+  pass  #9 Out: strength 0, amount_ratio 0, not emitting                               expected 0.00 0.00 false got 0.00 0.00 false
+  pass  #9 Through the douse, emitting = burning() every frame (off when out, not before) expected 0              got 0
+  pass  #12 Lit again: emitting, amount_ratio = strength                               expected 2 true true    got 2 true true
+  pass  #6 Every frame (4653): largest |amount_ratio - strength| under 0.000001 (it was 0.00000003) expected true           got true
+  pass  #7 Every frame: amount = 40 (frames where it wasn't)                           expected 0              got 0
+  pass  #9 Every frame: emitting = burning() (frames where it wasn't)                  expected 0              got 0
+  pass  One copy of the smoke in the level                                             expected 1              got 1
+RESULT: all checks passed (20 checks)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

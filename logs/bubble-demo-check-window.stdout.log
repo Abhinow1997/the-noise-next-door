@@ -1,0 +1,93 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.4.325 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4050 Laptop GPU
+
+
+Thought-icon check, 2026-10-29T17:08:16
+  pass  Nothing near: nothing over his head                            expected none             got none
+  pass  Nothing near: no sparkles                                      expected 0                got 0
+  pass  Shiny: the pile of coins, keys and foil glints once            expected true             got true
+  pass  Shiny: nothing over his head                                   expected none             got none
+  pass  Shiny: the sparkles sit on the loot                            expected true             got true
+  pass  Shiny: coins picked up, the rest of the pile glints            expected true             got true
+  pass  Shiny: put down again, the coins don't                         expected false            got false
+  pass  Shiny: none once he's well away                                expected 0                got 0
+  pass  Shiny: back again, the pile glints again (not the coins)       expected true             got true
+  pass  Hungry: facing the cooler up close                             expected hungry           got hungry
+  pass  Hungry: the fish skeleton                                      expected fish             got fish
+  pass  Hungry: still up just after he turns away                      expected hungry           got hungry
+  pass  Hungry: gone once he's looked away                             expected none             got none
+  pass  Hungry: a food with its own picture, the apple core            expected apple            got apple
+  pass  Hungry: facing the trash bin                                   expected hungry           got hungry
+  pass  Hungry: the level's 'find food' task starts                    expected hungry           got hungry
+  pass  Hungry: the task's reminder                                    expected hungry           got hungry
+  pass  Hungry: reaching the cooler ends the task                      expected false            got false
+  pass  Bush: he's hidden in it                                        expected true             got true
+  pass  Bush with nobody about: nothing                                expected none             got none
+  pass  Camper: he sees him                                            expected true             got true
+  pass  Alert: seen                                                    expected alert            got alert
+  pass  Alert: the red mark                                            expected alert            got alert
+  pass  Camper: he can't see him in the bush                           expected false            got false
+  pass  Hiding: into the bush while seen                               expected hiding           got hiding
+  pass  Hiding: the z's                                                expected zzz              got zzz
+  pass  Hiding: the alert has ended                                    expected false            got false
+  pass  Hiding: the z's rise off the top of the bush                   expected true             got true
+  pass  Hiding: still up after 1.5 s                                   expected hiding           got hiding
+  pass  Hiding: gone after 2 s, though he's still hidden               expected none             got none
+  pass  Hiding: he's still in the bush                                 expected true             got true
+  pass  Alert: seen again                                              expected alert            got alert
+  pass  Alert: stays up a moment after he's out of sight               expected alert            got alert
+  pass  Alert: then it goes                                            expected none             got none
+  pass  Hose: in his mouth                                             expected @RigidBody3D@1056:<RigidBody3D#101619601070> got @RigidBody3D@1056:<RigidBody3D#101619601070>
+  pass  Idea: the hose, near the bucket                                expected idea             got idea
+  pass  Idea: the bulb                                                 expected bulb             got bulb
+  pass  Bucket: filled by the hose                                     expected true             got true
+  pass  Bucket: the water shows                                        expected true             got true
+  pass  Idea: a puzzle solved                                          expected idea             got idea
+  pass  Frustrated: the locked door, no keys                           expected frustrated       got frustrated
+  pass  Frustrated: the angry scribble                                 expected scribble         got scribble
+  pass  Shed: still shut                                               expected false            got false
+  pass  Shed: E went to the door, not to picking anything up           expected <null>           got <null>
+  pass  Keys: in his mouth                                             expected @RigidBody3D@1050:<RigidBody3D#101401497252> got @RigidBody3D@1050:<RigidBody3D#101401497252>
+  pass  Idea: the keys, near the shed                                  expected idea             got idea
+  pass  Shed: the keys open it                                         expected true             got true
+  pass  Shed: the keys are in the lock                                 expected @Node3D@1070:<Node3D#102156472007> got @Node3D@1070:<Node3D#102156472007>
+  pass  Shed: opened, an idea and not frustrated                       expected idea             got idea
+  pass  Frustrated: stuck pushing against the shed                     expected frustrated       got frustrated
+  pass  Stuck: once a push, not again while he keeps pushing           expected none             got none
+  pass  Walking in the open: not frustrated                            expected none             got none
+  pass  Coins: in his mouth                                            expected @RigidBody3D@1045:<RigidBody3D#101149839003> got @RigidBody3D@1045:<RigidBody3D#101149839003>
+  pass  Camper: took the coins back                                    expected <null>           got <null>
+  pass  Coins: back where they were                                    expected true             got true
+  pass  Frustrated: an NPC took his loot (over the alert)              expected frustrated       got frustrated
+  pass  Alert: back once the frustration's over, still seen            expected alert            got alert
+  pass  Hiding: from him again                                         expected hiding           got hiding
+  pass  Bored: not yet, after 4.5 s still                              expected none             got none
+  pass  Bored: after 5.5 s still                                       expected bored            got bored
+  pass  Bored: the bored face                                          expected bored            got bored
+  pass  Bored: a sigh out of his mouth                                 expected sigh             got sigh
+  pass  Bored: moving ends it                                          expected none             got none
+  pass  Bored: and the sigh                                            expected                  got 
+  pass  Laugh: he chitters                                             expected laugh            got laugh
+  pass  Laugh: hehehe, facing right                                    expected hehehe           got hehehe
+  pass  Laugh: his laughing face                                       expected true             got true
+  pass  Laugh: it hangs over his head, above his mouth                 expected true             got true
+  pass  Laugh: on his left when he faces left                          expected hehehe_left      got hehehe_left
+  pass  Laugh: gone after the laugh                                    expected none             got none
+  pass  Asleep: a laugh as he hops up into the hollow ends             expected none             got none
+  pass  Asleep: and so does his laughing face                          expected false            got false
+  pass  Asleep: not yet, while he hops up and curls up                 expected none             got none
+  pass  Asleep: curled up in the hollow                                expected asleep           got asleep
+  pass  Asleep: the z's                                                expected snooze           got snooze
+  pass  Asleep: they rise from his head                                expected true             got true
+  pass  Asleep: Space doesn't make him laugh in his sleep              expected asleep           got asleep
+  pass  Asleep: nor does a chitter from anywhere                       expected asleep           got asleep
+  pass  Asleep: nor his laughing face                                  expected false            got false
+  pass  Asleep: waking ends the z's                                    expected none             got none
+  pass  Asleep: woken, he's out of the hollow                          expected false            got false
+  pass  Every icon draws                                               expected []               got []
+  pass  Asleep: three z's on their way up                              expected 3                got 3
+  pass  Asleep: still three after a minute asleep                      expected 3                got 3
+  pass  Boil: each drawing of an icon wobbles differently              expected true             got true
+  pass  Boil: the same drawing comes back the same                     expected true             got true
+  pass  Pop: starts small, overshoots, settles                         expected true             got true
+RESULT: all checks passed (87 checks)

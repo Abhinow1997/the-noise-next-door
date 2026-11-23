@@ -1,0 +1,16 @@
+The prompt Claude Code wrote on 22 Nov 2026 for the author to generate a new moth sprite sheet with an
+image model, to replace madameberry's pixel-art moth (bugs.png, cells 4 and 5) with one in the game's
+low-poly look. The author's own generation; the model, and whether the prompt was used word for word,
+are recorded with the image (SOURCES.md, CHANGE-BRIEF.md).
+
+A sprite sheet for a video game: one moth, 4 frames of a wing flap, arranged in a grid of 2 columns and 2 rows of equal square cells. Square image, 1:1 (for example 1024 x 1024). Flat solid pure green background (#00FF00) everywhere, with no shadows, no floor, no gradient, no border lines or gaps drawn between the cells.
+
+Style: a low-poly 3D game asset, like a faceted model with flat-shaded polygons and soft matte lighting from the upper left. Simple, bold shapes that still read when the moth is shown very small, about 16 pixels across. No outlines, no black borders, no pixel art, no text, no logos. A soft, dusty night moth: pale cream and warm tan wings with a few soft brown bands, a slightly fuzzy darker tan body, two small feathery antennae. No green anywhere on the moth. Seen from above, as if looking down on it, so both wings show their full shape when they're spread.
+
+The four cells, read left to right, then top to bottom:
+- Cell 1: the wings raised high, almost touching above the body, so from above they look narrow.
+- Cell 2: the wings halfway, angled up.
+- Cell 3: the wings spread fully flat and open, at their widest.
+- Cell 4: the wings angled down, a little narrower than cell 3.
+
+In every cell the moth's body is exactly the same: the same place (centred in its cell), the same size and the same angle, with the head pointing up. Only the wings change between the cells. Each moth fills about two thirds of its cell, and its wing tips never touch the cell's edges. Everything stays inside its own cell.

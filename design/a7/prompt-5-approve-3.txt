@@ -1,0 +1,37 @@
+Step 2 is committed (a99493d), with your three choices accepted: jump_id; every hop off a
+tree uses the jump's clips; no squash on a tree hop.
+
+Approved: Step 3, Pop the balloons, as you planned it, now that the brief's revision
+1730f86 names the five tests' changes:
+- props/party_balloon.gd, attached in props/party_balloon.tscn: its colour export (red,
+  yellow, blue) picks the sheet and its own float offset; in _ready() it plays `float` and
+  seeks to that offset; pop() sets popped and hides the balloon; it is the only caller of
+  play() and seek() on its own AnimationPlayer. The `pop` clip is Step 4: in this step
+  pop() just hides it.
+- scripts/camp_balloons.gd, new game code like camp_bear_bag.gd: three balloons placed by
+  the party's speaker table as the brief says (0.3 m across, their middles about 0.7 m up,
+  no collision, clear of the table), and the bite check on the physics tick after the
+  player's: while bite_open(), the first unpopped balloon within 0.25 m of mouth_point()
+  is popped, the jump's bite is used, the pop is heard HEAR_CHITTER round (noise(pos,
+  HEAR_CHITTER, 0.0, true)), and tasks.done("balloons") once all three are popped.
+- scripts/campsite.gd builds it, as it does the bear bag.
+- scripts/camp_tasks.gd: the task {"id": "balloons", "text": "Pop the balloons",
+  "parent": "party", "hint": "Jump and bite all three."}.
+- The five existing tests, exactly as the revision names and nothing else:
+  scripts/cones_test.gd:107, scripts/tasks_test.gd:74 and scripts/tutorial_test.gd:268
+  (the id strings gain `balloons` after `bearbag`); scripts/cones_test.gd:160,
+  scripts/tasks_test.gd:232 and scripts/sound_test.gd:168 (still expecting true, each now
+  ticking `balloons` on its way there, as it ticks the other sub-tasks). Check names may
+  change to match; check counts stay the same.
+- tests/test_balloon_task.gd: in the real level, real key presses through
+  Input.parse_input_event, as you listed (three jumps under the balloons give three pops,
+  each heard by a camper inside 8 m and not by one outside; the task ticks on the third;
+  one jump pops at most one; a balloon in reach outside ticks 5-14 doesn't pop). Also: each
+  balloon's AnimationPlayer reads `float` (current_animation) while it's up, and the
+  balloons' scripts are the only callers of play() on them.
+
+Run through scripts/run-test.sh: the new test at 60, test_balloon_float.gd and
+test_jump_states.gd at 60, tests/jump_pins.gd at 60 (say whether anything beyond the 13
+predicted fails), and every existing test CLAUDE.md lists in its pinned mode, reading each
+run's exit code; the five changed tests must pass with their counts unchanged. Show the
+real output. Then stop. Do not start Step 4. Do not commit.

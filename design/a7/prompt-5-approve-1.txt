@@ -1,0 +1,18 @@
+Approved: Step 1 only, as you planned it (the jump's timing in scripts/player.gd: the
+2-frame crouch with takeoff 5 ticks after F is seen, the bite window on ticks 5-14 with one
+bite a jump, bite_open() and mouth_point(), and the 10-tick landing; presentation
+unchanged in this step). Implement only that step and show the diff.
+
+My answers to your findings, for later steps, not this one:
+- Finding 4: I want F to start the jump while he's asleep and while he's climbing too.
+  That is an input change the brief doesn't name yet, so it waits for a dated revision of
+  the brief, which I'll write. Do not implement it in Step 1; leave sleep and climbing as
+  they are.
+- Finding 1 (the five tests' expected values for the new task) and finding 2 (the pop's
+  and the flutter's timings, the moths' places): a dated revision of the brief is coming
+  for both. Steps 3 to 5 wait for it.
+- Finding 3: use assigned_animation for the change check, as you proposed, in Step 2.
+
+After the change, run through scripts/run-test.sh: tests/jump_pins.gd at 60 (say which
+pins fail and whether each is one you predicted), and every existing test CLAUDE.md lists,
+in its pinned mode. Show the real output. Then stop. Do not start Step 2. Do not commit.

@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Campfire smoke state check (cold), 2026-11-08T16:06:36
+  FAIL  #1 At load: emitting, amount_ratio, amount, strength                           expected false 0.00 40 0.00 got false 1.00 1 0.00
+  FAIL  #3 Before it's lit: not emitting, amount_ratio 0                               expected false 0.00 0   got false 1.00 0
+  FAIL  #4 Lit by the keeper: emitting, amount_ratio = strength = 0.30                 expected 1 true 0.30 0.30 got 1 true 1.00 0.30
+  FAIL  #5 Each log: amount_ratio = strength the frame after it goes on, 2 values or more [[0.3, 1.0], [0.56, 1.0], [0.82, 1.0], [1.0, 1.0]] expected true true      got false true
+  FAIL  #8 Burning down 3 s unfed: amount_ratio fell, and = strength                   expected true true      got false false
+  pass  #10 Esc: the tree paused, the smoke not processing                             expected true false     got true false
+  pass  #10 Paused 1 s: amount_ratio, emitting, amount, strength unchanged             expected [1.0, true, 39, 0.97966666666668] got [1.0, true, 39, 0.97966666666668]
+  FAIL  #10 Esc again: running, strength moving again, amount_ratio = strength         expected false true true true got false true true false
+  pass  #11 Hidden 3 s: not visible in the tree                                        expected false          got false
+  FAIL  #11 Hidden: amount_ratio still follows strength (fell, and equal)              expected true true      got false false
+  FAIL  #11 Hidden: emitting, amount and the scene's settings unchanged                expected true [39, 3.5, 3.5, false, 0.0, false, [P: (-1.5, 0.0, -1.5), S: (3.0, 4.0, 3.0)], -9223371985835260348, -9223371985768151479] got true [38, 3.5, 3.5, false, 0.0, false, [P: (-1.5, 0.0, -1.5), S: (3.0, 4.0, 3.0)], -9223371985835260348, -9223371985768151479]
+  FAIL  #11 Shown again: visible, amount_ratio = strength                              expected true true      got true false
+  pass  #9 Holding E tips the bucket: doused once                                      expected 1              got 1
+  FAIL  #9 Out: strength 0, amount_ratio 0, not emitting                               expected 0.00 0.00 false got 0.00 1.00 false
+  pass  #9 Through the douse, emitting = burning() every frame (off when out, not before) expected 0              got 0
+  FAIL  #12 Lit again: emitting, amount_ratio = strength                               expected 2 true true    got 2 true false
+  FAIL  #6 Every frame (4101): largest |amount_ratio - strength| under 0.000001 (it was 1.00000000) expected true           got false
+  FAIL  #7 Every frame: amount = 40 (frames where it wasn't)                           expected 0              got 3989
+  pass  #9 Every frame: emitting = burning() (frames where it wasn't)                  expected 0              got 0
+  pass  One copy of the smoke in the level                                             expected 1              got 1
+RESULT: SOME CHECKS FAILED (20 checks)

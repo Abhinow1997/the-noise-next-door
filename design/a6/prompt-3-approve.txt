@@ -1,0 +1,22 @@
+Approved, with my decisions:
+- The signal: hiding_changed(inside: bool), emitted as the last line of
+  dived(). CHANGE-BRIEF.md has a dated revision for it (commit 9bbc789),
+  and CLAUDE.md is updated to match. Read them again first.
+- The wiring: approved as you proposed, the few lines in main.gd's
+  _ready() and the --leaf-burst-test flag in main.gd, on record in that
+  revision.
+- One change to your plan: free each burst after its emitters' own
+  lifetimes, read from the copy (the longer of Leaves' and Puff's), plus
+  0.1 s, as the preview does; no hard-coded 0.9.
+- Keep your plan's handling of a camper startling him: check 10 fails
+  loudly, and if it happens, change the test's approach, not the campers.
+
+Implement steps 0 to 3 in order, one at a time, and show each step's
+diff. Show only your own files: the working tree also has uncommitted
+changes that aren't part of this task (the eating animation in
+scripts/raccoon_model.gd, scripts/raccoon_eat.gd, scripts/roast_plate.gd
+and scripts/tutorial_test.gd, and the docs). Leave them alone.
+
+After step 3, rerun every test as CLAUDE.md says, plus the configuration
+test at 60 and the new state test, and show the real output with the
+mode of each. The rules from my first message still hold. Do not commit.

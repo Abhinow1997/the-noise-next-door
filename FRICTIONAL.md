@@ -1,272 +1,195 @@
 # Frictional log: The Noise Next Door
 
-`the-noise-next-door` · CSYE 7270 · Assignment 2
+`the-noise-next-door` · CSYE 7270 · Assignment 7: animation
 
-A dated log of the design as it happened: what I wanted the player to see or hear, what I asked for, what came back, and what I decided. This first part covers the storyboard, from the first draft to the check against the brief. Entries for the generated assets (Gemini images, music, sound effects) are added as their rows in the [SOURCES.md](SOURCES.md) asset log are filled in.
+A dated log of Assignment 7's work as it happened: what I tried and expected, what I asked for, what came back, what I checked, and what I decided or learned, including what's still unresolved. Each entry says who did what: me, or Claude Code. Tuning revisions are in [TUNING.md](TUNING.md), pointed to from here, not copied. As with CHANGE-BRIEF.md, this file holds only the current assignment. The earlier logs are in history.
 
-**How these entries were written**
-- They're retrospective. On 6 Oct 2026, Claude Code put them together from my chat messages, the commits and the provenance notes in the design docs.
-- My messages are quoted exactly as I typed them, typos included. Times are US Eastern, taken from the chat transcripts.
-- Where I didn't give a reason at the time, the entry says so instead of supplying one. I added my reasons for v1 and v2 on 6 Oct, and they're marked as added later.
+## The earlier assignments
 
-**Who's who**
-- **Me:** the story, the requests and the decisions.
-- **Claude Code** (Claude Opus 5.5): plans, options, the wording of the docs, code, and the storyboard thumbnails, which it drew in code with [make_thumbnails.py](design/storyboard/make_thumbnails.py). Claude isn't an image or audio generator, so none of this is generated art.
-- **Generative models:** none were used for the storyboard. The one generated file it depends on is my Gemini raccoon image, the style target (REF-STYLE in SOURCES.md).
-
-| Date | Entry | Commits |
+| Section | Dates | Where it is |
 |---|---|---|
-| 4 Oct | How to draw the storyboard, and from which camera | none |
-| 4–5 Oct | Storyboard v1: the whole story in 12 panels | none (a chat draft) |
-| 5 Oct | Storyboard v2: music off before Busted, the beanie straight after | none (a chat draft) |
-| 5 Oct | Storyboard v3: three more town panels, and the first commit | 5b4fb68, 2849ac2 |
-| 5 Oct | Storyboard v4: the camper becomes the other main character | 3f2499f |
-| 5 Oct | Storyboard v5: the dogs replace the group chat | 20fc810, 4f5313a |
-| 6 Oct | The gameplay camera, tuned in the game | dcae18a |
-| 6 Oct | Storyboard v6: checked against the brief | c8d0f0c |
-| 6 Oct | Planning the slice: CHANGE-BRIEF.md | 4dc2f03 |
-| 6 Oct | Character sheet v5: the low-poly look, measured | d89c0bb |
-| 6 Oct | Character sheet v6: the silhouette, pose sheet and collision overlay | 7296e08 |
-| 6 Oct | The four sounds: using what I generated | 0b23969 |
-| 6 Oct | The ground texture, rejected in the game | ef1a803 |
-| 6 Oct | The stump, and a second forest reference | b1caf41 |
-| 6 Oct | Playtesting the slice | af67f9d |
+| Assignment 2: the asset slice | 4 to 6 Oct 2026 | `FRICTIONAL.md` at tag `a2` |
+| Assignment 3: the three Blender assets | 13 and 14 Oct 2026, with the Blender MCP's setup from 3 to 5 Oct | `FRICTIONAL.md` at tag `a3` |
+| After Assignment 3: the title screen, the night and level 1's camp | 21 to 25 Oct 2026 | `FRICTIONAL-EARLIER.md` at tag `a6` |
+| Assignment 5: shaders and materials | 25 Oct 2026 on | `FRICTIONAL.md` at tag `a5`, and at tag `a6` |
+| Assignment 6: particle effects, and the bigger camp | 6 Nov 2026 on | `FRICTIONAL.md` at tag `a6` |
 
 ---
 
-## 2026-10-04 — How to draw the storyboard, and from which camera
+## Assignment 7: animation
 
-- **Wanted:** a basic storyboard built from my CONCEPT.md.
-- **Asked** (18:49, with CONCEPT.md attached): "looking at the we want to create a basic storyboard using this how can we proceed ahead with this ?"
-- **Got:** three questions from Claude.
-- **Decided** (18:55):
-  - **Pictures:** Claude-drawn thumbnails. Claude pointed out that they can't come from an image generator, because the storyboard has to be committed before the first generation.
-  - **Gameplay view:** the tilted 3/4 view, which Claude recommended. CONCEPT.md had said "top-down camera".
-  - **My Gemini raccoon image:** it already existed before any design doc was committed, and its soft, clay-like look differs from CONCEPT.md's "flat shapes". I chose to log it and make it the style target.
-- **Human / Claude / model:** the choices are mine. The options, and the recommendation for the 3/4 view, were Claude's. The Gemini image is a model output from before this log (REF-STYLE).
-- **Still unresolved:** CONCEPT.md's art direction still says flat shapes, while the style target and the character sheet are clay-like.
+`the-noise-next-door` · CSYE 7270 · Assignment 7 · branch `assignment-7`
 
-## 2026-10-04 to 05 — Storyboard v1: the whole story in 12 panels
+**How these entries were written:**
+- **The outline:** organized by Claude Code on 22 Nov 2026 from my chat messages, the commits, the prompts in `design/a7/` and the test logs. My messages are quoted exactly as I typed them, typos included. The chat doesn't show times, so only dates are given.
+- **The facts** (what I asked, what came back, what was checked and decided) are the record.
+- **The "At the time" lines** are my own words from the chat, quoted as I typed them, at that point in the work: what I expected, objected to or decided. Claude Code added no reflection of its own. Filled in on 22 Nov 2026 at my request ("update from the memory we have made many changes for the assignment accept the ideas and updated chanes"). Anything I add afterwards, looking back, is marked as written later.
+- **Did I change games since Assignment 2?** No.
 
-- **Wanted:** a base story for the whole game, told without words.
-- **Asked:**
-  - 23:49: "Dont worry abt the other elements for the assignment just focsus on the story board and how we can create a story board to create a base level story for the game we have done so just focus on the story and redo the plan"
-  - 23:53: when Claude asked how much of the story to cover, I first picked "Campsite level only, 8 panels".
-  - 23:55, turning that plan down: "u know what update for 12 panels for the entire story"
-  - 00:04 on 5 Oct, turning the next plan down: "Opening scene is is raccon in his tree hole and is distrubted by musical vibrations and humans chatter where he peaks out of his tree to see group of humans partying" and "The party is already in swing and we start from there with intrigue from the raccon from where he come down to see and drop in this open world atleast for the 1st level where we have sets of fun tasks optional but tasks for the raccon to complete"
-  - 00:08: "also a the game it supossed to a bit more slapstick motion no dialogs but story is conveayed by the user actions and events"
-  - 00:12: I approved Claude's 12-panel plan.
-- **Got:** 12 panels drawn by Claude in code, each with the brief's fields (shot, action, what's seen, what's heard, asset IDs, design reason). On top of what I asked for, Claude:
-  - turned CONCEPT.md's text-only devices into pictures: the camper's paranoid journal became him getting visibly jumpier, the group chat became window photos and a poster, and "The End?" became an iris-out;
-  - added the gags, such as the acorn bonk, the cooler trip, the frying pan and the bin lid launched like a frisbee;
-  - added an "unplug the speaker" task;
-  - used "Shooed off", the raccoon sent back to his tree, as the retry beat.
-- **Decided:** I kept the story and the 12 panels, and changed the middle (next entry).
-- **Why** (my words, added on 6 Oct looking back, since I didn't give a reason at the time): "it felt like a bit short and uneventful with just a basic forest level for the story along with city level adds a new varation and level along with ideas like dog chases new updates for game level added for the same"
-- **Human / Claude / model:** the opening, the open first level with optional tasks, the slapstick tone with no dialogue, and the whole-story scope are mine. The shot list, the panel wording, the gags and the drawings are Claude's. No generative model.
-- **Trace:** not committed, since it was a chat draft. Its decisions are listed in STORYBOARD.md's provenance.
-- **Still unresolved:** CONCEPT.md's opening still has campers arriving with car doors slamming, not a party already in full swing.
+### 21 Nov 2026: reading the assignment, and setting up
 
-## 2026-10-05 — Storyboard v2: music off before Busted, the beanie straight after
+- **Asked:** I pasted the assignment ("this for assignement 7 understand the rquirements"), then: "update the run-test.sh wrapper first ... They should be only for assignment 7, so we don't need any references."
+- **Came back:** Claude Code added "Failed loading resource" to the test wrapper (`3e0266c`), and reset FRICTIONAL, TEST-REPORT and TUNING to Assignment 7 only, with the earlier ones by tag (`6a0ec38`).
+- **Decided:** "create a branch, assignment 7, as well as the tag, but no need to make commits ... I don't want to commit just for the sake of it." So the branch `assignment-7`, and `a7` as a placeholder tag at `dc8ff17`, to be moved to the final commit.
+- **At the time:** I first wanted it narrowed to the animation work: "Focusing on the animations, what is required here for assignment 7? Can you narrow down and give me a summarized version?" I expected to reuse what we had: "Animations, we had created like running and eating and couple of other animations", then "Can we reuse most of this or no?"
 
-- **Asked** (01:11): "update the story board from busted next should be the steal of red benie we cam add music off to the todo listing and before the busted" and "remove shoo off and add a new one in the city level"
-- **Got:**
-  - "Music off" replaced Claude's "unplug the speaker" card, with a crossed-out note so it reads without the words, and its panel moved before Busted.
-  - Shooed off is gone, and the beanie steal now comes straight after Busted.
-  - For the new town panel, Claude chose the marshmallow trap: the capture, which until then had only been mentioned in text.
-  - Two knock-on changes by Claude:
-    - The getaway became the recovery beat, because the brief needs one and Shooed off had been it.
-    - In Busted, a record scratch no longer made sense with the music already off. Instead, in the sudden quiet, the crinkle of the marshmallow bag gives him away, so his own prank gets him caught.
-- **Decided:** I kept all of it, and it's still in the board.
-- **Why** (my words, added on 6 Oct looking back, since I didn't give a reason at the time): "the story follows like the raaccoon after creating trouble to the campsite grp gets eventully busted by the benie guy and while in the same he steals his beanie and runs away and from there we start to the city side of things"
-- **Human / Claude / model:** the new order, the cut and the slot for a town panel are mine. What happens in the trap, and the two knock-on changes, are Claude's.
-- **Still unresolved:** does any bust end level 1, or only one after he's done enough tasks? Claude suggested 3 of the 5.
+### 21 Nov 2026: choosing the two clips, and the brief
 
-## 2026-10-05 — Storyboard v3: three more town panels, and the first commit
+- **Picked from Claude Code's options:** the jump as the committing action, with a crouch added; a found sprite sheet; then the balloons as the graded loop. I turned down its first task ideas: "These are all bad, man. Come up with something really good." Then: "Pop the balloons, find a licensed balloon sheet".
+- **The moth, an extra:** Claude Code proposed it, and I questioned it ("i still dont understand what is the use of the moth why did u add it"). I kept it after seeing it in the game.
+- **My job lines:**
+  - for the jump, "the jump tells the player the raccoon is airborne to reach things not Generally reachable";
+  - for the balloons and the moth, "Balloon is one of the tasks that enables user to spoil the party ... We can also add in the moth details as a indicator of the fire being on, and like surveillance being on."
+- **Checked:** Claude Code downloaded the two sheets and checked their slicing (`d878213`). It drafted the brief, and I kept it before the first prompt (`599da06`). It caught its own mistake in the phase table before I'd written anything: a 3-frame crouch would put takeoff between two physics ticks.
+- **At the time:** on the moth, "Okay, I like the moth. Mm, But we need to find a way to add it in. So let's see it in the game." On the task ideas, "These are all bad, man. Come up with something really good. No, don't have to stick to just mods. Give me an idea. Maybe I can get you the asset as well."
 
-- **Asked** (01:42): "no we need to add 3 more panels for city before the raccon is caught the story is really light on the city levels"
-- **Got:** three panels staged from Act 2 of CONCEPT.md: Edge of town, The group chat and The barbecue heist. The town also got its own to-do cards, taken from the concept's three town jobs. That made 15 panels.
-- **Decided:** I kept them, and committed the storyboard with CONCEPT.md at 13:13 (5b4fb68). A minute later, 2849ac2 gave the game its name. The only generated file older than this commit is the style target.
-- **Human / Claude / model:** the extra town panels and the reason for them are mine. Their staging and the town cards are Claude's, built from my concept.
-- **Still unresolved:** is the town one level, or should the block party (panels 12 and 13) be a level of its own?
+### 21 Nov 2026: Step 1, CLAUDE.md
 
-## 2026-10-05 — Storyboard v4: the camper becomes the other main character
+- **Came back:** the agent's draft, unedited, from `design/a7/prompt-1.txt` (`f87aaf1`).
+- **My review** was a separate commit (`21867cb`): the course's headless facts, each confirmed on this machine; the names read back on 4.7.2; and the baseline.
+- **At the time:** I approved Claude Code's proposed edits to the draft: "Yes, make them".
 
-- **Asked** (16:42): "the red benie camper is the sorta the other main charater of the story where it revloves around eventually him being the one who releases the raccon at his home again so describe him also in the charter"
-- **Got:**
-  - Claude found that its own drafts had made the camper a woman with a ponytail, which was its invention, not mine. It changed her to him throughout and redrew him with short hair and a beard.
-  - Panel 14 now has him letting the raccoon keep the beanie.
-  - CHARACTER-SHEET.md got a full section on him: his look (mustard jacket, jeans, messy brown hair, short beard), nine poses and Gemini prompts.
-- **Decided:** kept, and committed as 3f2499f (16:49).
-- **Human / Claude / model:** his role in the story is mine. His look and poses are Claude's suggestions.
+### 21 Nov 2026: Step 2, the pins
 
-## 2026-10-05 — Storyboard v5: the dogs replace the group chat
+- **Came back:** `tests/jump_pins.gd`, 26/26, before any clip was wired (`1232706`).
+- **What they found:** four of the brief's worked-out numbers were wrong. A held jump lands 25 ticks after takeoff, not 26; a tap peaks at 0.228 m, not 0.183 m; a kept press takes off the tick after landing; and the pins' "tick after F" is the brief's frame 0. I kept the brief revision ("Keep and commit", `0f0de36`).
+- **At the time:** "Yes, write pins". Then, on the brief revision from what they measured, "Keep and commit".
 
-- **Asked** (16:50): "Also in the city we can add a charater of dogs which potentially we can add to chase our raccon around so that can be added as a imp charater in the game"
-- **Got:** three dogs in CHARACTER-SHEET.md (20fc810, 16:53): the sausage dog that was already in panel 12, a big shaggy dog and a tiny yappy dog. The trio, their looks and their chase styles are Claude's suggestion. Claude offered to put the big dog in the alley in panel 10.
-- **Decided:** at 16:54 I said "yes add the big dog to panel 10". A minute later I changed that: "yes add the dogs to panel 11 remove the grp chat it makes no sense for me update the dogs chase for it"
-- **Got:** panel 11 became "Barking up the wrong tree". He lays a false trail round a tree, and the dogs bark up it while he sits on the fence. Cutting the chat broke two links, and Claude reconnected them:
-  - the beanie photo now spreads through window photos and the poster, which is how the camper finds him;
-  - the dogs' barking brings the animal-control van, which leads to the trap.
+### 21 Nov 2026: Steps 3 to 5, building the clips
 
-  The character sheet also gained a "treed" dog pose (D8). Committed as 4f5313a (17:03).
-- **Human / Claude / model:** the dogs as an important character, cutting the group chat and putting the chase in panel 11 are mine. The trio, the false-trail gag and the two reconnected links are Claude's.
-- **Still unresolved:** CONCEPT.md's Act 2 still mentions the group chat.
+- **Built by agent sessions,** each committed unedited, then reviewed:
+  - the balloon's float (`b2bdf3f`, `prompt-3.txt`);
+  - the jump (`ce74242`, `prompt-4.txt`);
+  - Step 5's plan and its steps (`16ee0fe` to `94bb565`, `prompt-5*.txt`).
+- **A mistake caught in review:** the balloon read-back compared `step` within half a frame, which would have passed the default 1/30 s. It was fixed to compare exactly (`86e22ed`), and proved in a worktree.
+- **Step 5's findings, settled in a revision** (`1730f86`):
+  - F while asleep: "F wakes him into the leap out".
+  - F up a tree: "The hop off uses the jump clips".
+  - The five tests the new task touches.
+- **At the time:** on Step 5's findings, "Make F jump there too", then "F wakes him into the leap out" and "The hop off uses the jump clips".
 
-## 2026-10-06 — The gameplay camera, tuned in the game
+### 21 Nov 2026: the balloons, three times over
 
-The storyboard's gameplay panels depend on this camera, so it belongs in this log.
+- **The pixel-art balloons:** "wtf the ballons we have look aboslute trash / dont suit the game at all". I generated a low-poly sheet with Gemini from Claude Code's prompt (`7bd4aea`, `da90cfd`), and moved the balloons out of the camp, with the girl minding them ("have the girl use somewhere in the out side of the camp area").
+- **A stop, as the brief said:** the tasks test expected the girl's old routine. Her new step went after warming her hands (`a579cc6`). Then the fire keeper's timing broke 3 checks, and the test settles him too (`1defa67`, `5ec3b37`).
+- **The 2D balloons:** "it looks werid in the game we have". So "3D balloons, moth graded" (`5879f5b`, `0ee0b18`): the moth became the graded sprite clip.
+- **At the time:** "wtf the ballons we have look aboslute trash / dont suit the game at all", then "give me a prompt u need i will create the assest for u". On where they were: "also why are the ballons randomly kept in the middle of the camp ?" On the 2D sheet in the game: "thw ballons are 2D?", then "it looks werid in the game we have".
 
-- **Attempt 1** (16:11): "for the game the camera angle should be similar to tht of the img we have of the raacoon can u update the same". Claude copied the camera saved with the reference picture in `raccoon.blend`, which is a low angle.
-- **Attempt 2** (16:19): I sent a written spec instead: "Camera: a high, fixed three-quarter view that looks down on the campsite at about 50°, with a narrow field of view so the scene reads like a tabletop diorama. The player can zoom but not rotate it. It follows the raccoon and leans a little toward the camper when he's close, so you can keep watching his routine. A straight top-down view would hide the poses and props that pillar 1 depends on." Claude built it: 50° down, through a 25° lens, from 20 m. That's the angle the storyboard's gameplay panels were drawn for.
-- **Judged** (16:25): "No still doesnt feel right can u give me some way to tell u the exact angle ?"
-- **Attempt 3:** Claude added a camera panel that opens with Tab, with a slider for each setting while the game runs and a "Copy numbers" button. I set the view by eye and sent it (16:32): "Camera: looks down 27°, turned -14°, field of view 15°, distance 19.2 m, looks past him 0.5 m"
-- **Decided:** that's the default view, committed as dcae18a (16:36).
-- **Human / Claude / model:** the final angle is mine, set by eye in the running game. The camera code and the Tab panel are Claude's. No generative model.
-- **Still unresolved:** there's no camper in the game yet, so the lean toward him hasn't been seen in play.
+### 21 Nov 2026: the jump goes back to the game's own; the balloon task is redesigned
 
-## 2026-10-06 — Storyboard v6: checked against the brief
+- **The jump:** "remodel the jump for the assignements requirement but it cannt be just a jump and bite it will be like it was previouslty". The crouch and the bite came out, and the phase table came from the game's own jump (`c0190b0`, `4044bf3`, `prompt-6.txt`).
+- **The balloon task:** "the ballons can be blown up by the girl maybe tie somewhere a bit outside on something near the camp and we can get it off and float them away to annoy the campers". That became "Let the balloons go": a chair, E at the knot, and the girl calling the others.
+- **Every raccoon animation:** "do requirements for all the animations / not just jumo / jump*" (`23dd8f6`, `d2a306b`, `prompt-7.txt`).
+- **At the time:** "no update the jump to what we had previously the jump cant be be just a working to pop the ballons", and for the task, "we have ballons and a girl we need a more better version of task integrated give me a pplan for the task for ballon than just poping".
 
-- **Wanted:** a storyboard that meets every storyboard requirement in the brief, ready to submit.
-- **Asked** (19:48): "ok now lets focus on the assignement and lets deliver the repo for it lets pick one which is the story board have we covered everthing required for it ?"
-- **Got:** Claude's check, made against rendered thumbnails and an in-game screenshot.
-  - **Already met:**
-    - 15 panels, including the six required moments (panels 1, 5, 6, 7, 8 and 15);
-    - three shot sizes and four angles;
-    - one 16:9 frame (all 15 thumbnails measure 1600 × 900);
-    - gameplay and design views labelled;
-    - every panel has its picture, shot, action, what's seen, what's heard (with the music state), asset IDs and a design reason tied to a pillar;
-    - committed before generating, except for the style target.
-  - **Two gaps:**
-    - The legend still described the planned 50° camera, so the gameplay panels no longer matched what the game shows.
-    - The raccoon's IDs didn't line up with the character sheet. The storyboard names his images by story moment (CHAR-FIDDLE, CHAR-STARTLED), while the sheet numbers poses by game state, and idle, bored, walk and sneak had no ID at all.
-- **Claude's fix:** both were added to the storyboard as draft v6, without rewriting what was there.
-  - The legend keeps the planned camera and adds mine under it. The thumbnails weren't redrawn. They stay as the record of the plan, and TEST-REPORT.md will put them next to in-game screenshots.
-  - A new table maps each raccoon ID to its character-sheet pose, and adds CHAR-IDLE, CHAR-BORED, CHAR-WALK and CHAR-SNEAK.
-- **Decided:** I asked for it to be committed (c8d0f0c).
-- **Human / Claude / model:** the check, the v6 wording and the ID table are Claude's. The camera it records is mine. No generative model.
-- **Still unresolved:**
-  - The "Your edits" line at the end of the storyboard's provenance is still blank, and so is CONCEPT.md's.
-  - The storyboard's open choices: how level 1 ends, one town level or two, task cards with or without words, and which of Claude's gags stay.
-  - CHARACTER-SHEET.md's facing section still describes the 50° camera.
-  - CHANGE-BRIEF.md isn't written yet, and generating started on 5 Oct, so it can't count as committed before the first generation.
+### 21 Nov 2026: Step 6, edges, re-pins and mutations
 
-## 2026-10-06 — Planning the slice: CHANGE-BRIEF.md
+- **The re-pin,** in its own commit (`1c858ed`): only the four pins the brief said would change.
+- **The edge tests,** from the agent unedited (`5c06182`, `prompt-8.txt`), found three places where the brief promised more than the jump does: air control from the tick after takeoff, a press kept only within 5 ticks of landing, and the peak on tick 13. I chose "Revise the brief" over changing the game (`9e214ec`).
+- **The mutations,** each in a git worktree: every one failed its test (`6161ecf`, `logs/a7-mutations/`).
+- **An interruption:** once, a `claude -p` run couldn't start (exit 127) after the desktop app updated Claude Code. Claude Code found the new path and ran it again.
+- **At the time:** "is it done ?", then, on the edge findings, "Revise the brief".
 
-- **Wanted:** a plan for the asset slice that meets the brief and that I can still build by 7 Oct.
-- **Asked** (20:18): "what else from the assignment is remaining ?" Claude's answer showed that no generated art or sound effects are in the game yet. The raccoon on screen is Claude's Blender model and the forest is Claude's code, and neither counts. Then, at 20:24: "yes lets create the change-brief.md"
-- **Got:** four questions from Claude, each with a recommendation.
-- **Decided** (20:28): I took all four recommendations:
-  - my generated poses go into the game as flat cut-outs, swapped per state;
-  - the four sounds are for a grab, a to-do item ticked off, the chitter (my laugh clip) and all tasks done;
-  - the environment asset is a generated ground texture;
-  - CHARACTER-SHEET.md switches to the low-poly look of my poses.
+### 21 Nov 2026: Step 7, the jump's strip and tuning
 
-  The questions treated the slice as the forest clearing already in the game, with its five tasks, and I answered on that basis.
-- **Why the low-poly look** (my words, 20:58): "the switch was a decision based on the astetics of the game and how the prototype looked"
-- **Got:** Claude's draft of CHANGE-BRIEF.md:
-  - the asset list with IDs and storyboard panels;
-  - the event-to-sound map, with how each sound is kept to one play per event;
-  - the music's behaviour on pause, success and the end, and on failure in the full game;
-  - eight predicted failures, each with its check;
-  - prompts for the ground texture and the sounds still to generate.
+- **The strip:** Claude Code built the preview (`b428f01`). I ran the capture and kept the brief's ten frames.
+- **My verdicts and the r1 revision:** both are in [TUNING.md](TUNING.md), "r0: my first verdict" and "r1: what I saw in play, and the change". In short:
+  - my strip verdict said the push read;
+  - Claude's reading said frame 10 barely showed it;
+  - in play I saw "The hind legs don't particularly move", so r1 bunched the push-off;
+  - "Yes, keep r1" (`437e482`, `ab5de2b`).
+- **What changed with it:** the rig read-back failed one check, because the importer had dropped a key the stronger push made redundant. I chose "Yes, 0.1° tolerance".
+- **At the time:** on strip r0, "it feels like better as compared to the version one which we created"; after play, "The takeoff seems a little off, not quite there. The hind legs don't particularly move, so we can update the frames on those if possible." Then "Yes, make r1" and "Yes, keep r1".
 
-  While checking the code, Claude also found that the collision capsule is now 0.64 m long, not the 0.8 m in the character sheet.
-- **Human / Claude / model:** the four decisions are mine. The options, the draft, the numbers and the prompts are Claude's. No generative model.
-- **Still unresolved:**
-  - CHANGE-BRIEF.md was written after generating began, so it doesn't count as committed before the first generation. It does come before the ground texture and three of the four sounds are generated.
+### 22 Nov 2026: the raccoon's loops get strips too
 
-## 2026-10-06 — Character sheet v5: the low-poly look, measured
+- **Asked:** "the thing we did for jump u havent done for other animations of the raccoon". Claude Code drafted a revision, which I kept, and built a frame log for the loops preview and a crop tool (`74297f9`).
+- **My verdict on each loop:** dictated, in [TUNING.md](TUNING.md), "Loops r0". All seven kept; climb is for later. Claude Code found that `sleep` holds one pose. I kept it: "there's no movement in that particular sleep, which is fine".
+- **At the time:** "Okay, I'm gonna dictate you what I'm seeing." On climb, "Maybe we'll need to work on climb in the future, but for now, I'm just gonna go ahead and we'll move ahead with climb."
 
-- **Wanted:** a character sheet that matches the poses I generated, so each one can be judged against it.
-- **Asked** (20:58), giving my reason for the switch: "the switch was a decision based on the astetics of the game and how the prototype looked"
-- **Got:** Claude's v5 of CHARACTER-SHEET.md. Each changed part keeps its old text, marked as the earlier plan.
-  - **The low-poly finish,** and a palette measured from my six green-screen poses: fur in three facet tones (`#748087`, `#67737B`, `#59656E`), charcoal `#26292E` and cream `#D1C4A7`.
-  - **A table matching my ten pose images to the sheet's poses.** With the silhouette, that makes ten distinct poses. The knocked-back image became a new hurt pose.
-  - **Corrections:** the 27° camera, his size on screen (162 × 85 px at the default zoom) and the real collision capsule (0.64 m).
-  - **A finding:** his fur is as bright as my generated ground texture (`ENV-GROUND.jpg`, saved at 20:42), 1.0:1 against its average, and 1.5:1 against the game's current ground. Only his charcoal markings and cream face show his shape. That's predicted failure 2 in CHANGE-BRIEF.md.
-- **Decided:** the switch is mine. How to fix the ground isn't decided yet. CHANGE-BRIEF.md says to change the ground, not the raccoon, and the silhouette test and my muted playtest will settle it.
-- **Human / Claude / model:** the switch and its reason are mine. The measurements and the wording are Claude's. The poses and the ground texture are Gemini outputs.
-- **Still unresolved:**
-  - the ground's brightness;
-  - the asset-log rows for the ten poses and the ground texture.
+### 22 Nov 2026: the records, the short answers, and the baseline again
 
-## 2026-10-06 — Character sheet v6: the silhouette, pose sheet and collision overlay
+- **The short answers,** rewritten for the clips as built (`4d59d51`). Answer 2 was measured, not guessed.
+- **The baseline:** the "before" logs had been overwritten, so Claude Code reran it in clean worktrees before and after (`82c9fc1`). Every count was the same; `cost_effects.gd` was 3/4 on both sides.
+- **At the time:** "Draft short answers", then "Keep it"; and for the report, "Draft TEST-REPORT".
 
-- **Wanted:** the character-sheet images the brief requires: a silhouette test at game size, at least ten labelled poses, and the collision shape over each pose. Claude's status check had found none of them.
-- **Asked** (21:18): "Update the charate sheet now"
-- **Got:** Claude wrote `design/character/make_character_sheet.gd`, which cuts my ten Gemini poses out of their backgrounds and builds three sheets from them.
-  - **First run:**
-    - The cut-outs were clean on both the green-screen and the scene backgrounds: the bench, bushes and shadows were gone.
-    - Two problems: green patches were left between the legs in sneak and bored, because the hole-filling step took those enclosed gaps for holes in his fur; and the capsule sat too far toward his head, because it was centred under his nearest paws.
-  - **Second run:** a gap is now filled only if it isn't the background colour, and the capsule is centred between his front and hind paws. Both problems are gone.
-  - **The silhouette test**, at actual size: idle, run, sneak and bored keep their ears, back and tail at both zooms. Asleep reads as a curled ball.
-- **Decided:** I saw the three sheets in chat and didn't ask for any changes.
-- **Human / Claude / model:** the poses are Gemini outputs. The cut-outs, scaling, sheets and their wording are Claude's. Nothing was redrawn by hand.
-- **Edits to generated images,** to record in the asset log: background removed by a colour key, cropped, and scaled so the faces match.
-- **Still unresolved:** the asset-log rows for the ten poses.
+### 22 Nov 2026: my checks in play, the dev flag, and a new moth
 
-## 2026-10-06 — The four sounds: using what I generated
+- **The seam:** "them moths are fine they move in same loop irrespective of the players". It needed "a dev flag to disable the human npcs" (`f74ad90`).
+- **The jump in play:** "Feels fine, even for different distinct workflows ... Maybe we can increase the distance ... Or maybe keep it." The distance is noted, not changed.
+- **The moth:** "Why do you keep on going about the moth?" Claude Code explained that I had made it the graded sprite clip. I then generated a new low-poly moth with Gemini from Claude Code's prompt ("take this moth and update it just have one moth in the game over the fire", `b1736e3`). Its registration was measured, and its mutations rerun.
+- **At the time:** "Moth is not a very important component within the game, to be honest. Like, it's just like a loop that we tried, like a tested loop ... I've tested it, it looks fine on me." Then: "You know what? Let's recreate the moth. I'll give you a updated moth."
 
-- **Wanted:** four sounds that fire on real events in the slice.
-- **Asked:**
-  - 21:38: "i have added two more sounds update them in correct locations also what else remains now /". The two were a running sound and a climbing sound, saved at 21:35 and 21:37. CHANGE-BRIEF.md v1 had planned a grab, a task ticked off, the chitter and "all done".
-  - 21:59: "all the sounds are geneareted by me and added updae the log and deatils wherever relevent"
-- **Got:**
-  - Claude moved the two originals into `design/sfx/` and cut a seamless loop from each. `run-loop.wav` (4.1 s) is cut just before two steps, so the repeat keeps the usual gap between steps. `climb-loop.wav` (4.9 s) is cut in two quiet dips. Claude checked that Godot imports both as loops.
-  - Claude logged every sound in SOURCES.md, noting that I generated them all, and offered three possible sets of four sounds.
-- **Decided** (22:02): use only what I've made:
-  - the running and climbing sounds loop while he does those things;
-  - laugh take A plays on the chitter;
-  - laugh take B plays when a task is ticked off.
+### 22 Nov 2026: the moth guides him to the camp
 
-  The laugh replaces CONCEPT.md's piano flourish as the payoff, and the grab and "ta-da" sounds are dropped. CHANGE-BRIEF.md v2 records this.
-- **Human / Claude / model:** the sounds are my generations, and the choice of four is mine. The loop cuts, the start and stop rules, and the wording are Claude's.
-- **Still unresolved:**
-  - no one has listened to the loops' seams yet, so I need to hear at least three repeats of each;
-  - the laughs are MP3s and need converting to WAV;
-  - the chitter and the task laugh are takes of the same laugh, so they may be hard to tell apart (failure 10 in CHANGE-BRIEF.md).
+- **Asked:** "let the moth be the one who guides the like raccoon to the particular campsite", with the waves "like a vibration, zing, zing, zing, not constantly".
+- **The order:** "Do the development first, let me play it, and then we can do the draft". So the build came first, then I played it ("Feels right"), then the revision, with my job line: "he helps user navigate to the main area" (`b1865bf`).
+- **At the time:** "I don't think the moth is being utilized. It's just roaming around the fire. We can see the fire flames as well if we think about it ... So enough indicators about the fire. So let's utilize the moth a bit better." After playing it: "Feels right".
 
-## 2026-10-06 — The ground texture, rejected in the game
+### 22 Nov 2026: CLAUDE.md under 120 lines, and the README
 
-- **Wanted:** a generated ground for the clearing, as the slice's environment asset, with the raccoon still readable against it.
-- **Tried:** while building the slice, Claude put my ENV-GROUND texture on the forest floor, repeated every 2.5 m. In the game camera it showed as dense light and dark patches with scattered leaves, repeating across the clearing.
-- **Judged** (22:20): "No the forest resort the previous verison i dont like the ground"
-- **Decided:**
-  - The forest goes back to the plain grass. The texture is switched off in the code, not deleted.
-  - The brief needs a generated environment asset in the slice, so at 22:24 I chose a generated tree stump instead. Claude offered four options: a stump, the camper's backpack, the texture only on the den's floor, or a softer version of the texture.
-  - CHANGE-BRIEF.md v3 records it, with the stump prompt, before the stump is generated.
-- **Human / Claude / model:** the texture is a Gemini output. Putting it in the game, and the four options, are Claude's. Rejecting it and choosing the stump are mine.
-- **Still unresolved:** the stump isn't generated yet.
+- **CLAUDE.md** had grown to 153 lines; Claude Code trimmed it to 119 (`9e5fd21`).
+- **The README** got its Assignment 7 section (`2c28950`).
 
-## 2026-10-06 — The stump, and a second forest reference
+### 22 Nov 2026: contact sheets, Rock the party out, the task sounds, and the chair by the table
 
-- **Wanted:** a stump that matches the raccoon's low-poly look and survives the colour key, so it can stand in the clearing as the slice's environment asset.
-- **Asked:** Gemini, with the ENV-STUMP prompt that Claude wrote into CHANGE-BRIEF.md v3, which was committed at 22:26, and `idle.jpg` as the style reference. Whether I changed the prompt before running it wasn't recorded.
-- **Got** (22:28): `design/reference/stump.jpg`. *Claude's check against the prompt:* a faceted stump with pale rings on top, brown bark and four roots, nothing green on it, on a flat green screen.
-- **Decided:** accepted. At 22:30 I added it to the repo together with a second forest reference, `forest-assest.jpg`, and asked: "i have added the stump and forest refernce image update the docs".
-- **Human / Claude / model:** the images are Gemini outputs and accepting them was my call. The prompt, and logging the images, are Claude's work.
-- **Still unresolved:**
-  - the stump isn't in the game yet;
-  - what the second forest reference is for, which I didn't state.
+- **Contact sheets:** "do we have the sprint sheets for the animations of the raccons we did ?", then "Yes, make them". One sheet for each strip, the jump's r0 and r1 and each of the seven loops; no sheet for the moth ("No, commit these", `e96486a`).
+- **Rock the party:** "Rock the party remove this it should be just tasks", then "Remove it from code". The camp's tasks are a plain list now (`c8a01ab`).
+- **The task sounds:** "use the sound effect when u complete a task replace it with the current vesrion", with two Pixabay sounds I picked. After listening: "Sounds good, commit" (`1d8d479`).
+- **The chair by the table:** "can u move the chair near the table we have at camp ? and make the girl dance and come and sit on the chair for some time", "so we can use the ballons". Claude Code keyed her a `sit` clip in Blender, moved the chair, knot and balloons, and changed the balloon task's test to match. Kept: "Keep and commit".
 
-## 2026-10-06 — Playtesting the slice
+### 22 Nov 2026: a grader's read, and the small gaps it found
 
-- **Wanted:** to see whether the slice works for a player: how it looks and moves, whether the sounds fire on the right events, and whether it still reads with the sound off.
-- **Played:** the slice, with sound on and then muted. My notes, at 22:57:
-  - "need to make the animations smother and the gameplay feels a bit blovcky need to work on the same"
-  - "gameplay wise i need to update the game system such that i feels rewarding for the tasks to complete for the user to pursue the tasks more"
-  - "need to think abt the AI of the other NPC charaters of how pusnishing it should be to interact with them for loss"
-- **Answered** (22:59), to Claude's questions:
-  - sound on: "Yes, all fine";
-  - muted: "Partly";
-  - the effects' level: "Effects too quiet";
-  - a smoothing pass now: "No, record it as a next step".
-- **Decided:**
-  - Raise the effects. Claude raised them 4 dB and lowered the music 3 dB (81d696f).
-  - The smoother animation, rewarding tasks, and how punishing the other characters should be are next steps for the full game, not part of this slice.
-- **Human / Claude / model:** the play, the notes and the judgements are mine. The volume change, the automated check, the fresh-copy run, the screenshots and TEST-REPORT.md are Claude's.
-- **Still unresolved:**
-  - which moments got lost when muted;
-  - the new levels haven't been checked by ear yet;
-  - the three next steps.
+- **Asked:** "acting as the grader grade the work submited", with the assignment pasted. Then, for the small gaps it named: "Yes, fix them".
+- **Came back** (Claude Code's read against the rubric, not the course's grade): every Assignment 7 test passed in a fresh clone of `160c0eb`, imported from an empty cache. Still to do: the film; the branch and the `a7` tag on GitHub, with the tag moved off `dc8ff17`; and three of my checks (the seam on the new moth, its registration by eye, both clips over the darkest and lightest ground).
+- **Fixed by Claude Code, uncommitted:**
+  - **CLAUDE.md's line references** that later commits had moved (`_on_landed()`, the dancers' seeks, `--jump-test`, the flag loop, the `Sprite3D` lines, `scripts/tasks_test.gd`).
+  - **The bone-track mutation,** which Step 6 hadn't run: its subname mutations broke the moth's and a balloon's property tracks, not a bone. In a git worktree, an import script renamed `jump`'s first bone track `pelvis` to `pelvis_x`, in the clip only, and the rig's read-back failed 1 ("no bone pelvis_x on Skeleton3D"); its control passed 51 of 51 (`logs/a7-mutations-bone/`).
+  - **The baseline, rerun at the branch tip,** `160c0eb`, in a fresh clone from an empty cache (`logs/a7-baseline-final/`): every count as at `c14faf9`, but waves, 15 since its brief revision. `cost_effects.gd` still fails 1 of 4.
+  - **SUBMISSION.md's balloon task count:** 71, not 69.
+- **The agent sessions' last result events,** read by Claude Code on 22 Nov 2026, after the fact: every `claude -p` session in `design/a7/` ended `success`, and none stopped at `--max-turns`. Most had a few permission denials (11 in session 6, mostly Godot run directly rather than through `scripts/run-test.sh`): the scoped permissions refusing, as meant. `git diff --stat a6 HEAD -- shaders/` prints nothing.
+
+### 22 Nov 2026: the films, my last checks, the push and the tag
+
+- **The films:** my film and a NotebookLM explainer, both made by me and uploaded to my OneDrive. Claude Code hashed each file and added the links, filenames and SHA-256s to SUBMISSION.md, the README and SOURCES.md (`66788bd`). Before the explainer, NotebookLM's first producer notes called the moth's flutter "2D" and the two clocks something to "sync", so Claude Code wrote a corrected prompt.
+- **Asked:** "ok push the branch nothing should remain for me make sure". The branch went to GitHub for the first time; a fresh clone of it imported cleanly and passed the rig 51, the moth 22, the pins 26, the states 89 and the balloon task 71.
+- **My last two checks:** both clips over the darkest and lightest ground, and the new moth's registration by eye. "Checks done, tag it".
+- **The tag:** `a7` moved off its placeholder at `dc8ff17` to the commit that adds this entry, and pushed. The ZIP and the Canvas note are made from it.
+
+### What I accepted, changed or turned down
+
+From the record of what I chose in the chat; each brief revision says the same in its own line.
+- **Accepted from Claude Code:**
+  - the numbers in the phase tables and cycle specs, and the jump's key poses;
+  - the drafts of the brief and its revisions, each kept by me;
+  - the tests, the previews and the tool scripts (the sheet maker and the strip cutter);
+  - the 3D balloons' build and timings, and the hint "Untie them, let them fly.";
+  - the new moth's size, filtering and half-frame start;
+  - the guide's distances and timings, and the waves' bursts;
+  - the 0.1° tolerance in the rig read-back;
+  - the dev flag as the campers' sight turned off;
+  - the trimmed CLAUDE.md.
+- **Changed, by my direction:**
+  - **The jump:** the crouch and the bite out, back to the game's own jump.
+  - **The balloons:** pixel sheets, then my Gemini sheet, then 3D; out of the camp with the girl; popping replaced by "Let the balloons go".
+  - **The moth:** an extra, then the graded sprite clip, then my Gemini sheet, one moth instead of four, then its job as the guide: "he helps user navigate to the main area".
+  - **The scope:** the requirements met for all seven raccoon loops, and strips for them, not only the jump.
+  - **r1:** from my play, not from Claude's reading.
+  - **The order:** the guide built first and played, then drafted.
+- **Turned down:**
+  - Claude Code's first four task ideas;
+  - the CC-BY-SA pixel balloons;
+  - my own 2D balloon sheet in the game;
+  - the crouch and the bite;
+  - four moths, for one;
+  - breathing for `sleep` ("there's no movement in that particular sleep, which is fine").
+  - The jump's distance: not now ("Or maybe keep it. I will let you know.").
+
+### Still unresolved
+
+- **Climb** needs more work ("Maybe we'll need to work on climb in the future").
+- **The jump's distance:** maybe a little more, not decided.
+- **`tests/cost_effects.gd`** fails 1 of 4 (its smoke case finds the fire out). It failed the same way before this assignment's first change, and it's still open.
+- **The new moth's seam on its own:** watched in play as it guided him ("Feels right"), but a five-wrap look at it alone isn't recorded.
+- **The moth's exact-wrap quirk:** at 144 fps it still drops one frame in 48.
+- **Once tagged, still mine:** uploading `submission.zip` and its note to Canvas, and checking that a reviewer can open the two films' links.

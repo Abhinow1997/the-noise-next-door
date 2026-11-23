@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Effects' headless CPU price (tests/cost_effects.gd)
+  args: ["--script", "res://tests/cost_effects.gd"]
+  renderer: forward_plus, adapter: ''
+  physics ticks/s: 60, max_fps: 0, rounds: 5, warm-up: 120 frames, samples: 300 frames a case a round
+  round 1 done (4.4 s)
+  round 2 done (7.5 s)
+  round 3 done (10.6 s)
+  round 4 done (13.7 s)
+  round 5 done (16.8 s)
+
+Process delta while sampling: 0.016667 - 0.016667 s (fixed at 1/60: --fixed-fps 60 is on)
+Per frame, wall time (ms), all rounds' samples together:
+  case      frames     mean       sd      min   median      max   round means min - max
+  empty       1500    0.005    0.001    0.004    0.005    0.032   0.005 - 0.006
+  game        1500    0.990    0.232    0.623    0.988    2.553   0.943 - 1.055
+  effect_a    1500    0.974    0.265    0.617    0.960    5.114   0.949 - 1.006
+  effect_b    1500    0.998    0.273    0.630    0.992    4.994   0.984 - 1.007
+Each round's mean (ms), in round order:
+  empty     0.006  0.005  0.005  0.005  0.005
+  game      1.055  0.946  1.011  0.997  0.943
+  effect_a  0.988  0.963  0.949  0.964  1.006
+  effect_b  0.984  1.004  1.007  0.990  1.002
+
+Differences (the second case's mean minus the first's):
+  empty    -> game       +0.985 ms (+19200.4%)  different (rounds' means don't overlap)
+  game     -> effect_a   -0.016 ms (-1.7%)  SAME within the spread (rounds' means overlap)  (the brief predicts this: no GPU particle process headless)
+  game     -> effect_b   +0.007 ms (+0.7%)  SAME within the spread (rounds' means overlap)  (the brief predicts this: no GPU particle process headless)
+  empty    -> effect_a   +0.969 ms (+18881.5%)  different (rounds' means don't overlap)
+  empty    -> effect_b   +0.993 ms (+19343.2%)  different (rounds' means don't overlap)
+
+PASS empty: every sampled frame in its stated state
+PASS game: every sampled frame in its stated state
+PASS effect_a: every sampled frame in its stated state
+PASS effect_b: every sampled frame in its stated state
+Done: all cases measured in their stated states

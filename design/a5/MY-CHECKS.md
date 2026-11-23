@@ -1,0 +1,67 @@
+# My checks for Assignment 5
+
+The checks only I can do, in order. Each says what to record. I tell Claude Code the results, and it writes them up as mine. (Written by Claude Code on 29 Oct 2026, from the course's Step 3, Step 4 and "Use It", and my brief.)
+
+In Git Bash, from the repo root, first:
+
+```bash
+GODOT="/c/Users/dotbix/AppData/Local/Programs/Godot/Godot_v4.7.2-stable_win64_console.exe"
+```
+
+## 1. Now
+
+- [x] **Commit my hint shader** (unless I've asked Claude Code to): `git add shaders/hint_experiment.gdshader shaders/hint_experiment.gdshader.uid && git commit -m "Add hint experiment shader"`
+- [x] **Hint experiment (HUMAN CHECK):** `"$GODOT" --path . --script "$(pwd)/design/a5/captures/read_bands.gd"`. It saves `design/a5/captures/hint/bands.png` and `bands.txt`, with each band's pixel beside my prediction. Record: does each band match, within 2 steps? If not, check my known power slip first (the brief's hint predictions).
+
+## 2. Any time, even while Claude Code's runs go (nothing to save)
+
+- [x] **In play (HUMAN CHECK):** from a normal start, 1 more spotting (my brief asks for at least five; five are recorded, the fifth on 1 Nov). For each: which cones turned red, how the fade looked, when the cones came back, and any re-spotting.
+- [x] **Also in play** (1 Nov: "for now it looks fine all the aspects i have checked"):
+  - a cone coming back about 5 s after its camper walks back, fading in over 0.5 s;
+  - two cones overlapping during a red: does it flicker? (Two red cones overlapping seen on 1 Nov; a red cone over a yellow one, failure 7's case, still to see.)
+  - all three cones appearing at the tutorial's end, with no fade-in;
+  - the boundaries: he moves and the campers behave as before, and only the cones and the cooler look different;
+  - the bubble demo's cone still turns red.
+
+## 3. In the editor, while no run of Claude Code's is going (save nothing)
+
+Look in the editor's 3D view, not a run: running from the editor saves the scene first.
+
+- [x] **The cooler under its light:** open `asset_room/asset_room.tscn` and turn the Environment's SSAO off. The body should read as scuffed painted metal, and the lid as smoother white plastic. Then one look at the camp at night, in play. (Both done on 1 Nov.)
+- [ ] **Interface sweep (HUMAN CHECK):** on `materials/cooler_body.tres`, each uniform at its minimum, the shader's default and its maximum: `detail` 0 / 0.5 / 1, `uv_scale` 0.25 / 1 / 4, `roughness_scale` 0 / 1 / 1, `normal_strength` 0 / 1 / 2, and `tint` black and white. Record what changed, and any setting that breaks the look. (Captured on 1 Nov at 21:26, and my notes on `tint` and `uv_scale` are in TEST-REPORT.md; still to send: what changed for `detail`, `roughness_scale` and `normal_strength`.)
+  - **Take the captures** (Claude Code's tool, 1 Nov): `"$GODOT" --path . --script "$(pwd)/design/a5/captures/capture_sweep.gd"`. A window opens on the asset room's cooler with SSAO off. Press F9 in it, and watch: each setting stays on screen for 1.5 s, named at the top, then it's saved. About 25 s; leave the window as it opens. It saves to `design/a5/captures/sweep/`: 15 captures, a strip per uniform (its captures side by side, cropped to the cooler) and `sweep.txt` (what each capture set, and how many pixels it blew out against the cooler as committed). Nothing is saved to the material or the scene.
+  - **Then write what you saw,** in your own words, from the strips and the window, and tell Claude Code for TEST-REPORT.md:
+
+    | Uniform | Min | Shader default | Max | What changed on screen | Breaks the look? Which setting? |
+    |---|---|---|---|---|---|
+    | `detail` | 0 | 0.5 | 1 | | |
+    | `uv_scale` | 0.25 | 1 | 4 | | |
+    | `roughness_scale` | 0 | 1 (also its max) | | | |
+    | `normal_strength` | 0 | 1 | 2 | | |
+    | `tint` | black | white | (the committed red, third in its strip) | | |
+
+    Compare each row with the "What I expect across its range" column of the brief's uniform table (its 28 Oct material plan), and say where it differed.
+- [x] **One shader, two materials (HUMAN CHECK):** a capture of the body and the lid side by side. Edit one line of `shaders/cooler_paint.gdshader`: both should change. Edit one value in `materials/cooler_lid.tres`: only the lid should change. Undo both.
+- [x] **After closing the editor:** `git status`. If any `.import`, `.tres` or `.tscn` changed, tell Claude Code: the course wants any rewritten `.import` explained. `git diff -- shaders/ materials/` must be empty.
+
+## 4. After Claude Code says the audit's test is in
+
+- [x] **The `source_color` mutation:** delete `source_color` from `albedo_texture` in `shaders/cooler_paint.gdshader` and save. Run `bash scripts/run-test.sh test_materials.gd 60; echo "exit $?"`: it must exit 1. Copy `logs/test_materials_60fps.log` to `logs/mutation-source-color_60fps.log`, then `git checkout -- shaders/cooler_paint.gdshader logs/test_materials_60fps.log`. `git diff -- shaders/` must be empty.
+
+## 5. Step 4: reading the language (mine to write; the spec's Step 4 has the exact wording)
+
+- [x] In a scratch scene, not saved in the repo, make a StandardMaterial3D with the Blue Metal Plate albedo, normal map and roughness textures enabled. Make it unique, then convert it to a ShaderMaterial from the Inspector's resource menu. Save the code as `shaders/standard_generated.gdshader`, and annotate it.
+- [x] `LANGUAGE-NOTES.md`, part 1: the line numbers in that file of `shader_type` and `render_mode`; the uniforms for the albedo colour and the normal-map strength; the albedo and normal-map samplers, with their hints; and the lines that write `ALBEDO`, `ROUGHNESS` and `NORMAL_MAP`.
+- [x] Part 2: the eight questions, in my own words, each with a line reference to one of my three shaders:
+  - what `shader_type` decides;
+  - which processor functions I wrote and when each runs, and what moving my colour line into `vertex()` would change;
+  - three built-ins I read and two I wrote, and which are read-only;
+  - what each hint changes (cite my hint experiment);
+  - whether `hint_range` clamps (cite my 2.0 capture);
+  - the generated line that samples the albedo as colour and the normal map as data, and mine;
+  - why `fragment()` can't read a neighbour, and how game state reaches it;
+  - two things the language gives that GLSL doesn't.
+
+## 6. The film, last
+
+- [ ] One landscape film, made with the course's Brutalist godot-gamedev skill and its walker modifier. The skill isn't installed on this machine, so I request it from the course. Its shader shots must be real engine output on my display. Its link, filename and SHA-256 go in the README and SUBMISSION.md.

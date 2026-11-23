@@ -1,0 +1,57 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Title screen check, 2026-10-26T17:28:39
+  pass  Opens on New Game                                          expected New Game   got New Game
+  pass  Continue can't be picked without a save                    expected false      got false
+  pass  The title is shown over the level itself                   expected true       got true
+  pass  Down: Settings                                             expected Settings   got Settings
+  pass  S: Quit                                                    expected Quit       got Quit
+  pass  Down from Quit: round to New Game, past Continue           expected New Game   got New Game
+  pass  Up from New Game: round to Quit, past Continue             expected Quit       got Quit
+  pass  Mouse over Settings                                        expected Settings   got Settings
+  pass  Mouse over Continue: still Settings                        expected Settings   got Settings
+  pass  Enter on Settings: the Settings page, on Music             expected Music      got Music
+  pass  Left: music one step down                                  expected 9          got 9
+  pass  The music bus is that much quieter                         expected true       got true
+  pass  The settings file has it                                   expected 9          got 9
+  pass  Right twice: back up to full, no further                   expected 10         got 10
+  pass  The music bus is at full                                   expected true       got true
+  pass  Effects two steps down                                     expected 8          got 8
+  pass  The effects bus is that much quieter                       expected true       got true
+  pass  Enter on Full screen: on                                   expected true       got true
+  pass  And off again                                              expected false      got false
+  pass  Esc: back to the menu, on Settings                         expected Settings   got Settings
+  pass  The menu's keys leave him asleep in the hollow             expected true       got true
+  pass  Esc on the title doesn't pause the game                    expected false      got false
+  pass  The title's camera is in charge                            expected 1.0        got 1.0
+  pass  The lullaby is playing                                     expected true       got true
+  pass  Under the title the party next door is quiet               expected false      got false
+  pass  Under the title no sound waves                             expected true       got true
+  pass  New Game: the menu locks while the camera glides in        expected true       got true
+  pass  In: still the same level, no second scene                  expected true       got true
+  pass  In: no picture laid over it                                expected true       got true
+  pass  In: the title has handed over                              expected 0.0        got 0.0
+  pass  In: the camera is the nap close-up                         expected 1.0        got 1.0
+  pass  In: he's still asleep in the hollow                        expected true       got true
+  pass  In: the lullaby is the same and still playing              expected true       got true
+  pass  In: it carried on, not from the start                      expected true       got true
+  pass  In: New Game started the party next door                   expected true       got true
+  pass  In: the party isn't heard, just its waves                  expected true       got true
+  pass  In: the lullaby plays on, not dropped                      expected true       got true
+  pass  In: the party's sound waves are rolling out                expected true       got true
+  pass  In: the forest loop waits, right down                      expected true       got true
+  pass  In: no key task at the bottom yet                          expected            got 
+  pass  In: THE PLAN is put away                                   expected 0.0        got 0.0
+  pass  Settled: the prompt to wake him is up                      expected 1.0        got 1.0
+  pass  Settled: still asleep, still close                         expected true       got true
+  pass  Settled: the nap he started with doesn't count             expected 0          got 0
+  pass  Settled: the party doesn't bother him in his sleep: just his z's expected asleep     got asleep
+  pass  Up: out of the hollow and on the ground                    expected true       got true
+  pass  Up: the camera is back out                                 expected 0.0        got 0.0
+  pass  Up: the lullaby has stopped                                expected false      got false
+  pass  Up: the forest loop is back to full                        expected true       got true
+  pass  Up: the key task is up at the bottom                       expected investigate got investigate
+  pass  Up: the prompt has gone                                    expected 0.0        got 0.0
+  pass  Up: still no nap counted                                   expected 0          got 0
+RESULT: all checks passed

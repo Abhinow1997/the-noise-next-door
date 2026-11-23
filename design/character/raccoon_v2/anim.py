@@ -1,6 +1,8 @@
 # Keyframes the raccoon's looping actions on RaccoonRig: idle, walk, run, sneak, bored,
 # sleep, climb. Each is a function of the loop phase u in [0, 1), sampled every frame, so
-# the last frame matches the first. Run inside Blender: exec(open(path).read()).
+# the last frame matches the first. Also two one-shots, jump and jump_land (make_oneshot):
+# key poses on the phase table's frames (CHANGE-BRIEF.md), eased between, not cyclic.
+# Run inside Blender: exec(open(path).read()).
 # World axes: +X his left, -Y forward (he faces -Y), +Z up. In place: the game moves him.
 import bpy, math
 from mathutils import Matrix, Quaternion, Vector
@@ -78,7 +80,7 @@ def apply(pose, frame):
         pb = PB[b]
         pb.rotation_quaternion = wrot(b, *pose.rot.get(b, []))
         pb.keyframe_insert("rotation_quaternion", frame=frame)
-        if b.startswith("eye") or b == "spine" or b == "chest":
+        if b.startswith("eye"):
             pb.scale = pose.scale.get(b, (1, 1, 1))
             pb.keyframe_insert("scale", frame=frame)
     PB["pelvis"].location = wloc("pelvis", pose.pelvis)
@@ -96,7 +98,41 @@ def apply(pose, frame):
         PB[k].keyframe_insert("rotation_quaternion", frame=frame)
 
 
-def make(name, frames, fn):
+# How far steady_head may lift the body above where the gait put it, in metres.
+RISE_MAX = 0.02
+
+
+def steady_head(frames, fn, keep):
+    """Re-keys the body's place so the head rides steadily while the legs take the
+    bounce, as running animals hold theirs: on each frame the pelvis, and everything on
+    it, shifts by just enough to take out all but `keep` of the head's rise and fall and
+    of its surge back and forth. (The neck is too short to do it alone.) The planted paws
+    stay put, so the legs bend and straighten to suit. The whole run sinks by as much as
+    it takes for the body never to rise more than RISE_MAX above where it was, so the
+    hind legs, at full stretch as they push off, still reach the ground. Returns the
+    largest shift, in metres."""
+    def posed(f, shift):
+        pose = Pose()
+        fn(f / frames, pose)
+        pose.pelvis = pose.pelvis + shift
+        apply(pose, f)
+
+    heads = []
+    for f in range(frames):
+        posed(f, Vector())
+        bpy.context.view_layer.update()
+        heads.append(PB["head"].head.copy())
+    mean = sum(heads, Vector()) / frames
+    shifts = [(keep - 1.0) * Vector((0, h.y - mean.y, h.z - mean.z)) for h in heads]
+    sink = Vector((0, 0, max(0.0, max(s.z for s in shifts) - RISE_MAX)))
+    for f in range(frames + 1):
+        posed(f, shifts[f % frames] - sink)
+    return max((s - sink).length for s in shifts)
+
+
+def make(name, frames, fn, steady=None):
+    """Keys action `name`, `frames` long, from fn(u, pose). With `steady`, the head is
+    steadied afterwards (see steady_head), keeping that share of its bob."""
     if ONLY and name not in ONLY:
         return
     act = bpy.data.actions.get(name)
@@ -114,10 +150,62 @@ def make(name, frames, fn):
         pose = Pose()
         fn(f / frames, pose)
         apply(pose, f)
+    if steady is not None:
+        print("  head steadied, the body shifting up to %.1f cm" % (100 * steady_head(frames, fn, steady)))
     act.use_frame_range = True
     act.frame_start, act.frame_end = 0, frames
     act.use_cyclic = True
     print("action", name, frames, "frames")
+
+
+def action_fcurves(act):
+    """Every F-curve of `act`: through its layers' channelbags (Blender 4.4+ slotted
+    actions), or the legacy act.fcurves on older Blenders."""
+    if hasattr(act, "layers"):
+        out = []
+        for layer in act.layers:
+            for strip in layer.strips:
+                for bag in strip.channelbags:
+                    out.extend(bag.fcurves)
+        if out:
+            return out
+    return list(getattr(act, "fcurves", []))
+
+
+def make_oneshot(name, keys, eases):
+    """Keys one-shot action `name` from `keys`, [(frame, fn(pose)), ...]: a pose on each key
+    frame only, and the last frame its own pose (not a copy of the first). Between key
+    frames Blender interpolates; `eases` maps a key frame to the (interpolation, easing) of
+    the segment that starts on it, e.g. {0: ("QUAD", "EASE_IN")}. Not cyclic. The exporter
+    samples every frame, so the easing is baked into the .glb."""
+    if ONLY and name not in ONLY:
+        return
+    act = bpy.data.actions.get(name)
+    if act:
+        bpy.data.actions.remove(act)
+    act = bpy.data.actions.new(name)
+    act.use_fake_user = True
+    rig.animation_data_create()
+    rig.animation_data.action = act
+    for b in PB:
+        b.location = (0, 0, 0)
+        b.rotation_quaternion = Quaternion()
+        b.scale = (1, 1, 1)
+    for f, fn in keys:
+        pose = Pose()
+        fn(pose)
+        apply(pose, f)
+    for fc in action_fcurves(act):
+        for kp in fc.keyframe_points:
+            interp, easing = eases.get(round(kp.co.x), ("BEZIER", "AUTO"))
+            kp.interpolation = interp
+            kp.easing = easing
+        fc.update()
+    frames = keys[-1][0]
+    act.use_frame_range = True
+    act.frame_start, act.frame_end = 0, frames
+    act.use_cyclic = False
+    print("action", name, frames, "frames, one-shot, keys at", [f for f, _ in keys])
 
 
 # --- Shared bits ----------------------------------------------------------------------
@@ -132,21 +220,16 @@ def tail_curve(pose, lift, side, curl=0.0, wave=0.0, u=0.0, speed=1.0):
         pose.turn(b, Z, -(side * k + ripple * 0.35))
 
 
-def breathe(pose, u, cycles, amount=0.02):
-    s = 1 + amount * math.sin(TAU * cycles * u)
-    pose.scale["chest"] = (s, 1, s)
-    pose.scale["spine"] = (s, 1, s)
-
-
 def eyes(pose, open_amount):
     for e in ("eye.L", "eye.R"):
         pose.scale[e] = (1, max(open_amount, 0.08), 1)
 
 
-# --- Idle: standing, breathing, glancing about, tail curled up behind ---------------------
+# --- Idle: standing, glancing about, tail curled up behind --------------------------------
+# No breathing in any action: scaling the chest made him swell and shrink, and the head
+# with it, which at the gaits' playback speeds read as the head shaking.
 
 def idle(u, pose):
-    breathe(pose, u, 2)
     look = math.sin(TAU * u) * 0.32 + math.sin(TAU * 2 * u + 1.0) * 0.08
     pose.turn("neck", Z, look * 0.4)
     pose.turn("head", Z, look * 0.6)
@@ -208,7 +291,6 @@ def walk(u, pose):
     pose.turn("head", X, 0.02 * math.cos(2 * TAU * (u - 0.15)))   # a small nod, just behind
     sway = math.cos(TAU * (u - 0.40))                 # tail follows the hips a beat late
     tail_curve(pose, 0.38 + 0.05 * rise, 0.16 * sway, wave=0.10, u=u)
-    breathe(pose, u, 2, 0.01)
 
 
 # --- Run: a lope ------------------------------------------------------------------------
@@ -217,6 +299,9 @@ def walk(u, pose):
 # flat), push off by u ~ 0.95. The body rises in the two moments with no foot down
 # (u ~ 0.47 and ~ 0.97) and dips while a pair is planted; it rocks nose-up as the front
 # feet push off and nose-down as they land. Head and tail counter the rocking.
+# The game plays the run at nearly 3x, so the rock and the bounce put the head through
+# 14 cm about 4 times a second, which reads as shaking. So make() steadies the head
+# afterwards, keeping a quarter of its bob: the hips bound under a head that glides.
 RUN = dict(stride=0.46, duty=0.40, lift_h=0.09, lift_f=0.13,
            phase={"foot_ik.L": 0.0, "foot_ik.R": 0.06, "hand_ik.L": 0.50, "hand_ik.R": 0.56})
 
@@ -261,7 +346,6 @@ def run(u, pose):
         pose.turn(e, X, -0.4)                          # ears back
     lag = math.cos(TAU * (u - 0.06))                   # the tail follows a beat behind
     tail_curve(pose, 0.12 + 0.16 * lag, 0.0, curl=-0.05 * lag, wave=0.0, u=u)
-    breathe(pose, u, 2, 0.02)
 
 
 # --- Sneak: a stalk, one paw at a time ----------------------------------------------------
@@ -328,30 +412,68 @@ def sneak(u, pose):
         pose.turn(b, X, [-0.18, 0.04, 0.03, 0.02][i])
         pose.turn(b, Z, [0.0, 0.0, 0.08, 0.16][i] * twitch)
     eyes(pose, 0.7)
-    breathe(pose, u, 2, 0.008)
 
 
-# --- Bored: sitting up, scratching behind an ear, droopy eyes ------------------------------
+# --- Bored: slumped on his rump, legs out, paws hanging, droopy eyes -----------------------
+# The author's mock-up (20 Oct 2026): sitting up on his bottom with his back rounded and
+# his head sunk low and forward, both front legs hanging straight down in front of his
+# belly, the hind legs splayed out in front, the tail lying flat on the ground straight
+# behind him, eyes half shut. (In the mock-up the front paws reach the ground between his
+# feet; his front legs are too short to from a sit this upright, so they hang limp.) Once a loop he sighs: he draws himself
+# up a little as he breathes in, then sags as he lets it out, as the sigh over his head
+# puffs out (thought icons, scripts/scribbles.gd: both last 4 seconds and start together).
+# P_BORED overrides the numbers, for trying poses.
+
+P_BORED = globals().get("P_BORED", {})
+
 
 def bored(u, pose):
-    sit = 1.05
-    pose.turn("pelvis", X, -sit)                     # rear down, chest up
-    pose.pelvis = Vector((0, -0.05, -0.145))
-    pose.turn("neck", X, 0.55)
-    pose.turn("head", X, 0.15)
-    pose.turn("head", Y, 0.25)                       # a lazy tilt
-    pose.turn("head", Z, -0.25)
-    breathe(pose, u, 1.5, 0.025)
-    eyes(pose, 0.5)
-    # Hind feet out in front, soles forward.
-    pose.paw["foot_ik.L"] = Vector((0.03, -0.30, -0.01))
-    pose.paw["foot_ik.R"] = Vector((-0.03, -0.30, -0.01))
-    # Left paw up behind the ear, scratching; right paw resting on the belly.
-    scratch = math.sin(TAU * 6 * u) * (0.5 + 0.5 * math.cos(TAU * u))
-    pose.rel["hand_ik.L"] = ("ear.L", (0.03, 0.05 + 0.015 * scratch, -0.03 + 0.02 * scratch))
-    pose.rel["hand_ik.R"] = ("spine", (0.07, -0.17, 0.0))
-    pose.turn("ear.L", X, -0.2 - 0.1 * scratch)
-    tail_curve(pose, 1.0, -0.6, wave=0.05, u=u)        # lying on the ground to one side
+    g = P_BORED.get
+    # The sigh: breathing in over the last fifth of the loop, out over the first.
+    sigh = ease((u - 0.8) / 0.2) if u >= 0.8 else 1.0 - ease(u / 0.25)
+    sit = g("sit", 1.4)
+    pose.turn("pelvis", X, -sit)                     # rear down, front up, onto his rump
+    pose.pelvis = Vector(g("seat", (0.0, 0.055, -0.335)))
+    # Slumped: the back rounds forward over his belly, less as he breathes in.
+    pose.turn("spine", X, g("slump", 0.25) - 0.05 * sigh)
+    pose.turn("chest", X, g("slump2", 0.5) - 0.04 * sigh)
+    # The head hangs low and forward, chin down, with a lazy tilt.
+    pose.turn("neck", X, g("neck", 0.45) - 0.03 * sigh)
+    pose.turn("head", X, g("chin", 0.2) - 0.04 * sigh)
+    pose.turn("head", Y, g("tilt", 0.08))
+    pose.turn("head", Z, g("turn", -0.1))
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, g("ears", -0.25))             # ears drooping back
+    # A slow blink halfway round, under half-shut lids.
+    blink = max(0.0, 1 - abs(u - 0.55) / 0.04)
+    eyes(pose, g("lids", 0.45) * (1 - blink))
+    # Front legs hanging limp, straight down from the shoulders in front of his belly
+    # (they're too short to reach the ground from a sit as upright as the mock-up's).
+    hang = g("hang", (-0.05, -0.08, -0.33))
+    pose.rel["hand_ik.L"] = ("upperarm.L", hang)
+    pose.rel["hand_ik.R"] = ("upperarm.R", (-hang[0], hang[1], hang[2]))
+    # Hind legs splayed out in front, soles forward.
+    foot = Vector(g("foot", (0.09, -0.26, -0.005)))
+    pose.paw["foot_ik.L"] = foot
+    pose.paw["foot_ik.R"] = Vector((-foot.x, foot.y, foot.z))
+    for k in ("foot_ik.L", "foot_ik.R"):
+        pose.paw_pitch[k] = g("toes", -1.0)
+    # The tail flat on the ground behind him: the first segment drops from his rump to the
+    # ground (`droop`, radians below level), the rest lie level, and the tip flicks once.
+    # Each turn is worked out from the segments' rest slopes, after the body's tip back.
+    droop = g("droop", -0.05)
+    flick = max(0.0, math.sin(math.pi * (u - 0.3) / 0.15)) if 0.3 <= u <= 0.45 else 0.0
+    want = [-droop, 0.0, 0.0, 0.05 + 0.3 * flick]
+    turned = -sit                                    # the body's tip back, down the chain
+    for i, b in enumerate(["tail1", "tail2", "tail3", "tail4"]):
+        turn = want[i] - (TAIL_REST[i] + turned)
+        pose.turn(b, X, turn)
+        turned += turn
+
+
+# The tail's segments' slopes at rest, in radians (positive = up, going back).
+TAIL_REST = [math.atan2(0.54 - 0.54, 0.15), math.atan2(0.52 - 0.54, 0.15), math.atan2(0.47 - 0.52, 0.15),
+             math.atan2(0.40 - 0.47, 0.18)]
 
 
 # --- Sleep: curled in a ball, head on the paws, tail wrapped round the front ---------------
@@ -377,7 +499,6 @@ def sleep(u, pose):
     for i, b in enumerate(["tail1", "tail2", "tail3", "tail4"]):
         pose.turn(b, X, P_SLEEP.get("tail_down", -0.36) if i == 0 else 0.03)
         pose.turn(b, Z, -P_SLEEP.get("tail", [0.75, 0.55, 0.5, 0.5])[i])   # round the front, under his chin
-    breathe(pose, u, 1, 0.035)
     eyes(pose, 0.0)
 
 
@@ -396,13 +517,128 @@ def climb(u, pose):
     tail_curve(pose, -0.35, 0.06 * math.sin(TAU * u), wave=0.06, u=u)
 
 
+# --- Jump: push off, stretch up snout first, gather at the top, reach down (one-shot) ------
+# From CHANGE-BRIEF.md's revision of 21 Nov 2026, "the jump plays as it did before, in three
+# phases of its own", at 24 fps for a held jump, frame 0 the takeoff (the tick F is seen):
+# frame 0 the push-off, hind legs extending; frame 3 stretched up, snout first; frame 6
+# gathered at the top (the peak, ticks 14-15); frame 10 front paws reaching down, the
+# landing (tick 25), held by the game through a longer fall. No crouch, no bite. In place:
+# the game lifts him, so the airborne poses leave the paws where the legs hang.
+# Positive X turns tip the front down; negative tip it (and the snout) up.
+
+def stance(pose):
+    """His stance: idle's first frame."""
+    idle(0.0, pose)
+
+
+def jump_push(pose):                                   # frame 0: the push-off
+    # r1 (TUNING.md, 21 Nov 2026): the hind legs bunched under his hips, to drive straight
+    # out to the stretch at frame 3 (r0 had them already near straight, 0.05 m back).
+    pose.pelvis = Vector((0, 0.01, -0.07))             # hips lowered onto the bunched legs
+    pose.turn("pelvis", X, -0.16)                      # front lifting first
+    pose.turn("spine", X, -0.02)                       # unrolling from the gather
+    pose.turn("chest", X, -0.02)
+    pose.turn("neck", X, -0.12)                        # head up, eyeing where he's going
+    pose.turn("head", X, -0.12)
+    for k in ("foot_ik.L", "foot_ik.R"):
+        pose.paw[k] = Vector((0, -0.13, 0.03))         # hind paws forward under his belly, thighs folded
+        pose.paw_pitch[k] = 0.3                        # flat under him, to roll onto the toes
+    for k in ("hand_ik.L", "hand_ik.R"):
+        pose.paw[k] = Vector((0, 0.0, 0.05))           # front paws lifting off
+        pose.paw_pitch[k] = 0.4
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, -0.1)                          # going back
+    tail_curve(pose, 0.45, 0.0, curl=-0.05)
+    eyes(pose, 1.0)
+
+
+def jump_stretch(pose):                                # frame 3: stretched up, snout first
+    pose.pelvis = Vector((0, 0, 0.01))
+    pose.turn("pelvis", X, -0.32)                      # the whole body tipped nose-up
+    pose.turn("spine", X, -0.04)                       # stretched long
+    pose.turn("chest", X, -0.04)
+    pose.turn("neck", X, -0.18)                        # snout leading, reaching up
+    pose.turn("head", X, -0.22)
+    for side, sx in (("L", 1), ("R", -1)):
+        pose.rel["hand_ik." + side] = ("upperarm." + side, (-0.03 * sx, -0.09, -0.15))  # paws by his chest
+        pose.paw_pitch["hand_ik." + side] = 0.7        # curled
+        pose.paw["foot_ik." + side] = Vector((0, 0.08, -0.01))   # hind legs straight from the push
+        pose.paw_pitch["foot_ik." + side] = 0.9        # toes pointed
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, -0.35)                         # swept back
+    tail_curve(pose, 0.25, 0.0, curl=-0.1)             # streaming out behind
+    eyes(pose, 1.0)
+
+
+def jump_gather(pose):                                 # frame 6: gathered at the top
+    pose.pelvis = Vector((0, 0, 0.02))
+    pose.turn("pelvis", X, -0.12)                      # levelling out
+    pose.turn("spine", X, 0.05)                        # rounding up
+    pose.turn("chest", X, 0.03)
+    pose.turn("neck", X, -0.06)
+    pose.turn("head", X, -0.06)
+    for side, sx in (("L", 1), ("R", -1)):
+        pose.rel["hand_ik." + side] = ("upperarm." + side, (-0.02 * sx, -0.08, -0.20))
+        pose.paw_pitch["hand_ik." + side] = 0.5
+        pose.paw["foot_ik." + side] = Vector((0, -0.01, 0.07))   # hind paws tucked up
+        pose.paw_pitch["foot_ik." + side] = 0.5
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, -0.2)
+    tail_curve(pose, 0.5, 0.0)
+    eyes(pose, 1.0)
+
+
+def jump_reach(pose):                                  # frame 10: front paws reaching down
+    pose.pelvis = Vector((0, 0, 0.01))
+    pose.turn("pelvis", X, 0.14)                       # nose-down, front end first
+    pose.turn("spine", X, -0.03)
+    pose.turn("neck", X, 0.05)                         # looking at the ground
+    pose.turn("head", X, 0.06)
+    for k in ("hand_ik.L", "hand_ik.R"):
+        pose.paw[k] = Vector((0, -0.06, 0.0))          # reaching forward and down for the ground
+        pose.paw_pitch[k] = 0.1
+    for k in ("foot_ik.L", "foot_ik.R"):
+        pose.paw[k] = Vector((0, 0.03, 0.04))          # hind paws trailing, a little up
+        pose.paw_pitch[k] = 0.35
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, -0.15)
+    tail_curve(pose, 0.8, 0.0, curl=0.1)               # up, for balance
+    eyes(pose, 1.0)
+
+
+def land_squash(pose):                                 # jump_land frame 0: paws down, squashed
+    pose.pelvis = Vector((0, -0.01, -0.09))
+    pose.turn("pelvis", X, 0.07)                       # the weight onto the front paws
+    pose.turn("spine", X, 0.05)
+    pose.turn("chest", X, 0.03)
+    pose.turn("neck", X, 0.06)
+    pose.turn("head", X, 0.04)
+    for k in ("hand_ik.L", "hand_ik.R"):
+        pose.paw[k] = Vector((0, -0.03, 0))            # planted a little ahead
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, -0.25)
+    tail_curve(pose, 0.9, 0.0, curl=0.2)
+    eyes(pose, 0.6)                                    # a squint on impact
+
+
 make("idle", 96, idle)
 make("walk", 24, walk)
-make("run", 16, run)
+make("run", 16, run, steady=0.25)
 make("sneak", 48, sneak)
 make("bored", 96, bored)
 make("sleep", 96, sleep)
 make("climb", 24, climb)
+# The one-shots. jump (revision of 21 Nov 2026), 10 frames at 24 fps; each key's time:
+#   frame 0  = 0.0 s     the push-off
+#   frame 3  = 0.125 s   stretched up, snout first
+#   frame 6  = 0.25 s    gathered at the top
+#   frame 10 = 0.4167 s  front paws reaching down (the landing, a held jump's tick 25)
+# Out of the push (r1: the bunch) fast and slowing into the stretch (0-3), as the rise slows;
+# easing over the top (3-6); falling into the reach, slow then faster (6-10). jump_land: out
+# of the squash, settling (0-4).
+make_oneshot("jump", [(0, jump_push), (3, jump_stretch), (6, jump_gather), (10, jump_reach)],
+             {0: ("QUAD", "EASE_OUT"), 3: ("SINE", "EASE_IN_OUT"), 6: ("QUAD", "EASE_IN")})
+make_oneshot("jump_land", [(0, land_squash), (4, stance)], {0: ("QUAD", "EASE_OUT")})
 
 # Leave the rig on its rest pose with no action, and park each action in the NLA so the
 # exporter can find them all.
@@ -410,7 +646,7 @@ ad = rig.animation_data
 ad.action = None
 for t in list(ad.nla_tracks):
     ad.nla_tracks.remove(t)
-for name in ("idle", "walk", "run", "sneak", "bored", "sleep", "climb"):
+for name in ("idle", "walk", "run", "sneak", "bored", "sleep", "climb", "jump", "jump_land"):
     act = bpy.data.actions.get(name)
     if act:
         tr = ad.nla_tracks.new()

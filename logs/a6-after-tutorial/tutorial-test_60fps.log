@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Tutorial check, 2026-11-07T16:04:56
+  pass  Before the camp: no cones, no dark layer                       expected false false              got false false
+  pass  The pan: slowed, the camera on the campers, two words          expected true true The campers    got true true The campers
+  pass  The pan: he's held still, and no cones                         expected true false               got true false
+  pass  The laugh: back on him, he laughs, the cones on                expected true true true           got true true true
+  pass  The laugh: someone comes to look                               expected true                     got true
+  pass  Seen: a beat, the bush lit, a word or two                      expected true true                got true true
+  pass  Then: a note to hide, back to speed, and he can move           expected Hide in the bush 1.0 false got Hide in the bush 1.0 false
+  pass  In the bush: dived in, hidden, his eyes peeking, a note to wait expected true true true Wait till they look away got true true true Wait till they look away
+  pass  Chased to the bush: they come right up, but can't catch him in it expected true false true          got true false true
+  pass  They look away: a note to sneak out                            expected Sneak out: hold Ctrl     got Sneak out: hold Ctrl
+  pass  A move key: he hops out that way, sneaking, his eyes gone      expected false false true true    got false false true true
+  pass  Out of sight: a word, and the note to press Tab                expected Out of sight Tab: your TO DO list got Out of sight Tab: your TO DO list
+  pass  Tab: the TO DO list, picking, the marshmallows marked, slowed  expected true true marshmallows true got true true marshmallows true
+  pass  Picked: the list away; a beat on the camper's routine          expected false routine true       got false routine true
+  pass  The beat goes on by itself: back to speed, a note to wait      expected 1.0 Wait till he roasts  got 1.0 Wait till he roasts
+  pass  Roasting: a beat on the backpack                               expected sneak true               got sneak true
+  pass  Unzipped: a beat on the bag                                    expected grab true                got grab true
+  pass  Grabbed: a beat on the way home                                expected home true true           got home true true
+  pass  Home: the task done, and a last beat                           expected true done true           got true done true
+  pass  Done: the world's open (no note, full speed, he can move)      expected DONE  1.0 false          got DONE  1.0 false
+RESULT: all checks passed (20 checks)

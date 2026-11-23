@@ -1,0 +1,38 @@
+Read CLAUDE.md first; it imports CHANGE-BRIEF.md, the contract for this change. The jump's phase table
+is in the dated revision "the jump plays as it did before, in three phases of its own" (c0190b0):
+startup, the push and rise (ticks 0-14 after takeoff, the tick F is seen); active, the top and the
+fall (ticks 15-24 for a held jump); recovery, the landing (12 ticks from landing, tick 25 for a held
+jump). The project is the repository root; the test wrapper is scripts/run-test.sh. Don't edit any
+.gdshader file or any game script: this is tests only. Don't commit.
+
+Step 6 of the course, two parts. Plan each briefly first, then do it, and show the diff and runs.
+
+Part 1, the edge tests: tests/test_jump_edges.gd, in the real level (as tests/jump_pins.gd runs),
+driven by real input through Input.parse_input_event, never by calling the jump's functions:
+- At every phase boundary of a held jump (takeoff; the top, tick 15; landing; the landing's end,
+  landing + 12), an input arriving one physics tick before the boundary, on it, and one tick after.
+  The inputs are an interrupt in each phase: F pressed again, F let go, and a move key (W).
+- Assert what the brief's table says each does, in each phase:
+  - startup: letting go of F cuts the height (a lower peak than a held jump), F again does nothing,
+    a move key steers at AIR_CONTROL;
+  - active: letting go of F changes nothing (he's falling), a press up to 0.12 s before landing is
+    kept and takes off the tick after he lands, a press earlier than that is dropped, a move key
+    steers;
+  - recovery: a new press starts the next jump at once, cutting the landing; after the landing's end
+    he's back on the ground as normal.
+  The clip on each tick too, read as current_animation (jump, then jump_land), with the one-tick lag.
+- Run it at 30, 60 and 144 fps (--fixed-fps). Physics is 60 ticks a second at every rate, but input
+  arrives once a frame: at 30 fps a frame is two ticks, so say exactly which tick each input was seen
+  on at each rate, and what that means for "one tick before" at 30 fps. Don't make the frame rate
+  stop mattering (for example by calling the update function directly).
+
+Part 2, the re-pin: tests/jump_pins.gd. Only the four pins the brief says change, to their new
+values: the two "posed through the run clip" (now `jump`), "the clips in order" (now with jump and
+jump_land where each jump's run was, and whatever it reads when a one-shot has finished), and "the
+clip shows the held jump the tick after takeoff" (now `jump`). Every other pin keeps its expected
+value. Write in its header why each changed, citing the brief.
+
+Run through scripts/run-test.sh: the edge test at 30, 60 and 144; jump_pins.gd at 60 (all passing
+after the re-pin); test_jump_states.gd, test_raccoon_rig.gd at 60; and every existing test CLAUDE.md
+lists in its pinned mode, reading each run's exit code. Show the real output, and say what the edge
+tests prove and what they can't headlessly.

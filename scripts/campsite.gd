@@ -1,0 +1,1137 @@
+extends Node3D
+## Level 1's campsite, right under the raccoon's tree: the party of the GDD's level 1
+## and the storyboard's panels 2-8, put together on 23 Oct 2026 from the assets made
+## so far, at the author's request: "lets work on creating the 1st level initial
+## campsite from the assests we have humans a place for fire pit they are setting
+## tents and partying". It's laid out as the storyboard has the party: the fire in the
+## middle with people dancing by it, the tents on the right, the logs and the cooler
+## near the fire, and string lights at the back. At first it stood right by his tree;
+## the same day the author moved it about 20 seconds' walk east (forest.gd CAMP: the
+## clearing, the trail to it and the forest round it).
+##   - The camper (TiZeta's chubby man, in his red beanie) is pegging out his tent:
+##     squatting at a guy rope, knocking its peg in with a mallet (his `hammer` loop,
+##     tools/blender/animate_chubby.py).
+##   - The low-poly man and the simple girl (TiZeta's too) dance between the fire and
+##     the table with the laptop and the speaker (their `dance` loops), on the beat of
+##     the level's music while it plays.
+##   - The speaker plays the party's music as a sound in the world: loud by the camp,
+##     a far-off thump at his tree (added the same day: "make the speaker play the
+##     party's music as a sound in the world, loud near the camp and faint at his
+##     tree"). main.gd hears the world from the raccoon. Since 25 Oct 2026 it's louder,
+##     starts with New Game when there's a title (start_party), and its sound waves
+##     roll out from the speaker on the beat (sound_waves.gd). Later that day it went
+##     silent (PARTY_HEARD): the waves show the party, nothing plays it.
+##   - The people react to the raccoon (camp_person.gd: they take fright, the girl
+##     cowers behind the low-poly man, the men guard and then chase him off); the camp
+##     keeps what they know between them (saw, seen_within, in_camp, frighten, noise).
+##   - Each of them has a routine (_routines): the camper pegs out his tent, roasts
+##     marshmallows by the fire with his back to his backpack, then has some pizza at
+##     the table; the low-poly man dances and gets a drink from the cooler; the girl
+##     dances and warms her hands at the fire.
+##   - Level 1's first puzzles (camp_puzzles.gd): the backpack, the speaker's plug and
+##     the cooler; E at them goes through camp_input.gd. Since 10 Nov 2026, the bear bag
+##     hung in a tree east of the fire (camp_bear_bag.gd).
+##   - Built here: the fire pit (a ring of stones, burning logs, flickering flames,
+##     sparks and the fire's light), the logs to sit on, the speaker and its cable, the
+##     string lights, the mallet and the tent pegs. The tents, the table with the
+##     laptop, the cooler, the s'mores, the pizza and the donut are the assets in
+##     assets/props and assets/practice.
+## main.gd adds it after the forest, which keeps CLEARINGS free of small things.
+
+const LowPoly := preload("res://scripts/lowpoly.gd")
+const Forest := preload("res://scripts/forest.gd")
+const FireShader := preload("res://scripts/fire.gdshader")
+const CampPerson := preload("res://scripts/camp_person.gd")
+const VisionCone := preload("res://scripts/vision_cone.gd")
+const Player := preload("res://scripts/player.gd")
+const CampTasks := preload("res://scripts/camp_tasks.gd")
+const CampPuzzles := preload("res://scripts/camp_puzzles.gd")
+const CampFire := preload("res://scripts/camp_fire.gd")
+const CampTent := preload("res://scripts/camp_tent.gd")
+const CampBearBag := preload("res://scripts/camp_bear_bag.gd")
+const CampBalloons := preload("res://scripts/camp_balloons.gd")
+const CampInput := preload("res://scripts/camp_input.gd")
+const SoundWaves := preload("res://scripts/sound_waves.gd")
+const ConeDriver := preload("res://scripts/cone_driver.gd")
+const HideSpot := preload("res://scripts/hide_spot.gd")
+
+const TENT := "res://assets/props/tent.glb"
+const TABLE_WITH_LAPTOP := "res://assets/props/table_with_laptop.glb"
+const COOLER := "res://assets/props/cooler.glb"
+const SMORE := "res://assets/props/smore.glb"
+const PIZZA_SLICE := "res://assets/props/pizza_slice.glb"
+const DONUT := "res://assets/practice/donut.glb"
+const CAMPER := "res://assets/characters/chubby_boy.glb"
+const LOWPOLY_MAN := "res://assets/characters/lowpoly_man.glb"
+const SIMPLE_GIRL := "res://assets/characters/simple_girl.glb"
+
+## Where things stand on the ground (x, z), from the fire, which is a little west of the
+## middle of the camp's clearing; and which way their fronts face in degrees (0 faces
+## the camera's side, +Z; -90 faces west, back toward his tree).
+## Spread out on 7 Nov 2026, when the camp grew (forest.gd CAMP_RADIUS) and the author
+## approved Claude Code's layout: the fire's circle (its logs, where the camper roasts,
+## his backpack and where the girl warms her hands) stays as it was, and the rest stands
+## about 1.6 times as far from the fire: the party's corner to the north (the table, its
+## speaker and socket, the string lights, the dancers), the tents to the east and south-
+## east, and the cooler by the table (it was by the logs). Before: the fire at CAMP +
+## (-1.6, -0.5), the tents at (5.0, -0.4) and (2.2, 3.6), the table at (-1.2, -2.6), the
+## speaker at (0.0, -2.7), the cooler at (-1.3, 1.4) facing 35 degrees.
+const FIRE := Forest.CAMP + Vector2(-2.5, -0.8)
+const CAMPER_TENT := [FIRE + Vector2(8.2, -0.6), -90.0]
+const OTHER_TENT := [FIRE + Vector2(3.6, 5.8), -148.0]
+const TABLE := [FIRE + Vector2(-1.95, -4.2), 0.0]
+## Beside the table, as before (1.2 m east of its middle and 0.1 m north).
+const SPEAKER := [FIRE + Vector2(-0.75, -4.3), 10.0]
+## By the table, facing the fire.
+const COOLER_AT := [FIRE + Vector2(-4.5, -2.2), 64.0]
+## The logs round the fire: middle, which way they lie (degrees), length.
+const LOGS := [[FIRE + Vector2(-1.5, 0.2), 80.0, 1.5], [FIRE + Vector2(0.7, 1.4), -35.0, 1.4]]
+## The dancers: who and where; they face the fire. The second is two beats behind the
+## first, so they step out to opposite sides. (Before 7 Nov 2026: (-0.7, -1.5) and
+## (0.9, -1.25).)
+const DANCERS := [[LOWPOLY_MAN, FIRE + Vector2(-1.15, -2.45)], [SIMPLE_GIRL, FIRE + Vector2(1.45, -2.0)]]
+const DANCE_OFFSETS := [0.0, 2.0]
+## Each one's walk and run at 1x (m/s, from their animate_*.py) and how fast they chase:
+## the camper, the low-poly man, the girl (who never chases).
+const CAMPER_SPEEDS := [1.02, 3.28, 2.7]
+const MAN_SPEEDS := [1.10, 3.56, 3.1]
+const GIRL_SPEEDS := [1.04, 3.33, 0.0]
+## The camp, as the people see it: within CAMP_ZONE metres of its middle (9 before the
+## camp grew on 7 Nov 2026: the clearing's radius and 1.5 m more, then and now). A
+## chitter this near any of them is heard, and since 11 Nov 2026 the party's music
+## doesn't drown it (the author: "if the raccoon is close in the vicinity of the npcs and
+## laughs that should draw their attendtion to the location of the laugh"): his laugh is
+## sharp and meant to be heard.
+const CAMP_ZONE := 12.5
+const HEAR_CHITTER := 8.0
+## And since the same day his running (a footfall noise every RUN_NOISE_EVERY seconds
+## while he runs) and his landing from a jump are heard this far, the same way (the
+## author: "running/jumping should make them react similar to the laughin"). His running
+## was heard 4 m off before (camp_person.gd HEAR_RUN), and only by those at their routine.
+const HEAR_STEPS := 6.0
+const RUN_NOISE_EVERY := 0.4
+## While the party's music plays, other noises carry only this much as far.
+const PARTY_MASK := 0.6
+## The walkways' cells, across and up (m): see _bake_walkways.
+const WALK_CELL := Vector2(0.1, 0.05)
+## Where in the right hand each one holds what they carry (mano_L's space, measured on
+## each rig for take_away): the camper, the low-poly man, the girl.
+const CAMPER_GRIP := Vector3(-0.0046, 0.0928, 0.0502)
+const MAN_GRIP := Vector3(0.0204, 0.1065, 0.0347)
+const GIRL_GRIP := Vector3(-0.0056, 0.0901, 0.0363)
+## Their routines' other places, from the fire (x, z): where the camper roasts (facing
+## the fire, his back to the backpack), where he has his pizza at the table, and where
+## the girl warms her hands. The low-poly man's drink is in front of the cooler.
+## (PIZZA was (-1.5, -1.85): it's the same place by the table, which moved.)
+const ROAST := Vector2(-0.95, 0.3)
+const PIZZA := Vector2(-2.25, -3.45)
+const WARM := Vector2(0.95, 0.75)
+## How long each activity lasts (seconds, from, to).
+const PEG_TIME := Vector2(25, 35)
+const ROAST_TIME := Vector2(50, 70)
+const PIZZA_TIME := Vector2(12, 18)
+const DANCE_TIME := Vector2(35, 55)
+const DRINK_TIME := Vector2(3.0, 3.4)
+const GIRL_DANCE_TIME := Vector2(30, 45)
+## How long the girl sits on the balloons' chair (22 Nov 2026: "make the girl dance and come and sit on
+## the chair for some time").
+const GIRL_SIT_TIME := Vector2(20, 30)
+const WARM_TIME := Vector2(12, 18)
+## The camper's mallet, put down by the peg while he's away from it (in his own space).
+const MALLET_DOWN := Vector3(0.25, 0.04, 0.45)
+## The string lights' poles, in the order the string runs (1.6 times as far from the
+## fire as before 7 Nov 2026).
+const POLES := [FIRE + Vector2(-3.85, -5.3), FIRE + Vector2(2.1, -5.9), FIRE + Vector2(6.55, -3.35)]
+## The table's top (m) and where its legs stand, either side of its middle (x, z).
+const TABLE_TOP := 0.74
+const TABLE_LEGS := Vector2(0.59, 0.36)
+## Ground the forest keeps clear of rocks and tufts (x, z, radius): the fire and the
+## party's corner, each tent, the camper's peg, the cooler and (since 10 Nov 2026) the foot
+## of the bear bag's tree (camp_bear_bag.gd TREE).
+const CLEARINGS: Array[Vector3] = [Vector3(FIRE.x - 0.5, FIRE.y - 1.5, 4.8), Vector3(FIRE.x + 8.2, FIRE.y - 0.6, 1.6),
+	Vector3(FIRE.x + 3.6, FIRE.y + 5.8, 1.6), Vector3(FIRE.x + 8.6, FIRE.y + 1.5, 0.7),
+	Vector3(FIRE.x - 4.5, FIRE.y - 2.2, 1.0), Vector3(FIRE.x + 5.4, FIRE.y - 2.0, 0.8)]
+## The fire keeper, the camp's fourth person (added 7 Nov 2026: "Maybe you can add in one
+## more guy or girl in"; the author picked a guy, "update the colours of clothes of the
+## new guy"): a second low-poly man in a mustard shirt and brown trousers
+## (tools/recolor_keeper.gd makes his texture). He eats at the table, then stokes the
+## fire, bending over it from its north-east side. He eats behind the table, facing the
+## camera, so he doesn't stand behind the low-poly man dancing in front of it. When the
+## camp gets its woodpile and grill (held until the author has tried this layout), he'll
+## fetch wood and cook.
+const KEEPER_TEXTURE := "res://assets/characters/lowpoly_man_keeper.png"
+const KEEPER_MATERIAL := "LowpolyMan"
+const KEEPER_EAT := Vector2(-2.1, -4.95)
+const STOKE := Vector2(0.85, -0.75)
+const KEEPER_EAT_TIME := Vector2(20, 30)
+const STOKE_TIME := Vector2(10, 15)
+## The bush to hide in (7 Nov 2026), for the tutorial (camp_tutorial.gd: "you can quickly
+## hide in a bush ... to avoid detection"): at the camp's west side, where the trail comes
+## in, a few metres behind the camper's backpack (from the fire, x, z). How far round it
+## hides him, and how tall it is.
+const BUSH := Vector2(-3.5, 3.0)
+const BUSH_HIDE := 0.8
+const BUSH_HEIGHT := 1.2
+
+## The tent's guy ropes reach the ground here, in its own space (measured in
+## assets/props/tent.blend); each gets a peg. The camper pegs out the one on its +X
+## side, facing CAMPER_FACING: toward the fire, side-on to the camera, so his swing
+## shows.
+const TENT_ROPE_ENDS := [Vector3(-2.15, 0, 0), Vector3(2.16, 0, 0)]
+const CAMPER_FACING := -70.0
+## The second tent isn't the camper's: its ochre walls are this green instead.
+const OTHER_TENT_COLOR := Color("6f8f62")
+const TENT_WALLS := "Tent_Ochre"
+## In the camper's own space: the top of the peg his hammer loop strikes
+## (animate_chubby.py HAMMER_PEG, in Godot's axes), and the mallet in his right hand
+## (mallet_grip there prints these): its bone, the middle of his palm, the head's axis
+## in the bone's space, then the handle's length and how much sticks out behind his
+## hand, and the head's length and radius (MALLET).
+const HAMMER_PEG := Vector3(-0.28, 0.08, 0.52)
+const MALLET_BONE := "mano_L"
+const MALLET_GRIP := Vector3(-0.0065, 0.0683, 0.0383)
+const MALLET_ACROSS := Vector3(0, 0, -1)
+const MALLET := {"handle": 0.32, "grip": 0.05, "head": 0.11, "head_r": 0.04}
+
+## The dance loop is four beats in 64 frames at 25 fps (93.75 a minute); the level's
+## music (forest-loop.wav, 16 bars in 41.768 s) runs at 91.94, with its first downbeat
+## 50 ms in. The dancers are played at the music's speed and kept on its beat.
+const DANCE_BPM := 93.75
+const MUSIC_BPM := 91.94
+const MUSIC_DOWNBEAT := 0.05
+const SYNC_SLACK := 0.05
+## The party's music (design/music/make_party_beat.py makes it, a stand-in until the
+## author's own party track): a loop half as long as the level music's, on the same
+## beat, kept there. PARTY_DB is how loud it is PARTY_NEAR metres from the speaker;
+## it falls off with distance (6 dB each time the distance doubles), never louder
+## than PARTY_MAX_DB, and far off loses its top above PARTY_CUTOFF Hz. Since 25 Oct
+## 2026 it's a loud party ("start a loud music from the party"): flat out anywhere in
+## the camp, and at his tree, 40 m away, about as loud as the level's music, mostly
+## the kick and the bass (it was 22 dB quieter there before). Later that day the author
+## heard it over the lullaby at the start and asked for it to go ("remove the party
+## sound just let the sound waves be there"): with PARTY_HEARD off it plays on at
+## SILENT_DB, so it still keeps the party's time for the dancers, the speaker's thump,
+## its waves and its plug, but nobody hears it.
+const PARTY_MUSIC := "res://assets/audio/music/party-beat.wav"
+const PARTY_HEARD := false
+const SILENT_DB := -80.0
+const PARTY_DB := -4.0
+const PARTY_NEAR := 16.0
+const PARTY_MAX_DB := 0.0
+const PARTY_CUTOFF := 2500.0
+const PARTY_SLACK := 0.03
+
+const ASH := Color("3b3735")
+const CHAR := Color("2a2522")
+const EMBER := Color("ff6a2a")
+const FLAMES := [Color("fff0a0"), Color("ffc24a"), Color("ff8a24"), Color("e4501c")]
+const FIRE_LIGHT := Color("ff9b4a")
+const FIRE_ENERGY := 3.2
+const FIRE_RANGE := 8.0
+## How much of the light's reach counts as being in the firelight (in_firelight).
+const FIRELIGHT := 0.8
+## Since 11 Nov 2026 (the author: "remove the vision cones for npcs when they are closer to
+## the fire pit with the fire fully up"): in the open world, with the fire burning at
+## FIRE_UP or more, a camper within FIRE_NEAR of its middle (roasting, warming their hands,
+## stoking; not the dancers) has no cone drawn: cone_driver.gd fades it out, and back as
+## they leave or the fire burns lower. The fire's own circle of sight (camp_fire.gd) shows
+## the danger there. They see as ever, and a spotting still shows red.
+const FIRE_NEAR := 2.2
+const FIRE_UP := 0.75
+const WIRE := Color("2a2a2c")
+const BULBS := [Color("ffd27a"), Color("ffb066"), Color("fff0c4"), Color("ff8c5c")]
+const BULB_GLOW := 3.0
+const STRING_LIGHT := Color("ffcf8a")
+const SPEAKER_BODY := Color("2d2f34")
+const SPEAKER_CONE := Color("1c1d20")
+const SPEAKER_RIM := Color("4c5058")
+const LED := Color("62e0ff")
+const HANDLE := Color("c9a26b")
+const MALLET_HEAD := Color("2c2d31")
+const PEG := Color("b9bcc0")
+
+## Set before it's added: the forest (for its night colours), the level's to-do list
+## (camp_tasks.gd, which the camp's puzzles tick off) and, later, the level's music (since
+## 11 Nov 2026 it plays from the speaker, main.gd MUSIC_NEAR).
+var forest: Forest
+var tasks: CampTasks
+var music: AudioStreamPlayer3D
+## False under the title, where the party only starts with New Game (start_party).
+var party_from_start := true
+## The people, for the level: the camper (in the "camper" group, so the camera leans
+## toward him) and the two dancers.
+var camper: CampPerson
+var dancers: Array[CampPerson] = []
+## The fire keeper (KEEPER_TEXTURE), the fourth of them.
+var keeper: CampPerson
+## The bush he can hide in (BUSH): a hiding spot (hide_spot.gd).
+var bush: Area3D
+var people: Array[CampPerson] = []
+## What the people know between them: the clock (s), when and where he was last seen,
+## and when someone last took fright.
+var clock := 0.0
+var last_seen := -INF
+var last_seen_at := Vector3.ZERO
+var frightened := -INF
+## Set when the men have given up shooing him down from a tree: they let him be while
+## he stays up it.
+var gave_up_on_tree := false
+## Whether the people's cones are on: they see nothing, and show no cones, until the
+## tutorial is done (main.gd, camp_tutorial.gd). And when one of them last spotted him
+## while watching for him: every cone shows until that one's red and its fade are over
+## (vision_cone.gd), then goes until its own person is calm again (camp_person.gd).
+var cones_on := false
+var spotted_at := -INF
+## Who has spotted him since the cones last went (CHANGE-BRIEF.md, "the script and
+## variables that hold the state"): cone_driver.gd turns their cones red.
+var spotters: Array[CampPerson] = []
+## The party's music, playing from the speaker, and how many beats into it the party
+## is (it counts on, and goes back when the music loops).
+var party: AudioStreamPlayer3D
+var beat := 0.0
+## Level 1's puzzles (camp_puzzles.gd).
+var puzzles: CampPuzzles
+## The fire's life in the open world: its strength, the woodpile and the bucket
+## (camp_fire.gd, 8 Nov 2026). The flames, light and sparks follow its strength.
+var campfire: CampFire
+## Dismantle the tent: the camper's tent's four pegs (camp_tent.gd, 8 Nov 2026).
+var tent_pegs: CampTent
+## Raid the bear bag: the food bag hung in the tree east of the fire (camp_bear_bag.gd,
+## 10 Nov 2026).
+var bear_bag: CampBearBag
+## Let the balloons go: the girl's balloons, tied to a chair just outside the camp
+## (camp_balloons.gd, 21 Nov 2026).
+var balloons: CampBalloons
+## True while the speaker's plugged in (the party's music can play).
+var music_on: bool:
+	get:
+		return puzzles == null or puzzles.music_on
+
+var _t := 0.0
+## Until his next footfall noise while he runs (RUN_NOISE_EVERY).
+var _run_noise_t := 0.0
+var _fire_light: OmniLight3D
+var _sparks: CPUParticles3D
+var _flames: Array[Dictionary] = []
+var _dance_players: Array[AnimationPlayer] = []
+var _woofer: MeshInstance3D
+var _mallet_hand: MeshInstance3D
+var _mallet_down: MeshInstance3D
+var _player: Player
+var _input: CampInput
+var _waves: SoundWaves
+
+
+func _ready() -> void:
+	_build_fire()
+	for seat: Array in LOGS:
+		_build_log(seat[0], seat[1], seat[2])
+	var tent := _prop(TENT, CAMPER_TENT, Vector3(2.3, 1.2, 2.1))
+	_add_pegs(tent)
+	var other := _prop(TENT, OTHER_TENT, Vector3(2.3, 1.2, 2.1))
+	_add_pegs(other)
+	_recolor(other, TENT_WALLS, OTHER_TENT_COLOR)
+	var table := _prop(TABLE_WITH_LAPTOP, TABLE, Vector3.ZERO)
+	_table_legs(table)
+	_set_table(table)
+	var speaker := _build_speaker()
+	var cooler := _prop(COOLER, COOLER_AT, Vector3(0.58, 0.36, 0.36))
+	cooler.add_to_group("food")
+	for i in 3:
+		var smore := _model(SMORE, self)
+		var on_log: Array = LOGS[0]
+		var along := Vector3.RIGHT.rotated(Vector3.UP, deg_to_rad(on_log[1]))
+		smore.position = _v3(on_log[0], 0.33) + along * (-0.25 + 0.16 * i)
+		smore.rotation.y = 0.7 * i
+		smore.add_to_group("food")
+	_build_string_lights()
+	_build_bush()
+
+	var rope_end: Vector3 = tent.transform * TENT_ROPE_ENDS[1]
+	var facing := Basis(Vector3.UP, deg_to_rad(CAMPER_FACING))
+	var routines := _routines(rope_end - facing * Vector3(HAMMER_PEG.x, 0, HAMMER_PEG.z), cooler)
+	camper = _person(CAMPER, routines[0], "guy", CAMPER_SPEEDS, CAMPER_GRIP)
+	camper.add_to_group("camper")
+	_give_mallet(camper)
+	for i in DANCERS.size():
+		var dancer := _person(DANCERS[i][0], routines[i + 1], "guy" if i == 0 else "girl",
+			MAN_SPEEDS if i == 0 else GIRL_SPEEDS, MAN_GRIP if i == 0 else GIRL_GRIP)
+		dancers.append(dancer)
+		var anim := dancer.anim
+		anim.speed_scale = MUSIC_BPM / DANCE_BPM
+		anim.seek(fposmod(DANCE_OFFSETS[i], 4.0) * 60.0 / DANCE_BPM, true)
+		_dance_players.append(anim)
+	# The low-poly man looks after the girl, and comes at the raccoon from the other side.
+	dancers[1].protector = dancers[0]
+	dancers[0].protects = dancers[1]
+	dancers[0].flank_side = -1.0
+	keeper = _person(LOWPOLY_MAN, routines[3], "guy", MAN_SPEEDS, MAN_GRIP, "fire_keeper")
+	_retexture(keeper, KEEPER_MATERIAL, load(KEEPER_TEXTURE))
+
+	puzzles = CampPuzzles.new()
+	puzzles.camp = self
+	puzzles.tasks = tasks
+	puzzles.fire = FIRE
+	puzzles.cooler = cooler
+	puzzles.speaker = speaker
+	puzzles.table = table
+	add_child(puzzles)
+	# Before the walkways are baked, so the people go round the woodpile and the bucket.
+	campfire = CampFire.new()
+	campfire.camp = self
+	campfire.position = _v3(FIRE)
+	campfire.stoke_at = _v3(FIRE + STOKE)
+	add_child(campfire)
+	tent_pegs = CampTent.new()
+	tent_pegs.camp = self
+	tent_pegs.tent = tent
+	tent_pegs.peg_mesh = _peg_mesh()
+	add_child(tent_pegs)
+	# Before the walkways are baked, so the people go round its trunk.
+	bear_bag = CampBearBag.new()
+	bear_bag.camp = self
+	bear_bag.forest = forest
+	bear_bag.position = _v3(FIRE + CampBearBag.TREE)
+	add_child(bear_bag)
+	# Let the balloons go: by the table since 22 Nov 2026, where the girl's step takes her
+	# (camp_balloons.gd). The first time she's there she sets out a chair and blows them up; after,
+	# she sits on the chair for a while. The chair faces the fire.
+	balloons = CampBalloons.new()
+	balloons.camp = self
+	balloons.minder = dancers[1]
+	balloons.position = _v3(Forest.CAMP + CampBalloons.PLACE)
+	balloons.rotation.y = _balloons_yaw()
+	add_child(balloons)
+	# Sets the people's cones' shader from the above (cone_driver.gd).
+	var driver := ConeDriver.new()
+	driver.camp = self
+	add_child(driver)
+	_bake_walkways()
+	# After the raccoon in the level, so an E next to something he can use goes to it first.
+	_input = CampInput.new()
+	_input.camp = self
+	get_parent().add_child.call_deferred(_input)
+	_waves = SoundWaves.new()
+	_waves.camp = self
+	get_parent().add_child.call_deferred(_waves)
+	_process(0.0)
+
+
+## Each one's routine, as camp_person.gd runs it: the camper, the low-poly man, the girl,
+## the fire keeper. `peg` is where the camper stands to peg out his tent.
+func _routines(peg: Vector3, cooler: Node3D) -> Array:
+	var toward_fire := func(at: Vector2) -> float:
+		var d := FIRE - at
+		return atan2(d.x, d.y)
+	var dance := MUSIC_BPM / DANCE_BPM
+	var front := cooler.global_basis.z
+	var drink := cooler.global_position + front * 0.8
+	var man_at: Vector2 = DANCERS[0][1]
+	var girl_at: Vector2 = DANCERS[1][1]
+	# Since 21 Nov 2026 (CHANGE-BRIEF.md, "out of the camp with the girl", and "the girl's new
+	# step comes after warming her hands"): after warming her hands she walks out to mind the
+	# balloons (camp_balloons.gd), facing them, about as long as a dance, then back to dancing.
+	# Her first time there she blows them up instead, and goes back once they're tied
+	# (camp_balloons.gd, "Let the balloons go").
+	# Since 22 Nov 2026 the balloons are by the table, the chair facing the fire, and after them she
+	# sits on the chair (her `sit` clip) for a while before she dances again.
+	var minding := _balloon_spot(CampBalloons.MINDER)
+	var to_balloons := _balloon_spot(Vector2.ZERO) - minding
+	var seat := _balloon_spot(CampBalloons.SIT)
+	# She faces the chair's way (its -Z); a person faces their +Z, so half a turn on from its yaw.
+	var facing := _balloons_yaw() + PI
+	return [
+		[_activity("peg", peg, deg_to_rad(CAMPER_FACING), "hammer", 1.0, PEG_TIME),
+			_activity("roast", _v3(FIRE + ROAST), toward_fire.call(FIRE + ROAST), "roast", 1.0, ROAST_TIME, "bend"),
+			_activity("pizza", _v3(FIRE + PIZZA), PI, "idle", 1.0, PIZZA_TIME, "dance", 0.4)],
+		[_activity("dance", _v3(man_at), toward_fire.call(man_at), "dance", dance, DANCE_TIME),
+			_activity("drink", Vector3(drink.x, 0, drink.z), atan2(-front.x, -front.z), "take_away", 1.0, DRINK_TIME)],
+		[_activity("dance", _v3(girl_at), toward_fire.call(girl_at), "dance", dance, GIRL_DANCE_TIME),
+			_activity("warm", _v3(FIRE + WARM), toward_fire.call(FIRE + WARM), "idle", 1.0, WARM_TIME, "dance", 0.4),
+			_activity("balloons", _v3(minding), atan2(to_balloons.x, to_balloons.y), "idle", 1.0, GIRL_DANCE_TIME, "dance", 0.4),
+			_activity("sit", _v3(seat), facing, "sit", 1.0, GIRL_SIT_TIME, "idle")],
+		[_activity("eat", _v3(FIRE + KEEPER_EAT), 0.0, "idle", 1.0, KEEPER_EAT_TIME, "dance", 0.4),
+			_activity("stoke", _v3(FIRE + STOKE), toward_fire.call(FIRE + STOKE), "bend", 1.0, STOKE_TIME)],
+	]
+
+
+## The way the balloons' chair faces (its -Z, camp_balloons.gd), as a yaw: toward the fire.
+func _balloons_yaw() -> float:
+	var to_fire: Vector2 = FIRE - (Forest.CAMP + CampBalloons.PLACE)
+	return atan2(-to_fire.x, -to_fire.y)
+
+
+## A place given from the balloons' PLACE in their own (turned) space, in the camp (x, z).
+func _balloon_spot(local: Vector2) -> Vector2:
+	var turned := Basis(Vector3.UP, _balloons_yaw()) * Vector3(local.x, 0.0, local.y)
+	return Forest.CAMP + CampBalloons.PLACE + Vector2(turned.x, turned.z)
+
+
+func _activity(name: String, at: Vector3, yaw: float, clip: String, speed: float, time: Vector2,
+		fallback := "", fallback_speed := 1.0) -> Dictionary:
+	return {"name": name, "at": at, "yaw": yaw, "clip": clip, "speed": speed, "time": time,
+		"fallback": fallback, "fallback_speed": fallback_speed}
+
+
+func _physics_process(delta: float) -> void:
+	clock += delta
+	if _player == null:
+		_player = get_tree().get_first_node_in_group("player") as Player
+		if _player:
+			_player.chittered.connect(_on_chitter)
+			_player.landed.connect(_on_landed)
+			_input.player = _player
+			_waves.player = _player
+	if _player and not _player.climbing:
+		gave_up_on_tree = false
+	# His running: a footfall noise every so often while he runs.
+	if _player and _player.running:
+		_run_noise_t -= delta
+		if _run_noise_t <= 0.0:
+			_run_noise_t = RUN_NOISE_EVERY
+			noise(_player.global_position, HEAR_STEPS, 0.0, true)
+	else:
+		_run_noise_t = 0.0
+
+
+## New Game (main.gd): the party starts up, if the speaker's plugged in.
+func start_party() -> void:
+	if party and music_on and not party.playing:
+		party.play()
+
+
+## True while the men are letting him be up a tree (gave_up_on_tree).
+func let_be() -> bool:
+	return gave_up_on_tree and _player != null and _player.climbing
+
+
+## Someone has just seen him at `at`.
+func saw(at: Vector3) -> void:
+	last_seen = clock
+	last_seen_at = at
+
+
+## True if someone has seen him within the last `seconds`.
+func seen_within(seconds: float) -> bool:
+	return clock - last_seen <= seconds
+
+
+## True if `at` is in the fire's light while it burns in the open world (camp_fire.gd
+## `cycle`), where the people see him further unless he crouches (camp_person.gd
+## FIRELIT_SIGHT): within FIRELIGHT of its light's reach, which shrinks as it burns down.
+func in_firelight(at: Vector3) -> bool:
+	if campfire == null or not campfire.open_world or not campfire.burning():
+		return false
+	var d := Vector2(at.x - FIRE.x, at.z - FIRE.y).length()
+	return d < _fire_light.omni_range * FIRELIGHT
+
+
+## True if a camper at `at` is by the fire while it burns high in the open world: their
+## cone isn't drawn (FIRE_NEAR, FIRE_UP).
+func by_fire_up(at: Vector3) -> bool:
+	if campfire == null or not campfire.open_world or campfire.strength < FIRE_UP:
+		return false
+	return Vector2(at.x - FIRE.x, at.z - FIRE.y).length() < FIRE_NEAR
+
+
+## True if `at` is in the camp, give or take `margin` metres.
+func in_camp(at: Vector3, margin := 0.0) -> bool:
+	return Vector2(at.x, at.z).distance_to(Forest.CAMP) < CAMP_ZONE + margin
+
+
+## Someone has just taken fright: the others catch it (camp_person.gd).
+func frighten() -> void:
+	frightened = clock
+
+
+## Someone watching for him (`by`) has just spotted him: every cone goes once the red's
+## over. Once the cones have gone, the next spotting starts a new list of who did.
+func spot(by: CampPerson = null) -> void:
+	if clock >= cones_shown_until():
+		spotters.clear()
+	if by and not by in spotters:
+		spotters.append(by)
+	spotted_at = clock
+	for person in people:
+		person.hide_cone()
+
+
+## Until when every cone shows after the last spotting: its red, then its fade.
+func cones_shown_until() -> float:
+	return spotted_at + VisionCone.RED_TIME + VisionCone.FADE_OUT
+
+
+## A noise at `at` that carries `radius` metres (less while the party's music plays,
+## unless it's `sharp`, as his laugh is): whoever's within it hears it and wonders.
+## `freeze` catches dancers mid-move first (camp_person.gd `hear`).
+func noise(at: Vector3, radius: float, freeze := 0.0, sharp := false) -> void:
+	var r := radius * (PARTY_MASK if music_on and not sharp else 1.0)
+	for person in people:
+		var d := person.global_position - at
+		if Vector2(d.x, d.z).length() <= r:
+			person.hear(at, freeze, sharp)
+
+
+## His laugh: heard HEAR_CHITTER round, the music or not.
+func _on_chitter() -> void:
+	noise(_player.global_position, HEAR_CHITTER, 0.0, true)
+
+
+## Down from a jump: heard HEAR_STEPS round, as his running is.
+func _on_landed() -> void:
+	noise(_player.global_position, HEAR_STEPS, 0.0, true)
+
+
+## What the people do with the camp's things (camp_puzzles.gd does the work).
+func lift(item: RigidBody3D) -> void:
+	puzzles.lift(item)
+
+
+func put_down(item: RigidBody3D, at: Vector3) -> void:
+	puzzles.put_down(item, at)
+
+
+func take_back(item: RigidBody3D) -> void:
+	puzzles.take_back(item)
+
+
+func home_of(item: Node3D) -> Vector3:
+	if bear_bag and item in bear_bag.treats:
+		return bear_bag.bag_at()
+	return puzzles.home_of(item)
+
+
+func plug_in(item: RigidBody3D) -> void:
+	puzzles.plug_in(item)
+
+
+func socket_spot() -> Vector3:
+	return puzzles.socket_spot()
+
+
+func socket_at() -> Vector3:
+	return puzzles.socket_at()
+
+
+func _process(delta: float) -> void:
+	_t += delta
+	var n := sin(_t * 7.3) * 0.5 + sin(_t * 13.1 + 1.7) * 0.3 + sin(_t * 23.7 + 0.4) * 0.2
+	# By the fire's strength (camp_fire.gd): at full, as it always was; lower, smaller
+	# flames, a dimmer light that reaches less far; out, none; lit from cold, a flare.
+	var s: float = campfire.strength if campfire else 1.0
+	var flare: float = campfire.flare if campfire else 0.0
+	var tall := (0.35 + 0.65 * s) * (1.0 + 0.9 * flare)
+	var wide := (0.6 + 0.4 * s) * (1.0 + 0.5 * flare)
+	_fire_light.light_energy = FIRE_ENERGY * (1.0 + 0.12 * n) * (pow(s, 0.8) + 1.2 * flare)
+	_fire_light.omni_range = FIRE_RANGE * (0.45 + 0.55 * s)
+	_sparks.emitting = s > 0.25
+	for flame: Dictionary in _flames:
+		var ph: float = flame.phase
+		var node: MeshInstance3D = flame.node
+		node.visible = s > 0.0
+		var lick := 1.0 + 0.22 * sin(_t * flame.rate + ph) + 0.1 * sin(_t * 17.0 + ph * 2.0)
+		var width := 1.0 + 0.08 * sin(_t * 9.0 + ph)
+		node.scale = Vector3(flame.size * width * wide, flame.height * lick * tall, flame.size * width * wide)
+		node.rotation = Vector3(0.14 * sin(_t * 3.1 + ph), flame.yaw, 0.14 * sin(_t * 2.7 + ph * 1.3))
+	_keep_the_beat()
+	if _mallet_hand:
+		# In his hand while he's hammering, down by the peg while he's not.
+		_mallet_hand.visible = camper.anim.current_animation == "hammer"
+		_mallet_down.visible = not _mallet_hand.visible
+
+
+## Keeps the party's music on the level music's beat, the dancers on that beat, and
+## the speaker thumping. With the level music stopped, the party keeps its own time.
+func _keep_the_beat() -> void:
+	var beats := _t * MUSIC_BPM / 60.0
+	var heard := -1.0
+	if music and music.playing:
+		heard = music.get_playback_position()
+		if party and party.playing:
+			var length := party.stream.get_length()
+			if absf(_wrapped(fposmod(heard, length) - party.get_playback_position(), length)) > PARTY_SLACK:
+				party.seek(fposmod(heard, length))
+	elif party and party.playing:
+		heard = party.get_playback_position()
+	if heard >= 0.0:
+		heard += AudioServer.get_time_since_last_mix() - AudioServer.get_output_latency()
+		beats = (heard - MUSIC_DOWNBEAT) * MUSIC_BPM / 60.0
+		for i in _dance_players.size():
+			var anim := _dance_players[i]
+			if anim.current_animation != "dance":
+				continue
+			var want := fposmod(beats + DANCE_OFFSETS[i], 4.0) * 60.0 / DANCE_BPM
+			if absf(_wrapped(want - anim.current_animation_position, anim.current_animation_length)) > SYNC_SLACK:
+				anim.seek(want, true)
+	beat = beats
+	var thump := pow(1.0 - fposmod(beats, 1.0), 6.0)
+	_woofer.scale = Vector3(1.0 + 0.06 * thump, 1.0 + 0.06 * thump, 1.0 + 0.5 * thump)
+
+
+# --- The fire ----------------------------------------------------------------
+
+func _build_fire() -> void:
+	var pit := StaticBody3D.new()
+	pit.position = _v3(FIRE)
+	add_child(pit)
+	var col := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = 0.62
+	shape.height = 0.6
+	col.shape = shape
+	col.position = Vector3(0, 0.3, 0)
+	pit.add_child(col)
+
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# Scorched ground, the ash bed, and a ring of stones, sooty and darker than the
+	# forest's rocks.
+	var ground := LowPoly.loft([Vector3(0, 0.0, 0), Vector3(0, 0.008, 0)], [Vector2(0.95, 0.95), Vector2(0.95, 0.95)],
+		12, LowPoly.solid(CHAR.lerp(Forest.GRASS, 0.45)))
+	st.append_from(ground, 0, Transform3D.IDENTITY)
+	var ash := LowPoly.loft([Vector3(0, 0.0, 0), Vector3(0, 0.03, 0)], [Vector2(0.44, 0.44), Vector2(0.4, 0.4)],
+		10, LowPoly.solid(ASH))
+	st.append_from(ash, 0, Transform3D.IDENTITY)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 23
+	var stones := 11
+	for i in stones:
+		var a := TAU * (i + rng.randf_range(-0.15, 0.15)) / stones
+		var r := rng.randf_range(0.11, 0.15)
+		var shade := rng.randf_range(0.25, 0.4)
+		LowPoly.add_icosphere(st, Vector3(cos(a) * 0.55, r * 0.55, sin(a) * 0.55), Vector3(r * 1.25, r, r), 1, 0.18,
+			i, func(_n: Vector3) -> Color: return Forest.ROCK.darkened(shade), -0.3)
+	# Burning logs, leaning in to the middle like a tent, charred, glowing at the ends.
+	for i in 4:
+		var a := TAU * i / 4.0 + 0.4
+		var from := Vector3(cos(a) * 0.4, 0.05, sin(a) * 0.4)
+		var to := Vector3(cos(a) * 0.06, 0.34, sin(a) * 0.06)
+		var burnt := LowPoly.loft([from, from.lerp(to, 0.7), to], [Vector2(0.055, 0.055), Vector2(0.05, 0.05),
+			Vector2(0.035, 0.035)], 6,
+			func(segment: int, _side: int, _n: Vector3) -> Color: return EMBER if segment >= 1 else CHAR)
+		st.append_from(burnt, 0, Transform3D.IDENTITY)
+	_mesh(LowPoly.commit(st), pit, true)
+
+	# The flames: a tall one in the middle and smaller ones round it, flickering.
+	var flame_mesh := _flame_mesh()
+	var material := ShaderMaterial.new()
+	material.shader = FireShader
+	for f: Array in [[Vector3(0, 0.06, 0), 0.62, 1.0], [Vector3(0.1, 0.06, 0.05), 0.42, 0.75],
+			[Vector3(-0.09, 0.06, 0.07), 0.38, 0.7], [Vector3(0.02, 0.06, -0.11), 0.45, 0.8],
+			[Vector3(-0.08, 0.06, -0.06), 0.33, 0.65]]:
+		var flame := MeshInstance3D.new()
+		flame.mesh = flame_mesh
+		flame.material_override = material
+		flame.position = f[0]
+		flame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		flame.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+		pit.add_child(flame)
+		_flames.append({"node": flame, "height": f[1], "size": f[2] * 0.11, "phase": rng.randf() * TAU,
+			"rate": rng.randf_range(6.0, 9.0), "yaw": rng.randf() * TAU})
+
+	_fire_light = OmniLight3D.new()
+	_fire_light.light_color = FIRE_LIGHT
+	_fire_light.light_energy = FIRE_ENERGY
+	_fire_light.omni_range = FIRE_RANGE
+	_fire_light.omni_attenuation = 1.4
+	_fire_light.shadow_enabled = true
+	_fire_light.position = Vector3(0, 0.7, 0)
+	_fire_light.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	pit.add_child(_fire_light)
+
+	var sparks := CPUParticles3D.new()
+	sparks.amount = 14
+	sparks.lifetime = 1.6
+	sparks.position = Vector3(0, 0.35, 0)
+	sparks.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	sparks.emission_sphere_radius = 0.12
+	sparks.direction = Vector3.UP
+	sparks.spread = 20.0
+	sparks.gravity = Vector3(0, 0.25, 0)
+	sparks.initial_velocity_min = 0.45
+	sparks.initial_velocity_max = 0.9
+	sparks.scale_amount_min = 0.6
+	sparks.scale_amount_max = 1.0
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(1.0, 0.75, 0.35, 1.0))
+	ramp.set_color(1, Color(1.0, 0.3, 0.1, 0.0))
+	sparks.color_ramp = ramp
+	var dot := QuadMesh.new()
+	dot.size = Vector2(0.025, 0.025)
+	var glow := StandardMaterial3D.new()
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	glow.vertex_color_use_as_albedo = true
+	glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glow.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	dot.material = glow
+	sparks.mesh = dot
+	pit.add_child(sparks)
+	_sparks = sparks
+
+
+## One flame, 1 m tall and 1 m round, scaled by each: a bulb that licks up to a point,
+## pale at the root and red at the tip.
+func _flame_mesh() -> ArrayMesh:
+	return LowPoly.loft([Vector3(0, 0, 0), Vector3(0, 0.22, 0), Vector3(0, 0.55, 0), Vector3(0, 1.0, 0)],
+		[Vector2(0.7, 0.7), Vector2(1.0, 1.0), Vector2(0.55, 0.55), Vector2(0.02, 0.02)], 6,
+		func(segment: int, _side: int, _n: Vector3) -> Color: return FLAMES[clampi(segment, 0, FLAMES.size() - 1)])
+
+
+# --- Logs, props and pegs ------------------------------------------------------
+
+## A log to sit on: its bark the forest's LOG, its cut ends WOOD, with a collider.
+func _build_log(at: Vector2, deg: float, length: float) -> void:
+	var body := StaticBody3D.new()
+	body.position = _v3(at)
+	body.rotation.y = deg_to_rad(deg)
+	add_child(body)
+	var r := 0.17
+	var mesh := LowPoly.loft([Vector3(-length * 0.5, r, 0), Vector3(-length * 0.15, r * 1.04, 0),
+		Vector3(length * 0.2, r * 0.98, 0), Vector3(length * 0.5, r, 0)],
+		[Vector2(r, r), Vector2(r * 1.04, r * 1.04), Vector2(r * 0.98, r * 0.98), Vector2(r * 0.95, r * 0.95)], 8,
+		func(segment: int, _side: int, _n: Vector3) -> Color: return Forest.WOOD if segment < 0 or segment > 2 else Forest.LOG)
+	_mesh(mesh, body, true)
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(length, r * 2.0, r * 2.0)
+	col.shape = shape
+	col.position = Vector3(0, r, 0)
+	body.add_child(col)
+
+
+## One of the assets, standing at `place` ([x, z], degrees), with a box collider of
+## `size` on the ground under it (none if `size` is zero).
+func _prop(path: String, place: Array, size: Vector3) -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.position = _v3(place[0])
+	body.rotation.y = deg_to_rad(place[1])
+	add_child(body)
+	_model(path, body)
+	if size != Vector3.ZERO:
+		_box(body, size, Vector3(0, size.y * 0.5, 0))
+	return body
+
+
+## The table is open underneath, so the raccoon can walk under it: its collider is its
+## top and its four legs (TABLE_TOP high, TABLE_LEGS apart), not a block to the ground.
+func _table_legs(table: Node3D) -> void:
+	_box(table, Vector3(1.28, 0.06, 0.83), Vector3(0, TABLE_TOP - 0.03, 0))
+	for x: float in [-TABLE_LEGS.x, TABLE_LEGS.x]:
+		for z: float in [-TABLE_LEGS.y, TABLE_LEGS.y]:
+			_box(table, Vector3(0.06, TABLE_TOP, 0.06), Vector3(x, TABLE_TOP * 0.5, z))
+
+
+func _box(body: Node3D, size: Vector3, at: Vector3) -> void:
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	col.shape = shape
+	col.position = at
+	body.add_child(col)
+
+
+func _model(path: String, parent: Node) -> Node3D:
+	var model: Node3D = (load(path) as PackedScene).instantiate()
+	parent.add_child(model)
+	return model
+
+
+## Gives every surface of `node` whose material is called `material` the colour `c`
+## instead, in a copy of that material.
+func _recolor(node: Node, material: String, c: Color) -> void:
+	for mi: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+		for s in mi.mesh.get_surface_count():
+			var mat := mi.mesh.surface_get_material(s) as BaseMaterial3D
+			if mat and mat.resource_name == material:
+				var copy := mat.duplicate() as BaseMaterial3D
+				copy.albedo_color = c
+				mi.set_surface_override_material(s, copy)
+
+
+## The bush to hide in: one of the forest's bushes, see-through round him like theirs,
+## with a hiding spot (hide_spot.gd) its size. Nothing solid: he walks into it.
+func _build_bush() -> void:
+	var at := _v3(FIRE + BUSH)
+	bush = HideSpot.new()
+	bush.position = at
+	bush.height = BUSH_HEIGHT
+	# He dives right into it, and it rustles; his eyes peek out (since 7 Nov 2026, when
+	# the author found hiding "clunky").
+	bush.dive = true
+	if forest:
+		var leaves := MeshInstance3D.new()
+		leaves.mesh = forest.night_mesh(forest._bush_mesh(401))
+		leaves.material_override = forest.see_through
+		leaves.position = at
+		leaves.rotation.y = 0.7
+		leaves.scale = Vector3.ONE * 1.2
+		add_child(leaves)
+		bush.leaves = leaves
+	var col := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = BUSH_HIDE
+	shape.height = BUSH_HEIGHT
+	col.shape = shape
+	col.position.y = BUSH_HEIGHT * 0.5
+	bush.add_child(col)
+	add_child(bush)
+
+
+## Gives every surface of `node` whose material is called `material` the texture
+## `texture` instead, in a copy of that material.
+func _retexture(node: Node, material: String, texture: Texture2D) -> void:
+	for mi: MeshInstance3D in node.find_children("*", "MeshInstance3D", true, false):
+		for s in mi.mesh.get_surface_count():
+			var mat := mi.mesh.surface_get_material(s) as BaseMaterial3D
+			if mat and mat.resource_name == material:
+				var copy := mat.duplicate() as BaseMaterial3D
+				copy.albedo_texture = texture
+				mi.set_surface_override_material(s, copy)
+
+
+## Pegs where the tent's guy ropes reach the ground.
+func _add_pegs(tent: Node3D) -> void:
+	for end: Vector3 in TENT_ROPE_ENDS:
+		_mesh(_peg_mesh(), tent).position = end
+
+
+func _peg_mesh() -> ArrayMesh:
+	return LowPoly.loft([Vector3(0, 0, 0), Vector3(0, HAMMER_PEG.y, 0)], [Vector2(0.012, 0.012),
+		Vector2(0.016, 0.016)], 5, LowPoly.solid(PEG))
+
+
+## The table's food: five slices of the pizza left (the pizza-slice asset five times,
+## as in the asset room) and the donut, beside the laptop.
+func _set_table(table: Node3D) -> void:
+	var pizza := Node3D.new()
+	pizza.position = Vector3(-0.38, 0.742, 0.12)
+	table.add_child(pizza)
+	for k in 5:
+		var slice := _model(PIZZA_SLICE, pizza)
+		slice.rotation.y = k * PI / 4.0
+		slice.position = -(Basis(Vector3.UP, k * PI / 4.0) * Vector3(0, 0, 0.1))
+	var donut := _model(DONUT, table)
+	donut.position = Vector3(0.46, 0.742, 0.22)
+
+
+# --- The people ----------------------------------------------------------------
+
+## Where the people can walk round the camp, so they go round the tents, the fire and
+## the trees rather than into them: a navigation mesh baked over the camp and a little
+## beyond it from the level's static colliders (the forest's trunks and walls, the
+## campsite's props), on a flat floor. Its cells (WALK_CELL) are fine enough that a
+## log (0.34 m) is something to go round, not a step up, and that there's a way into
+## the gap between the log and the fire, where the camper roasts.
+func _bake_walkways() -> void:
+	var map := get_world_3d().navigation_map
+	NavigationServer3D.map_set_cell_size(map, WALK_CELL.x)
+	NavigationServer3D.map_set_cell_height(map, WALK_CELL.y)
+	var nav := NavigationMesh.new()
+	nav.cell_size = WALK_CELL.x
+	nav.cell_height = WALK_CELL.y
+	# Whole cells, as the bake rounds them up anyway.
+	nav.agent_radius = WALK_CELL.x * 3.0
+	nav.agent_height = WALK_CELL.y * 35.0
+	nav.agent_max_climb = WALK_CELL.y * 2.0
+	nav.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
+	nav.geometry_collision_mask = 1
+	var reach := CAMP_ZONE + 6.0
+	nav.filter_baking_aabb = AABB(Vector3(Forest.CAMP.x - reach, -1.0, Forest.CAMP.y - reach),
+		Vector3(reach * 2.0, 4.0, reach * 2.0))
+	var source := NavigationMeshSourceGeometryData3D.new()
+	NavigationServer3D.parse_source_geometry_data(nav, source, get_parent())
+	var a := Vector3(Forest.CAMP.x - reach, 0.0, Forest.CAMP.y - reach)
+	var b := Vector3(Forest.CAMP.x + reach, 0.0, Forest.CAMP.y + reach)
+	source.add_faces(PackedVector3Array([a, Vector3(b.x, 0, a.z), b, a, b, Vector3(a.x, 0, b.z)]),
+		Transform3D.IDENTITY)
+	NavigationServer3D.bake_from_source_geometry_data(nav, source)
+	var region := NavigationRegion3D.new()
+	region.navigation_mesh = nav
+	add_child(region)
+
+
+## One of the humans, starting at the first place in their `routine`, a "guy" or the
+## "girl" (camp_person.gd), with their `speeds` (walk, run, chase) and where they hold
+## things (`grip`), and a capsule to stop the raccoon. Their node is named after their
+## model, or `called`: named before it's added, as camp_person.gd seeds their routine's
+## timings from it.
+func _person(path: String, routine: Array, role: String, speeds: Array, grip: Vector3, called := "") -> CampPerson:
+	var body := CampPerson.new()
+	body.name = called if called != "" else path.get_file().get_basename()
+	body.position = routine[0].at
+	body.rotation.y = routine[0].yaw
+	body.routine.assign(routine)
+	body.role = role
+	body.hand_grip = grip
+	body.walk_natural = speeds[0]
+	body.run_natural = speeds[1]
+	body.chase_speed = speeds[2]
+	body.camp = self
+	body.model = _model(path, body)
+	var col := CollisionShape3D.new()
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.28
+	shape.height = 1.6
+	col.shape = shape
+	col.position = Vector3(0, 0.8, 0)
+	body.add_child(col)
+	add_child(body)
+	people.append(body)
+	return body
+
+
+## The camper's mallet, in his right hand: its handle runs from his palm toward his
+## fingers, its rubber head across the end of it.
+func _give_mallet(person: Node3D) -> void:
+	var skeletons := person.find_children("*", "Skeleton3D", true, false)
+	if skeletons.is_empty():
+		return
+	var hand := BoneAttachment3D.new()
+	hand.bone_name = MALLET_BONE
+	skeletons[0].add_child(hand)
+	var up := Vector3.UP
+	var tip: Vector3 = MALLET_GRIP + up * (MALLET.handle - MALLET.grip)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.append_from(LowPoly.loft([MALLET_GRIP - up * MALLET.grip, tip], [Vector2(0.014, 0.014), Vector2(0.014, 0.014)],
+		6, LowPoly.solid(HANDLE)), 0, Transform3D.IDENTITY)
+	var half: Vector3 = MALLET_ACROSS * MALLET.head * 0.5
+	st.append_from(LowPoly.loft([tip - half, tip + half], [Vector2(MALLET.head_r, MALLET.head_r),
+		Vector2(MALLET.head_r, MALLET.head_r)], 8, LowPoly.solid(MALLET_HEAD)), 0, Transform3D.IDENTITY)
+	var mallet := LowPoly.commit(st)
+	_mallet_hand = _mesh(mallet, hand)
+	# And lying by the peg, for while he's away from it: its handle along the ground.
+	_mallet_down = _mesh(mallet, self)
+	_mallet_down.transform = person.transform * Transform3D(Basis.from_euler(Vector3(0, 0.4, PI / 2)), MALLET_DOWN)
+	_mallet_down.visible = false
+
+
+# --- The music corner and the lights --------------------------------------------
+
+## The speaker beside the table, its woofer thumping on the beat. (Its cord to the
+## socket under the table is camp_puzzles.gd's, as it can be pulled.)
+func _build_speaker() -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.position = _v3(SPEAKER[0])
+	body.rotation.y = deg_to_rad(SPEAKER[1])
+	add_child(body)
+	var size := Vector3(0.36, 0.6, 0.3)
+	_mesh(LowPoly.box(size, SPEAKER_BODY), body).position = Vector3(0, size.y * 0.5, 0)
+	for ring: Array in [[0.21, 0.12], [0.47, 0.055]]:
+		_mesh(LowPoly.loft([Vector3(0, 0, 0), Vector3(0, 0, 0.012)], [Vector2(ring[1], ring[1]),
+			Vector2(ring[1], ring[1])], 10, LowPoly.solid(SPEAKER_RIM)), body).position = Vector3(0, ring[0], size.z * 0.5)
+	_woofer = _mesh(LowPoly.loft([Vector3(0, 0, 0), Vector3(0, 0, 0.025)], [Vector2(0.095, 0.095), Vector2(0.03, 0.03)],
+		10, LowPoly.solid(SPEAKER_CONE)), body)
+	_woofer.position = Vector3(0, 0.21, size.z * 0.5 + 0.01)
+	_woofer.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	var led := MeshInstance3D.new()
+	var dot := SphereMesh.new()
+	dot.radius = 0.012
+	dot.height = 0.024
+	dot.radial_segments = 6
+	dot.rings = 3
+	dot.material = _glow_material(LED, 2.5)
+	led.mesh = dot
+	led.position = Vector3(0.13, 0.56, size.z * 0.5)
+	body.add_child(led)
+	if ResourceLoader.exists(PARTY_MUSIC):
+		party = AudioStreamPlayer3D.new()
+		party.stream = load(PARTY_MUSIC)
+		party.bus = "SFX"
+		party.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		party.unit_size = PARTY_NEAR
+		party.volume_db = PARTY_DB if PARTY_HEARD else SILENT_DB
+		party.max_db = PARTY_MAX_DB
+		party.attenuation_filter_cutoff_hz = PARTY_CUTOFF
+		party.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+		party.position = Vector3(0, 0.3, size.z * 0.5)
+		body.add_child(party)
+		if party_from_start:
+			party.play()
+	else:
+		push_warning("The party's music isn't imported yet: %s" % PARTY_MUSIC)
+	var col := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	col.shape = shape
+	col.position = Vector3(0, size.y * 0.5, 0)
+	body.add_child(col)
+	return body
+
+
+## String lights at the back: a wire sagging between wooden poles, with warm bulbs
+## hanging from it that glow, and a soft light under each span.
+func _build_string_lights() -> void:
+	var top := 2.15
+	var meshes := []
+	for c: Color in BULBS:
+		var bulb := SphereMesh.new()
+		bulb.radius = 0.03
+		bulb.height = 0.07
+		bulb.radial_segments = 6
+		bulb.rings = 3
+		bulb.material = _glow_material(c, BULB_GLOW)
+		meshes.append(bulb)
+	var count := 0
+	for i in POLES.size():
+		var p := _v3(POLES[i])
+		_mesh(LowPoly.loft([p, p + Vector3(0, top + 0.08, 0)], [Vector2(0.04, 0.04), Vector2(0.035, 0.035)], 6,
+			LowPoly.solid(Forest.LOG)), self, true)
+		if i == POLES.size() - 1:
+			break
+		var a := p + Vector3(0, top, 0)
+		var b := _v3(POLES[i + 1]) + Vector3(0, top, 0)
+		var span := a.distance_to(b)
+		var sag := 0.12 * span
+		var points := []
+		var radii := []
+		for k in 13:
+			var s := k / 12.0
+			points.append(a.lerp(b, s) - Vector3(0, sag * 4.0 * s * (1.0 - s), 0))
+			radii.append(Vector2(0.006, 0.006))
+		_mesh(LowPoly.loft(points, radii, 4, LowPoly.solid(WIRE)), self)
+		var bulbs := int(span / 0.32)
+		for k in range(1, bulbs):
+			var s := float(k) / bulbs
+			var bulb := MeshInstance3D.new()
+			bulb.mesh = meshes[count % meshes.size()]
+			bulb.position = a.lerp(b, s) - Vector3(0, sag * 4.0 * s * (1.0 - s) + 0.05, 0)
+			bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			add_child(bulb)
+			count += 1
+		var glow := OmniLight3D.new()
+		glow.light_color = STRING_LIGHT
+		glow.light_energy = 0.7
+		glow.omni_range = 3.2
+		glow.position = a.lerp(b, 0.5) - Vector3(0, sag + 0.3, 0)
+		add_child(glow)
+
+
+# --- Helpers -------------------------------------------------------------------
+
+func _mesh(mesh: Mesh, parent: Node, at_night := false) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.mesh = forest.night_mesh(mesh) if at_night and forest else mesh
+	parent.add_child(mi)
+	return mi
+
+
+func _glow_material(c: Color, energy: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = c
+	m.emission_enabled = true
+	m.emission = c
+	m.emission_energy_multiplier = energy
+	return m
+
+
+## `x` moved by whole `length`s to within half a length of 0: how far apart two
+## places in a loop are, the short way round.
+func _wrapped(x: float, length: float) -> float:
+	return fposmod(x + length * 0.5, length) - length * 0.5
+
+
+func _v3(p: Vector2, y := 0.0) -> Vector3:
+	return Vector3(p.x, y, p.y)

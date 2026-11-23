@@ -1,0 +1,57 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (19 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | camper.blend[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | chubby_boy.blend[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | chubby_boy_cicciotto.png[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | humans.blend[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | human_camper.blend[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | lowpoly_man.blend[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | lowpoly_man_OMO1.png[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | raccoon.blend[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | raccoon_v2.blend[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | simple_girl.blend[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | simple_girl_repack.png[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | donut.blend[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | beanie_dropped.blend[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | cooler.blend[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | pizza_slice.blend[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | smore.blend[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | table_with_laptop.blend[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | tent.blend[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | blue_metal_plate_nor_dx_1k.png[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (3 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing pre-reimport operations...[39m[0m
+[   0% ] [90m[1mreimport[22m | chubby_boy_cicciotto.png[39m[0m
+[  25% ] [90m[1mreimport[22m | lowpoly_man_OMO1.png[39m[0m
+[  50% ] [90m[1mreimport[22m | simple_girl_repack.png[39m[0m
+[  75% ] [90m[1mreimport[22m | Finalizing Asset Import...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (3 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing post-reimport operations...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Loading editor layout...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
+[  33% ] [90m[1mloading_editor_layout[22m | Reopening scenes...[39m[0m
+[  50% ] [90m[1mloading_editor_layout[22m | Loading central editor layout...[39m[0m
+[  66% ] [90m[1mloading_editor_layout[22m | Loading plugin window layout...[39m[0m
+[  83% ] [90m[1mloading_editor_layout[22m | Editor layout ready.[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m

@@ -1,0 +1,23 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.4.325 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4050 Laptop GPU
+
+READY: paused, and framed on the camper's cone. Press F9 in the game window to take the captures.
+Captures of the camper's cone, 2026-10-29T17:05:50, window 1280 x 720. The game is paused and the driver held off.
+Base at Camper: 0.50 m from the apex of a 7.00 m cone, corner alpha 0.519, pixel (974, 258)
+Far Edge: 6.50 m from the apex of a 7.00 m cone, corner alpha 0.151, pixel (249, 480)
+alarm_0.0: alarm 0.0, shown 1.0, fog on
+  Base at Camper  cone (142, 134, 94), 5x5 mean (142.0, 134.0, 94.0)   bare (34, 45, 49), 5x5 mean (34.0, 45.1, 49.2)
+  Far Edge        cone (94, 101, 91), 5x5 mean (94.3, 100.7, 91.0)   bare (58, 76, 82), 5x5 mean (58.0, 76.0, 82.0)
+alarm_0.5: alarm 0.5, shown 1.0, fog on
+  Base at Camper  cone (151, 111, 81), 5x5 mean (150.6, 110.6, 81.0)   bare (34, 45, 49), 5x5 mean (34.0, 45.1, 49.2)
+  Far Edge        cone (99, 91, 87), 5x5 mean (98.5, 91.0, 87.0)   bare (58, 76, 82), 5x5 mean (58.0, 76.0, 82.0)
+alarm_1.0: alarm 1.0, shown 1.0, fog on
+  Base at Camper  cone (159, 61, 57), 5x5 mean (159.0, 61.1, 57.0)   bare (34, 45, 49), 5x5 mean (34.0, 45.1, 49.2)
+  Far Edge        cone (102, 76, 81), 5x5 mean (102.5, 76.0, 81.0)   bare (58, 76, 82), 5x5 mean (58.0, 76.0, 82.0)
+alarm_2.0: alarm 2.0, shown 1.0, fog on
+  Base at Camper  cone (174, 0, 0), 5x5 mean (174.0, 0.0, 0.0)   bare (34, 45, 49), 5x5 mean (34.0, 45.1, 49.2)
+  Far Edge        cone (110, 0, 62), 5x5 mean (110.0, 0.0, 62.0)   bare (58, 76, 82), 5x5 mean (58.0, 76.0, 82.0)
+fog_off_alarm_0.0: alarm 0.0, shown 1.0, fog off
+  Base at Camper  cone (142, 134, 94), 5x5 mean (142.0, 134.0, 94.0)   bare (34, 45, 49), 5x5 mean (34.0, 45.1, 49.2)
+  Far Edge        cone (94, 101, 91), 5x5 mean (94.3, 100.7, 91.0)   bare (58, 76, 82), 5x5 mean (58.0, 76.0, 82.0)
+HOLDING the alarm 1.0 frame: take your OS screenshot now, then press F9 in the game window to finish.

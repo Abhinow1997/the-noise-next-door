@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://props/moths.gd" id="1_driver"]
+[ext_resource type="Texture2D" uid="uid://ckw8xsph5hf31" path="res://assets/sprites/moth_lowpoly/moth_lowpoly.png" id="2_moth"]
+[ext_resource type="Animation" path="res://animations/moth_flutter.tres" id="3_flutter"]
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_moth"]
+_data = {
+&"flutter": ExtResource("3_flutter")
+}
+
+[node name="Moths" type="Node3D"]
+script = ExtResource("1_driver")
+
+[node name="Pivot0" type="Node3D" parent="."]
+
+[node name="Moth" type="Sprite3D" parent="Pivot0"]
+pixel_size = 0.00030737705
+billboard = 1
+alpha_cut = 2
+texture_filter = 3
+texture = ExtResource("2_moth")
+hframes = 2
+vframes = 2
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Pivot0/Moth"]
+libraries = {
+&"": SubResource("AnimationLibrary_moth")
+}
+callback_mode_process = 1

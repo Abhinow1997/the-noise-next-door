@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://previews/leaf_burst_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" path="res://main.tscn" id="2_level"]
+
+[node name="LeafBurstPreview" type="Node3D"]
+process_priority = 100
+script = ExtResource("1_preview")
+trigger_frame = 10
+retrigger = true
+retrigger_frame = 20
+retrigger_ratio = 0.5
+preview_seed = 7
+
+[node name="Level" parent="." instance=ExtResource("2_level")]

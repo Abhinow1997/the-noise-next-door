@@ -1,0 +1,18 @@
+Approved, with my decisions:
+- Hidden: the driver keeps following strength while the smoke is
+  hidden, and the test asserts amount_ratio stays equal to strength.
+- The wiring: approved as you proposed (the driver after the
+  start_cycle line in main.gd, and the --smoke-test and
+  --smoke-load-test flags), on record in a dated revision of
+  CHANGE-BRIEF.md (commit 82c79df). Read it again first.
+- The preview's one line: approved.
+
+Implement step 1, show its diff, then step 2, and show its diff. Show
+only your own files.
+
+After step 2, rerun every test as CLAUDE.md says, plus Effect B's
+configuration test at 60 and the two new state tests at 60, and show
+the real output with the mode of each. Also run your throwaway
+mutation (the driver writing amount instead of amount_ratio) and show
+that check 7 fails, then restore the driver byte for byte. The rules
+from my first message still hold. Do not commit.

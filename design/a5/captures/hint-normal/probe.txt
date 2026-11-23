@@ -1,0 +1,9 @@
+hint_normal probe on res://materials/cooler_body.tres (res://shaders/cooler_paint.gdshader), 2026-11-01T22:13:28, window 1280 x 720.
+The asset room, framed as key 2 frames the cooler, paused, SSAO off. Committed: normal_strength 1.000, normal_texture res://assets/textures/blue_metal_plate/blue_metal_plate_nor_gl_1k.png.
+Compared inside the cooler's box on screen, [P: (268, 89), S: (730, 590)]: a pixel differs if a channel moves by more than 2 steps.
+
+a_committed      vs b_strength_0       3730 of 430700 pixels differ, largest  23   (does the normal map change the cooler at all (the probe can see it)?)
+b_strength_0     vs c_unbound             0 of 430700 pixels differ, largest   1   (unbound, does the sampler give a flat normal (the same as no map)?)
+a_committed      vs d_bound_no_hint       1 of 430700 pixels differ, largest  14   (bound, does taking hint_normal out change what the shader samples?)
+    pixel (814, 566): #7f9e78 in a_committed, #8a9070 in d_bound_no_hint
+c_unbound        vs e_unbound_no_hint  99150 of 430700 pixels differ, largest  43   (unbound, does taking hint_normal out change what the sampler gives?)

@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Effects' headless CPU price (tests/cost_effects.gd)
+  args: ["--script", "res://tests/cost_effects.gd"]
+  renderer: forward_plus, adapter: ''
+  physics ticks/s: 60, max_fps: 0, rounds: 5, warm-up: 120 frames, samples: 300 frames a case a round
+  round 1 done (4.7 s)
+  round 2 done (8.0 s)
+  round 3 done (11.3 s)
+  round 4 done (14.6 s)
+  round 5 done (18.0 s)
+
+Process delta while sampling: 0.016667 - 0.016667 s (fixed at 1/60: --fixed-fps 60 is on)
+Per frame, wall time (ms), all rounds' samples together:
+  case      frames     mean       sd      min   median      max   round means min - max
+  empty       1500    0.006    0.003    0.004    0.005    0.080   0.005 - 0.009
+  game        1500    1.051    0.227    0.675    1.056    2.453   1.010 - 1.079
+  effect_a    1500    1.040    0.223    0.668    1.051    2.876   1.006 - 1.077
+  effect_b    1500    1.065    0.209    0.687    1.093    2.194   1.029 - 1.087
+Each round's mean (ms), in round order:
+  empty     0.009  0.005  0.005  0.005  0.005
+  game      1.079  1.010  1.069  1.054  1.043
+  effect_a  1.050  1.037  1.006  1.029  1.077
+  effect_b  1.081  1.087  1.046  1.081  1.029
+
+Differences (the second case's mean minus the first's):
+  empty    -> game       +1.045 ms (+18204.6%)  different (rounds' means don't overlap)
+  game     -> effect_a   -0.011 ms (-1.1%)  SAME within the spread (rounds' means overlap)  (the brief predicts this: no GPU particle process headless)
+  game     -> effect_b   +0.014 ms (+1.3%)  SAME within the spread (rounds' means overlap)  (the brief predicts this: no GPU particle process headless)
+  empty    -> effect_a   +1.034 ms (+18010.6%)  different (rounds' means don't overlap)
+  empty    -> effect_b   +1.059 ms (+18448.6%)  different (rounds' means don't overlap)
+
+PASS empty: every sampled frame in its stated state
+PASS game: every sampled frame in its stated state
+PASS effect_a: every sampled frame in its stated state
+FAIL effect_b: 1500 sampled frames in the wrong state (first: smoke emitting false, amount_ratio 0.000, amount 40, strength 0.000)
+Done: FAILED

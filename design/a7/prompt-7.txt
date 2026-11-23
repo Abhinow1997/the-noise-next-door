@@ -1,0 +1,37 @@
+Read CLAUDE.md first; it imports CHANGE-BRIEF.md, the contract for this change. Read the brief's last
+dated revision closely (23dd8f6): "every raccoon animation meets the assignment's requirements, not only
+the jump". The project is the repository root. The test wrapper is scripts/run-test.sh
+(bash scripts/run-test.sh <test> <fps|realtime> [timeout]). Do not edit any .gdshader file, and do not
+change any clip's keys or the rig's files (assets/characters/raccoon_v2.*): this is checks and a
+preview only.
+
+Where things stand (all committed, 4044bf3): the raccoon's rig assets/characters/raccoon_v2.glb has
+nine clips; the seven loops (idle, walk, run, sneak, bored, sleep, climb) are LOOP_LINEAR in its
+.import; tests/test_raccoon_rig.gd reads all nine back; tests/test_jump_states.gd drives the state
+machine through real input; scripts/raccoon_model.gd plays the clips (it has forced_animation for
+screenshots).
+
+Do these, as the revision says. Plan briefly in your reply first, then do them, showing each diff:
+1. tests/test_raccoon_rig.gd, for each of the seven loops:
+   - its length is the cycle spec's (frames / 24: idle 96, walk 24, run 16, sneak 48, bored 96,
+     sleep 96, climb 24), within half a frame;
+   - the seam: every track's value at 0 and at the length match (rotations with is_equal_approx,
+     a quaternion or its negative; positions and scales within 1 mm), read with the Animation's own
+     *_track_interpolate() for each track type. The jump's two one-shots are left out.
+   Keep every existing check as it is.
+2. tests/test_jump_states.gd: a check, through real input (Input.parse_input_event), that each of
+   the seven states plays its own clip, read as the AnimationPlayer's current_animation: idle
+   standing; walk with W; run with W and Shift; sneak with Ctrl and W; bored standing still past
+   BORED_AFTER; sleep in the hollow; climb on a trunk. And the one-tick lag measured on a gait change
+   (walk to run), as it is for the jump. Reuse what the test already does where it covers these.
+3. previews/raccoon_loops_preview.tscn and its script: the seven loops side by side in the real
+   camp at night (the game's own level, main.tscn, as previews/campfire_smoke_preview does), seven
+   copies of the raccoon's model (scripts/raccoon_model.gd) in a row, each holding one loop through
+   forced_animation, at the game camera's angle, with each clip's name shown above it. It's run
+   windowed by me (say the exact command), for watching each seam over at least five wraps. It
+   writes nothing to the game.
+Then run through scripts/run-test.sh: test_raccoon_rig.gd and test_jump_states.gd at 60, the other
+read-backs (test_balloon_3d, test_moth_flutter), tests/jump_pins.gd (the same four predicted failures,
+nothing else), and every existing test CLAUDE.md lists in its pinned mode, reading each run's exit
+code. Show the real output, and say what each new check proves and what it can't headlessly. Do not
+start Step 6. Do not commit.

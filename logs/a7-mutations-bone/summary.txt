@@ -1,0 +1,14 @@
+The bone-track mutation, 22 Nov 2026 19:10, in a git worktree (git worktree add --detach, then removed) at 160c0eb (NotebookLM pack for Assignment 7's explainer video, as of 8bf28c9); Godot 4.7.2 headless
+m0_control. No change: the worktree imported from no .godot, then the rig's read-back
+  no .godot before the import
+  --import exit 0
+  test_raccoon_rig.gd at 60 -> exit 0 | 51 passed, 0 failed | FAIL lines: 0
+m1_subname_bone. Break a bone track's subname: jump's first bone track renamed <bone>_x, in the clip only
+  change: a new EditorScenePostImport script, zz_mutate_bone.gd (kept here as zz_mutate_bone.gd.txt), set as raccoon_v2.glb.import's import_script/path
+  -import_script/path="" +import_script/path="res://zz_mutate_bone.gd" 
+  .godot deleted, then --import
+  --import exit 0 | MUTATION: jump track 0: bone pelvis renamed pelvis_x in the clip only
+  test_raccoon_rig.gd at 60 -> exit 1 | 50 passed, 1 failed | FAIL lines: 1
+    FAIL every track in every clip resolves to a real node and property, bone or blend shape: jump track 0: no bone pelvis_x on Skeleton3D
+  -> fails its test, as it must
+  the worktree removed

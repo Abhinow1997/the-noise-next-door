@@ -1,0 +1,40 @@
+Assignment 7 baseline, after: c14faf9 CLAUDE.md brought up to date with the kept brief; the wrapper's latest logs
+Godot 4.7.2 stable, headless (dummy renderer), 22 Nov 2026 14:36; a git worktree with no .godot, imported first
+  no .godot before the import
+  --import exit 0
+  a3_asset_check.gd 60               exit 0      0s  a3_asset_check_60fps.log  
+  normal_map_calibration.gd 60       exit 0      2s  normal_map_calibration_60fps.log  
+  test_materials.gd 60               exit 0      4s  test_materials_60fps.log  
+  test_leaf_burst_config.gd 60       exit 0      1s  test_leaf_burst_config_60fps.log  
+  test_campfire_smoke_config.gd 60   exit 0      2s  test_campfire_smoke_config_60fps.log  
+  cost_effects.gd 60 300             exit 1     19s  cost_effects_60fps.log  
+  --sound-test 60                    exit 0      4s  sound-test_60fps.log  RESULT: all checks passed
+  --bubble-test 60                   exit 0      4s  bubble-test_60fps.log  RESULT: all checks passed (87 checks)
+  --camp-test 60                     exit 0     10s  camp-test_60fps.log  RESULT: all checks passed (31 checks)
+  --tasks-test 60                    exit 0     15s  tasks-test_60fps.log  RESULT: all checks passed (48 checks)
+  --plan-test 60                     exit 0      4s  plan-test_60fps.log  RESULT: all checks passed (22 checks)
+  --tutorial-test 60                 exit 0      7s  tutorial-test_60fps.log  RESULT: all checks passed (34 checks)
+  --cones-test 30                    exit 0      6s  cones-test_30fps.log  RESULT: all checks passed (43 checks)
+  --cones-test 60                    exit 0      7s  cones-test_60fps.log  RESULT: all checks passed (43 checks)
+  --cones-test 144                   exit 0     11s  cones-test_144fps.log  RESULT: all checks passed (43 checks)
+  --cone-shader-test 30              exit 0      4s  cone-shader-test_30fps.log  RESULT: all checks passed (93 of 93 checks passed)
+  --cone-shader-test 60              exit 0      5s  cone-shader-test_60fps.log  RESULT: all checks passed (93 of 93 checks passed)
+  --cone-shader-test 144             exit 0      8s  cone-shader-test_144fps.log  RESULT: all checks passed (93 of 93 checks passed)
+  --fire-test 60                     exit 0     11s  fire-test_60fps.log  RESULT: all checks passed (25 checks)
+  --tent-test 60 300                 exit 0      8s  tent-test_60fps.log  RESULT: all checks passed (16 checks)
+  --bearbag-test 60 300              exit 0      4s  bearbag-test_60fps.log  RESULT: all checks passed (41 checks)
+  --leaf-burst-test 60               exit 0      3s  leaf-burst-test_60fps.log  RESULT: all checks passed (37 checks)
+  --smoke-test 60                    exit 0      8s  smoke-test_60fps.log  RESULT: all checks passed (20 checks)
+  --smoke-load-test 60               exit 0      3s  smoke-load-test_60fps.log  RESULT: all checks passed (8 checks)
+  --waves-test realtime              exit 0     15s  waves-test_realtime.log  RESULT: all checks passed (14 checks)
+  --title-test realtime              exit 0     13s  title-test_realtime.log  RESULT: all checks passed
+  test_raccoon_rig.gd 60             exit 0      2s  test_raccoon_rig_60fps.log  51 passed, 0 failed
+  jump_pins.gd 60                    exit 0      3s  jump_pins_60fps.log  RESULT: all checks passed (26 checks)
+  test_jump_states.gd 60             exit 0      5s  test_jump_states_60fps.log  RESULT: all checks passed (89 checks, 0 failed)
+  test_jump_edges.gd 30              exit 0      8s  test_jump_edges_30fps.log  RESULT: all checks passed (239 checks, 0 failed)
+  test_jump_edges.gd 60              exit 0      9s  test_jump_edges_60fps.log  RESULT: all checks passed (238 checks, 0 failed)
+  test_jump_edges.gd 144             exit 0     11s  test_jump_edges_144fps.log  RESULT: all checks passed (238 checks, 0 failed)
+  test_moth_flutter.gd 60            exit 0      1s  test_moth_flutter_60fps.log  40 passed, 0 failed
+  test_moths_state.gd 60             exit 0      6s  test_moths_state_60fps.log  RESULT: all checks passed (15 checks, 0 failed)
+  test_balloon_3d.gd 60              exit 0      1s  test_balloon_3d_60fps.log  35 passed, 0 failed
+  test_balloon_task.gd 60            exit 0     27s  test_balloon_task_60fps.log  RESULT: all checks passed (69 checks, 0 failed)

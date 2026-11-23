@@ -1,0 +1,116 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Effect A, the leaf burst: res://effects/leaf_burst.tscn
+PASS  the scene exists
+PASS  it loads as a PackedScene
+PASS  root is a Node3D (got Node3D)
+PASS  root has no script (settings live in the scene)
+PASS  children are exactly Leaves and Puff, both GPUParticles3D (got ["Leaves:GPUParticles3D", "Puff:GPUParticles3D"])
+-- Leaves
+PASS  Leaves: amount = 18 (got 18)
+PASS  Leaves: one_shot = true (got true)
+PASS  Leaves: explosiveness = 0.9 (got 0.89999997615814)
+PASS  Leaves: lifetime = 0.9 (got 0.9)
+PASS  Leaves: preprocess = 0.0 (got 0.0)
+PASS  Leaves: local_coords = false (got false)
+PASS  Leaves: emitting off at load (never fires on scene load; got false)
+PASS  Leaves: amount_ratio 1.0 in the scene (the hop-out's 0.5 is set on its copy; got 1.0)
+PASS  Leaves: no fixed seed in the effect scene (got false)
+PASS  Leaves: no script
+PASS  Leaves: visibility_aabb size (3.2, 2.2, 3.2) (got (3.2, 2.2, 3.2))
+PASS  Leaves: visibility_aabb centred on the bush across the ground, from the ground up (got (0.0, 1.1, 0.0) at (-1.6, 0.0, -1.6))
+PASS  Leaves: process_material is a ParticleProcessMaterial (got ParticleProcessMaterial)
+PASS  Leaves: lifetime_randomness = 0.2 (got 0.2)
+PASS  Leaves: emission_shape = 1 (got 1)
+PASS  Leaves: emission_sphere_radius = 0.55 (got 0.55000001192093)
+PASS  Leaves: emission_shape_offset = (0.0, 0.5, 0.0) (got (0.0, 0.5, 0.0))
+PASS  Leaves: direction = (0.0, 1.0, 0.0) (got (0.0, 1.0, 0.0))
+PASS  Leaves: spread = 70.0 (got 70.0)
+PASS  Leaves: initial_velocity_min = 2.0 (got 2.0)
+PASS  Leaves: initial_velocity_max = 3.2 (got 3.20000004768372)
+PASS  Leaves: gravity = (0.0, -3.5, 0.0) (got (0.0, -3.5, 0.0))
+PASS  Leaves: damping_min = 2.0 (got 2.0)
+PASS  Leaves: damping_max = 3.0 (got 3.0)
+PASS  Leaves: angle_min = 0.0 (got 0.0)
+PASS  Leaves: angle_max = 360.0 (got 360.0)
+PASS  Leaves: scale_min = 1.0 (got 1.0)
+PASS  Leaves: scale_max = 1.0 (got 1.0)
+PASS  Leaves: color_ramp is a GradientTexture1D (got GradientTexture1D)
+PASS  Leaves: color_ramp has a Gradient
+PASS  Leaves: color_ramp has 3 stops (got 3)
+PASS  Leaves: color_ramp stop 0 at 0.00, white, alpha 1.0 (got 0.00, (1.0, 1.0, 1.0, 1.0))
+PASS  Leaves: color_ramp stop 1 at 0.66, white, alpha 1.0 (got 0.66, (1.0, 1.0, 1.0, 1.0))
+PASS  Leaves: color_ramp stop 2 at 1.00, white, alpha 0.0 (got 1.00, (1.0, 1.0, 1.0, 0.0))
+PASS  Leaves: color_ramp interpolates linearly (a smooth fade)
+PASS  Leaves: color_initial_ramp is a GradientTexture1D (got GradientTexture1D)
+PASS  Leaves: color_initial_ramp has a Gradient
+PASS  Leaves: color_initial_ramp is constant, one colour per leaf, no blends
+PASS  Leaves: colour 0 #7d8a45 opaque
+PASS  Leaves: colour 1 #8fa04a opaque
+PASS  Leaves: colour 2 #a3b052 opaque
+PASS  Leaves: colour 3 #6f8f3e opaque
+PASS  Leaves: colour 4 #a8763a opaque
+PASS  Leaves: colour 5 #c96a32 opaque
+PASS  Leaves: colour 6 #b85a2e opaque
+PASS  Leaves: yellow-greens lighter than the bush #507548 (got 4)
+PASS  Leaves: a few fallen-leaf oranges and browns, fewer than the greens (got 3)
+PASS  Leaves: draw_passes 1 (got 1)
+PASS  Leaves: draw_pass_1 is a QuadMesh (got QuadMesh)
+PASS  Leaves: QuadMesh.size = (0.12, 0.08) (got (0.12, 0.08))
+PASS  Leaves: the quad's material is a StandardMaterial3D (got StandardMaterial3D)
+PASS  Leaves: shading_mode (UNSHADED) = 0 (got 0)
+PASS  Leaves: vertex_color_use_as_albedo (predicted failure 1) = true (got true)
+PASS  Leaves: transparency (ALPHA, predicted failure 2) = 1 (got 1)
+PASS  Leaves: blend_mode (MIX, not additive) = 0 (got 0)
+PASS  Leaves: billboard_mode (PARTICLES) = 3 (got 3)
+PASS  Leaves: no material_override hiding the quad's material
+-- Puff
+PASS  Puff: amount = 12 (got 12)
+PASS  Puff: one_shot = true (got true)
+PASS  Puff: explosiveness = 1.0 (got 1.0)
+PASS  Puff: lifetime = 0.35 (got 0.35)
+PASS  Puff: preprocess = 0.0 (got 0.0)
+PASS  Puff: local_coords = false (got false)
+PASS  Puff: emitting off at load (never fires on scene load; got false)
+PASS  Puff: amount_ratio 1.0 in the scene (the hop-out's 0.5 is set on its copy; got 1.0)
+PASS  Puff: no fixed seed in the effect scene (got false)
+PASS  Puff: no script
+PASS  Puff: visibility_aabb size (3.2, 2.2, 3.2) (got (3.2, 2.2, 3.2))
+PASS  Puff: visibility_aabb centred on the bush across the ground, from the ground up (got (0.0, 1.1, 0.0) at (-1.6, 0.0, -1.6))
+PASS  Puff: process_material is a ParticleProcessMaterial (got ParticleProcessMaterial)
+PASS  Puff: lifetime_randomness = 0.0 (got 0.0)
+PASS  Puff: emission_shape = 1 (got 1)
+PASS  Puff: emission_sphere_radius = 0.4 (got 0.40000000596046)
+PASS  Puff: emission_shape_offset = (0.0, 0.5, 0.0) (got (0.0, 0.5, 0.0))
+PASS  Puff: direction = (0.0, 1.0, 0.0) (got (0.0, 1.0, 0.0))
+PASS  Puff: spread = 180.0 (got 180.0)
+PASS  Puff: initial_velocity_min = 1.0 (got 1.0)
+PASS  Puff: initial_velocity_max = 2.0 (got 2.0)
+PASS  Puff: gravity = (0.0, 0.0, 0.0) (got (0.0, 0.0, 0.0))
+PASS  Puff: damping_min = 4.0 (got 4.0)
+PASS  Puff: damping_max = 4.0 (got 4.0)
+PASS  Puff: angle_min = 0.0 (got 0.0)
+PASS  Puff: angle_max = 0.0 (got 0.0)
+PASS  Puff: scale_min = 1.0 (got 1.0)
+PASS  Puff: scale_max = 1.0 (got 1.0)
+PASS  Puff: color_ramp is a GradientTexture1D (got GradientTexture1D)
+PASS  Puff: color_ramp has a Gradient
+PASS  Puff: color_ramp has 2 stops (got 2)
+PASS  Puff: color_ramp stop 0 at 0.00, white, alpha 1.0 (got 0.00, (1.0, 1.0, 1.0, 1.0))
+PASS  Puff: color_ramp stop 1 at 1.00, white, alpha 0.0 (got 1.00, (1.0, 1.0, 1.0, 0.0))
+PASS  Puff: color_ramp interpolates linearly (a smooth fade)
+PASS  Puff: color_initial_ramp is a GradientTexture1D (got GradientTexture1D)
+PASS  Puff: color_initial_ramp has a Gradient
+PASS  Puff: colour 0 #d9c49b is a pale tan (r > g > b, light, opaque)
+PASS  Puff: colour 1 #c4ab84 is a pale tan (r > g > b, light, opaque)
+PASS  Puff: draw_passes 1 (got 1)
+PASS  Puff: draw_pass_1 is a QuadMesh (got QuadMesh)
+PASS  Puff: QuadMesh.size = (0.04, 0.04) (got (0.04, 0.04))
+PASS  Puff: the quad's material is a StandardMaterial3D (got StandardMaterial3D)
+PASS  Puff: shading_mode (UNSHADED) = 0 (got 0)
+PASS  Puff: vertex_color_use_as_albedo (predicted failure 1) = true (got true)
+PASS  Puff: transparency (ALPHA, predicted failure 2) = 1 (got 1)
+PASS  Puff: blend_mode (MIX, not additive) = 0 (got 0)
+PASS  Puff: billboard_mode (PARTICLES) = 3 (got 3)
+PASS  Puff: no material_override hiding the quad's material
+PASS: 0 check(s) failed

@@ -1,13 +1,77 @@
 @tool
 extends Node3D
-## The raccoon: the Blender model in assets/characters, or a low-poly one built
-## from code. Both match the concept art.
-## Faces -Z (Godot's forward) with its feet at y = 0. Parts are separate nodes
-## so they can be animated; set walk_amount / walk_phase / crouch / chitter_time.
+## The raccoon: the rigged, animated Blender model (raccoon_v2), the first Blender
+## model, or a low-poly one built from code. All match the concept art.
+## Faces -Z (Godot's forward) with its feet at y = 0. The player sets walk_amount /
+## walk_phase / crouch / turn / chitter_time / sleep, and for the rigged model also
+## speed / climbing / hopping; the rigged model picks its animation from those, the
+## other two swing their separate parts in code.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
+const RaccoonFlex := preload("res://scripts/raccoon_flex.gd")
+const RaccoonEat := preload("res://scripts/raccoon_eat.gd")
 ## Exported from raccoon.blend by assets/characters/export_raccoon.py.
 const MODEL_PATH := "res://assets/characters/raccoon.glb"
+## Exported from raccoon_v2.blend by assets/characters/export_raccoon_v2.py: one
+## skinned mesh and seven looping animations.
+const RIGGED_PATH := "res://assets/characters/raccoon_v2.glb"
+## Where carried things sit, just under the snout, in the model's own space.
+const RIGGED_MOUTH := Vector3(0, 0.37, -0.57)
+## The middle of his underside when he's curled up asleep, in model space, measured
+## from each model's sleep pose. He curls up round his hips rather than over his
+## feet, so while he sleeps the model slides by this to put the ball on his origin.
+## (Moved by -0.034, 0, +0.006 when his rear was slimmed on 19 Oct: the curled ball's
+## middle moved that much.)
+const RIGGED_SLEEP_BED := Vector3(-0.296, 0.066, 0.333)
+const MODEL_SLEEP_BED := Vector3(-0.111, 0.001, 0.104)
+const CODE_SLEEP_BED := Vector3(-0.113, -0.038, -0.021)
+## How long one animation takes to blend into the next, in seconds.
+const RIGGED_BLEND := 0.2
+## Eating from his paws: how far past his wrists, toward his toes, what he holds sits
+## (m at model scale 1), and how long sitting up to eat takes to ease in or out (s).
+const PAW_GRIP := 0.03
+const EAT_BLEND := 0.25
+## Between the ones he moves about in it's a little longer, so starting, stopping and
+## changing gait ease in; and one gait changing to another carries on from the same
+## point in its stride.
+const LOCOMOTION := ["idle", "walk", "run", "sneak"]
+const GAIT_BLEND := 0.3
+## A jump's clips come in quickly.
+const JUMP_BLEND := 0.08
+## The jump's two one-shot clips (CHANGE-BRIEF.md, "The phase table: the jump" and its
+## revision of 21 Nov 2026). `jump` always starts from frame 0, its push-off: a jump's
+## takeoff and a hop off a tree alike.
+const ONE_SHOTS := ["jump", "jump_land"]
+## Every clip _process_rigged() can ask the rig's AnimationPlayer for (the structure test
+## checks each is in it).
+const CLIPS := ["idle", "walk", "run", "sneak", "bored", "sleep", "climb", "jump", "jump_land"]
+## Turning on the spot faster than this (rad/s), he steps round rather than gliding.
+const TURN_STEP := 2.5
+## His weight, on the rigged model. He banks into a turn by LEAN_GAIN of the angle the
+## sideways force on him would tip a cyclist, up to LEAN_MAX, and tips nose up by
+## TILT_PER_ACCEL per m/s² of speeding up (nose down braking), up to TILT_MAX: both
+## on springs, so a hard stop dips and settles. He tips on his paws, PAW_PIVOT ahead
+## of and behind his middle (model scale 1). All in radians.
+const LEAN_GAIN := 0.15
+const LEAN_MAX := 0.2
+const TILT_PER_ACCEL := 0.007
+const TILT_MAX := 0.1
+const PAW_PIVOT := 0.3
+## Seconds standing still before he gets bored (as with the sprites).
+const BORED_AFTER := 5.0
+## Above this speed (m/s) he runs rather than walks; the player's walk is 2.0.
+const RUN_FROM := 2.15
+## Each gait's stride (metres a paw travels while it's down, at model scale 1), the
+## share of the cycle the paw is down, the cycle's length in seconds (all from
+## design/character/raccoon_v2/anim.py), and the fastest playback allowed. Played
+## back at the speed that keeps the planted paws still, up to that cap, so the legs
+## don't blur.
+const GAITS := {
+	"walk": [0.26, 0.60, 1.0, 3.0],
+	"run": [0.46, 0.40, 0.6667, 3.0],
+	"sneak": [0.16, 0.78, 2.0, 3.0],
+	"climb": [0.22, 0.55, 1.0, 2.5],
+}
 
 # Sampled from design/reference/the-raccon.jpg: blue-grey coat, cream mask,
 # slate eye patches, near-black paws and tail bands.
@@ -28,7 +92,15 @@ const MODEL_COLORS := {
 	"R_Nose": INK,
 }
 
-## Use the Blender model. Turn off to build the raccoon from code instead.
+## Use the rigged, animated model. Turn off for the first Blender model (or the
+## code-built one, with use_blender_model off too).
+@export var use_rigged_model := true:
+	set(value):
+		use_rigged_model = value
+		if is_node_ready():
+			_rebuild()
+
+## Use the first Blender model. Turn off to build the raccoon from code instead.
 @export var use_blender_model := true:
 	set(value):
 		use_blender_model = value
@@ -50,10 +122,43 @@ var walk_phase := 0.0
 var crouch := 0.0
 ## -1..1, how hard we're turning (positive = left). Head leads, tail trails.
 var turn := 0.0
+## Rigged model only: how fast he's turning (rad/s, positive = left), how far round
+## the way he wants to go is from the way he faces (radians), and how fast he's
+## speeding up (m/s², negative braking). He bends, looks and leans with these.
+var yaw_rate := 0.0
+var look := 0.0
+var accel := 0.0
 ## Seconds of chittering left.
 var chitter_time := 0.0
 ## 0 = awake, 1 = curled up asleep: legs tucked, tail wrapped round, eyes shut.
 var sleep := 0.0
+## Rigged model only: how fast he's moving over the ground or up the trunk (m/s),
+## and whether he's on a trunk or in a hop.
+var speed := 0.0
+var climbing := false
+var hopping := false
+## Rigged model only: play this animation whatever he's doing ("" = his real state).
+## For screenshots.
+var forced_animation := ""
+## Rigged model only: hold the run animation at this point in its cycle (wrapping
+## round 1), for a leap; negative when he isn't leaping.
+var leap := -1.0
+## 0..1: squashes him down, crouching to spring or soaking up a landing.
+var squash := 0.0
+## Rigged model only: set by the player from a jump's takeoff (or a hop off a tree) until
+## he has soaked up its landing, and how far to tip him nose up then besides his weight's
+## tip (radians). `landing` is true while he soaks it up; `jump_id` changes with each new
+## jump or hop off a tree. (CHANGE-BRIEF.md, "The state machine" and its revisions of
+## 21 Nov 2026.)
+var jumping := false
+var landing := false
+var jump_id := 0
+var pitch := 0.0
+## Rigged model only: sitting up eating something from his front paws (raccoon_eat.gd,
+## over the bored animation's sit), and how far through a bite he is (0..1; negative
+## between bites).
+var eating := false
+var eat_bite := -1.0
 
 var body: Node3D
 var head: Node3D
@@ -61,6 +166,9 @@ var tail: Node3D
 var legs: Array[Node3D] = []
 ## Where carried objects are held.
 var mouth: Node3D
+## Rigged model only: between his front paws, following them (for something he eats
+## from them); null on the other models.
+var paws: Node3D
 
 var _leg_height: Array[float] = []
 var _eyes: Array[Node3D] = []
@@ -69,10 +177,40 @@ var _head_y := 0.47
 ## How far the tail pitches as he crouches; positive lowers it.
 var _tail_crouch := 0.1
 var _model_materials := {}
+var _sleep_bed := Vector3.ZERO
+## Rigged model: how far the sleep animation has blended in, 0..1.
+var _curl := 0.0
 var _t := 0.0
+## The rigged model: its animation player, the turned-round scene root, how long
+## he's been standing still, and the chitter hop.
+var _anim: AnimationPlayer
+var _rig: Node3D
+var _still := 0.0
+var _chitter_prev := 0.0
+var _bounce := 0.0
+## The rigged model: its give in turns (raccoon_flex.gd), the playback rate as eased,
+## and his bank and tip (radians) with how fast each is changing.
+var _flex: RaccoonFlex
+## The rigged model's eating (raccoon_eat.gd) and the IK that brings his paws up to
+## what he eats; his skeleton, and its hand bones.
+var _eat: RaccoonEat
+var _eat_ik: TwoBoneIK3D
+var _skeleton: Skeleton3D
+var _hands := PackedInt32Array()
+var _rate := 1.0
+var _lean := 0.0
+var _lean_v := 0.0
+var _tilt := 0.0
+var _tilt_v := 0.0
+## The `jump_id` of the jump `jump` was last started for.
+var _played_jump := -1
 
 
 func _ready() -> void:
+	# His pose (the slide as he curls up, the rig's lean, squash and hop) is set
+	# every frame in _process, so the model isn't interpolated itself; it still
+	# rides on the player, who is, so he's drawn between physics ticks.
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	_build()
 
 
@@ -83,6 +221,9 @@ func _rebuild() -> void:
 	legs.clear()
 	_leg_height.clear()
 	_eyes.clear()
+	_anim = null
+	_rig = null
+	_flex = null
 	_build()
 
 
@@ -90,7 +231,13 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
 	_t += delta
+	if _anim:
+		_process_rigged(delta)
+		chitter_time = maxf(chitter_time - delta, 0.0)
+		return
 	chitter_time = maxf(chitter_time - delta, 0.0)
+	# As he curls up, slide the model so the middle of the ball lies where he was laid.
+	position = -_sleep_bed * scale * sleep
 
 	# Diagonal leg pairs swing together, like a real trot.
 	var stride := sin(walk_phase) * 0.65 * walk_amount
@@ -111,9 +258,11 @@ func _process(delta: float) -> void:
 		head.rotation.x += sin(_t * 45.0) * 0.07
 		head.rotation.y += sin(_t * 31.0) * 0.05
 
-	# Asleep: lie flat, tuck the head round towards the tail, and breathe slowly.
+	# Asleep: lie flat and tuck the head round towards the tail. No breathing: he
+	# doesn't swell and shrink, asleep or awake.
 	body.position.y -= sleep * 0.17
-	body.scale.y = 1.0 + sin(_t * 1.7) * 0.025 * sleep
+	var wide := 1.0 + 0.12 * squash
+	body.scale = Vector3(wide, 1.0 - 0.2 * squash, wide)
 	head.position.y = _head_y - sleep * 0.07
 	if sleep > 0.0:
 		head.rotation.y = lerpf(head.rotation.y, 0.95, sleep)
@@ -128,8 +277,13 @@ func _process(delta: float) -> void:
 
 
 func _build() -> void:
-	if use_blender_model and _build_from_model():
+	if use_rigged_model and _build_rigged():
+		_sleep_bed = RIGGED_SLEEP_BED
 		return
+	if use_blender_model and _build_from_model():
+		_sleep_bed = MODEL_SLEEP_BED
+		return
+	_sleep_bed = CODE_SLEEP_BED
 	_head_y = 0.47
 	_tail_crouch = 0.1
 	body = _part("Body", self, Vector3.ZERO)
@@ -225,6 +379,225 @@ func _build_from_model() -> bool:
 		for i in mi.mesh.get_surface_count():
 			mi.set_surface_override_material(i, _model_material(mi.mesh.surface_get_material(i)))
 	return true
+
+
+## Uses the rigged model. Returns false if it can't be loaded (e.g. never imported).
+func _build_rigged() -> bool:
+	var scene := load(RIGGED_PATH) as PackedScene
+	if scene == null:
+		push_warning("Couldn't load %s, so the older raccoon is used." % RIGGED_PATH)
+		return false
+	_rig = scene.instantiate() as Node3D
+	# He faces +Z in the file; turn him round to face -Z.
+	_rig.rotation.y = PI
+	add_child(_rig)
+	# Its clips' loop modes are the importer's (raccoon_v2.glb.import, _subresources).
+	_anim = _rig.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	for mi: MeshInstance3D in _rig.find_children("*", "MeshInstance3D", true, false):
+		for i in mi.mesh.get_surface_count():
+			mi.set_surface_override_material(i, _model_material(mi.mesh.surface_get_material(i)))
+	# Carried things ride on the head bone, just under the snout.
+	var skeleton := _rig.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var attach := BoneAttachment3D.new()
+	attach.bone_name = "head"
+	skeleton.add_child(attach)
+	mouth = Marker3D.new()
+	mouth.name = "Mouth"
+	attach.add_child(mouth)
+	var head_rest := skeleton.get_bone_global_rest(skeleton.find_bone("head"))
+	var model_to_skeleton := skeleton.global_transform.affine_inverse() * global_transform
+	mouth.transform = head_rest.affine_inverse() * model_to_skeleton * Transform3D(Basis(), RIGGED_MOUTH)
+	# His back, head and tail give in turns, laid over the animation.
+	_flex = RaccoonFlex.new()
+	skeleton.add_child(_flex)
+	var rig_to_skeleton := (_rig.global_basis.inverse() * skeleton.global_basis).orthonormalized()
+	_flex.setup(rig_to_skeleton.inverse() * Vector3.UP)
+	_build_eating(skeleton, rig_to_skeleton, model_to_skeleton)
+	_anim.play("idle")
+	return true
+
+
+## Eating from his paws (raccoon_eat.gd), then the IK that brings each front paw up to
+## the target it sets, elbows toward its poles; and the point between his paws.
+func _build_eating(skeleton: Skeleton3D, rig_to_skeleton: Basis, model_to_skeleton: Transform3D) -> void:
+	_skeleton = skeleton
+	_eat = RaccoonEat.new()
+	skeleton.add_child(_eat)
+	# He faces +Z in the file.
+	_eat.setup(rig_to_skeleton.inverse() * Vector3.UP, rig_to_skeleton.inverse() * Vector3.BACK,
+		model_to_skeleton.basis.get_scale().x, mouth.transform.origin)
+	_eat_ik = TwoBoneIK3D.new()
+	_eat_ik.setting_count = 2
+	skeleton.add_child(_eat_ik)
+	for i in 2:
+		var s := "L" if i == 0 else "R"
+		var target := Marker3D.new()
+		target.name = "EatPaw" + s
+		skeleton.add_child(target)
+		var pole := Marker3D.new()
+		pole.name = "EatElbow" + s
+		skeleton.add_child(pole)
+		_eat.targets.append(target)
+		_eat.poles.append(pole)
+		_eat_ik.set_root_bone_name(i, "upperarm." + s)
+		_eat_ik.set_middle_bone_name(i, "forearm." + s)
+		_eat_ik.set_end_bone_name(i, "hand." + s)
+		_eat_ik.set_target_node(i, _eat_ik.get_path_to(target))
+		_eat_ik.set_pole_node(i, _eat_ik.get_path_to(pole))
+	_eat_ik.influence = 0.0
+	_eat_ik.active = false
+	_hands = PackedInt32Array([skeleton.find_bone("hand.L"), skeleton.find_bone("hand.R")])
+	paws = Marker3D.new()
+	paws.name = "Paws"
+	skeleton.add_child(paws)
+	skeleton.skeleton_updated.connect(_place_paws)
+
+
+## Between his front paws, as drawn (after the modifiers): a little past his wrists,
+## toward his toes.
+func _place_paws() -> void:
+	if paws == null or _hands.size() < 2 or _hands[0] < 0 or _hands[1] < 0:
+		return
+	var left := _skeleton.get_bone_global_pose(_hands[0])
+	var right := _skeleton.get_bone_global_pose(_hands[1])
+	var toes := (left.basis.y.normalized() + right.basis.y.normalized()).normalized()
+	paws.position = (left.origin + right.origin) * 0.5 + toes * PAW_GRIP * _eat._scale
+	paws.basis = left.basis.orthonormalized()
+
+
+## Picks the animation for what he's doing and plays it at a speed to match.
+func _process_rigged(delta: float) -> void:
+	var anim_name := forced_animation
+	if anim_name == "" and eating:
+		# Eating sits him up as in his bored pose, without the bored face or sigh.
+		anim_name = "bored"
+		_still = 0.0
+	elif anim_name == "":
+		anim_name = _rigged_state(delta)
+	if _eat:
+		_eat.amount = move_toward(_eat.amount, 1.0 if eating and anim_name == "bored" else 0.0, delta / EAT_BLEND)
+		_eat.bite = eat_bite
+		_eat_ik.influence = _eat.amount
+		_eat_ik.active = _eat.amount > 0.0
+	# Against the clip last asked for, not current_animation: a one-shot that has run out
+	# (`jump` held through a long fall) reads "" there, and mustn't be started again. A new
+	# jump (a new jump_id) starts `jump` again even if the last one's is still assigned.
+	if _anim.assigned_animation != anim_name or (anim_name == "jump" and jump_id != _played_jump):
+		_change_animation(anim_name)
+	if anim_name in ONE_SHOTS:
+		# The jump's clips play at their own rate, from their first frame.
+		_rate = 1.0
+	else:
+		# Eased, so speeding up or slowing down doesn't jerk the stride.
+		_rate = lerpf(_rate, _rigged_rate(anim_name), 1.0 - exp(-10.0 * delta))
+	_anim.speed_scale = _rate
+	# A leap (out of the hollow) holds the run clip at a pose. Never in a jump: there the
+	# jump's clips play on their own.
+	if leap >= 0.0 and forced_animation == "" and not jumping:
+		# Seek every frame rather than pausing: a paused player never finishes its blend.
+		_anim.seek(fposmod(leap, 1.0) * _anim.current_animation_length, true)
+	# As the sleep animation blends in, slide the model so the middle of the ball
+	# lies where he was laid, and back again as it blends out.
+	_curl = move_toward(_curl, 1.0 if anim_name == "sleep" else 0.0, delta / RIGGED_BLEND)
+	position = -_sleep_bed * scale * _curl
+	# A quick squash and hop when he chitters (there's no chitter animation yet).
+	if chitter_time > _chitter_prev:
+		_bounce = 1.0
+	_chitter_prev = chitter_time
+	_bounce = maxf(_bounce - delta / 0.35, 0.0)
+	var hop := sin(_bounce * PI)
+
+	# On the ground his body gives in turns (raccoon_flex.gd) and carries weight: he
+	# banks into turns by the sideways force on him, and tips as he speeds up or brakes.
+	# In a jump his body and tail still give, but there's no ground to bank against.
+	var on_feet := not climbing and not hopping and _curl <= 0.0 and forced_animation == ""
+	var grounded := on_feet and leap < 0.0
+	_flex.amount = move_toward(_flex.amount, 1.0 if grounded or (on_feet and jumping) else 0.0, delta * 4.0)
+	_flex.yaw_rate = yaw_rate
+	_flex.look = look
+	var lean_to := 0.0
+	var tilt_to := 0.0
+	if grounded:
+		lean_to = clampf(atan(speed * yaw_rate / 9.8) * LEAN_GAIN, -LEAN_MAX, LEAN_MAX)
+		tilt_to = clampf(accel * TILT_PER_ACCEL, -TILT_MAX, TILT_MAX)
+	var lean := RaccoonFlex.spring_for(_lean, _lean_v, lean_to, 9.0, 0.75, delta)
+	_lean = lean.x
+	_lean_v = lean.y
+	var tilt := RaccoonFlex.spring_for(_tilt, _tilt_v, tilt_to, 8.0, 0.45, delta)
+	_tilt = tilt.x
+	_tilt_v = tilt.y
+	# Turned round to face -Z and squashed about his feet; banked about his feet; then
+	# tipped nose up on his hind paws or nose down on his front ones.
+	var wide := 1.0 + 0.07 * hop + 0.12 * squash
+	var xf := Transform3D(Basis(Vector3.UP, PI) * Basis.from_scale(Vector3(wide, 1.0 - 0.12 * hop - 0.2 * squash, wide)),
+		Vector3(0, 0.05 * hop, 0))
+	xf = Transform3D(Basis(Vector3.BACK, _lean), Vector3.ZERO) * xf
+	var tipped := _tilt + pitch
+	var pivot := Vector3(0, 0, PAW_PIVOT if tipped > 0.0 else -PAW_PIVOT)
+	var tip := Basis(Vector3.RIGHT, tipped)
+	_rig.transform = Transform3D(tip, pivot - tip * pivot) * xf
+
+
+## Starts `anim_name`. Between the animations he moves about in the blend is longer,
+## and a gait changing to another carries on from the same point in its stride.
+func _change_animation(anim_name: String) -> void:
+	var from := _anim.current_animation
+	var phase := -1.0
+	if from in GAITS and anim_name in GAITS and "climb" not in [from, anim_name] and leap < 0.0:
+		phase = _anim.current_animation_position / maxf(_anim.current_animation_length, 0.001)
+	var blend := GAIT_BLEND if from in LOCOMOTION and anim_name in LOCOMOTION else RIGGED_BLEND
+	if anim_name in ONE_SHOTS:
+		blend = JUMP_BLEND
+	_anim.play(anim_name, blend)
+	if anim_name == "jump":
+		_played_jump = jump_id
+	if phase >= 0.0:
+		_anim.seek(phase * _anim.current_animation_length, true)
+
+
+func _rigged_state(delta: float) -> String:
+	# The jump first (CHANGE-BRIEF.md, "The state machine"): from takeoff (or a hop off a
+	# tree) until `landed`, then the landing until it's soaked up.
+	if jumping:
+		_still = 0.0
+		return "jump_land" if landing else "jump"
+	var still := false
+	var state := "idle"
+	# A leap holds poses from the run; asleep, he's curled up from the moment he
+	# starts dozing until he gets up.
+	if leap >= 0.0:
+		state = "run"
+	elif sleep > 0.0:
+		state = "sleep"
+	elif hopping:
+		state = "run"
+	elif climbing:
+		state = "climb"
+	elif crouch > 0.5:
+		state = "sneak"
+	elif speed > RUN_FROM:
+		state = "run"
+	elif speed > 0.15 or absf(yaw_rate) > TURN_STEP:
+		state = "walk"
+	else:
+		still = chitter_time <= 0.0
+	_still = _still + delta if still else 0.0
+	if still and _still > BORED_AFTER:
+		state = "bored"
+	return state
+
+
+## Playback speed for an animation: for the gaits, the speed that keeps the planted
+## paws still at his current speed (capped); 1 for the rest. Sneaking or climbing
+## on the spot holds the pose.
+func _rigged_rate(anim_name: String) -> float:
+	if not GAITS.has(anim_name) or hopping or leap >= 0.0 or forced_animation != "":
+		return 1.0
+	var g: Array = GAITS[anim_name]
+	var natural: float = g[0] * scale.x / (g[1] * g[2])
+	# Turning on the spot, his paws travel round his middle.
+	var pace := maxf(speed, absf(yaw_rate) * PAW_PIVOT * scale.x)
+	return clampf(pace / natural, 0.0, g[3])
 
 
 ## A matte material in the palette colour for one of the Blender model's materials.

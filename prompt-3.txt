@@ -1,0 +1,62 @@
+I have read your plan. Before you start, read the new section of
+CHANGE-BRIEF.md, "Revised 29 Oct 2026: three gaps found by Claude Code's
+plan", and read CLAUDE.md again: both changed after your plan. Where they
+differ from your plan, they win.
+
+I approve steps 1 to 4 of your plan, with the conditions below. Do them in
+order, one step at a time, and show the diff after each step. If a step
+fails, or you find it can't meet the spec, stop there and say why.
+
+What I approve:
+- Step 1, with the fallback that keeps the cones the camp doesn't drive
+  (the bubble demo's) turning red from red(). red() stays as it is.
+- Step 2, with spot(by) and its spotters list, the three calls to spot()
+  passing self, and the read-only cone_back_at() getter, which the new
+  section allows. Change nothing else in camp_person.gd, and nothing in
+  campsite.gd except spot(), the list and adding the driver.
+- Step 3, with the --cone-shader-test flag in main.gd and the test file in
+  tests/. Putting him in a camper's view with player.place(), as
+  cones_test.gd does, is fine, but the spotting itself must come from the
+  camper's own sight.
+- Step 4.
+
+Conditions:
+- Timings: read each fade's start and end off its slope, in game time, as
+  you proposed. Also print, at every rate, the first frame where each value
+  changed, and check those and the time-scale frame counts against the new
+  section's tolerance. At 60 fps that frame comes exactly one tick late, so
+  allow for rounding.
+- The re-spots during the red and during the fade are required. Only a
+  camper at work catches someone else's fright, 0.25 to 0.6 s later
+  (CATCH_FRIGHT, in _work() in scripts/camp_person.gd). A camper who is
+  investigating, fixing, searching or walking back does not. So stage the
+  re-spot during the red within 0.25 s of the first spotting, and the one
+  during the fade with a camper in one of those other states. If a case
+  still can't be staged through play, say what you tried and report it as
+  not covered. Never call spot() or the driver to force it.
+- No fade-in when the tutorial ends: the cones appear with shown at 1.
+- Leave the fog alone. My shader stays as it is: the fog is my predicted
+  failure 5, and my captures will show it.
+
+The rules from my first prompt still hold:
+- Do not edit any .gdshader file, or anything else in shaders/.
+- Do not edit the existing tests or change their expectations.
+- The test asserts the shader's uniform names and types with
+  get_shader_uniform_list(), and reads defaults from the shader source
+  text, because a headless engine does not report them.
+- The test drives the state through the real game loop and real input,
+  not by calling the update function directly, and checks the retrigger
+  rule.
+- Sample the uniform from a node with a high process_priority, so it
+  reads after every other _process() in the frame.
+- Run every test with bash scripts/run-test.sh: the existing ones at 60,
+  the cones check also at 30 and 144, and the new one at 30, 60 and 144.
+  A run can take up to two minutes. Show the real output, including any
+  SHADER ERROR lines. --waves-test and --title-test fail at 60 as
+  recorded; don't fix them.
+- Say exactly what your test proves and what it cannot prove in a
+  headless run, and list the human checks needed to judge the look.
+- Do not commit.
+
+End with a table of every run: the test, the rate, its exit code and its
+pass count.

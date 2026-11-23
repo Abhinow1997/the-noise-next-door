@@ -1,0 +1,18 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Sound waves check, 2026-10-26T17:28:27
+  pass  The party plays from the start (no title)                          expected true   got true
+  pass  On the beat: a set every 2 beats (1.31 s): 4 in 5.22 s, give or take one expected true   got true
+  pass  Each lasts 1.6 s: at most 2 out at once                            expected true   got true
+  pass  by his tree (39 m off): from the speaker's side of him             expected true   got true
+  pass  by his tree: out of the speaker itself                             expected false  got false
+  pass  by his tree: on the edge of the screen the music comes from        expected true   got true
+  pass  on the trail (23 m off): from the speaker's side of him            expected true   got true
+  pass  on the trail: out of the speaker itself                            expected false  got false
+  pass  on the trail: on the edge of the screen the music comes from       expected true   got true
+  pass  at the camp (2 m off): from the speaker's side of him              expected true   got true
+  pass  at the camp: out of the speaker itself                             expected true   got true
+  pass  The music stopped: no new sets                                     expected 8      got 8
+  pass  The music stopped: the last ones have faded                        expected 0      got 0
+RESULT: all checks passed (13 checks)

@@ -1,0 +1,70 @@
+Read CLAUDE.md first; it imports CHANGE-BRIEF.md, the contract for this change. Read the brief's last
+two dated revisions closely (c0190b0): "the jump plays as it did before, in three phases of its own;
+the bite comes out" and "the balloon task is 'Let the balloons go'". The project is the repository
+root. Do not edit any .gdshader file. The test wrapper is scripts/run-test.sh
+(bash scripts/run-test.sh <test> <fps|realtime> [timeout]). Blender 5.2 runs headless through
+    bash C:/Users/Dotbix/AppData/Local/Temp/claude/ee5d64a0a52a5041/011ad35c-6a41-4bdb-8130-d99006c935e9/scratchpad/blender.sh -b assets/characters/raccoon_v2.blend --python <script> [-- --save]
+and Godot reimports with ../Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --import
+
+Where things stand (all committed): scripts/player.gd has a crouch before takeoff (TAKEOFF_TICK), a
+bite window (bite_open, use_bite, mouth_point) and a 10-tick landing (Step 1, 16ee0fe), and Step 2's
+wiring (a99493d): model.landing, jump_id, F waking him in the hollow, a hop off a tree shown with the
+jump's clips. scripts/raccoon_model.gd plays `jump` and `jump_land` as the one authority over the rig's
+AnimationPlayer. The 3D balloons (0ee0b18) sit outside the camp; the girl minds them after warming her
+hands; scripts/camp_balloons.gd has a bite check that pops them.
+
+Do it in two parts. Plan each briefly in your reply, then do it, and show its diff and runs.
+
+Part 1, the jump as before, in three phases (the first of the two revisions):
+- scripts/player.gd: the jump's movement back to what it was before Step 1 (takeoff on the tick F is
+  seen, no crouch, LAND_TIME's 0.2 s landing, buffer, coyote and air control as before), keeping Step
+  2's wiring (model.landing, jump_id, F waking him into the leap out, the tree hop). Take out the
+  crouch, TAKEOFF_TICK, the 10-tick landing, bite_open, use_bite and mouth_point.
+- scripts/raccoon_model.gd: the tree hop plays `jump` from frame 0 (its push-off), not frame 2.
+  Nothing else about how it plays the clips changes.
+- The clip: re-key `jump` in design/character/raccoon_v2/anim.py to 10 frames, keyed at 0 (the
+  push-off, hind legs extending), 3 (stretched up, snout first), 6 (gathered at the top) and 10 (front
+  paws reaching down), LOOP_NONE; `jump_land` unchanged. Rebuild only `jump` with
+  design/character/raccoon_v2/anim_jump.py, save the .blend, export with
+  assets/characters/export_raccoon_v2.py, reimport. The seven loops and `jump_land` must come out
+  unchanged; the .import's loop modes stay. List each key's time beside its frame.
+- scripts/camp_balloons.gd: take the bite check out (the balloons can't be popped for now).
+- Tests: tests/test_raccoon_rig.gd reads jump's new length (10/24 s) and keys at 0, 3, 6 and 10;
+  tests/test_jump_states.gd follows the revision (no crouch, no bite, the 12-tick landing, `jump` from
+  frame 0 off a tree); tests/test_balloon_task.gd's pop checks come out (its balloon, place and girl
+  checks stay). Run tests/jump_pins.gd at 60 and say which pins fail: the revision expects only the
+  four about which clip plays (the two "posed through the run clip", the clips in order, the clip on
+  the tick after takeoff).
+
+Part 2, "Let the balloons go" (the second revision):
+- The girl blows them up: on her first balloon step she sets out a folding camp chair at the spot
+  (built in code like the camp's props, no new asset) and blows up the three balloons one by one, each
+  growing from a small limp bud to full size over about 3 s (an `inflate` clip saved as a resource on
+  the balloon's own AnimationPlayer), tying each to the chair; then back to the party. Later visits:
+  she minds them, as now. Until she has blown them up there's nothing to untie.
+- He lets them go: the three strings knotted together low on the chair, in his reach; E (his existing
+  grab) at the knot tugs it loose; the bunch floats away (a `float_away` clip saved as a resource on
+  the bunch's own AnimationPlayer, played only by camp_balloons.gd: rising about 8 m over about 5 s,
+  swaying, then gone); the task ticks.
+- The girl calls the others: seeing them float away, or coming back to the empty chair, she takes
+  fright as she does on seeing him and calls the others, who come and search round the chair as they
+  search after a fright, then go back to their routines. Only a new trigger for reactions they
+  already have; how they search and what they do on seeing him unchanged.
+- The task: "Let the balloons go", hint "Untie them, let them fly.", replacing "Pop the balloons" in
+  scripts/camp_tasks.gd, keeping the id `balloons` (so the five tests already changed for it stay).
+- The `pop` clip goes; `bob` stays while they're tied. Each balloon's own script stays the only caller
+  of play() on its player.
+- Tests: tests/test_balloon_task.gd and tests/test_balloon_3d.gd change to match, through real input
+  (Input.parse_input_event): she blows them up and ties them; E at the knot frees them, they float
+  away, the task ticks; seeing it, or finding the chair empty, she calls the others, who search there;
+  the clips' read-backs (tracks resolve with tests/track_check.gd, loop mode, step exactly, length).
+- If an existing test expects the campers not to react to the balloons, stop and say which test and
+  line; don't change it.
+
+Rules: presentation code may read game state and never write it; the task, the girl's call and the
+balloons' release are game code the brief names. Exactly one writer per animated node. Clips live as
+resources in animations/ or the scene that owns them, never built in code at runtime. After each part
+run through scripts/run-test.sh every test CLAUDE.md lists in its pinned mode plus this assignment's
+(test_raccoon_rig, test_jump_states, jump_pins, test_balloon_3d, test_balloon_task, test_moth_flutter,
+test_moths_state), reading each run's exit code; show the real output. Do not start Step 6. Do not
+commit.

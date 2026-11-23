@@ -2,9 +2,18 @@
 .godot/
 /android/
 
-# Blender backup / temp saves
-*.blend1
+# Blender backup / temp saves (.blend1, .blend2, ... from Save Versions)
+*.blend[0-9]*
 *.blend@
+
+# Films and large media go to the course's media storage, not GitHub
+*.mp4
+*.mov
+*.mkv
+# Assignment 2's music and laugh originals: over 25 MB, or MP3s. They're kept on disk and in the course
+# media storage, linked from the README; the game only loads the cut loops in assets/audio/.
+*.mp3
+design/music/*.wav
 
 # Python
 __pycache__/
@@ -14,3 +23,34 @@ __pycache__/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Step 2's full claude -p transcript: 2.7 MB, over the course's 1 MB, so it stays out of git.
+# The committed excerpt, session-3-excerpt.jsonl, records its size and SHA-256 in its first line.
+/session-3.jsonl
+
+# Assignment 6, Step 4's full claude -p transcripts: 3.1 MB and 4.5 MB (the frames it read), over the
+# course's 1 MB. The committed excerpts, session-4-excerpt.jsonl and session-4-compare-excerpt.jsonl,
+# record each one's size and SHA-256 in their first line.
+/design/a6/session-4.jsonl
+/design/a6/session-4-compare.jsonl
+# Effect B, Step 3's build transcript: 1.2 MB, over the 1 MB; its excerpt, session-6-build-excerpt.jsonl,
+# records its size and SHA-256 in its first line.
+/design/a6/session-6-build.jsonl
+# Effect B, Step 4's proposal and comparison transcripts: 4.0 and 3.9 MB (the frames they read); their
+# excerpts, session-7-excerpt.jsonl and session-7-compare-excerpt.jsonl, record each one's size and SHA-256.
+/design/a6/session-7.jsonl
+/design/a6/session-7-compare.jsonl
+
+# Assignment 7, Step 5's Step 2 transcript: 1.7 MB, over the course's 1 MB; its excerpt,
+# session-5-step2-excerpt.jsonl, records its size and SHA-256 in its first line.
+/design/a7/session-5-step2.jsonl
+# Part 2's transcript (1.08 MB): over the course's 1 MB; session-5-step7-excerpt.jsonl records its size and SHA-256.
+/design/a7/session-5-step7.jsonl
+# The jump-remodel and balloon-task build's transcript (4.2 MB): over the course's 1 MB; session-6-excerpt.jsonl records its size and SHA-256.
+/design/a7/session-6.jsonl
+# The seven loops' session transcript (1.09 MB): over the course's 1 MB; session-7-excerpt.jsonl records its size and SHA-256.
+/design/a7/session-7.jsonl
+
+# The loops' full Movie Maker capture (CHANGE-BRIEF.md, 22 Nov 2026): only the strips cut from it
+# (captures/loops/r0/) are kept.
+/captures/loops/full/

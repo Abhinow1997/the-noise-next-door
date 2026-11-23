@@ -1,0 +1,61 @@
+Read CLAUDE.md first. The rig is assets/characters/raccoon_v2.glb, exported from
+assets/characters/raccoon_v2.blend by assets/characters/export_raccoon_v2.py, with its
+actions keyed by design/character/raccoon_v2/anim.py. Its route is the imported 3D rig.
+The phase table for the jump is in CHANGE-BRIEF.md ("The phase table: the jump", and the
+dated revision at the end of the file, which replaces the landing tick), in frames at 24
+fps. The project is the repository root, so the course's godot/tests/ is tests/ here.
+
+This is the imported route, so the clips are made in Blender and imported, never built in
+Godot code. Blender 5.2 runs headless through this launcher, which takes Blender's own
+arguments:
+    bash C:/Users/Dotbix/AppData/Local/Temp/claude/ee5d64a0a52a5041/011ad35c-6a41-4bdb-8130-d99006c935e9/scratchpad/blender.sh -b assets/characters/raccoon_v2.blend --python <script> [-- --save]
+Godot reimports with:
+    ../Godot/Godot_v4.7.2-stable_win64_console.exe --headless --path . --import
+
+1. In anim.py, add two one-shot actions from the phase table, in place like the others
+   (the game moves him), using the same Pose and apply() helpers:
+   - `jump`, 12 frames (0.5 s): frame 0 standing as in idle's first frame; frame 2 the
+     deep crouch, the hind legs bunched to push; frame 4 stretched up, snout first, front
+     paws up by his chest; frame 6 gathering, the bite over; frame 12 the front paws
+     reaching down for the ground. Ease between them: accelerating into the push and the
+     stretch, settling into the gather.
+   - `jump_land`, 4 frames (0.167 s): frame 0 paws down and the body squashed low; frame 4
+     back in his stance, matching idle's first frame.
+   The existing make() keys a looping action (u = f / frames, and use_cyclic on). A
+   one-shot's last frame is its own pose, not a copy of its first: add what's needed for
+   a non-cyclic action, without changing how the seven loops are made. Add the two to the
+   list anim.py parks in the NLA.
+2. Rebuild only the two new actions in the saved .blend and save it: run anim.py with
+   ONLY = {"jump", "jump_land"} (it already supports ONLY). Do not run build_all.py and do
+   not rebuild the head, mesh, rig, weights or the seven existing actions. A small runner
+   script beside anim.py is fine.
+3. Add `jump` and `jump_land` to ACTIONS in export_raccoon_v2.py, and export the .glb with
+   it. Then reimport in Godot.
+4. Do not edit the clips in a Godot scene. Set the loop modes in the importer's
+   per-animation settings in assets/characters/raccoon_v2.glb.import (its _subresources,
+   under "animations", each clip's "settings/loop_mode"): LOOP_LINEAR for idle, walk, run,
+   sneak, bored, sleep and climb, and LOOP_NONE for jump and jump_land. Show the change to
+   the .import file. Leave scripts/raccoon_model.gd's runtime loop line alone: removing it
+   is Step 5's.
+5. Add a read-back test, tests/test_raccoon_rig.gd, run as a --script test, that loads
+   the .glb and asserts:
+   - every track resolves to a real node and property, bone or blend shape, with the
+     course's check (the one in tests/test_balloon_float.gd), which branches on track
+     type: a 3D position, rotation or scale track names a bone of the Skeleton3D;
+   - all nine clips exist;
+   - jump's length is 12/24 s and jump_land's 4/24 s; every clip's step is 1/24 s exactly
+     (is_equal_approx), not within a tolerance;
+   - jump has keys at the phase table's boundary frames 0, 2, 6 and 12 (and at 4), and
+     jump_land at 0 and 4, comparing key times with a tolerance of half a frame period
+     (1/48 s), never with ==;
+   - loop modes: the seven loops Animation.LOOP_LINEAR, jump and jump_land
+     Animation.LOOP_NONE;
+   - value_track_get_update_mode asked only of value tracks, if there are any.
+   List each key time beside the frame it comes from in the test's output. Print a PASS or
+   FAIL line per check and a final count; quit with exit code 1 if any check fails.
+
+Run it through scripts/run-test.sh (bash scripts/run-test.sh test_raccoon_rig.gd 60) and
+show the real output. The course also runs this read-back from an empty import cache: do
+not delete .godot/ yourself, I will run that check in a separate worktree. Do not wire the
+clips into the state machine and do not edit scripts/player.gd or scripts/raccoon_model.gd.
+Do not commit.

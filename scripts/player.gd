@@ -1,12 +1,21 @@
 extends CharacterBody3D
-## Goose-game style controls: walk, run, sneak, carry things in your mouth, chitter,
-## and climb trees.
+## Goose-game style controls: walk, run, sneak, jump, carry things in your mouth,
+## chitter, and climb trees.
+## Since 10 Nov 2026 (the bear bag, camp_bear_bag.gd: "Build it") a tree can have a limb
+## (its `limb` in `trees`): at the top of its trunk, the move keys pointing out along it
+## step him onto it; he walks along it as they point, out or back, and back at the trunk
+## he's on the trunk again. It gives under him the further out he goes, and bobs as he
+## walks. E or jump drops him off it to the ground below. Out on it he's still
+## `climbing` (the campers shoo at the foot of the tree), and `on_limb`.
 
 signal chittered
+## He's come down from a jump (heard at the camp: campsite.gd). Added 11 Nov 2026.
+signal landed
 ## A sound effect started; `id` is its asset ID (SOURCES.md). Counted by the level.
 signal sound_started(id: String)
 
 const RaccoonModel := preload("res://scripts/raccoon_model.gd")
+const HideSpot := preload("res://scripts/hide_spot.gd")
 
 ## The author's generated sounds (CHANGE-BRIEF.md v2): two loops that play while he
 ## runs or climbs, and take A of the laugh for the chitter.
@@ -20,12 +29,85 @@ const CHITTER_DB := -4.0
 ## A loop keeps going this long after he stops, so a one-frame stumble doesn't
 ## restart it.
 const LOOP_HOLD := 0.12
+## Shooed off by a camper (startle): how far he leaps, trying the longest first, how
+## long it takes and how high it goes.
+const STARTLE_LEAPS := [1.6, 1.1, 0.7]
+const STARTLE_TIME := 0.42
+const STARTLE_HEIGHT := 0.35
+## Diving into a hiding spot and out of it (dive_into): how long each hop takes, how
+## high it goes, how far out of its middle he lands (clear of it, nose and tail), and
+## how long after coming out before he can dive in again (seconds).
+const DIVE_TIME := 0.32
+const DIVE_HEIGHT := 0.35
+const DIVE_OUT := 1.5
+const DIVE_AGAIN := 0.6
+## Out on a limb (since 10 Nov 2026): how fast he walks along it (times climb_speed);
+## how squarely the move keys must point out along it, at the top of the trunk, to step
+## out; how quickly it gives under him; how much it bobs as he walks; and the drop off it
+## (seconds, and how high the hop's arc goes).
+const LIMB_SPEED := 1.0
+const LIMB_STEP := 0.6
+const LIMB_GIVE := 8.0
+const LIMB_BOB := 0.25
+const LIMB_DROP_TIME := 0.45
+const LIMB_DROP_HEIGHT := 0.15
+## How fast he drops off in the hollow (sleep per second). He starts just before he
+## lands there, so the sleep animation has blended in by the time he touches down.
+const DOZE_RATE := 1.5
+## Getting out of the hollow (see _leave_process), in seconds: waking, uncurling and
+## turning to the opening; crouching to spring; in the air; soaking up the landing.
+const LEAVE_WAKE := 0.35
+const LEAVE_CROUCH := 0.15
+const LEAVE_FLIGHT := 0.8
+const LEAVE_LAND := 0.22
+## How far he steps toward the opening before he leaps, and how high the leap rises
+## above where he takes off.
+const LEAVE_STEP := 0.3
+const LEAVE_RISE := 0.35
+## Points in the run animation's cycle he passes through in the air, against the
+## share of the flight gone: paws gathered, the hind legs' push, the full stretch
+## (held), then the front paws reaching down for the ground.
+const LEAP_AIR := [[0.0, 0.95], [0.15, 1.15], [0.35, 1.38], [0.8, 1.43], [1.0, 1.5]]
+## Where his front and hind paws are, ahead of and behind his middle (model scale 1).
+## Tipping nose up he pivots on the hind paws, nose down on the front ones.
+const PAW_REACH := 0.3
+## His turning has weight: the turn rate builds up at TURN_ACCEL (rad/s²) and eases off
+## at TURN_BRAKE as he comes round, so he neither snaps nor overshoots. Flat out he
+## turns at RUN_TURN of turn_speed, so runs carve wider arcs.
+const TURN_ACCEL := 40.0
+const TURN_BRAKE := 70.0
+const RUN_TURN := 0.7
+## His velocity carries his weight too: its speed changes at ACCEL / DECEL (m/s²), and
+## its direction swings round no faster than GRIP allows (sideways m/s²). His feet push
+## him up to SLIP (radians) toward where he wants to go before he faces it.
+const ACCEL := 10.0
+const DECEL := 14.0
+const GRIP := 30.0
+const SLIP := 0.44
+## Jumping (F). He takes off the moment it's pressed and rises JUMP_HEIGHT (m) under
+## JUMP_GRAVITY, a snappier pull than the world's, then comes down under FALL_GRAVITY;
+## let go of F on the way up and the pull is JUMP_CUT times stronger, so a tap is a
+## small hop. A press up to JUMP_BUFFER (s) before he lands is kept until he does,
+## and he can still jump JUMP_COYOTE (s) after stepping off an edge. In the air he has
+## AIR_CONTROL of his turning and footing, and he soaks up a landing for LAND_TIME (s),
+## counted in physics ticks (12 at 60 a second).
+## (CHANGE-BRIEF.md's revision of 21 Nov 2026, "the jump plays as it did before": the
+## movement as at dc8ff17; Step 1's crouch, bite and 10-tick landing are gone.)
+const JUMP_HEIGHT := 0.55
+const JUMP_GRAVITY := 20.0
+const FALL_GRAVITY := 28.0
+const JUMP_CUT := 2.5
+const JUMP_BUFFER := 0.12
+const JUMP_COYOTE := 0.1
+const AIR_CONTROL := 0.35
+const LAND_TIME := 0.2
 
 @export var walk_speed := 2.0
 @export var run_speed := 4.0
 @export var sneak_speed := 1.0
 @export var climb_speed := 1.2
-@export var turn_speed := 9.0
+## Fastest he turns standing or walking (rad/s).
+@export var turn_speed := 10.0
 ## Overall scale of the raccoon and its collider.
 @export var size := 0.8
 @export var grab_range := 0.55
@@ -36,20 +118,52 @@ var camera: Camera3D
 var trees: Array[Dictionary] = []
 var model: RaccoonModel
 var held: RigidBody3D
+## A snack in his mouth that isn't a body he holds (the tutorial's stolen roasted
+## marshmallow, roast_plate.gd): while he has it, E doesn't grab or drop; holding E
+## eats it there (an Interactable), once it's allowed.
+var snack: Node3D
 var sneaking := false
-## True while curled up in the hollow, including the hops in and out.
+## True while curled up in the hollow, including the hop in and the leap out.
 var resting := false
+## Set while the title screen is up: asleep in the hollow, a move key doesn't wake him
+## (the menu uses W, S and the arrows).
+var keep_asleep := false
+## Set while the camp's tutorial holds the game (camp_tutorial.gd): he doesn't move, and
+## E, Space and jump do nothing, until it lets go. Added 7 Nov 2026.
+var input_locked := false
+## Sent running on his own (run_off): which way along the ground, and for how many more
+## seconds; the move keys do nothing till then. Added 11 Nov 2026 for the tutorial's
+## "Runnn!" (camp_tutorial.gd).
+var _run_off := Vector3.ZERO
+var _run_off_left := 0.0
+## The hiding spot he's dived into (hide_spot.gd with `dive` on: the camp's bush), or
+## null. Added 7 Nov 2026, when the author found hiding "clunky": walking into it, he
+## dives in with a little hop and vanishes into it; a move key hops him out the way it
+## points (DIVE_OUT), sneaking still if Ctrl's held.
+var hiding_in: Node3D = null
+var _shown_before := true
+var _diving := false
+var _dive_wait := 0.0
 ## True while on a tree trunk, including the hops on and off.
 var climbing := false
+## True while he's out along a tree's limb (climbing is true too), including the hops on
+## and off it.
+var on_limb := false
 ## True while he runs on the ground: Shift held, not sneaking, faster than a walk.
 var running := false
 ## True while he moves on a trunk.
 var climb_moving := false
+## True from a jump's takeoff until he lands, and the height he took off from (the
+## camera stays at it meanwhile).
+var jumping := false
+var jump_from_y := 0.0
 
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _push_speed := 0.0
 var _speed := 0.0
 var _turn := 0.0
+## How fast he's turning on the ground (rad/s, positive = left).
+var _yaw_rate := 0.0
 var _voice: AudioStreamPlayer
 var _run_sfx: AudioStreamPlayer
 var _climb_sfx: AudioStreamPlayer
@@ -65,8 +179,11 @@ var _hop_height := 0.9
 ## Called when the hop lands.
 var _hop_done := Callable()
 var _waking := false
-## Where he hopped up from, to land there again.
-var _rest_return: Transform3D
+## Where he lies in the hollow and where he lands when he leaps out.
+var _rest_spot: Transform3D
+var _rest_exit: Transform3D
+## Seconds since he woke and started getting out of the hollow; -1 when he isn't.
+var _leave_t := -1.0
 ## The trunk he's climbing, how far up it he is (metres along it) and where round
 ## it (radians, 0 on its +Z side).
 var _tree: Dictionary
@@ -76,6 +193,24 @@ var _climb_angle := 0.0
 var _climb_side := 0.0
 ## How long he's been pushing into a trunk.
 var _climb_push := 0.0
+## Out on a limb: how far along it he is (metres from the trunk's middle), which way he
+## faces along it (1 out, -1 back), and how far it's giving under him (radians at its root).
+var _limb_along := 0.0
+var _limb_facing := 1.0
+var _limb_bend := 0.0
+## A jump press waiting to be used (seconds it has left), and how long he can still
+## jump since he was last on the ground.
+var _jump_press := 0.0
+var _coyote := 0.0
+## Seconds since a jump's takeoff; ticks into soaking up its landing (-1 when he
+## isn't), how hard that landing was (0..1) and how far he was tipped as he touched down.
+var _air_t := 0.0
+var _land_tick := -1
+## True while he hops off a tree (the trunk or a limb), which is shown with the jump's
+## clips (CHANGE-BRIEF.md, revision of 21 Nov 2026); its timing and path are the hop's.
+var _tree_hop := false
+var _land_hard := 0.0
+var _land_pitch := 0.0
 
 
 func _ready() -> void:
@@ -93,6 +228,8 @@ func _ready() -> void:
 	shape.position = Vector3(0, 0.2, 0.04) * size
 	add_child(shape)
 	_shape = shape
+	# A closed hiding spot's wall keeps him, and only him, out of it (hide_spot.gd).
+	collision_mask |= HideSpot.CLOSED_LAYER
 
 	_voice = _sound(CHITTER_SOUND, CHITTER_DB)
 	_run_sfx = _sound(RUN_LOOP, RUN_DB)
@@ -116,14 +253,29 @@ func _sound(path: String, db: float) -> AudioStreamPlayer:
 func _physics_process(delta: float) -> void:
 	running = false
 	climb_moving = false
+	_dive_wait = maxf(_dive_wait - delta, 0.0)
+	_run_off_left = maxf(_run_off_left - delta, 0.0)
+	model.hopping = _hop_t >= 0.0
+	model.climbing = climbing and not on_limb
+	# Only walking sets these.
+	model.yaw_rate = 0.0
+	model.look = 0.0
+	model.accel = 0.0
 	if _hop_t >= 0.0:
 		_hop_process(delta)
 	elif resting:
 		_rest_process(delta)
+	elif hiding_in:
+		_hide_process(delta)
+	elif climbing and on_limb:
+		_limb_process(delta)
 	elif climbing:
 		_climb_process(delta)
 	else:
 		_walk_process(delta)
+	# After walking, which may have just taken off, so the model knows it the same tick.
+	model.jumping = jumping or _land_tick >= 0 or (_tree_hop and _hop_t >= 0.0)
+	model.landing = _land_tick >= 0
 	_loop(_run_sfx, running, "SFX-RUN", delta)
 	_loop(_climb_sfx, climb_moving, "SFX-CLIMB", delta)
 
@@ -142,7 +294,12 @@ func _loop(sfx: AudioStreamPlayer, on: bool, id: String, delta: float) -> void:
 
 
 func is_hopping() -> bool:
-	return _hop_t >= 0.0
+	return _hop_t >= 0.0 or _leave_t >= 0.0
+
+
+## True from when he starts curling up in the hollow until he wakes.
+func is_napping() -> bool:
+	return resting and not _waking and model.sleep > 0.0
 
 
 func _walk_process(delta: float) -> void:
@@ -151,42 +308,95 @@ func _walk_process(delta: float) -> void:
 	if camera:
 		dir = dir.rotated(Vector3.UP, camera.global_rotation.y)
 
-	sneaking = Input.is_action_pressed("sneak")
+	var run_key := Input.is_action_pressed("run") or running_off()
+	sneaking = Input.is_action_pressed("sneak") and not running_off()
 	var speed := walk_speed
 	if sneaking:
 		speed = sneak_speed
-	elif Input.is_action_pressed("run"):
+	elif run_key:
 		speed = run_speed
 	_push_speed = speed * dir.length()
 
-	# Turn smoothly toward the input, then travel the way we face, so changes of
-	# direction become arcs instead of the whole body pivoting on the spot.
-	var old_yaw := rotation.y
+	# Turn toward the input with weight: the turn rate builds up toward what it takes
+	# to face it, and brakes in time to finish facing it. In the air he has less to
+	# push against, so he turns less and keeps his momentum.
+	var has_input := dir.length_squared() > 0.01
+	var control := AIR_CONTROL if jumping else 1.0
+	var want := 0.0
+	var target_rate := 0.0
+	if has_input:
+		want = wrapf(atan2(-dir.x, -dir.z) - rotation.y, -PI, PI)
+		# Asked to go nearly straight back, he keeps turning the way he already is.
+		if absf(want) > 2.6 and _yaw_rate * want < 0.0:
+			want -= signf(want) * TAU
+		var top := turn_speed * lerpf(1.0, RUN_TURN, clampf(_speed / run_speed, 0.0, 1.0)) * control
+		var braking := minf(sqrt(1.6 * TURN_BRAKE * absf(want)), 12.0 * absf(want))
+		target_rate = signf(want) * minf(top, braking)
+	var building := absf(target_rate) > absf(_yaw_rate) and target_rate * _yaw_rate >= 0.0
+	_yaw_rate = move_toward(_yaw_rate, target_rate, (TURN_ACCEL if building else TURN_BRAKE) * control * delta)
+	rotation.y = wrapf(rotation.y + _yaw_rate * delta, -PI, PI)
 	var forward := -global_basis.z
-	var target_speed := 0.0
-	if dir.length_squared() > 0.01:
-		rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), 1.0 - exp(-turn_speed * delta))
-		forward = -global_basis.z
-		# Slow down while facing away from where we want to go (tight U-turns).
-		target_speed = speed * dir.length() * clampf(forward.dot(dir.normalized()), 0.25, 1.0)
-	var accel := 10.0 if target_speed > _speed else 14.0
-	_speed = move_toward(_speed, target_speed, accel * delta)
-	running = not sneaking and Input.is_action_pressed("run") and _speed > walk_speed + 0.1
-	velocity.x = forward.x * _speed
-	velocity.z = forward.z * _speed
-	if not is_on_floor():
-		velocity.y -= _gravity * delta
 
-	# How hard we're turning, smoothed, so the body can bend into it.
-	var yaw_rate := wrapf(rotation.y - old_yaw, -PI, PI) / maxf(delta, 0.0001)
-	_turn = lerpf(_turn, clampf(yaw_rate / 6.0, -1.0, 1.0), 1.0 - exp(-8.0 * delta))
-	model.turn = _turn
+	# Then travel with momentum, mostly the way he faces: slower while facing away
+	# from where he wants to go, so U-turns become arcs, and his heading swings
+	# round after his body rather than snapping to it.
+	var planar := Vector3(velocity.x, 0.0, velocity.z)
+	var moving := planar.length()
+	var heading := planar / moving if moving > 0.05 else forward
+	var target_speed := 0.0
+	if has_input:
+		var travel := forward.rotated(Vector3.UP, clampf(want, -SLIP, SLIP))
+		target_speed = speed * dir.length() * lerpf(0.35, 1.0, (1.0 + forward.dot(dir.normalized())) * 0.5)
+		if moving <= 0.05:
+			heading = travel
+		else:
+			var most := GRIP * control / maxf(moving, 0.5) * delta
+			heading = heading.rotated(Vector3.UP, clampf(heading.signed_angle_to(travel, Vector3.UP), -most, most))
+	elif jumping:
+		target_speed = moving
+	var before := moving
+	moving = move_toward(moving, target_speed, (ACCEL if target_speed > moving else DECEL) * control * delta)
+	_speed = moving
+	running = not sneaking and run_key and _speed > walk_speed + 0.1 and not jumping
+	velocity.x = heading.x * moving
+	velocity.z = heading.z * moving
+
+	# Jumping: off at once (or as soon as he can, for a press just before he lands, which
+	# also cuts a landing short), up under a snappy pull that's stronger still if F is let
+	# go, down faster still. Each takeoff is a new jump for the model's clips (jump_id).
+	_jump_press = maxf(_jump_press - delta, 0.0)
+	_coyote = JUMP_COYOTE if is_on_floor() and not jumping else maxf(_coyote - delta, 0.0)
+	if _jump_press > 0.0 and _coyote > 0.0:
+		_jump_press = 0.0
+		_coyote = 0.0
+		jumping = true
+		jump_from_y = global_position.y
+		_air_t = 0.0
+		_land_tick = -1
+		velocity.y = sqrt(2.0 * JUMP_GRAVITY * JUMP_HEIGHT)
+		model.jump_id += 1
+	if jumping:
+		var pull := JUMP_GRAVITY if velocity.y > 0.0 else FALL_GRAVITY
+		if velocity.y > 0.0 and not Input.is_action_pressed("jump"):
+			pull *= JUMP_CUT
+		velocity.y -= pull * delta
+	elif not is_on_floor():
+		velocity.y -= _gravity * delta
+	var rising := velocity.y
+
+	# For the body: how hard he's turning, where he's looking to go, how he's speeding up.
+	model.turn = clampf(_yaw_rate / 6.0, -1.0, 1.0)
+	model.yaw_rate = _yaw_rate
+	model.look = want
+	model.accel = (moving - before) / maxf(delta, 0.0001)
 
 	move_and_slide()
 	_push_bodies(delta)
 	_carry()
+	_jump_pose(delta, rising)
 
 	var ground_speed := Vector2(velocity.x, velocity.z).length()
+	model.speed = ground_speed
 	model.walk_amount = clampf(ground_speed / walk_speed, 0.0, 1.0)
 	model.walk_phase += ground_speed * delta * 7.0 / size
 	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
@@ -199,44 +409,245 @@ func _walk_process(delta: float) -> void:
 
 
 func _move_input() -> Vector2:
+	if running_off():
+		# The way he's been sent, in the keys' terms (turned back by the camera's yaw, as
+		# the keys are turned by it).
+		var way := _run_off.rotated(Vector3.UP, -camera.global_rotation.y) if camera else _run_off
+		return Vector2(way.x, way.z)
+	if input_locked:
+		return Vector2.ZERO
 	return Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
 
+## Sends him running `way` (along the ground) on his own for `seconds`, as if Shift and
+## a move key were held; the move keys have him again after. For the tutorial's "Runnn!"
+## (camp_tutorial.gd).
+func run_off(way: Vector3, seconds: float) -> void:
+	_run_off = Vector3(way.x, 0.0, way.z).normalized()
+	_run_off_left = seconds
+
+
+## True while he's running on his own (run_off).
+func running_off() -> bool:
+	return _run_off_left > 0.0
+
+
+## Jumps: now if he's on the ground, or as soon as he lands (see JUMP_BUFFER).
+func jump() -> void:
+	_jump_press = JUMP_BUFFER
+
+
+## Lands a jump once he's back down, and poses him through it. Leaving, his hind legs
+## push off and he squashes for a moment; at the top he's stretched out; he tips nose
+## up on the way up and nose down coming down. Landed, his front paws take it, he
+## squashes as hard as he came down and his hind legs come in, and then he's back in
+## his own stride. `rising` is how fast he was going up (m/s) before this tick's move.
+func _jump_pose(delta: float, rising: float) -> void:
+	var lift := sqrt(2.0 * JUMP_GRAVITY * JUMP_HEIGHT)
+	var just_landed := false
+	if jumping and _air_t > 0.0 and rising <= 0.0 and is_on_floor():
+		jumping = false
+		_land_tick = 0
+		just_landed = true
+		_land_hard = clampf(-rising / lift, 0.3, 1.0)
+		_land_pitch = model.pitch
+		landed.emit()
+	# His pose through it all is the jump's clips (raccoon_model.gd plays them from
+	# `jumping` and `landing`), with squash and pitch laid over them.
+	if jumping:
+		_air_t += delta
+		model.squash = 0.5 * maxf(0.0, 1.0 - _air_t / 0.1)
+		var tip := clampf(atan2(velocity.y, maxf(_speed, 1.5)) * 0.35, -0.35, 0.3)
+		model.pitch = tip * smoothstep(0.0, 0.08, _air_t)
+	elif _land_tick >= 0:
+		# LAND_TIME in ticks: landed + 0 to landed + 11; he's out of it on landed + 12.
+		var land_ticks := roundi(LAND_TIME * Engine.physics_ticks_per_second)
+		if not just_landed:
+			_land_tick += 1
+		if _land_tick >= land_ticks:
+			_end_jump()
+			return
+		var f := minf((_land_tick + 1.0) / land_ticks, 1.0)
+		model.squash = 0.8 * _land_hard * sin(PI * sqrt(f))
+		model.pitch = _land_pitch * (1.0 - smoothstep(0.0, 0.6, f))
+
+
+## Out of a jump's poses, landed or not.
+func _end_jump() -> void:
+	jumping = false
+	_land_tick = -1
+	model.leap = -1.0
+	model.squash = 0.0
+	model.pitch = 0.0
+
+
+## Puts him straight at `pos` with whatever he's carrying, for the tests. He's drawn
+## between physics ticks, so this resets that, or he'd be drawn sliding there.
+func place(pos: Vector3) -> void:
+	# Put somewhere: no longer sent running.
+	_run_off_left = 0.0
+	if hiding_in:
+		_stop_hiding()
+	if _diving:
+		# Put somewhere mid-dive: the dive's off.
+		_diving = false
+		_hop_t = -1.0
+		_shape.disabled = false
+	global_position = pos
+	_carry()
+	reset_physics_interpolation()
+	if held:
+		held.reset_physics_interpolation()
+
+
 ## Hops up to `spot` (the hollow in the home pine) and curls up there to sleep.
-## A move key wakes him and he hops back down.
-func rest(spot: Transform3D) -> void:
+## A move key wakes him and he leaps out, landing on `exit`.
+func rest(spot: Transform3D, exit: Transform3D) -> void:
 	if resting:
 		return
 	if held:
 		_drop()
-	# Climbing in from the trunk, he wakes on the ground in front of the hollow.
 	var from_trunk := climbing
-	_rest_return = _ground_spot(0.0) if from_trunk else global_transform
+	_rest_spot = spot
+	_rest_exit = exit
 	climbing = false
 	resting = true
 	_waking = false
 	_hop(global_transform, spot, 0.5 if from_trunk else 0.8, 0.25 if from_trunk else 0.9)
 
 
+## Puts him straight into `spot` in the hollow, already curled up asleep, as the title
+## screen leaves him when the game starts. A move key wakes him and he leaps out to
+## `exit`, as after any nap.
+func start_asleep(spot: Transform3D, exit: Transform3D) -> void:
+	_rest_spot = spot
+	_rest_exit = exit
+	resting = true
+	_waking = false
+	_shape.disabled = true
+	velocity = Vector3.ZERO
+	global_transform = spot
+	model.sleep = 1.0
+	reset_physics_interpolation()
+
+
 ## Moves him from one transform to another along an arc `height` high, turning as
 ## he goes, then calls `done`. Collisions are off meanwhile.
+## Shooed by one of the campers standing at `from` (camp_person.gd): he drops what he's
+## carrying and leaps away from them, as far as STARTLE_LEAPS allows without landing
+## in anything. Not while he's up a tree, in the hollow or already in the air.
+func startle(from: Vector3) -> void:
+	if resting or climbing or is_hopping():
+		return
+	# Out of a hiding spot first, so he's seen again as he leaps (nothing catches him in
+	# one: camp_person.gd).
+	if hiding_in:
+		_stop_hiding()
+	if held:
+		_drop()
+	var away := global_position - from
+	away.y = 0.0
+	away = away.normalized() if away.length() > 0.01 else global_basis.z
+	var facing := Basis(Vector3.UP, atan2(-away.x, -away.z))
+	var space := get_world_3d().direct_space_state
+	var probe := PhysicsShapeQueryParameters3D.new()
+	var ball := SphereShape3D.new()
+	ball.radius = 0.25
+	probe.shape = ball
+	probe.exclude = [get_rid()]
+	for far: float in STARTLE_LEAPS:
+		var land := global_position + away * far
+		probe.transform = Transform3D(Basis(), land + Vector3.UP * 0.3)
+		if space.intersect_shape(probe, 1).is_empty():
+			_hop(global_transform, Transform3D(facing, land), STARTLE_TIME, STARTLE_HEIGHT, _end_startle)
+			return
+
+
+func _end_startle() -> void:
+	_shape.disabled = false
+
+
+## Into a hiding spot with `dive` on (hide_spot.gd calls it as he walks in): a little hop
+## to its middle, and he's gone into it.
+func dive_into(spot: Node3D) -> void:
+	if hiding_in or _diving or _dive_wait > 0.0 or _hop_t >= 0.0 or resting or climbing:
+		return
+	_diving = true
+	_hop(global_transform, Transform3D(global_basis, spot.global_position + Vector3(0, 0.02, 0)), DIVE_TIME,
+		DIVE_HEIGHT, _hidden_in.bind(spot))
+
+
+func _hidden_in(spot: Node3D) -> void:
+	# In it before his collider's back on, since turning it on tells the spot he's come
+	# in again (dive_into), and he's there already.
+	hiding_in = spot
+	_diving = false
+	_shape.disabled = false
+	_shown_before = model.visible
+	model.visible = false
+	if held:
+		held.visible = false
+	spot.call("dived", true)
+
+
+## In the hiding spot: still, out of sight, until a move key hops him out that way.
+func _hide_process(_delta: float) -> void:
+	velocity = Vector3.ZERO
+	_speed = 0.0
+	model.speed = 0.0
+	model.walk_amount = 0.0
+	model.turn = 0.0
+	sneaking = Input.is_action_pressed("sneak") and not input_locked
+	var input := _move_input()
+	if input.length() > 0.3:
+		var dir := Vector3(input.x, 0.0, input.y)
+		if camera:
+			dir = dir.rotated(Vector3.UP, camera.global_rotation.y)
+		dir = dir.normalized()
+		var spot := hiding_in
+		_stop_hiding()
+		_dive_wait = DIVE_AGAIN
+		_hop(global_transform, Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.z)),
+			spot.global_position + dir * DIVE_OUT + Vector3(0, 0.02, 0)), DIVE_TIME, DIVE_HEIGHT, _end_startle)
+
+
+## Out of the hiding spot where he is: seen again, with whatever he carries.
+func _stop_hiding() -> void:
+	var spot := hiding_in
+	hiding_in = null
+	model.visible = _shown_before
+	if held:
+		held.visible = true
+	spot.call("dived", false)
+
+
 func _hop(from: Transform3D, to: Transform3D, time := 0.8, height := 0.9, done := Callable()) -> void:
-	_hop_from = from
-	_hop_to = to
+	# Tidied into pure turns: one whose axes have drifted a hair apart in length is no
+	# rotation to Basis.slerp (_hop_process), which then fails and logs an error on every
+	# frame of the hop, as it did 116 and 120 times in the author's plays on 26 Oct 2026.
+	_hop_from = from.orthonormalized()
+	_hop_to = to.orthonormalized()
 	_hop_t = 0.0
 	_hop_time = time
 	_hop_height = height
 	_hop_done = done
+	_tree_hop = false
 	_shape.disabled = true
 	velocity = Vector3.ZERO
 	_speed = 0.0
+	_yaw_rate = 0.0
+	if jumping or _land_tick >= 0:
+		_end_jump()
 
 
 func _hop_process(delta: float) -> void:
+	model.speed = 0.0
 	model.walk_amount = 0.0
 	model.turn = 0.0
 	model.crouch = move_toward(model.crouch, 0.0, delta * 5.0)
 	_hop_t = minf(_hop_t + delta / _hop_time, 1.0)
+	if resting and not _waking and (1.0 - _hop_t) * _hop_time <= RaccoonModel.RIGGED_BLEND:
+		model.sleep = move_toward(model.sleep, 1.0, delta * DOZE_RATE)
 	var pos := _hop_from.origin.lerp(_hop_to.origin, _hop_t) + Vector3.UP * sin(PI * _hop_t) * _hop_height
 	global_transform = Transform3D(_hop_from.basis.slerp(_hop_to.basis, minf(_hop_t * 1.5, 1.0)), pos)
 	_carry()
@@ -247,19 +658,105 @@ func _hop_process(delta: float) -> void:
 
 
 func _rest_process(delta: float) -> void:
+	model.speed = 0.0
 	model.walk_amount = 0.0
 	model.turn = 0.0
 	if not _waking:
-		model.sleep = move_toward(model.sleep, 1.0, delta * 1.5)
-		_waking = model.sleep >= 1.0 and _move_input().length_squared() > 0.1
+		model.sleep = move_toward(model.sleep, 1.0, delta * DOZE_RATE)
+		# A move key wakes him, and since 21 Nov 2026 so does F (CHANGE-BRIEF.md's revision):
+		# into the same leap out.
+		var wake_key := _move_input().length_squared() > 0.1 or (Input.is_action_pressed("jump") and not input_locked)
+		_waking = not keep_asleep and model.sleep >= 1.0 and wake_key
+		if _waking:
+			_leave_t = 0.0
 		return
-	model.sleep = move_toward(model.sleep, 0.0, delta * 3.0)
-	if model.sleep <= 0.0:
-		_hop(global_transform, _rest_return, 0.8, 0.9, _end_rest)
+	_leave_process(delta)
+
+
+## Getting out of the hollow, as one movement: he wakes, uncurls and turns to the
+## opening as he steps up to it, crouches, leaps out and falls in an arc to `exit`,
+## lands front paws first and soaks it up, then he's the player's again.
+func _leave_process(delta: float) -> void:
+	_leave_t += delta
+	var exit := _rest_exit
+	var out := exit.origin - _rest_spot.origin
+	out.y = 0.0
+	out = out.normalized()
+	var takeoff := _rest_spot.origin + out * LEAVE_STEP
+	var t := _leave_t
+	if t < LEAVE_WAKE:
+		var f := t / LEAVE_WAKE
+		var e := smoothstep(0.0, 1.0, f)
+		model.sleep = 1.0 - f
+		model.leap = lerpf(0.8, 0.88, f)
+		global_transform = Transform3D(_rest_spot.basis.slerp(exit.basis, e), _rest_spot.origin.lerp(takeoff, e))
+		return
+	model.sleep = 0.0
+	t -= LEAVE_WAKE
+	if t < LEAVE_CROUCH:
+		var f := t / LEAVE_CROUCH
+		model.leap = lerpf(0.88, 0.95, f)
+		model.squash = 0.6 * smoothstep(0.0, 1.0, f)
+		global_transform = Transform3D(exit.basis, takeoff)
+		return
+	t -= LEAVE_CROUCH
+	if t < LEAVE_FLIGHT:
+		var f := t / LEAVE_FLIGHT
+		model.leap = _keyed(LEAP_AIR, f)
+		model.squash = 0.6 * (1.0 - smoothstep(0.0, 0.12, f))
+		var arc := _leap_arc(takeoff, exit.origin, t)
+		global_transform = _pitched(Transform3D(exit.basis, arc[0]), arc[1])
+		return
+	t -= LEAVE_FLIGHT
+	# Landed: he slides to a stop as he levels out and his hind legs come in.
+	var ground_speed := Vector2(exit.origin.x - takeoff.x, exit.origin.z - takeoff.z).length() / LEAVE_FLIGHT
+	var f := minf(t / LEAVE_LAND, 1.0)
+	var pos := exit.origin + out * ground_speed * LEAVE_LAND * (f - f * f * 0.5)
+	var pitch: float = _leap_arc(takeoff, exit.origin, LEAVE_FLIGHT)[1]
+	model.leap = lerpf(1.5, 1.78, f)
+	model.squash = 0.8 * sin(PI * sqrt(f))
+	global_transform = _pitched(Transform3D(exit.basis, pos), pitch * (1.0 - smoothstep(0.0, 0.6, f)))
+	if f >= 1.0:
+		_leave_t = -1.0
+		model.leap = -1.0
+		model.squash = 0.0
+		_end_rest()
+
+
+## Where he is `t` seconds into the leap from `from` to `to`, and how far he's
+## tipped (radians, nose up), as [position, pitch]. He falls under a gravity that
+## takes him LEAVE_RISE above `from` and lands him on `to` after LEAVE_FLIGHT; he
+## tips into the way he's moving, easing in as he leaves.
+func _leap_arc(from: Vector3, to: Vector3, t: float) -> Array:
+	var drop := from.y - to.y
+	var g := pow((sqrt(2.0 * LEAVE_RISE) + sqrt(2.0 * (LEAVE_RISE + drop))) / LEAVE_FLIGHT, 2.0)
+	var rise_speed := sqrt(2.0 * g * LEAVE_RISE)
+	var pos := from.lerp(to, t / LEAVE_FLIGHT)
+	pos.y = from.y + rise_speed * t - 0.5 * g * t * t
+	var ground_speed := Vector2(to.x - from.x, to.z - from.z).length() / LEAVE_FLIGHT
+	var pitch := clampf(atan2(rise_speed - g * t, ground_speed) * 0.4, -0.5, 0.35)
+	return [pos, pitch * smoothstep(0.0, 0.15, t / LEAVE_FLIGHT)]
+
+
+## `xf` tipped nose up by `pitch` (radians) on his hind paws, or nose down on his
+## front ones, so the paws he's tipping on stay put.
+func _pitched(xf: Transform3D, pitch: float) -> Transform3D:
+	var pivot := Vector3(0, 0, PAW_REACH * size * (1.0 if pitch > 0.0 else -1.0))
+	var tip := Transform3D(Basis(Vector3.RIGHT, pitch), Vector3.ZERO)
+	return xf * Transform3D(Basis(), pivot) * tip * Transform3D(Basis(), -pivot)
+
+
+## The value at `f` along a list of [f, value] keys, straight between them.
+func _keyed(keys: Array, f: float) -> float:
+	for i in range(1, keys.size()):
+		if f <= keys[i][0]:
+			return lerpf(keys[i - 1][1], keys[i][1], inverse_lerp(keys[i - 1][0], keys[i][0], f))
+	return keys[-1][1]
 
 
 func _end_rest() -> void:
 	resting = false
+	_waking = false
 	_shape.disabled = false
 
 
@@ -309,8 +806,11 @@ func _climb_process(delta: float) -> void:
 	var round_speed := input.x * _climb_side * speed * 0.7
 
 	var top := _climb_top()
+	if _climb_along >= top - 0.02 and _tree.has("limb") and _toward_limb(input):
+		_onto_limb()
+		return
 	if _climb_along >= top and up_speed > 0.0 and _tree.has("rest_spot"):
-		rest(_tree.rest_spot)
+		rest(_tree.rest_spot, _tree.rest_exit)
 		return
 	if _climb_along <= _climb_bottom() and up_speed < 0.0:
 		_climb_off()
@@ -326,6 +826,7 @@ func _climb_process(delta: float) -> void:
 	moved.y = wrapf(moved.y, -PI * reach, PI * reach)
 	var climbed := moved.length() / maxf(delta, 0.0001)
 	climb_moving = climbed > 0.05
+	model.speed = climbed
 	model.walk_amount = clampf(climbed / walk_speed, 0.0, 1.0)
 	model.walk_phase += climbed * delta * 7.0 / size
 	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
@@ -337,11 +838,26 @@ func _climb_process(delta: float) -> void:
 ## Hops down from the trunk onto the ground behind him.
 func _climb_off() -> void:
 	_hop(global_transform, _ground_spot(_climb_angle), 0.3 + 0.12 * _climb_along, 0.15, _end_climb)
+	_show_tree_hop()
+
+
+## A hop off a tree is shown with the jump's clips: `jump` from frame 0, its push-off, as
+## a jump's, until he's down, then `jump_land` (_end_climb). Presentation only: the hop's
+## timing, path and input are as before, it isn't `jumping`, and there's no `landed`.
+func _show_tree_hop() -> void:
+	_tree_hop = true
+	model.jump_id += 1
 
 
 func _end_climb() -> void:
 	climbing = false
 	_shape.disabled = false
+	if _tree_hop:
+		# Down: the landing's LAND_TIME, shown as for a jump, with no squash or tip.
+		_tree_hop = false
+		_land_tick = 0
+		_land_hard = 0.0
+		_land_pitch = 0.0
 
 
 ## Low enough that his tail just reaches the ground.
@@ -375,20 +891,170 @@ func _ground_spot(angle: float) -> Transform3D:
 	return Transform3D(Basis.looking_at(out), _tree.base + out * (_tree.clear + 0.5 * size))
 
 
+# --- Out on a limb (10 Nov 2026) --------------------------------------------------
+
+## The tree he's climbing (one of `trees`), or {} when he isn't.
+func climbing_tree() -> Dictionary:
+	return _tree if climbing else {}
+
+
+## How far the limb he's on is giving under him (radians at its root), for the tree to
+## bend to; 0 off a limb.
+func limb_bend() -> float:
+	return _limb_bend if on_limb else 0.0
+
+
+## How far out along the limb he is (metres from the trunk's middle), or -1 off one.
+func limb_along() -> float:
+	return _limb_along if on_limb else -1.0
+
+
+## The move keys `input` as a direction on the ground, the way the camera faces.
+func _input_dir(input: Vector2) -> Vector3:
+	var dir := Vector3(input.x, 0.0, input.y)
+	if camera:
+		dir = dir.rotated(Vector3.UP, camera.global_rotation.y)
+	return dir
+
+
+## The way the limb runs out from the trunk, level.
+func _limb_out() -> Vector3:
+	var limb: Dictionary = _tree.limb
+	var out: Vector3 = (limb.to - limb.from) * Vector3(1, 0, 1)
+	return out.normalized()
+
+
+## True if `input` points out along the limb of the tree he's on.
+func _toward_limb(input: Vector2) -> bool:
+	if input.length_squared() < 0.25:
+		return false
+	return _input_dir(input).normalized().dot(_limb_out()) > LIMB_STEP
+
+
+## The nearest and furthest he can be along the limb: just clear of the trunk, and short
+## of its tip.
+func _limb_start() -> float:
+	return float(_tree.r1) + 0.1 * size
+
+
+func _limb_end() -> float:
+	var limb: Dictionary = _tree.limb
+	return limb.from.distance_to(limb.to) - 0.2 * size
+
+
+## A point on top of the limb `along` metres out, as far as it's giving now: it turns
+## down about its root (camp_bear_bag.gd bends its limb the same way).
+func _limb_point(along: float) -> Vector3:
+	var limb: Dictionary = _tree.limb
+	var run: Vector3 = (limb.to - limb.from).normalized()
+	var side := run.cross(Vector3.UP).normalized()
+	return limb.from + run.rotated(side, -_limb_bend) * along + Vector3.UP * float(limb.r)
+
+
+func _limb_transform() -> Transform3D:
+	return Transform3D(Basis.looking_at(_limb_out() * _limb_facing), _limb_point(_limb_along))
+
+
+## From the top of the trunk onto its limb, with a little hop.
+func _onto_limb() -> void:
+	on_limb = true
+	_limb_along = _limb_start()
+	_limb_facing = 1.0
+	_limb_bend = 0.0
+	_hop(global_transform, _limb_transform(), 0.25, 0.12)
+
+
+## Out on the limb: the move keys walk him along it, the way they point along it; back at
+## the trunk, he's on it again, at the top on the limb's side.
+func _limb_process(delta: float) -> void:
+	var input := _move_input()
+	sneaking = Input.is_action_pressed("sneak")
+	var speed := climb_speed * LIMB_SPEED
+	if sneaking:
+		speed *= 0.5
+	elif Input.is_action_pressed("run"):
+		speed *= 1.6
+	var along_speed := _input_dir(input).dot(_limb_out()) * speed
+	if absf(along_speed) > 0.05:
+		_limb_facing = signf(along_speed)
+	if _limb_along <= _limb_start() + 0.001 and along_speed < -0.05:
+		on_limb = false
+		_limb_bend = 0.0
+		var out := _limb_out()
+		_climb_angle = atan2(out.x, out.z)
+		_climb_along = _climb_top()
+		_hop(global_transform, _climb_transform(), 0.2, 0.08)
+		return
+	var before := _limb_along
+	_limb_along = clampf(_limb_along + along_speed * delta, _limb_start(), _limb_end())
+	var moved := absf(_limb_along - before) / maxf(delta, 0.0001)
+	climb_moving = moved > 0.05
+	var limb: Dictionary = _tree.limb
+	var give: float = float(limb.get("bend", 0.0)) * clampf(_limb_along / limb.from.distance_to(limb.to), 0.0, 1.0)
+	if climb_moving:
+		give *= 1.0 + LIMB_BOB * sin(model.walk_phase * 2.0)
+	_limb_bend = lerpf(_limb_bend, give, 1.0 - exp(-LIMB_GIVE * delta))
+	global_transform = _limb_transform()
+	_carry()
+	model.speed = moved
+	model.walk_amount = clampf(moved / walk_speed, 0.0, 1.0)
+	model.walk_phase += moved * delta * 7.0 / size
+	model.crouch = move_toward(model.crouch, 1.0 if sneaking else 0.0, delta * 5.0)
+	model.turn = 0.0
+
+
+## Off the limb: a drop to the ground under him, or a little further on if that's taken.
+func _limb_off() -> void:
+	var facing := Basis.looking_at(_limb_out() * _limb_facing)
+	var below := Vector3(global_position.x, float(_tree.base.y), global_position.z)
+	var space := get_world_3d().direct_space_state
+	var probe := PhysicsShapeQueryParameters3D.new()
+	var ball := SphereShape3D.new()
+	ball.radius = 0.25
+	probe.shape = ball
+	probe.exclude = [get_rid()]
+	var land := below
+	for far: float in [0.0, 0.4, 0.8]:
+		land = below - facing.z * far
+		probe.transform = Transform3D(Basis(), land + Vector3.UP * 0.3)
+		if space.intersect_shape(probe, 1).is_empty():
+			break
+	_hop(global_transform, Transform3D(facing, land), LIMB_DROP_TIME, LIMB_DROP_HEIGHT, _end_limb)
+	_show_tree_hop()
+
+
+func _end_limb() -> void:
+	on_limb = false
+	_limb_bend = 0.0
+	_end_climb()
+
+
 # --- Grabbing and chittering -----------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
-	if resting or _hop_t >= 0.0:
+	if resting or _hop_t >= 0.0 or input_locked or hiding_in:
 		return
 	if event.is_action_pressed("grab"):
+		if snack:
+			return
 		if held:
 			_drop()
+		elif climbing and on_limb:
+			_limb_off()
 		elif climbing:
 			_climb_off()
 		else:
 			_grab()
 	elif event.is_action_pressed("chitter"):
 		chitter()
+	elif event.is_action_pressed("jump"):
+		# Up a tree, a jump hops him off, as E does.
+		if climbing and on_limb:
+			_limb_off()
+		elif climbing:
+			_climb_off()
+		else:
+			jump()
 
 
 ## Shoves rigid bodies we walk into; pushing high up lets tall things topple.
@@ -436,6 +1102,9 @@ func _grab() -> void:
 	held.set_meta("layers", Vector2i(held.collision_layer, held.collision_mask))
 	held.collision_layer = 0
 	held.collision_mask = 0
+	# Straight into his mouth, rather than drawn flying there over a physics tick.
+	_carry()
+	held.reset_physics_interpolation()
 
 
 func _drop() -> void:

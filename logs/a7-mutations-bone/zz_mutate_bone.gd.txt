@@ -1,0 +1,13 @@
+@tool
+extends EditorScenePostImport
+func _post_import(scene: Node) -> Object:
+	var player := scene.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	var clip := player.get_animation("jump")
+	for t in clip.get_track_count():
+		var path := clip.track_get_path(t)
+		if path.get_subname_count() > 0:
+			var bone := String(path.get_subname(0))
+			clip.track_set_path(t, NodePath("%s:%s_x" % [path.get_concatenated_names(), bone]))
+			print("MUTATION: jump track %d: bone %s renamed %s_x in the clip only" % [t, bone, bone])
+			break
+	return scene

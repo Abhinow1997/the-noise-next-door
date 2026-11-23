@@ -1,0 +1,19 @@
+The new moth's mutations, 22 Nov 2026 15:31, each in a git worktree from c14faf9 plus the working tree's uncommitted moth; Godot 4.7.2 headless
+m1_subname. Break the track's subname: .:fram, not .:frame (property)
+  change: -tracks/0/path = NodePath(".:frame") +tracks/0/path = NodePath(".:fram") 
+  test_moth_flutter.gd at 60 -> exit 1 | 20 passed, 2 failed | FAIL lines: 2
+    FAIL Pivot0: every track in every clip resolves: flutter track 0: Moth has no property fram
+    FAIL track 0 is on the Sprite3D's frame: .:fram
+m2_loop. Flip the cycle's loop mode: LOOP_NONE
+  change: -loop_mode = 1 +loop_mode = 0 
+  test_moth_flutter.gd at 60 -> exit 1 | 21 passed, 1 failed | FAIL lines: 1
+    FAIL loop_mode is Animation.LOOP_LINEAR: 0
+m3_cell. Key a cell the sheet doesn't have: the second key on cell 4 (hframes 2 x vframes 2 = 4)
+  change: -"values": [0, 1, 2, 3, 2, 1] +"values": [0, 4, 2, 3, 2, 1] 
+  test_moth_flutter.gd at 60 -> exit 1 | 20 passed, 2 failed | FAIL lines: 2
+    FAIL every frame key is a cell inside the sheet (0 to 3): [0, 4, 2, 3, 2, 1]
+    FAIL the key values are 0, 1, 2, 3, 2, 1 (out and back): [0, 4, 2, 3, 2, 1]
+m0_control. The control: no change, the same worktree setup and empty-cache import
+  change: 
+  (no change, as meant: the control)
+  test_moth_flutter.gd at 60 -> exit 0 | 22 passed, 0 failed | FAIL lines: 0

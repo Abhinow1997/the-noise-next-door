@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://previews/campfire_smoke_preview.gd" id="1_preview"]
+[ext_resource type="PackedScene" path="res://main.tscn" id="2_level"]
+
+[node name="CampfireSmokePreview" type="Node3D"]
+process_priority = 100
+script = ExtResource("1_preview")
+light_frame = 10
+logs = 3
+douse_frame = 100
+preview_seed = 7
+
+[node name="Level" parent="." instance=ExtResource("2_level")]

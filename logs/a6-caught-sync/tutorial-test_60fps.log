@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+
+Tutorial check, 2026-11-08T20:12:30
+  pass  Before the camp: no cones, no dark layer                       expected false false              got false false
+  pass  The pan: slowed, the camera panning, no words                  expected true true                got true true 
+  pass  The pan: he's held still, and no cones                         expected true false               got true false
+  pass  The laugh: back on him, he laughs, the cones on                expected true true true           got true true true
+  pass  The laugh: someone comes to look                               expected true                     got true
+  pass  Seen: the campers frozen, the bush lit, 'Hide!'                expected true true Hide!          got true true Hide!
+  pass  Seen: full speed, he can move, a note to hide                  expected 1.0 false Hide in the bush got 1.0 false Hide in the bush
+  pass  Held: it waits for him to hide                                 expected hide true                got hide true
+  pass  In the bush: the campers carry on, his eyes peeking, a note to wait expected false true true Wait till they look away got false true true Wait till they look away
+  pass  In the bush: the ones who saw him are confused ('??') where they stand expected true true                got true true
+  pass  Lost: the camera on the one who saw him, confused              expected true true He lost you    got true true He lost you
+  pass  In the bush, till they've lost him: nobody came for him, nobody moved while confused expected false true               got false true
+  pass  Chased to the bush: they come right up, but can't catch him in it expected true false true          got true false true
+  pass  All back at work: the camper roasting and serving, a note to sneak out expected true roast serve Sneak out: hold Ctrl got true roast serve Sneak out: hold Ctrl
+  pass  A move key: he hops out that way, sneaking, his eyes gone      expected false false true true    got false false true true
+  pass  Out: the note goes, and no other words                         expected                          got 
+  pass  Served: one on the plate, the campers frozen, it's lit with no words, he's hungry expected 1 true true true  hungry got 1 true true true  hungry
+  pass  Served: no note, full speed, he can move                       expected  1.0 false               got  1.0 false
+  pass  Held: it waits for him to take it                              expected grab true 1              got grab true 1
+  pass  Taken: in his mouth, off the plate                             expected true 0                   got true 0
+  pass  Seen with it: caught, frozen, under the dark layer             expected true You've been caught! got true You've been caught!
+  pass  Then 'Runnn!': they come to, the camper spots him, the men chase him expected false true true          got false true true
+  pass  Running with it: he keeps it, E doesn't drop it, and he can't eat it yet expected true true false          got true true false
+  pass  Away, once they're all back at work: the E to eat it           expected true true true           got true true true
+  pass  Holding E: he sits up and eats it from his paws, held still    expected true true true true      got true true true true
+  pass  Eaten once they'd calmed: nobody noticed                       expected true WORK WORK WORK WORK got true WORK WORK WORK WORK
+  pass  Eaten: 'Yum!', the note to press Tab, he's up, the camper's own routine back expected Yum! Tab: your TO DO list false false peg roast pizza got Yum! Tab: your TO DO list false false peg roast pizza
+  pass  Tab: the TO DO list up to read, the camp's tasks on it, slowed expected true investigate party marshmallows music cooler tent true got true investigate party marshmallows music cooler tent true
+  pass  Tab again: the world's open (list away, no note, full speed, he can move) expected DONE false  1.0 false    got DONE false  1.0 false
+RESULT: all checks passed (29 checks)

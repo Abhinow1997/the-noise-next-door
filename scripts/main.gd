@@ -1,18 +1,106 @@
 extends Node3D
-## Builds the forest, the props, the raccoon and the to-do list.
+## Builds the forest, the props, the raccoon and the to-do list. The game opens on the
+## title screen (title_screen.gd), shown over this level: him curled up asleep in his
+## hollow at night with the lullaby playing. New Game glides the camera in to the nap
+## close-up, and play starts from there when a move key wakes him. Any `--` argument
+## other than the title's own (`--title-...`) skips the title, for the debug flags below.
 ## Debug: `-- --screenshot=out.png [--closeup] [--pose=<state> [--left]]` saves a
-## frame and quits; --pose shows the raccoon in one state (see raccoon_sprite.gd).
+## frame and quits; --pose shows the raccoon in one state: an animation of the rigged
+## model (idle, walk, run, sneak, bored, sleep, climb), or with USE_SPRITES a
+## cut-out (see raccoon_sprite.gd). `-- --sprites` uses the cut-outs for one run.
 ## `-- --sound-test` runs the automated sound check (scripts/sound_test.gd).
 ## Screenshot helpers: --grab-test, --climb-test, --rest-test (he naps in the hollow),
-## --tick-test (the bin is knocked over), --shot-frame=N (default 45), and
+## --tick-test (the bin is knocked over), --jump-test (he jumps on frame 1, F held; he's
+## at the top around frame 14), --shot-frame=N (default 45), and
 ## --see-collision (the raccoon half see-through, for use with --debug-collisions).
+## `-- --bubble-demo` adds a yard of stand-ins for trying the thought bubbles
+## (scripts/bubble_demo.gd); `-- --bubble-test` runs their automated check in it
+## (scripts/bubble_test.gd), with `--bubble-shots=<folder>` for a picture of each.
+## `-- --camp-test` runs the automated check of the campers' reactions to the raccoon
+## at the campsite (scripts/camp_test.gd), with `--camp-shots=<folder>` for pictures.
+## `-- --tasks-test` plays level 1's camp tasks and routines through and checks them
+## (scripts/tasks_test.gd), with `--tasks-shots=<folder>` for pictures.
+## `-- --waves-test` checks the party's sound waves (scripts/waves_test.gd), with
+## `--waves-shots=<folder>` for pictures.
+## `-- --plan-test` checks THE PLAN, the to-do list on Tab, and the scraps at the bottom
+## (scripts/plan_test.gd), with `--plan-shots=<folder>` for pictures.
+## `-- --tutorial-test` plays the tutorial at the camp through with its guide on
+## (scripts/tutorial_test.gd), with `--tutorial-shots=<folder>` for pictures.
+## `-- --cones-test` checks the tutorial at the camp and the campers' cones and search
+## (scripts/cones_test.gd), with `--cones-shots=<folder>` for pictures. The other tests
+## skip the tutorial: for them the camp's tasks are on the list and the cones on from
+## the start. `-- --cone-shader-test` checks the cones' shader and what drives it
+## (tests/cone_shader_test.gd, cone_driver.gd), through the tutorial as --cones-test.
+## `-- --leaf-burst-test` checks when and where Effect A, the leaf burst, fires as he dives
+## into the bush and out (tests/leaf_burst_state_test.gd), with the tutorial skipped.
+## `-- --smoke-test` checks Effect B, the campfire smoke, following the fire from cold
+## (tests/campfire_smoke_state_test.gd); `-- --smoke-load-test` with it burning at load.
+## `-- --fire-test` checks the campfire's life in the open world: the keeper building it,
+## the bucket tipped with E, the fire lit again, and being seen further standing in its
+## light (scripts/fire_test.gd, camp_fire.gd).
+## `-- --tent-test` checks Dismantle the tent: its four pegs pulled with E, the tent
+## falling, and the camper pitching it again (scripts/tent_test.gd, camp_tent.gd).
+## `-- --bearbag-test` checks Raid the bear bag: the knot chewed through and the limb
+## walked out along, the bag's drop and its thump, opening it, a treat home to the stash,
+## and the camper hanging it up again (scripts/bear_bag_test.gd, camp_bear_bag.gd).
+## `-- --dev-start=<point>` starts at a point of the developer menu (F1, dev_menu.gd):
+## den, camp, roast, free (the fire out) or fire (burning); F9 turns vsync off and on.
+## `-- --dev-unseen`, with `--dev-start=free` or `fire`, in a debug run: the campers can't see
+## him (campsite.gd `cones_on` off, as the tests and previews have it), so their reactions
+## don't break off a check (the author, 22 Nov 2026). It changes nothing in normal play.
 
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const Player := preload("res://scripts/player.gd")
 const Forest := preload("res://scripts/forest.gd")
 const CameraTuner := preload("res://scripts/camera_tuner.gd")
 const RaccoonSprite := preload("res://scripts/raccoon_sprite.gd")
+## Draw the raccoon with the author's generated cut-outs (the asset slice, 6 Oct)
+## instead of the rigged 3D model.
+const USE_SPRITES := false
+## --pose names from the cut-outs, as the rigged model's animations.
+const POSE_ANIMATIONS := {"asleep": "sleep"}
 const SoundTest := preload("res://scripts/sound_test.gd")
+## Pictures over his head that show what he notices, wants or feels.
+const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
+const BubbleDemo := preload("res://scripts/bubble_demo.gd")
+const BubbleTest := preload("res://scripts/bubble_test.gd")
+const CampTest := preload("res://scripts/camp_test.gd")
+const TasksTest := preload("res://scripts/tasks_test.gd")
+const FireTest := preload("res://scripts/fire_test.gd")
+const TentTest := preload("res://scripts/tent_test.gd")
+const BearBagTest := preload("res://scripts/bear_bag_test.gd")
+const WavesTest := preload("res://scripts/waves_test.gd")
+const PlanTest := preload("res://scripts/plan_test.gd")
+const ConesTest := preload("res://scripts/cones_test.gd")
+## His laughing face while he chitters.
+const RaccoonFace := preload("res://scripts/raccoon_face.gd")
+## The moonlight (night.gd), and the title screen's chalk writing (title_menu.gd) for the
+## prompt to wake him.
+const Night := preload("res://scripts/night.gd")
+const TitleMenu := preload("res://scripts/title_menu.gd")
+const TitleScreen := preload("res://scripts/title_screen.gd")
+## Fireflies and falling leaves in the moonlight (night_life.gd).
+const NightLife := preload("res://scripts/night_life.gd")
+## Level 1's campsite under his tree: the fire, the tents and the party (23 Oct 2026).
+const Campsite := preload("res://scripts/campsite.gd")
+## Level 1's to-do list: the campsite's tasks (23 Oct 2026), shown as THE PLAN, a torn
+## notebook page on Tab, with scraps at the bottom of the screen (24 Oct 2026).
+const CampTasks := preload("res://scripts/camp_tasks.gd")
+const PlanNote := preload("res://scripts/plan_note.gd")
+const CampTutorial := preload("res://scripts/camp_tutorial.gd")
+## Effect A, the leaves bursting out of the bush as he dives in or out (leaf_bursts.gd).
+const LeafBursts := preload("res://scripts/leaf_bursts.gd")
+## Effect B, the smoke over the campfire, following its strength (campfire_smoke.gd).
+const CampfireSmokeDriver := preload("res://scripts/campfire_smoke.gd")
+## The moths round the campfire, shown while it burns (props/moths.gd; not graded).
+const MothsScene := preload("res://props/moths.tscn")
+## The developer menu (F1) and its start points (dev_menu.gd), and where each puts him.
+const DevMenu := preload("res://scripts/dev_menu.gd")
+const DEV_STARTS := {"camp": Vector3(26.0, 0.02, 6.0), "roast": Vector3(35.0, 0.02, 5.0),
+	"free": Vector3(33.5, 0.02, 4.8), "fire": Vector3(33.5, 0.02, 4.8)}
+## The level is at night, as the title screen is: the author asked for the game to be at
+## night too on 21 Oct 2026. Off, it's the daylight it had before.
+const NIGHT := true
 
 ## The author's generated grass texture (ENV-GROUND in SOURCES.md), repeated every
 ## GROUND_TILE metres, with GROUND_TINT to darken it. Off: on 6 Oct the author saw
@@ -31,13 +119,16 @@ const STUMP_HEIGHT := 0.6
 const STUMP_LEFT := 2.2
 const STUMP_NEAR := 0.6
 
-## A to-do item ticked off: take B of the author's laugh (SFX-TASK-LAUGH).
-const TASK_LAUGH_PATH := "res://assets/audio/sfx/task-laugh.wav"
-const TASK_LAUGH_DB := -2.0
-## How far the music dips under the laugh, how long the fade at the end takes, and
-## how the music is muffled while paused (CHANGE-BRIEF.md, music behaviour).
+## A to-do item ticked off: a coin's chime (SFX-TASK-DONE), "Get Coin" by KoiRoylers (Pixabay),
+## made by tools/make_task_sounds.gd. Since 22 Nov 2026 (the author: "use the sound effect when u
+## complete a task replace it with the current vesrion"); before, take B of the author's laugh
+## (task-laugh.wav). About as loud as the laugh was.
+const TASK_DONE_PATH := "res://assets/audio/sfx/task-done-coin.wav"
+const TASK_DONE_DB := 0.0
+## How far the music dips under the task's chime, and how the music is muffled while paused
+## (CHANGE-BRIEF.md, music behaviour). (Its fade at the end went with the prototype's
+## to-do list on 23 Oct 2026: level 1 has no ending yet.)
 const DUCK_DB := 4.0
-const END_FADE := 3.0
 const PAUSE_DB := 8.0
 const PAUSE_CUTOFF_HZ := 900.0
 
@@ -47,10 +138,11 @@ const BIN_INSIDE := Color("454b50")
 const CAN := Color("5f7387")
 const SILVER := Color("c3c6c8")
 const LID := Color("cfc8b8")
-## The sky is never seen; this is the haze the far trees fade into.
+## The sky is never seen; this is the haze the far trees fade into by day (night.gd has
+## the night's).
 const HAZE := Color("8fa58c")
 
-## The camera view the author picked with the Tab panel (camera_tuner.gd): it looks
+## The camera view the author picked with the camera panel (camera_tuner.gd): it looks
 ## down 27 degrees from 19.2 m away through a very narrow lens (15 degrees tall),
 ## turned 14 degrees and aimed just past the raccoon, so the scene reads like a
 ## tabletop diorama. The player can zoom it but not turn it.
@@ -67,17 +159,79 @@ const PIVOT := Vector3(0, 0.27, 0)
 ## When he's near a camper (a node in the "camper" group), the camera leans this
 ## share of the way toward the camper, so you can keep watching his routine...
 const LEAN := 0.3
+## The tutorial's pan (camera_focus): how long the camera takes to swing over to it or
+## back (real seconds), and how quickly it follows from one thing to the next.
+const FOCUS_TIME := 0.6
+const FOCUS_GLIDE := 4.0
 ## ...starting this far away and fully leaning at half of it.
 const LEAN_RANGE := 9.0
+## The close-up the author picked with the Tab panel for watching him sleep in the
+## hollow: low, nearly straight on, 9 m away. The camera eases into it as he curls
+## up and back out as he wakes. Its distance and aim already include the wheel's
+## zoom, so zooming doesn't change it.
+const SLEEP_CAMERA_PITCH := 10.0
+const SLEEP_CAMERA_YAW := -1.0
+const SLEEP_CAMERA_FOV := 14.0
+const SLEEP_CAMERA_DISTANCE := 9.0
+const SLEEP_CAMERA_AHEAD := 0.5
+## Seconds to ease into the close-up, and back out once he wakes.
+const SLEEP_CAMERA_IN := 3.0
+const SLEEP_CAMERA_OUT := 1.5
 
 ## The level's music: a 16-bar loop cut from the generated forest track in
 ## design/music/ (see SOURCES.md). The WAV's own loop marker makes it repeat seamlessly.
 const MUSIC_PATH := "res://assets/audio/music/forest-loop.wav"
+## Whether the music (the Music bus: the forest loop and the lullaby) is on when the game
+## starts. Off from 7 Nov 2026, as the author asked ("by default have the music off"),
+## with M to turn it on; on again since 11 Nov 2026, when the author asked for the
+## lullaby on the title ("the title music is the sleepy music that will always be on as
+## soon as you start the game"). M still mutes it. The checks, run with their own flags,
+## start with it on either way.
+const MUSIC_ON_AT_START := true
 ## How loud the music sits under the sound effects, and its fade-in time in seconds.
 ## Lowered 3 dB on 6 Oct, with the effects raised 4 dB, after the author's playtest
 ## found the effects too quiet against it.
 const MUSIC_DB := -12.0
 const MUSIC_FADE_IN := 2.0
+## Since 11 Nov 2026 the forest loop plays from the party's speaker (campsite.gd), as a
+## sound in the world, at the author's request ("the background music we have lets update
+## the same to be coming from the music system we have so we grow closer to the camp it
+## increses"). MUSIC_DB is how loud it is MUSIC_NEAR metres from the speaker, a few metres
+## out along the trail from the camp; it falls off 6 dB each time the distance doubles,
+## so at his tree, about 41 m away, it's about 8 dB quieter. Right by the speaker it's
+## never more than MUSIC_CLOSE_DB over its level, which still dips under the task's chime and
+## fades for a nap as before. It stops while the speaker's unplugged (camp_puzzles.gd).
+## The bubble demo has no camp: there it plays as it always did, the same everywhere.
+## MUSIC_NEAR was 10 m at first; the same day it went to 16 m, when the author asked for
+## the music at New Game to be "mild, but it should be audible" at his tree (it was about
+## 12 dB down there).
+const MUSIC_NEAR := 16.0
+const MUSIC_CLOSE_DB := 3.0
+## The nap music: the generated lullaby in design/music/ (MUS-THEME-SLOW), from its
+## start, then round a 34 s section cut to loop seamlessly (see SOURCES.md). It fades
+## in over the forest loop as he curls up in the hollow, and out as he wakes. It's
+## as loud as the forest loop (both measure about -15 LUFS), so it plays at the same level.
+const SLEEP_MUSIC_PATH := "res://assets/audio/music/lullaby-loop.wav"
+const SLEEP_MUSIC_DB := MUSIC_DB
+const SLEEP_FADE := 3.0
+const WAKE_FADE := 1.5
+## Starting under the title screen, asleep: how long the lullaby takes to fade in; once
+## New Game has brought the camera in, how long the prompt to wake him waits to come
+## up; how long it takes to fade in or out; and how long after he's woken the key task
+## comes up (THE PLAN).
+const LULLABY_FADE_IN := 2.5
+const WAKE_PROMPT_AFTER := 2.5
+const UI_FADE := 0.8
+## New Game's hand-over from the lullaby to the forest loop (start_party), in seconds: the
+## lullaby eases out over NEW_GAME_LULLABY_OUT; NEW_GAME_MUSIC_AFTER in, the forest loop
+## eases in over NEW_GAME_MUSIC_IN. So they overlap for 2 s, and
+## it's all in by 5.5 s, as the prompt to wake him comes up (the glide takes 2.6 s, the
+## prompt waits WAKE_PROMPT_AFTER more). It was one 1.5 s crossfade at first, which the
+## author found "very sudden" (11 Nov 2026).
+const NEW_GAME_LULLABY_OUT := 3.5
+const NEW_GAME_MUSIC_AFTER := 1.5
+const NEW_GAME_MUSIC_IN := 4.0
+const WAKE_PROMPT := "Move to wake up"
 
 const INPUTS := {
 	"move_forward": [KEY_W, KEY_UP],
@@ -88,44 +242,67 @@ const INPUTS := {
 	"sneak": [KEY_CTRL, KEY_C],
 	"grab": [KEY_E],
 	"chitter": [KEY_SPACE],
+	"jump": [KEY_F],
 }
 
 var player: Player
 var camera: Camera3D
 var forest: Forest
+var campsite: Campsite
+## Effect B's driver (campfire_smoke.gd), or null without the campsite.
+var campfire_smoke: CampfireSmokeDriver
+## The moths round the campfire (props/moths.tscn), or null without the campsite.
+var moths: Node3D
+## What the game hears through: on the raccoon, turned as the camera is, so sounds in
+## the world (the forest loop from the speaker, MUSIC_NEAR) are as loud as they are
+## where he is, and what's on the right of the screen is heard on the right.
+var _ear: AudioListener3D
 var bin: RigidBody3D
 var lid: RigidBody3D
 var gnome: RigidBody3D
 var cans: Array[RigidBody3D] = []
 var zoom := 1.0
-## The camera's settings, starting from the constants above. Tab in the game opens
-## a panel (camera_tuner.gd) that changes them live.
+## The camera's settings, starting from the constants above. V in the game opens a
+## panel (camera_tuner.gd) that changes them live (it was Tab until THE PLAN took Tab).
 var camera_pitch := CAMERA_PITCH
 var camera_yaw := CAMERA_YAW
 var camera_fov := CAMERA_FOV
 var camera_distance := CAMERA_DISTANCE
 var camera_ahead := CAMERA_AHEAD
 
-var tasks := [
-	{"id": "bin", "text": "Knock over the trash bin", "done": false},
-	{"id": "lid", "text": "Steal the bin lid", "done": false},
-	{"id": "cans", "text": "Stash 3 cans in your den", "done": false},
-	{"id": "gnome", "text": "Kidnap the garden gnome", "done": false},
-	{"id": "nap", "text": "Sneak into your den for a nap", "done": false},
-]
+## Level 1's to-do list (camp_tasks.gd), ticked off by the puzzles at the campsite.
+## The prototype's gnome is still about to play with, and he can still nap in his den, but
+## neither is a task any more. Its bin, lid and cans by the home pine went on 8 Nov 2026 (the
+## author: "remove all the bins and the small boxes near the house tree"); only the bubble
+## demo's yard still has them, for its check (bubble_test.gd faces the bin).
+var tasks := CampTasks.new()
+## How many naps he's had in the hollow (not counting the one under the title).
+var naps := 0
 
-var _todo: RichTextLabel
-var _banner: Label
+var _plan: PlanNote
+## The tutorial at the camp (camp_tutorial.gd), or null in the tests that skip it.
+var _tutorial: CampTutorial
+## The layer the UI is drawn on (THE PLAN, now TO DO, and its scraps): the tutorial's
+## dark layer goes in it, under them.
+var _ui_layer: CanvasLayer
+## Set by the tutorial at the camp to pan the camera round it (7 Nov 2026): a point in
+## the world the camera aims at instead of him, or null to go back to him. It glides
+## there and back on real time (FOCUS_TIME), whatever speed the game runs at.
+var camera_focus = null
+var _focus_w := 0.0
+var _focus_at := Vector3.ZERO
 var _tuner: CameraTuner
-var _cans_in_den := 0
 var _nap_time := 0.0
 var _sleep_time := 0.0
+## Tasks ticked off since the last frame: one chime for them all.
+var _ticked := 0
 var _rng := RandomNumberGenerator.new()
 var _closeup := false
 var _grab_test := false
 var _climb_test := false
 var _rest_test := false
 var _tick_test := false
+var _jump_test := false
 var _shot_frame := 45
 var _see_collision := false
 var _shot_path := ""
@@ -133,15 +310,36 @@ var _frames := 0
 var _zoom_now := 1.0
 ## Where the camera thinks the raccoon is; it trails him slightly for smoothness.
 var _anchor := Vector3.ZERO
-var _music: AudioStreamPlayer
+var _music: AudioStreamPlayer3D
 var _music_tween: Tween
-var _task_laugh: AudioStreamPlayer
-var _finished := false
-var _hint: Label
+var _sleep_music: AudioStreamPlayer
+var _sleep_tween: Tween
+## Whether he's napping in the hollow, and how far (0..1) the camera has eased
+## toward the sleeping close-up.
+var _napping := false
+var _sleep_view := 0.0
+var _task_sound: AudioStreamPlayer
 var _paused_label: Label
 ## How many times each sound effect has started, by asset ID.
 var sound_counts := {}
 var sprite: RaccoonSprite
+var bubbles: ThoughtBubbles
+## The title screen while it's up, or null. Meanwhile, how much (1..0) the camera is
+## its view rather than the game's own, and that view; the game's keys wait for it.
+var title: TitleScreen
+var title_view := 0.0
+var title_camera: Transform3D
+var title_fov := 40.0
+## And the title's haze (where it begins and ends, in metres, and how thick), eased
+## into the level's own as the camera glides in.
+var title_fog := Vector3.ZERO
+var _env: Environment
+var _fog := Vector3.ZERO
+## True from the start under the title until he's out of the hollow. That nap isn't the
+## nap task, and the key task stays hidden until he wakes.
+var _first_nap := false
+var _wake_prompt: Label
+var _wake_tween: Tween
 
 
 ## Turns the keys that work while paused (Esc, M, N) into calls on the level.
@@ -152,11 +350,13 @@ class Keys extends Node:
 		process_mode = Node.PROCESS_MODE_ALWAYS
 
 	func _unhandled_input(event: InputEvent) -> void:
-		if not (event is InputEventKey and event.pressed and not event.echo):
+		if not (event is InputEventKey and event.pressed and not event.echo) or level.title:
 			return
 		match event.physical_keycode:
 			KEY_ESCAPE:
-				level.toggle_pause()
+				# The tutorial has the game paused already, until Tab.
+				if not level.tutorial_running():
+					level.toggle_pause()
 			KEY_M:
 				level.toggle_mute("Music")
 			KEY_N:
@@ -164,7 +364,7 @@ class Keys extends Node:
 
 
 func _enter_tree() -> void:
-	_setup_buses()
+	setup_buses()
 	for action: String in INPUTS:
 		if InputMap.has_action(action):
 			continue
@@ -182,6 +382,31 @@ func _ready() -> void:
 	var pose := ""
 	var pose_left := false
 	var sound_test := false
+	var use_sprites := USE_SPRITES
+	var bubble_demo := false
+	var bubble_test := false
+	var bubble_shots := ""
+	var camp_test := false
+	var camp_shots := ""
+	var tasks_test := false
+	var tasks_shots := ""
+	var waves_test := false
+	var waves_shots := ""
+	var plan_test := false
+	var plan_shots := ""
+	var cones_test := false
+	var cones_shots := ""
+	var cone_shader_test := false
+	var tutorial_test := false
+	var tutorial_shots := ""
+	var leaf_burst_test := false
+	var fire_test := false
+	var tent_test := false
+	var bearbag_test := false
+	var smoke_test := false
+	var smoke_load_test := false
+	var dev_unseen := false
+	var title_mode := Array(OS.get_cmdline_user_args()).all(func(arg: String) -> bool: return arg.begins_with("--title"))
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			_shot_path = arg.get_slice("=", 1)
@@ -195,6 +420,10 @@ func _ready() -> void:
 			_rest_test = true
 		elif arg == "--tick-test":
 			_tick_test = true
+		elif arg == "--jump-test":
+			_jump_test = true
+		elif arg == "--dev-unseen":
+			dev_unseen = true
 		elif arg == "--see-collision":
 			_see_collision = true
 		elif arg.begins_with("--shot-frame="):
@@ -205,81 +434,350 @@ func _ready() -> void:
 			pose_left = true
 		elif arg == "--sound-test":
 			sound_test = true
+		elif arg == "--sprites":
+			use_sprites = true
+		elif arg == "--bubble-demo":
+			bubble_demo = true
+		elif arg == "--bubble-test":
+			bubble_demo = true
+			bubble_test = true
+		elif arg.begins_with("--bubble-shots="):
+			bubble_shots = arg.get_slice("=", 1)
+		elif arg == "--camp-test":
+			camp_test = true
+		elif arg.begins_with("--camp-shots="):
+			camp_shots = arg.get_slice("=", 1)
+		elif arg == "--tasks-test":
+			tasks_test = true
+		elif arg.begins_with("--tasks-shots="):
+			tasks_shots = arg.get_slice("=", 1)
+		elif arg == "--waves-test":
+			waves_test = true
+		elif arg.begins_with("--waves-shots="):
+			waves_shots = arg.get_slice("=", 1)
+		elif arg == "--plan-test":
+			plan_test = true
+		elif arg.begins_with("--plan-shots="):
+			plan_shots = arg.get_slice("=", 1)
+		elif arg == "--cones-test":
+			cones_test = true
+		elif arg.begins_with("--cones-shots="):
+			cones_shots = arg.get_slice("=", 1)
+		elif arg == "--cone-shader-test":
+			cone_shader_test = true
+		elif arg == "--tutorial-test":
+			tutorial_test = true
+		elif arg.begins_with("--tutorial-shots="):
+			tutorial_shots = arg.get_slice("=", 1)
+		elif arg == "--leaf-burst-test":
+			leaf_burst_test = true
+		elif arg == "--fire-test":
+			fire_test = true
+		elif arg == "--tent-test":
+			tent_test = true
+		elif arg == "--bearbag-test":
+			bearbag_test = true
+		elif arg == "--smoke-test":
+			smoke_test = true
+		elif arg == "--smoke-load-test":
+			smoke_load_test = true
+	# A start point from the developer menu or `--dev-start=` (dev_menu.gd): no title.
+	var dev_point := DevMenu.take_point()
+	# The fire's check starts as the open world does, the fire cold.
+	if fire_test:
+		dev_point = "free"
+	# The smoke's checks: from cold, as the fire's, or burning at load.
+	if smoke_test:
+		dev_point = "free"
+	elif smoke_load_test:
+		dev_point = "fire"
+	if dev_point != "":
+		title_mode = false
 	_rng.seed = 7
+	if title_mode and not MUSIC_ON_AT_START and not Array(OS.get_cmdline_user_args()).any(
+			func(arg: String) -> bool: return arg.ends_with("-test")):
+		AudioServer.set_bus_mute(AudioServer.get_bus_index("Music"), true)
 
 	_build_environment()
 	forest = Forest.new()
+	forest.night = NIGHT
+	forest.clearings.assign(Campsite.CLEARINGS)
 	add_child(forest)
+	if NIGHT:
+		add_child(NightLife.new())
 	_texture_ground()
-	_build_props()
+	_build_props(bubble_demo)
+	# The bubble demo's yard of stand-ins stands where the campsite does.
+	if not bubble_demo:
+		campsite = Campsite.new()
+		campsite.forest = forest
+		campsite.tasks = tasks
+		# Under the title the night's quiet; the party starts with New Game (start_party).
+		campsite.party_from_start = not title_mode
+		add_child(campsite)
+		# The leaf burst listens to the bush; it writes no game state (CHANGE-BRIEF.md,
+		# revised 7 Nov 2026: the wiring Step 3 needs).
+		var leaf_bursts := LeafBursts.new()
+		leaf_bursts.bush = campsite.bush
+		add_child(leaf_bursts)
+		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test or tent_test or bearbag_test \
+				or dev_point in ["free", "fire"]:
+			# These skip the tutorial at the camp: everything's as it is after it.
+			tasks.reveal()
+			campsite.cones_on = true
+	tasks.ticked.connect(_on_task_ticked)
+	if campsite and dev_point in ["roast", "free", "fire"]:
+		tasks.done("investigate")
+	if campsite and dev_point in ["free", "fire"]:
+		# The open world: the fire cold, as after the tutorial, or burning (camp_fire.gd).
+		campsite.campfire.start_cycle(dev_point == "free")
+	if campsite:
+		# The smoke reads the fire; it writes no game state. After the start points, so a
+		# cold start preprocesses no column (CHANGE-BRIEF.md, revised 8 Nov 2026: Effect B's
+		# wiring, for Step 3).
+		campfire_smoke = CampfireSmokeDriver.new()
+		campfire_smoke.fire = campsite.campfire
+		add_child(campfire_smoke)
+		# The moths round the fire (props/moths.gd, 21 Nov 2026): like the smoke, they read the
+		# fire and write no game state.
+		moths = MothsScene.instantiate()
+		moths.set("fire", campsite.campfire)
+		add_child(moths)
 
 	camera = Camera3D.new()
 	camera.fov = CAMERA_FOV
+	# Placed every frame in _process, so it isn't interpolated; it follows where
+	# the raccoon is drawn instead (see _drawn).
+	camera.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	add_child(camera)
+	_ear = AudioListener3D.new()
+	_ear.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	add_child(_ear)
+	_ear.make_current()
 	player = Player.new()
 	player.position = Forest.START
 	# Side-on to the camera and turned a little toward it, so his pose reads at once.
 	player.rotation.y = deg_to_rad(-122.0)
+	if DEV_STARTS.has(dev_point):
+		# Facing east, toward the camp.
+		player.position = DEV_STARTS[dev_point]
+		player.rotation.y = deg_to_rad(-90.0)
 	player.camera = camera
-	player.trees = forest.climbable
+	# The forest's trunks, and (since 10 Nov 2026) the bear bag's tree with its limb
+	# (camp_bear_bag.gd), which isn't on the forest's list: the checks pick their trees
+	# from that.
+	player.trees = forest.climbable.duplicate()
+	if campsite:
+		player.trees.append(campsite.bear_bag.tree)
 	add_child(player)
 	player.sound_started.connect(_count_sound)
-	# He's drawn with the author's generated images; the 3D model underneath only
-	# casts his shadow and carries things.
-	sprite = RaccoonSprite.new()
-	sprite.player = player
-	sprite.camera = camera
-	sprite.forced_state = pose
-	sprite.forced_left = pose_left
-	player.add_child(sprite)
-	if _see_collision:
+	if title_mode:
+		# Under the title he's asleep in the hollow, and stays so until it has gone.
+		_first_nap = true
+		player.start_asleep(forest.rest_spot, forest.rest_exit)
+		player.keep_asleep = true
+		_napping = true
+		_sleep_view = 1.0
+	# The moth guides him to the camp, before he's first been there (props/moths.gd guide(),
+	# the author's request of 22 Nov 2026): on a New Game, from when he's out of the hollow. It
+	# reads him and the task, and writes nothing in the game.
+	if moths and campsite and not tasks.is_done("investigate") and not campsite.in_camp(player.position):
+		moths.call("guide", player, tasks)
+	if use_sprites:
+		# Drawn with the author's generated images; the 3D model underneath only
+		# casts his shadow and carries things.
+		sprite = RaccoonSprite.new()
+		sprite.player = player
+		sprite.camera = camera
+		sprite.forced_state = pose
+		sprite.forced_left = pose_left
+		player.add_child(sprite)
+	else:
+		player.model.forced_animation = POSE_ANIMATIONS.get(pose, pose)
+		if NIGHT:
+			Night.tint_raccoon(player.model)
+		# Before the model's first frame, while it's still at rest (see raccoon_face.gd).
+		var face := RaccoonFace.new()
+		face.player = player
+		add_child(face)
+	if sprite and _see_collision:
 		# Half see-through, so `--debug-collisions` shows his capsule inside him.
 		sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED
 		sprite.modulate = Color(1, 1, 1, 0.45)
-	_anchor = player.global_position + PIVOT
+	bubbles = ThoughtBubbles.new()
+	bubbles.player = player
+	bubbles.camera = camera
+	add_child(bubbles)
+	_anchor = _drawn() + PIVOT
 	_place_camera()
 
-	_task_laugh = AudioStreamPlayer.new()
-	_task_laugh.bus = "SFX"
-	_task_laugh.volume_db = TASK_LAUGH_DB
-	if ResourceLoader.exists(TASK_LAUGH_PATH):
-		_task_laugh.stream = load(TASK_LAUGH_PATH)
-	add_child(_task_laugh)
+	_task_sound = AudioStreamPlayer.new()
+	_task_sound.bus = "SFX"
+	_task_sound.volume_db = TASK_DONE_DB
+	if ResourceLoader.exists(TASK_DONE_PATH):
+		_task_sound.stream = load(TASK_DONE_PATH)
+	add_child(_task_sound)
 	var keys := Keys.new()
 	keys.level = self
 	add_child(keys)
 
 	_build_ui()
-	_refresh_todo()
+	if campsite and not campsite.cones_on:
+		_tutorial = CampTutorial.new()
+		_tutorial.plan = _plan
+		_tutorial.tasks = tasks
+		_tutorial.campsite = campsite
+		_tutorial.player = player
+		_tutorial.camera = camera
+		_tutorial.ui_layer = _ui_layer
+		_tutorial.level = self
+		add_child(_tutorial)
+		# With the tutorial to come, the fire's out from the start (camp_fire.gd).
+		campsite.campfire.start_out()
+		if dev_point == "roast":
+			_tutorial.dev_roast()
+	# `--dev-unseen`: after the tutorial's check just above, which reads cones_on to decide
+	# whether the tutorial is still to come.
+	if dev_unseen:
+		if OS.is_debug_build() and campsite and dev_point in ["free", "fire"]:
+			campsite.cones_on = false
+			print("Dev: the campers can't see him (--dev-unseen)")
+		else:
+			push_warning("--dev-unseen works only in a debug run started with --dev-start=free or fire")
+	if OS.is_debug_build():
+		var dev := DevMenu.new()
+		dev.level = self
+		add_child(dev)
 	_start_music()
+	if campsite:
+		campsite.music = _music
+	if title_mode:
+		title = TitleScreen.new()
+		title.level = self
+		add_child(title)
 	if sound_test:
 		var test := SoundTest.new()
 		test.level = self
 		add_child(test)
+	if camp_test and campsite:
+		var camp_check := CampTest.new()
+		camp_check.level = self
+		camp_check.shots = camp_shots
+		add_child(camp_check)
+	if tent_test and campsite:
+		var tent_check := TentTest.new()
+		tent_check.level = self
+		add_child(tent_check)
+	if bearbag_test and campsite:
+		var bag_check := BearBagTest.new()
+		bag_check.level = self
+		add_child(bag_check)
+	if fire_test and campsite:
+		var fire_check := FireTest.new()
+		fire_check.level = self
+		add_child(fire_check)
+	if tasks_test and campsite:
+		var tasks_check := TasksTest.new()
+		tasks_check.level = self
+		tasks_check.shots = tasks_shots
+		add_child(tasks_check)
+	if waves_test and campsite:
+		var waves_check := WavesTest.new()
+		waves_check.level = self
+		waves_check.shots = waves_shots
+		add_child(waves_check)
+	if plan_test and campsite:
+		var plan_check := PlanTest.new()
+		plan_check.level = self
+		plan_check.shots = plan_shots
+		add_child(plan_check)
+	if cones_test and campsite:
+		var cones_check := ConesTest.new()
+		cones_check.level = self
+		cones_check.shots = cones_shots
+		add_child(cones_check)
+	if cone_shader_test and campsite:
+		# Loaded only under its flag, so normal play doesn't load a file from tests/.
+		var shader_check = load("res://tests/cone_shader_test.gd").new()
+		shader_check.level = self
+		add_child(shader_check)
+	if tutorial_test and campsite:
+		var tutorial_check = load("res://scripts/tutorial_test.gd").new()
+		tutorial_check.level = self
+		tutorial_check.shots = tutorial_shots
+		add_child(tutorial_check)
+	if leaf_burst_test and campsite:
+		# Loaded only under its flag, as the cone shader's check.
+		var burst_check = load("res://tests/leaf_burst_state_test.gd").new()
+		burst_check.level = self
+		add_child(burst_check)
+	if (smoke_test or smoke_load_test) and campsite:
+		# Loaded only under its flag, as the leaf burst's check.
+		var smoke_check = load("res://tests/campfire_smoke_state_test.gd").new()
+		smoke_check.level = self
+		smoke_check.mode = "load" if smoke_load_test else "cold"
+		add_child(smoke_check)
+	if bubble_demo:
+		var demo := BubbleDemo.new()
+		demo.level = self
+		add_child(demo)
+		if bubble_test:
+			var check := BubbleTest.new()
+			check.level = self
+			check.demo = demo
+			check.shots = bubble_shots
+			add_child(check)
 
 
 func _process(delta: float) -> void:
+	# Curling up in the hollow, the camera eases in close and the lullaby takes over.
+	var napping := player.is_napping()
+	if napping != _napping:
+		_napping = napping
+		if not napping and _first_nap:
+			# Woken from the title's nap: New Game has handed the music over already
+			# (start_party), and may still be easing it in, so it's left to finish.
+			_show_ui()
+		else:
+			_nap_music(napping)
+	_sleep_view = move_toward(_sleep_view, 1.0 if napping else 0.0,
+		delta / (SLEEP_CAMERA_IN if napping else SLEEP_CAMERA_OUT))
 	if _closeup:
-		var focus := player.global_position + Vector3(0, 0.35, 0)
+		var focus := _drawn() + Vector3(0, 0.35, 0)
 		camera.global_position = focus + Vector3(1.5, 0.45, -0.8)
 		camera.look_at(focus)
 	else:
 		# Zoomed in, the camera follows more tightly, so he doesn't drift across the screen.
-		var aim := player.global_position + PIVOT + _camper_lean()
+		var aim := _drawn() + PIVOT + _camper_lean()
+		# Through a jump it stays at the height he took off from, so the view doesn't bob.
+		if player.jumping:
+			aim.y = player.jump_from_y + PIVOT.y
 		_anchor = _anchor.lerp(aim, 1.0 - exp(-6.0 / _zoom_now * delta))
 		_zoom_now = lerpf(_zoom_now, zoom, 1.0 - exp(-10.0 * delta))
+		# The tutorial's pan (camera_focus), on real time.
+		var real := delta / Engine.time_scale if Engine.time_scale > 0.0 else delta
+		if camera_focus != null:
+			if _focus_w <= 0.0:
+				_focus_at = _anchor
+			_focus_at = _focus_at.lerp(camera_focus + PIVOT, 1.0 - exp(-FOCUS_GLIDE * real))
+		_focus_w = move_toward(_focus_w, 1.0 if camera_focus != null else 0.0, real / FOCUS_TIME)
 		_place_camera()
+	_ear.global_transform = Transform3D(camera.global_basis, _drawn() + Vector3(0, 0.35, 0))
+	if _music and campsite:
+		# Right by the speaker, no more than MUSIC_CLOSE_DB over the music's level, whatever
+		# that is just now (faded for a nap, dipped under the task's chime).
+		_music.max_db = _music.volume_db + MUSIC_CLOSE_DB
 	_update_see_through()
 	_check_tasks(delta)
 
 	if _shot_path != "":
 		_frames += 1
 		if _grab_test and _frames == 1:
-			player.global_position = forest.bin_spot + Vector3(0, 0.02, 0.75)
+			player.place(forest.bin_spot + Vector3(0, 0.02, 0.75))
 		elif _grab_test and _frames == 10:
 			player._grab()
 		elif _grab_test and _frames == 20:
-			player.global_position = forest.bin_spot + Vector3(-1.5, 0.02, 2.4)
+			player.place(forest.bin_spot + Vector3(-1.5, 0.02, 2.4))
 		elif _climb_test and _frames == 1:
 			# Onto the nearest trunk, then up it for a moment.
 			var nearest: Dictionary = forest.climbable[0]
@@ -292,40 +790,128 @@ func _process(delta: float) -> void:
 		elif _climb_test and _frames == 38:
 			Input.action_release("move_forward")
 		elif _rest_test and _frames == 1:
-			player.rest(forest.rest_spot)
-		elif _tick_test and _frames == 1:
+			player.rest(forest.rest_spot, forest.rest_exit)
+		elif _tick_test and _frames == 1 and bin:
 			bin.rotation = Vector3(PI / 2, 0, 0)
-		if _frames == _shot_frame - 15 and _music:
-			# Stopped well before the quit, so the audio thread has let go of it.
-			_music.stop()
+			bin.reset_physics_interpolation()
+		elif _jump_test and _frames == 1:
+			Input.action_press("jump")
+			player.jump()
+		elif _jump_test and _frames == 30:
+			Input.action_release("jump")
+		if _frames == _shot_frame - 15:
+			# Stopped well before the quit, so the audio thread has let go of them.
+			for music in [_music, _sleep_music]:
+				if music:
+					music.stop()
+			if campsite and campsite.party:
+				campsite.party.stop()
 		if _frames == _shot_frame:
 			get_viewport().get_texture().get_image().save_png(_shot_path)
 			get_tree().quit()
 
 
-## Starts the forest loop with a soft fade-in. If the WAV hasn't been imported yet
-## (the editor or the Play launcher does that), the game runs without music.
+## Starts the forest loop with a soft fade-in, from the party's speaker (MUSIC_NEAR). If
+## the WAV hasn't been imported yet (the editor or the Play launcher does that), the game
+## runs without music.
 func _start_music() -> void:
 	if not ResourceLoader.exists(MUSIC_PATH):
 		push_warning("The music isn't imported yet: %s" % MUSIC_PATH)
 		return
-	_music = AudioStreamPlayer.new()
+	_music = AudioStreamPlayer3D.new()
 	_music.stream = load(MUSIC_PATH)
 	_music.volume_db = -60.0
 	_music.bus = "Music"
 	# It keeps playing, muffled, while the game is paused.
 	_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	if campsite:
+		_music.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		_music.unit_size = MUSIC_NEAR
+		# The player's distance filter goes by its level as well as the distance, so at
+		# MUSIC_DB it would dull the music even at the camp: off, so it sounds as it did.
+		_music.attenuation_filter_db = 0.0
+	else:
+		_music.attenuation_model = AudioStreamPlayer3D.ATTENUATION_DISABLED
+		_music.panning_strength = 0.0
 	add_child(_music)
+	if campsite:
+		# Halfway up the speaker.
+		_music.global_position = campsite.puzzles.speaker.global_position + Vector3(0, 0.3, 0)
 	_music.play()
-	_music_tween = create_tween()
-	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
+	# Starting asleep, it stays right down under the lullaby until he wakes (_nap_music).
+	if not _first_nap:
+		_music_tween = create_tween()
+		_music_tween.tween_property(_music, "volume_db", MUSIC_DB, MUSIC_FADE_IN)
+	if not ResourceLoader.exists(SLEEP_MUSIC_PATH):
+		push_warning("The nap music isn't imported yet: %s" % SLEEP_MUSIC_PATH)
+		return
+	_sleep_music = AudioStreamPlayer.new()
+	_sleep_music.stream = load(SLEEP_MUSIC_PATH)
+	_sleep_music.volume_db = -60.0
+	_sleep_music.bus = "Music"
+	_sleep_music.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_sleep_music)
+	if _first_nap:
+		# Asleep under the title: the lullaby is the title's music.
+		_sleep_music.play()
+		_restart_sleep_tween()
+		_sleep_tween.tween_property(_sleep_music, "volume_db", SLEEP_MUSIC_DB, LULLABY_FADE_IN)
+
+
+## As he curls up, the lullaby starts from its beginning and fades in while the
+## forest loop fades right down (it keeps playing, so it comes back where it was);
+## as he wakes, it's the other way round.
+func _nap_music(napping: bool) -> void:
+	var time := SLEEP_FADE if napping else WAKE_FADE
+	if _music:
+		_restart_music_tween()
+		_crossfade(_music_tween, _music, -60.0 if napping else MUSIC_DB, time)
+	if _sleep_music == null:
+		return
+	_restart_sleep_tween()
+	if napping:
+		_sleep_music.volume_db = -60.0
+		_sleep_music.play()
+		_crossfade(_sleep_tween, _sleep_music, SLEEP_MUSIC_DB, time)
+	else:
+		_crossfade(_sleep_tween, _sleep_music, -60.0, time)
+		_sleep_tween.tween_callback(_sleep_music.stop)
+
+
+## Fades `music` to `to_db` evenly in power rather than in decibels, so while one
+## track fades out and the other in they stay as loud together, with no dip between.
+## `music` is either player: the forest loop (3D) or the lullaby.
+func _crossfade(tween: Tween, music, to_db: float, time: float) -> void:
+	var from := pow(db_to_linear(music.volume_db), 2.0)
+	var to := pow(db_to_linear(to_db), 2.0)
+	tween.tween_method(func(t: float) -> void:
+		music.volume_db = maxf(linear_to_db(sqrt(lerpf(from, to, t))), -60.0), 0.0, 1.0, time)
+
+
+## Fades `music` (either player) to `to_db` gently: its loudness eases out of where it is
+## and into where it's going (a sine ease on the amplitude), so nothing jumps in or drops
+## away. For New Game's hand-over (start_party); the nap's crossfades are above.
+func _ease_music(tween: Tween, music, to_db: float, time: float) -> void:
+	var from := db_to_linear(music.volume_db)
+	var to := db_to_linear(to_db)
+	var fade := tween.tween_method(func(amp: float) -> void:
+		music.volume_db = maxf(linear_to_db(amp), -60.0), from, to, time)
+	fade.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+
+func _restart_sleep_tween() -> void:
+	if _sleep_tween:
+		_sleep_tween.kill()
+	_sleep_tween = create_tween()
+	_sleep_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 
 
 # --- Sound -------------------------------------------------------------------
 
 ## Music and effects get buses of their own, so each can be muted on its own.
-## The music bus has a low-pass filter, switched on only while paused.
-func _setup_buses() -> void:
+## The music bus has a low-pass filter, switched on only while paused. The title screen
+## (title_screen.gd) sets them up the same way first.
+static func setup_buses() -> void:
 	for bus_name: String in ["Music", "SFX"]:
 		if AudioServer.get_bus_index(bus_name) != -1:
 			continue
@@ -344,31 +930,19 @@ func _count_sound(id: String) -> void:
 	sound_counts[id] = sound_counts.get(id, 0) + 1
 
 
-## The laugh for a ticked-off task, with the music dipping under it.
-func _play_task_laugh() -> void:
-	if _task_laugh.stream == null:
+## The chime for a ticked-off task, with the forest loop dipping under it. It never
+## plays while he's in the hollow (_check_tasks), so the lullaby never dips.
+func _play_task_sound() -> void:
+	if _task_sound.stream == null:
 		return
-	_task_laugh.play()
-	_count_sound("SFX-TASK-LAUGH")
-	if _music == null or _finished:
-		return
-	_restart_music_tween()
-	_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
-	_music_tween.tween_interval(_task_laugh.stream.get_length())
-	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, 0.4)
-
-
-## Every task done: after the last laugh, the music fades out and the clearing goes
-## quiet (pillar 3, Home should be quiet).
-func _end_music() -> void:
+	_task_sound.play()
+	_count_sound("SFX-TASK-DONE")
 	if _music == null:
 		return
 	_restart_music_tween()
 	_music_tween.tween_property(_music, "volume_db", MUSIC_DB - DUCK_DB, 0.1)
-	if _task_laugh.stream:
-		_music_tween.tween_interval(_task_laugh.stream.get_length())
-	_music_tween.tween_property(_music, "volume_db", -60.0, END_FADE)
-	_music_tween.tween_callback(_music.stop)
+	_music_tween.tween_interval(_task_sound.stream.get_length())
+	_music_tween.tween_property(_music, "volume_db", MUSIC_DB, 0.4)
 
 
 func _restart_music_tween() -> void:
@@ -390,19 +964,32 @@ func toggle_pause() -> void:
 	_paused_label.visible = tree.paused
 
 
+## True while the tutorial at the camp holds the game (slowed, behind its dark layer).
+func tutorial_running() -> bool:
+	return _tutorial != null and _tutorial.running()
+
+
+## True once he can see the party (7 Nov 2026: the author, "he sees the music system, he
+## can see like okay, this is the main area"): its speaker well on the screen, or him
+## well into the camp's clearing whichever way the camera looks.
+func _sees_party() -> bool:
+	var at := player.global_position
+	if Vector2(at.x, at.z).distance_to(Forest.CAMP) < Forest.CAMP_RADIUS - 3.0:
+		return true
+	if campsite.puzzles == null or campsite.puzzles.speaker == null:
+		return false
+	var speaker: Vector3 = campsite.puzzles.speaker.global_position
+	if camera.is_position_behind(speaker):
+		return false
+	var view := get_viewport().get_visible_rect().size
+	return Rect2(view * 0.12, view * 0.76).has_point(camera.unproject_position(speaker))
+
+
 ## M or N: mutes or unmutes the music or the effects. Only the buses change, so
 ## nothing in the game depends on it.
 func toggle_mute(bus_name: String) -> void:
 	var index := AudioServer.get_bus_index(bus_name)
 	AudioServer.set_bus_mute(index, not AudioServer.is_bus_mute(index))
-	_update_hint()
-
-
-func _update_hint() -> void:
-	var music_on := not AudioServer.is_bus_mute(AudioServer.get_bus_index("Music"))
-	var sfx_on := not AudioServer.is_bus_mute(AudioServer.get_bus_index("SFX"))
-	_hint.text = "WASD move   Shift run   Ctrl sneak   E / click grab   Space chitter   Walk into a tree to climb (E lets go)\nWheel zoom   Tab camera   Esc pause   M music: %s   N effects: %s" % [
-		"on" if music_on else "off", "on" if sfx_on else "off"]
 
 
 # --- Ground ------------------------------------------------------------------
@@ -431,15 +1018,38 @@ func _texture_ground() -> void:
 
 
 ## The aim point and the distance both scale with the zoom, so zooming slides the
-## camera along its line to the raccoon and he stays put on screen.
+## camera along its line to the raccoon and he stays put on screen. While he naps
+## it blends, eased, into the sleeping close-up, swinging round him rather than
+## cutting across.
 func _place_camera() -> void:
-	var pitch := deg_to_rad(camera_pitch)
+	var w := smoothstep(0.0, 1.0, _sleep_view)
+	var pitch := deg_to_rad(lerpf(camera_pitch, SLEEP_CAMERA_PITCH, w))
+	var distance := lerpf(camera_distance * _zoom_now, SLEEP_CAMERA_DISTANCE, w)
+	var ahead := lerpf(camera_ahead * _zoom_now, SLEEP_CAMERA_AHEAD, w)
 	# From the raccoon toward the camera, along the ground; yaw 0 looks north (-Z).
-	var back := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(camera_yaw))
-	var focus := _anchor - back * camera_ahead * _zoom_now
-	camera.fov = camera_fov
-	camera.global_position = focus + (back * cos(pitch) + Vector3.UP * sin(pitch)) * camera_distance * _zoom_now
+	var back := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(lerpf(camera_yaw, SLEEP_CAMERA_YAW, w)))
+	var focus := _anchor.lerp(_focus_at, smoothstep(0.0, 1.0, _focus_w)) - back * ahead
+	camera.fov = lerpf(camera_fov, SLEEP_CAMERA_FOV, w)
+	camera.global_position = focus + (back * cos(pitch) + Vector3.UP * sin(pitch)) * distance
 	camera.look_at(focus)
+	# Under the title, its view; as New Game glides in, between the two.
+	if title_view > 0.0:
+		camera.global_transform = camera.global_transform.interpolate_with(title_camera, title_view)
+		camera.fov = lerpf(camera.fov, title_fov, title_view)
+		_set_fog(_fog.lerp(title_fog, title_view))
+
+
+func _set_fog(fog: Vector3) -> void:
+	_env.fog_depth_begin = fog.x
+	_env.fog_depth_end = fog.y
+	_env.fog_density = fog.z
+
+
+## Where the raccoon is drawn this frame. He moves in physics ticks (60 a second)
+## and is drawn between them (physics interpolation), so anything placed every frame
+## follows this rather than his position, or he shakes on a faster screen.
+func _drawn() -> Vector3:
+	return player.get_global_transform_interpolated().origin
 
 
 ## How far to shift the camera's aim toward the nearest camper.
@@ -447,7 +1057,7 @@ func _camper_lean() -> Vector3:
 	var lean := Vector3.ZERO
 	var nearest := LEAN_RANGE
 	for camper: Node3D in get_tree().get_nodes_in_group("camper"):
-		var to_camper := camper.global_position - player.global_position
+		var to_camper := camper.global_position - _drawn()
 		to_camper.y = 0.0
 		if to_camper.length() < nearest:
 			nearest = to_camper.length()
@@ -456,13 +1066,23 @@ func _camper_lean() -> Vector3:
 
 
 func _input(event: InputEvent) -> void:
-	# Before the UI sees it, which would use Tab to move focus.
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_TAB:
+	if title:
+		return
+	# Before the UI sees it, which would use Tab to move focus. Tab brings THE PLAN up
+	# or puts it away; V shows or hides the camera panel.
+	if not (event is InputEventKey and event.pressed and not event.echo):
+		return
+	if event.keycode == KEY_TAB:
+		_plan.toggle()
+		get_viewport().set_input_as_handled()
+	elif event.physical_keycode == KEY_V:
 		_tuner.visible = not _tuner.visible
 		get_viewport().set_input_as_handled()
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if title:
+		return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			zoom = clampf(zoom / 1.15, ZOOM_MIN, ZOOM_MAX)
@@ -473,48 +1093,46 @@ func _unhandled_input(event: InputEvent) -> void:
 # --- Tasks -----------------------------------------------------------------
 
 func _check_tasks(delta: float) -> void:
-	var cans_in := 0
-	for can in cans:
-		if _in_den(can):
-			cans_in += 1
-	var changed := cans_in != _cans_in_den
-	_cans_in_den = cans_in
-
-	# Sneaking into the den and keeping still sends him up into the hollow to sleep.
+	# Sneaking into the den and keeping still sends him up into the hollow to sleep;
+	# two seconds asleep there counts as a nap (the one under the title doesn't).
 	if player.resting:
-		if player.model.sleep >= 1.0:
+		if player.model.sleep >= 1.0 and not _first_nap:
+			if _sleep_time <= 2.0 and _sleep_time + delta > 2.0:
+				naps += 1
 			_sleep_time += delta
 	else:
+		_first_nap = false
+		_sleep_time = 0.0
 		var still := Vector2(player.velocity.x, player.velocity.z).length() < 0.1
 		var napping := player.sneaking and still and not player.climbing and _in_den(player)
 		_nap_time = _nap_time + delta if napping else 0.0
 		if _nap_time > 1.0:
 			_nap_time = 0.0
-			player.rest(forest.rest_spot)
+			player.rest(forest.rest_spot, forest.rest_exit)
 
-	var state := {
-		"bin": bin.global_basis.y.y < 0.5,
-		"lid": _in_den(lid),
-		"cans": cans_in >= 3,
-		"gnome": _in_den(gnome),
-		"nap": _sleep_time > 2.0,
-	}
-	var ticked := 0
-	for task: Dictionary in tasks:
-		if not task.done and state[task.id]:
-			task.done = true
-			changed = true
-			ticked += 1
-	# The sound follows the change in state, never the other way round. One laugh
-	# a frame, however many tasks finish together.
-	if ticked > 0:
-		_play_task_laugh()
-	if changed:
-		_refresh_todo()
-		_banner.visible = tasks.all(func(t: Dictionary) -> bool: return t.done)
-		if _banner.visible and not _finished:
-			_finished = true
-			_end_music()
+	# The first task, following the party's music, is done once he's at the camp; and
+	# the tutorial there starts once he can see the party (camp_tutorial.gd).
+	if campsite and not tasks.is_done("investigate") and campsite.in_camp(player.global_position):
+		tasks.done("investigate")
+	if _tutorial and tasks.is_done("investigate") and _tutorial.step == CampTutorial.Step.WAITING and _sees_party():
+		_tutorial.begin()
+
+	# The camp's puzzles tick tasks off (camp_tasks.gd). The sound follows the change in
+	# state, never the other way round. One chime a frame, however many tasks finish
+	# together; and none in his sleep (the author asked): a task done while he's in the
+	# hollow ticks off silently. THE PLAN (plan_note.gd) crosses them off itself.
+	if _ticked > 0:
+		if not player.resting:
+			_play_task_sound()
+		_ticked = 0
+
+
+## A task ticked off: its chime (above), but not for following the music to the camp,
+## so there's no chime as he gets there (the author, 8 Nov 2026: "remove the laugh as
+## well when he reaches the camp").
+func _on_task_ticked(id: String) -> void:
+	if id != "investigate":
+		_ticked += 1
 
 
 ## The den is the ground round the roots of the home pine.
@@ -527,26 +1145,16 @@ func _in_den(node: Node3D) -> bool:
 
 ## Points the trees' see-through window at the raccoon.
 func _update_see_through() -> void:
-	var target := player.global_position + Vector3(0, 0.25, 0)
+	var target := _drawn() + Vector3(0, 0.25, 0)
 	var mat := forest.see_through
 	mat.set_shader_parameter("focus_uv", camera.unproject_position(target) / get_viewport().get_visible_rect().size)
 	mat.set_shader_parameter("focus_depth", (target - camera.global_position).dot(-camera.global_basis.z))
 	# Wide enough to show all of him: his size over the height of the view at his distance.
 	var view_height := 2.0 * camera.global_position.distance_to(target) * tan(deg_to_rad(camera.fov) * 0.5)
-	mat.set_shader_parameter("radius", 0.0 if player.resting or _closeup else 1.4 * player.size / view_height)
-
-
-func _refresh_todo() -> void:
-	var text := "[font_size=24][b]To do[/b][/font_size]\n"
-	for task: Dictionary in tasks:
-		var line: String = task.text
-		if task.id == "cans":
-			line += "  (%d/3)" % mini(_cans_in_den, 3)
-		if task.done:
-			text += "\n[color=#a39a88][s]%s[/s][/color]" % line
-		else:
-			text += "\n•  %s" % line
-	_todo.text = text
+	# Not while he's dived into a bush (player.gd `hiding_in`): it stays whole, his eyes
+	# peeking out of it.
+	mat.set_shader_parameter("radius", 0.0 if player.resting or _closeup or player.hiding_in != null
+		else 1.4 * player.size / view_height)
 
 
 # --- Level -------------------------------------------------------------------
@@ -554,7 +1162,8 @@ func _refresh_todo() -> void:
 func _build_environment() -> void:
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = HAZE
+	# At night the sky shows, from the title's view over the trees.
+	env.background_color = Night.SKY.linear_to_srgb() if NIGHT else HAZE
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("e8eef0")
 	env.ambient_light_energy = 0.8
@@ -572,9 +1181,22 @@ func _build_environment() -> void:
 	env.fog_depth_end = 60.0
 	env.fog_sun_scatter = 0.0
 	env.fog_aerial_perspective = 0.0
+	_env = env
+	_fog = Vector3(env.fog_depth_begin, env.fog_depth_end, env.fog_density)
+	if NIGHT:
+		Night.light(env)
+		env.fog_sky_affect = 0.0
+		# Only the fireflies are bright enough to glow.
+		env.glow_enabled = true
+		env.glow_intensity = 0.8
+		env.glow_bloom = 0.0
+		env.glow_hdr_threshold = 1.0
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	add_child(world_env)
+	if NIGHT:
+		add_child(Night.moon(40.0))
+		return
 
 	# The reference is lit from the upper right.
 	var sun := DirectionalLight3D.new()
@@ -590,9 +1212,21 @@ func _build_environment() -> void:
 
 # --- Props -------------------------------------------------------------------
 
-func _build_props() -> void:
+## The bin, its lid and the cans only in the bubble demo's yard (above); the gnome and the
+## stump always.
+func _build_props(with_bin := false) -> void:
+	if with_bin:
+		_build_bin_and_cans()
+	gnome = _prop(forest.gnome_spot + Vector3(0, 0.01, 0), 0.6, _cylinder(0.1, 0.44), Vector3(0, 0.22, 0),
+		["grabbable", "gnome"], 0.1, Vector3(0, -0.36, -0.07), Vector3(0.15, 0, 0))
+	_build_gnome(gnome)
+	_build_stump()
+
+
+func _build_bin_and_cans() -> void:
 	var spot := forest.bin_spot
-	bin = _prop(spot, 3.0, _cylinder(0.28, 0.76), Vector3(0, 0.38, 0), ["bin"])
+	# Facing it up close, he thinks of food (thought_bubbles.gd).
+	bin = _prop(spot, 3.0, _cylinder(0.28, 0.76), Vector3(0, 0.38, 0), ["bin", "food"])
 	_mesh(LowPoly.loft(
 		[Vector3(0, 0, 0), Vector3(0, 0.03, 0), Vector3(0, 0.34, 0), Vector3(0, 0.37, 0),
 			Vector3(0, 0.69, 0), Vector3(0, 0.72, 0), Vector3(0, 0.76, 0)],
@@ -615,7 +1249,8 @@ func _build_props() -> void:
 	for i in can_spots.size():
 		var lying := i % 2 == 0
 		var pos: Vector3 = can_spots[i] + Vector3(0, 0.061 if lying else 0.081, 0)
-		var can := _prop(pos, 0.2, _cylinder(0.06, 0.16), Vector3.ZERO, ["grabbable", "can"],
+		# Shiny loot to a raccoon: they glint as he comes near one he hasn't picked up yet.
+		var can := _prop(pos, 0.2, _cylinder(0.06, 0.16), Vector3.ZERO, ["grabbable", "can", "shiny"],
 			0.06, Vector3(0, -0.02, -0.04), Vector3(0, 0, PI / 2))
 		if lying:
 			can.rotation = Vector3(PI / 2, _rng.randf() * TAU, 0)
@@ -624,11 +1259,6 @@ func _build_props() -> void:
 			[Vector2(0.055, 0.055), Vector2(0.06, 0.06), Vector2(0.06, 0.06), Vector2(0.055, 0.055)],
 			8, _can_color), Vector3.ZERO, can)
 		cans.append(can)
-
-	gnome = _prop(forest.gnome_spot + Vector3(0, 0.01, 0), 0.6, _cylinder(0.1, 0.44), Vector3(0, 0.22, 0),
-		["grabbable", "gnome"], 0.1, Vector3(0, -0.36, -0.07), Vector3(0.15, 0, 0))
-	_build_gnome(gnome)
-	_build_stump()
 
 
 ## The stump: a flat image that always faces the camera, a collider he walks round,
@@ -670,6 +1300,8 @@ func _build_stump() -> void:
 	picture.offset = Vector2(-float(m.anchor_x), -(img.get_height() - 1.0 - float(m.feet_row)))
 	picture.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	picture.shaded = false
+	if NIGHT:
+		picture.modulate = Night.PICTURE_TINT.linear_to_srgb()
 	picture.alpha_cut = SpriteBase3D.ALPHA_CUT_OPAQUE_PREPASS
 	picture.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	stump.add_child(picture)
@@ -744,36 +1376,19 @@ func _cylinder(radius: float, height: float) -> CylinderShape3D:
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	_ui_layer = layer
 	if _closeup:
 		layer.visible = false
 
-	var panel := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("f4eedc")
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(18)
-	style.shadow_color = Color(0, 0, 0, 0.18)
-	style.shadow_size = 6
-	panel.add_theme_stylebox_override("panel", style)
-	panel.position = Vector2(24, 24)
-	layer.add_child(panel)
-
-	_todo = RichTextLabel.new()
-	_todo.bbcode_enabled = true
-	_todo.fit_content = true
-	_todo.custom_minimum_size = Vector2(320, 0)
-	_todo.add_theme_color_override("default_color", Color("3b3630"))
-	_todo.add_theme_font_size_override("normal_font_size", 18)
-	_todo.add_theme_font_size_override("bold_font_size", 18)
-	panel.add_child(_todo)
-
-	_hint = Label.new()
-	_hint.add_theme_color_override("font_color", Color("f4eedc"))
-	_hint.add_theme_color_override("font_outline_color", Color("3b3630"))
-	_hint.add_theme_constant_override("outline_size", 6)
-	layer.add_child(_hint)
-	_update_hint()
-	_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT, Control.PRESET_MODE_MINSIZE, 20)
+	# THE PLAN: put away until Tab, with the key task at the bottom once he's up. Only
+	# to read: the mouse goes through it (to the title's menu while that's up). The line
+	# of controls that ran along the bottom was taken out on 24 Oct 2026, when the author
+	# asked to "remove the bottom suggestions"; the controls are in the README.
+	_plan = PlanNote.new()
+	_plan.tasks = tasks
+	layer.add_child(_plan)
+	if not _first_nap:
+		_plan.show_key()
 
 	_paused_label = Label.new()
 	_paused_label.text = "Paused"
@@ -785,18 +1400,69 @@ func _build_ui() -> void:
 	layer.add_child(_paused_label)
 	_paused_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
 
-	_banner = Label.new()
-	_banner.text = "Mischief managed!"
-	_banner.visible = false
-	_banner.add_theme_font_size_override("font_size", 48)
-	_banner.add_theme_color_override("font_color", Color("f4eedc"))
-	_banner.add_theme_color_override("font_outline_color", Color("3b3630"))
-	_banner.add_theme_constant_override("outline_size", 12)
-	layer.add_child(_banner)
-	_banner.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP, Control.PRESET_MODE_MINSIZE, 40)
-
 	_tuner = CameraTuner.new()
 	_tuner.main = self
 	_tuner.visible = false
 	layer.add_child(_tuner)
 	_tuner.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT, Control.PRESET_MODE_MINSIZE, 24)
+
+	if _first_nap:
+		# Asleep under the title: just him until he's woken, then a chalk prompt, as on
+		# the title, saying how (begin_play).
+		_wake_prompt = Label.new()
+		_wake_prompt.text = WAKE_PROMPT
+		_wake_prompt.add_theme_font_override("font", TitleMenu.FONT)
+		_wake_prompt.add_theme_font_size_override("font_size", 34)
+		_wake_prompt.add_theme_color_override("font_color", TitleMenu.CHALK)
+		_wake_prompt.material = TitleMenu.chalk()
+		_wake_prompt.modulate.a = 0.0
+		layer.add_child(_wake_prompt)
+		_wake_prompt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM, Control.PRESET_MODE_MINSIZE, 48)
+
+
+## New Game, as the camera starts to glide in: the party next door starts up, and its
+## sound waves (sound_waves.gd) pulse at the edge of the screen. Asked for on 25 Oct
+## 2026: "when user selects new game start a loud music from the party". At first the
+## party was heard and the lullaby dropped under it; later that day the author asked
+## for just the waves ("remove the party sound just let the sound waves be there"), so
+## the party is silent (campsite.gd PARTY_HEARD) and the lullaby played on as it was.
+## Since 11 Nov 2026 the lullaby is the title's alone (the author: "as soon as the user
+## clicks on the new game, it stops"): it eases out and the forest loop eases in from the
+## speaker as he sleeps on, mild this far off (MUSIC_NEAR), slowly (NEW_GAME_MUSIC_IN).
+## When he wakes from this nap, the music's already handed over (_process).
+func start_party() -> void:
+	if campsite:
+		campsite.start_party()
+	if _sleep_music:
+		_restart_sleep_tween()
+		_ease_music(_sleep_tween, _sleep_music, -60.0, NEW_GAME_LULLABY_OUT)
+		_sleep_tween.tween_callback(_sleep_music.stop)
+	if _music:
+		_restart_music_tween()
+		_music_tween.tween_interval(NEW_GAME_MUSIC_AFTER)
+		# Where it is: it's been playing right down all along, and the party's beat (its
+		# dancers, its woofer and its waves) goes by it, so it isn't sent back to its top.
+		_ease_music(_music_tween, _music, MUSIC_DB, NEW_GAME_MUSIC_IN)
+
+
+## New Game has brought the camera in: the title is gone, he can be woken now, and the
+## prompt saying how comes up after a moment.
+func begin_play() -> void:
+	title = null
+	title_view = 0.0
+	_set_fog(_fog)
+	player.keep_asleep = false
+	if _wake_prompt:
+		_wake_tween = create_tween()
+		_wake_tween.tween_interval(WAKE_PROMPT_AFTER)
+		_wake_tween.tween_property(_wake_prompt, "modulate:a", 1.0, UI_FADE)
+
+
+## He's woken from the nap the game started with: the prompt goes, and once he's down,
+## the key task comes up at the bottom (THE PLAN).
+func _show_ui() -> void:
+	if _wake_tween:
+		_wake_tween.kill()
+	_plan.show_key(UI_FADE)
+	if _wake_prompt:
+		create_tween().tween_property(_wake_prompt, "modulate:a", 0.0, UI_FADE * 0.5)
