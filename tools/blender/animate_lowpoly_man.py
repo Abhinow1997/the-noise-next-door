@@ -21,7 +21,7 @@
 #
 # prepare_lowpoly_man.py ends by running this file. On its own, it re-keys the four actions on the saved .blend, saves
 # it and exports the .glb (LOWPOLY_MAN_OUT, a path without an extension, works on a test copy instead):
-#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup --disable-autoexec \
+#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -t 1 --factory-startup --disable-autoexec \
 #       --python-exit-code 1 --python tools/blender/animate_lowpoly_man.py
 
 import bpy, os

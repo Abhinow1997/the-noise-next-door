@@ -962,3 +962,41 @@ This comes after the `a7` tag (`e21bb3a`) and isn't part of Assignment 7's submi
 - **My eyes:** her look in play, at the game's camera, by the fire at night.
 
 (Drafted by Claude Code on 23 Nov 2026 from my words above and "Smooth twice". The modifier's settings and the measurements are Claude Code's. Kept by me the same day: "Keep and commit".)
+
+---
+
+### Revised 23 Nov 2026: the two men's edges smoothed too, his beanie with them; one thread for the rebuilds
+
+"Yes, both men", and for the chubby man's beanie, "Smooth it too". As the girl's revision above, this comes after the `a7` tag and is a named change to the campers' look: now the two men's too, and with them the fire keeper, who is a copy of the low-poly man.
+
+**The change:**
+- `tools/blender/prepare_chubby.py` and `prepare_lowpoly_man.py` put the girl's Subdivision Surface (two levels, `SMOOTH_LEVELS`) ahead of the Armature: on the chubby man's body and his beanie, and on the low-poly man.
+- **The chubby man's beanie** is smooth-shaded now. It was flat-shaded on purpose (the camper's faceted hat), and smoothed that way its facets came out lumpy; side by side, my pick was the soft round one. Nothing in the game drops it, so nothing else has to match it.
+- `animate_chubby.py`'s export settings now apply modifiers, for all three figures (the girl's own override comes out).
+- **Triangles:** the chubby man 2,035 → 36,136 and his beanie 313 → 7,512; the low-poly man 2,034 → 36,112. The `.glb` files grow from 1.87 to 3.33 MB and from 2.48 to 3.76 MB.
+
+**One thread for the rebuilds (a correction to the girl's revision):**
+- Blender's subdivision isn't the same to the last bit from run to run on several threads. Her `.glb` came out three ways in four rebuilds of the same `.blend`: a couple of vertices split or not, with every clip, the skin and the bounds the same.
+- So the girl's revision's "both give the same `.glb`" held for the runs it was measured on, not for every run. Its hash (`f9bfb26…`) came from a run that can't be repeated.
+- **With `-t 1`** (one thread) on Blender's command line, every rebuild is byte-identical: each man twice, and the girl from the download and by re-keying. The three figures' scripts now say so in their run commands, and `animate_chubby.py`'s `export_glb` stops with an error without it.
+- **All three are rebuilt with it:**
+  - `simple_girl.glb`: SHA-256 `47cdda1132d7cc2b4dabb506f5046be72236bb6b65f3a3e0b651c8ed43054565`;
+  - `chubby_boy.glb`: `d5a16cbd02526a363f83f2788e1f1e02b6c2c6b1b32aac296f8333ada5fbbefc`;
+  - `lowpoly_man.glb`: `2e061f47c178c6bde8e61aef961fedc92e2b6edaa3264e45db9cb343d5fec144`.
+
+**What doesn't change:** their meshes in the `.blend` files (their clips are measured on them), so every clip is byte for byte the old `.glb`'s (ten for the chubby man, nine for the low-poly man and the girl), with the skin's 20 binds and the bones. Their `.glb.import` files, their routines and every test's expected value.
+
+**The beanie's fit:**
+- The fit check in `prepare_chubby.py`, on his meshes as built, still finds nothing of his head poking out.
+- Run on the smoothed meshes, the same check counts 64 points. They're his forehead and hair just under the rounded rim, at his front and right.
+- Renders side by side, the beanie red and him grey, show the same forehead and hair under the cuff as before, and nothing of him through it. So the check isn't run on the smoothed meshes; the renders are its evidence.
+
+**What the rounding moves:** the low-poly man's head 5 mm lower (1.795 m), and the chubby man's 3 mm; their soles 2 mm higher.
+
+**The checks:**
+- Each man as he was, smoothed once and smoothed twice (`design/chubby_boy_smooth_compare.png`, `design/lowpoly_man_smooth_compare.png`), and the beanie's two options (`design/chubby_boy_beanie_options.png`).
+- The new `.glb` files posed in four clips each, old above and new below: no tearing (`design/chubby_boy_smooth_poses.png`, `design/lowpoly_man_smooth_poses.png`).
+- **The tests:** the A7 baseline's whole list, run on 23 Nov 2026 in a worktree of `b171123` with only this change (the tutorial's work in progress left out), matches it check for check. `cost_effects` fails as at the baseline (the fire out), and nothing else does. Its headless frame cost (+1.33 ms over an empty scene) is in line with the girl's runs the same day; headless draws nothing, so the GPU's cost isn't measured.
+- **My eyes:** the three campers and the fire keeper in play, at the game's camera, by the fire at night.
+
+(Drafted by Claude Code on 23 Nov 2026 from my words above, "Yes, both men" and "Smooth it too". The settings, the one-thread finding and the measurements are Claude Code's. Kept by me the same day: "Keep and commit".)

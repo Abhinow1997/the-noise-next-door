@@ -32,7 +32,7 @@
 #
 # Run it from the repository's folder (Windows, Git Bash); set SIMPLE_GIRL_OUT to a path without an extension to write
 # the .blend and .glb somewhere else (a test):
-#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --disable-autoexec --factory-startup \
+#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -t 1 --disable-autoexec --factory-startup \
 #       --python-exit-code 1 design/downloads/simple_girl/simple_girl2.6.blend --python tools/blender/prepare_simple_girl.py
 
 import bpy, bmesh, colorsys, math, os

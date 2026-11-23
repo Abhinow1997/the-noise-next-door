@@ -19,13 +19,17 @@
 #   - gives him chunky, arched cartoon eyebrows, a darker shade of his blond hair, the only thing on his face;
 #   - stands him on the ground with the middle of his feet at the origin, facing the front (-Y in Blender, +Z in
 #     Godot), at HEIGHT metres tall, in his own standing pose;
+#   - smooths his edges (added 23 Nov 2026, as the girl's: the author, "make the edges on them smother", then "Yes, both
+#     men"): a Subdivision Surface modifier, SMOOTH_LEVELS deep, ahead of his Armature, so the rig bends the smoothed
+#     mesh. His mesh itself is left as it was, so his clips, which are measured on it, don't change; the .glb is
+#     exported with the modifier applied (animate_chubby.py's export settings);
 #   - runs tools/blender/animate_lowpoly_man.py, which keys walk, run, bend and take_away;
 # then saves assets/characters/lowpoly_man.blend and exports assets/characters/lowpoly_man.glb. He doesn't wear the
 # camper's red beanie: the chubby man is the camper. Otherwise his shape and smooth shading are as TiZeta made them.
 #
 # Run it from the repository's folder (Windows, Git Bash); set LOWPOLY_MAN_OUT to a path without an extension to write
 # the .blend and .glb somewhere else (a test):
-#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --disable-autoexec --factory-startup \
+#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -t 1 --disable-autoexec --factory-startup \
 #       --python-exit-code 1 design/downloads/lowpoly_man/simpleMan2.6.blend --python tools/blender/prepare_lowpoly_man.py
 
 import bpy, bmesh, colorsys, math, os
@@ -43,6 +47,8 @@ SKIN, SKIN_ROUGHNESS = "C99C85", 0.6   # the camper's skin (camper.blend's C2_sk
 FACE_SMOOTH_PASSES = 6  # his face's shape (mouth, brow, nose) evened out
 # his cartoon eyebrows: height of their inner ends, gap from the middle, length, thickness, arch (m), colour
 BROW = dict(z=1.682, gap=0.011, length=0.038, thick=0.010, arch=0.007, colour="6B4F2A", roughness=0.9)
+# his edges smoothed (23 Nov 2026): Catmull-Clark subdivision, twice, as the girl's (2,034 triangles become 36,112)
+SMOOTH_LEVELS = 2
 
 
 def only(*objects):
@@ -237,6 +243,19 @@ size = Vector((max(w.x for w in ws) - min(w.x for w in ws), max(w.y for w in ws)
                max(w.z for w in ws) - min(w.z for w in ws)))
 print("LOWPOLY MAN", sum(len(p.vertices) - 2 for p in body.data.polygons), "triangles,", len(rig.data.bones), "bones,",
       "size %.3f x %.3f x %.3f m, lowest %.3f" % (tuple(size) + (min(w.z for w in ws),)))
+
+# --- Smoother edges, as the girl's: a Subdivision Surface ahead of his Armature, so his outline (his hair, his
+# shoulders, his arms) is rounded and the rig bends the rounded mesh; it carries his weights, his texture's UVs and his
+# three materials through. His mesh stays as it is above, so the clips below are measured on it as before ----------
+smooth = body.modifiers.new("Subdivision", "SUBSURF")
+smooth.levels = smooth.render_levels = SMOOTH_LEVELS
+smooth.use_limit_surface = True
+smooth.uv_smooth = "PRESERVE_BOUNDARIES"     # his texture stays put where its pieces meet
+smooth.boundary_smooth = "ALL"               # open edges are rounded too
+body.modifiers.move(body.modifiers.find(smooth.name), 0)
+assert [m.type for m in body.modifiers] == ["SUBSURF", "ARMATURE"], [m.type for m in body.modifiers]
+smoothed = body.evaluated_get(bpy.context.evaluated_depsgraph_get()).data
+print("SMOOTHED %d levels: %d triangles" % (SMOOTH_LEVELS, sum(len(p.vertices) - 2 for p in smoothed.polygons)))
 
 # --- His animations: tools/blender/animate_lowpoly_man.py keys walk, run, bend and take_away (with the chubby man's
 # solver, the same rig), and holds the .glb's export settings -------------------------------------------------------

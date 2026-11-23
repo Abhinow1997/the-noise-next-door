@@ -26,7 +26,7 @@
 #
 # prepare_simple_girl.py ends by running this file. On its own, it re-keys the four actions on the saved .blend, saves
 # it and exports the .glb (SIMPLE_GIRL_OUT, a path without an extension, works on a test copy instead):
-#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup --disable-autoexec \
+#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -t 1 --factory-startup --disable-autoexec \
 #       --python-exit-code 1 --python tools/blender/animate_simple_girl.py
 
 import bpy, os
@@ -170,10 +170,8 @@ def animate(rig, body, only=None, log=print):
     return L["animate"](rig, body, only=only, log=log)
 
 
-# Her .glb (23 Nov 2026) is exported with her modifiers applied: the Subdivision Surface that prepare_simple_girl.py
-# puts ahead of her Armature, so the game gets her smoothed mesh. The exporter leaves the Armature modifier out of it
-# and exports her skin as before. The men's export (in their own copies of animate_chubby.py) is unchanged.
-L["EXPORT"] = dict(L["EXPORT"], export_apply=True)
+# Her .glb (23 Nov 2026) is exported with her modifiers applied (animate_chubby.py's EXPORT): the Subdivision Surface
+# that prepare_simple_girl.py puts ahead of her Armature, so the game gets her smoothed mesh.
 export_glb = L["export_glb"]
 
 

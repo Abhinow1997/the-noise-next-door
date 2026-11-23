@@ -30,7 +30,7 @@
 # prepare_chubby.py ends by running this file (the build gives the whole .blend and .glb). On its own, it re-keys the
 # four actions on the saved .blend, saves it and exports the .glb (Windows, Git Bash, from the repository's folder;
 # CHUBBY_OUT, a path without an extension, works on a test copy instead):
-#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --factory-startup --disable-autoexec \
+#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -t 1 --factory-startup --disable-autoexec \
 #       --python-exit-code 1 --python tools/blender/animate_chubby.py
 
 import bpy, math, os
@@ -826,7 +826,11 @@ def animate(rig, body, only=None, log=print):
 
 # The .glb: as prepare_chubby.py exported him (+Y up, his texture, his 20 bones, skinned, his body and his beanie), with
 # the four actions sampled on every frame.
-EXPORT = dict(export_format="GLB", export_yup=True, use_selection=True, export_apply=False, export_cameras=False,
+# export_apply (23 Nov 2026, when their edges were smoothed): each figure's modifiers are applied in the .glb, so the
+# game gets the Subdivision Surface their prepare_*.py puts ahead of the Armature. The exporter leaves the Armature
+# out and exports the skin as before. The three figures (this file's copies in animate_lowpoly_man.py and
+# animate_simple_girl.py too) export with it
+EXPORT = dict(export_format="GLB", export_yup=True, use_selection=True, export_apply=True, export_cameras=False,
               export_lights=False, export_materials="EXPORT", export_image_format="AUTO", export_skins=True,
               export_def_bones=True, export_morph=False, export_animations=True, export_animation_mode="ACTIONS",
               export_force_sampling=True, export_frame_step=1, export_optimize_animation_size=False,
@@ -834,6 +838,10 @@ EXPORT = dict(export_format="GLB", export_yup=True, use_selection=True, export_a
 
 
 def export_glb(rig, path):
+    # One thread (23 Nov 2026): Blender's subdivision isn't the same to the last bit from run to run on several
+    # threads, so the smoothed figures' .glb came out differently (the girl's three ways in four runs, a couple of
+    # vertices split or not). With -t 1 on Blender's command line it's byte-identical every time
+    assert bpy.context.scene.render.threads == 1, "run Blender with -t 1, so the .glb comes out the same every time"
     parts = [o for o in bpy.data.objects if o.parent is rig]            # his body and his beanie
     for o in bpy.context.view_layer.objects:
         o.select_set(o is rig or o in parts)

@@ -23,6 +23,11 @@
 #     part of its own on his head bone (ChubbyBoy_Beanie), so the game can hide it when he loses it;
 #   - stands him on the ground with the middle of his feet at the origin, facing the front (-Y in Blender, +Z in
 #     Godot), at HEIGHT metres tall, in his own standing pose, with his walk's root movement scaled with him;
+#   - (23 Nov 2026, as the girl's: the author, "make the edges on them smother", then "Yes, both men", and for his
+#     beanie "Smooth it too") smooths his edges: a Subdivision Surface modifier, SMOOTH_LEVELS deep, ahead of the
+#     Armature on his body and on his beanie, so the rig bends the smoothed meshes; his beanie is smooth-shaded with
+#     it. His meshes' points are left as they were, so his clips, which are measured on them, don't change; the .glb
+#     is exported with the modifier applied (animate_chubby.py's export settings);
 #   - (for his animations) runs tools/blender/animate_chubby.py, which keys walk (in place of TiZeta's), run, bend
 #     and take_away;
 # then saves assets/characters/chubby_boy.blend and exports assets/characters/chubby_boy.glb. Otherwise his shape and
@@ -30,7 +35,7 @@
 #
 # Run it from the repository's folder (Windows, Git Bash); set CHUBBY_OUT to a path without an extension to write
 # the .blend and .glb somewhere else (a test):
-#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b --disable-autoexec --factory-startup \
+#   "/c/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b -t 1 --disable-autoexec --factory-startup \
 #       --python-exit-code 1 design/downloads/chubby/chubby.blend --python tools/blender/prepare_chubby.py
 
 import bpy, bmesh, colorsys, math, os
@@ -56,6 +61,9 @@ BEANIE_PARTS = ("Camper_BeanieCuff", "Camper_BeanieCrown", "Camper_Pompom")
 CAMPER_HEAD_TURN = dict(turn=-0.1563, nod=0.0264, tilt=0.0474, pivot=(0, 0.01, 1.40))   # camper2_parts' head_matrix
 BEANIE = dict(anchor=(Vector((0, 0.008, 1.607)), Vector((0, -0.004, 1.637))), scale=(0.90, 1.0, 0.85),
               colour="AC453B", roughness=0.9)                                          # the camper's C2_beanie
+# his edges smoothed (23 Nov 2026): Catmull-Clark subdivision, twice, on his body and his beanie, as the girl's
+# (2,035 + 313 triangles become 43,648)
+SMOOTH_LEVELS = 2
 
 
 def only(*objects):
@@ -387,6 +395,28 @@ print("CHUBBY", sum(len(p.vertices) - 2 for p in body.data.polygons), "triangles
       "size %.3f x %.3f x %.3f m, lowest %.3f" % (tuple(size) + (min(w.z for w in ws),)),
       "| walk frames %d-%d at %d fps, first and last poses %.4f m apart," % (start, end, bpy.context.scene.render.fps, seam),
       "lowest point while walking %.3f..%.3f m" % (min(low), max(low)))
+
+# --- Smoother edges, as the girl's: a Subdivision Surface ahead of the Armature on his body and on his beanie, so his
+# outline (his hair, his shoulders, his arms, his beanie) is rounded and the rig bends the rounded meshes; it carries
+# his weights, his texture's UVs and his materials through. His beanie is smooth-shaded with it: flat-shaded, its
+# facets came out lumpy. The meshes' points stay as they are above, so the clips below are measured on them as
+# before ------------------------------------------------------------------------------------------------------------
+for part in (body, beanie):
+    smooth = part.modifiers.new("Subdivision", "SUBSURF")
+    smooth.levels = smooth.render_levels = SMOOTH_LEVELS
+    smooth.use_limit_surface = True
+    smooth.uv_smooth = "PRESERVE_BOUNDARIES"     # his texture stays put where its pieces meet
+    smooth.boundary_smooth = "ALL"               # open edges are rounded too
+    part.modifiers.move(part.modifiers.find(smooth.name), 0)
+    assert [m.type for m in part.modifiers] == ["SUBSURF", "ARMATURE"], (part.name, [m.type for m in part.modifiers])
+for p in beanie_me.polygons:
+    p.use_smooth = True
+# The beanie's fit is checked above, on the meshes as built. Run on the smoothed meshes, that check counts 64 points of
+# his forehead and hair just under the rounded rim, at his front and right; renders side by side (23 Nov 2026) show
+# the same forehead and hair under the cuff as before and nothing through it, so it isn't run again here
+dg = bpy.context.evaluated_depsgraph_get()
+print("SMOOTHED %d levels: %d triangles" % (SMOOTH_LEVELS, sum(sum(len(p.vertices) - 2 for p in o.evaluated_get(dg).data.polygons)
+                                                              for o in (body, beanie))))
 
 # --- His animations (added 22 Oct 2026, from 01:40, when the author made him the camper: "work on creating the
 # animations for this model"): tools/blender/animate_chubby.py keys walk (in place of TiZeta's, measured above, whose
