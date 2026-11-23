@@ -25,11 +25,11 @@ Every run here is Godot 4.7.2 stable. Headless runs use the dummy renderer, whic
 
 | Check | Evidence | Status |
 |---|---|---|
-| Baseline | Every earlier test through Assignment 7's wrapper, before and after the change, in its pinned mode, with counts | **Done** (22 Nov). Every earlier test gives the same count before and after. `cost_effects.gd` fails 1 of 4 on both sides, so it isn't this change's |
+| Baseline | Every earlier test through Assignment 7's wrapper, before and after the change, in its pinned mode, with counts | **Done** (22 Nov). Every earlier test gives the same count before and after. `cost_effects.gd` fails 1 of 4 on both sides, so it isn't this change's. Rerun at the branch tip, `160c0eb`: the same, but waves 15, as its brief revision says |
 | Pins | The behaviour pins before the change and after, with what changed and why the brief predicted it | **Done.** 26/26 before (`1232706`); four pins re-pinned as the brief predicted (`1c858ed`); 26/26 after |
 | Read-back | Both clips' read-back tests: track, key-time, step, loop-mode, update-mode and frame-range assertions, named | **Done.** The rig 51/51; the moth 22/22 on its new sheet (22 Nov) |
-| Mutations | The four mutations exiting 1, each from its own worktree | **Done.** Each fails its test |
-| Fresh cache | The rig's read-back after deleting `.godot/` and reimporting; for an imported rig, that its loop mode survived | **Done** (22 Nov, at `c14faf9`). The rig 51/51: the seven loops `LOOP_LINEAR`, the jump's two `LOOP_NONE` |
+| Mutations | The four mutations exiting 1, each from its own worktree | **Done.** Each fails its test, a bone track's broken subname too (22 Nov) |
+| Fresh cache | The rig's read-back after deleting `.godot/` and reimporting; for an imported rig, that its loop mode survived | **Done** (22 Nov, at `c14faf9`, and again at `160c0eb`). The rig 51/51: the seven loops `LOOP_LINEAR`, the jump's two `LOOP_NONE` |
 | State machine | The structure test against the resource, and the state test driving real input through `Input.parse_input_event` | **Done.** The jump's states 89/89; the moths 15/15 |
 | Edges | Every phase boundary, with an interrupt one frame before, on and one frame after each | **Done.** 239 checks at 30 fps, 238 at 60 and 144; three findings, settled by a brief revision |
 | Frame strips (fixture) | The strips behind every revision in TUNING.md, labelled as fixture captures | **Done.** The jump r0 and r1; the raccoon's loops r0 |
@@ -44,22 +44,24 @@ Every run here is Godot 4.7.2 stable. Headless runs use the dummy renderer, whic
 
 Each side ran in its own git worktree with no `.godot/`, imported first (`--import` exit 0). Every test went through that revision's `scripts/run-test.sh`, which is Assignment 7's wrapper on both sides:
 - **Before:** `3e0266c`, the game at `dc8ff17` with Assignment 7's wrapper and nothing else.
-- **After:** `c14faf9`.
+- **After:** `c14faf9`; and again at the end, at `160c0eb`, the game source as at `8bf28c9` (22 Nov 2026 19:05), in a fresh git clone with no `.godot/`, imported first.
 
-The logs are in `logs/a7-baseline-before/` and `logs/a7-baseline-after/`, each with a `SUMMARY.txt`.
+The logs are in `logs/a7-baseline-before/`, `logs/a7-baseline-after/` and `logs/a7-baseline-final/`, each with a `SUMMARY.txt`.
 
-| Test | Mode | Before | After |
-|---|---|---|---|
-| `a3_asset_check.gd` | 60 | 20 ok, 0 failed | 20 ok, 0 failed |
-| `normal_map_calibration.gd` | 60 | exit 0 (a measurement: the GL map reads 0.427 with `directx` off, against 1.573 on) | the same |
-| `test_materials.gd` | 60 | 137/137 | 137/137 |
-| `test_leaf_burst_config.gd` | 60 | 110/110 | 110/110 |
-| `test_campfire_smoke_config.gd` | 60 | 73/73 | 73/73 |
-| `cost_effects.gd` | 60 | **3/4, exit 1** | **3/4, exit 1** |
-| sound, bubbles, camp, tasks, plan, tutorial | 60 | 30, 87, 31, 48, 22, 34 | 30, 87, 31, 48, 22, 34 |
-| cones; cone shader | 30, 60, 144 | 43 each; 93 each | 43 each; 93 each |
-| fire, tent, bear bag, leaf burst state, smoke, smoke at load | 60 | 25, 16, 41, 37, 20, 8 | 25, 16, 41, 37, 20, 8 |
-| waves; title | realtime | 14/14; 53/53 | 14/14; 53/53 |
+| Test | Mode | Before (`3e0266c`) | After (`c14faf9`) | After, final (`160c0eb`) |
+|---|---|---|---|---|
+| `a3_asset_check.gd` | 60 | 20 ok, 0 failed | 20 ok, 0 failed | 20 ok, 0 failed |
+| `normal_map_calibration.gd` | 60 | exit 0 (a measurement: the GL map reads 0.427 with `directx` off, against 1.573 on) | the same | the same |
+| `test_materials.gd` | 60 | 137/137 | 137/137 | 137/137 |
+| `test_leaf_burst_config.gd` | 60 | 110/110 | 110/110 | 110/110 |
+| `test_campfire_smoke_config.gd` | 60 | 73/73 | 73/73 | 73/73 |
+| `cost_effects.gd` | 60 | **3/4, exit 1** | **3/4, exit 1** | **3/4, exit 1** |
+| sound, bubbles, camp, tasks, plan, tutorial | 60 | 30, 87, 31, 48, 22, 34 | 30, 87, 31, 48, 22, 34 | 30, 87, 31, 48, 22, 34 |
+| cones; cone shader | 30, 60, 144 | 43 each; 93 each | 43 each; 93 each | 43 each; 93 each |
+| fire, tent, bear bag, leaf burst state, smoke, smoke at load | 60 | 25, 16, 41, 37, 20, 8 | 25, 16, 41, 37, 20, 8 | 25, 16, 41, 37, 20, 8 |
+| waves; title | realtime | 14/14; 53/53 | 14/14; 53/53 | **15/15**; 53/53 |
+
+- **The final rerun:** every count is the same as at `c14faf9`, but waves. Its 15th check, each set on one of the burst's first three beats, came with the brief's revision "the moth guides him to the camp; the waves come in bursts" (`scripts/waves_test.gd`). No log has `SHADER ERROR`, `SCRIPT ERROR` or `Failed loading resource`.
 
 - **The counts match:** every count is the same before and after. For the tests it lists, each is also the same as the last counts before Assignment 7 (above).
 - **`cost_effects.gd` fails** its smoke case on both sides: "effect_b: 1500 sampled frames in the wrong state (… smoke emitting false …)". The fire is out by the time it samples. It fails before any of this change, so it isn't this change's; it's still open.
@@ -70,6 +72,7 @@ The logs are in `logs/a7-baseline-before/` and `logs/a7-baseline-after/`, each w
   - edges 239, 238 and 238;
   - the moth's read-back 40 and the moths' state 15, on the pixel-art moths. On the new sheet (22 Nov), 22 and 15.
   - the balloons 35 and 69. With the chair moved by the table and the girl sitting on it (22 Nov, the brief's revision), the task's test has 71, all passing, and every other camp test keeps its count.
+- **Assignment 7's own tests at `160c0eb`** (the final rerun): the rig's read-back 51; pins 26; the jump's states 89; edges 239, 238 and 238; the moth's read-back 22; the moths' state 15; the guide 9; the balloons 35 and 71.
 
 ### Pins
 
@@ -80,7 +83,7 @@ The logs are in `logs/a7-baseline-before/` and `logs/a7-baseline-after/`, each w
   - "the clips in order";
   - "the clip on the tick after takeoff".
   They now read `jump` and `jump_land`, as the brief's revision `c0190b0` predicted: the jump is posed by its own clips, not the run clip sought. Every other pin kept its value.
-- **After:** 26/26 at `c14faf9`.
+- **After:** 26/26 at `c14faf9`, and again at `160c0eb`.
 
 ### Read-back
 
@@ -116,6 +119,7 @@ Each mutation was made in its own git worktree from `d2a306b`, then thrown away 
 |---|---|---|---|
 | 1. Break a track's subname | The moth's track names `.:fram`, not `.:frame` | `test_moth_flutter.gd` | **Exit 1**: 5 failed on the pixel-art moths; 2 failed on the new moth (22 Nov) |
 | | (not graded) The balloon's bob names `Float:positon` | `test_balloon_3d.gd` | Exit 1, 1 failed |
+| | The rig's `jump`: its first bone track names `pelvis_x`, not `pelvis`, in the clip only (22 Nov, below) | `test_raccoon_rig.gd` | **Exit 1**, 1 failed: "no bone pelvis_x on Skeleton3D" |
 | 2. Flip the cycle's loop mode | The moth's `flutter` set to `LOOP_NONE` | `test_moth_flutter.gd` | **Exit 1**, 1 failed, on both moths |
 | | Each raccoon loop set to `LOOP_NONE` in the importer's settings, one at a time (7 runs) | `test_raccoon_rig.gd` | Exit 1 each time, 1 failed |
 | 3. Key a cell the sheet doesn't have | The moth's second key set to the first cell past the sheet: 12 (4 × 3) on the pixel-art moth, 4 (2 × 2) on the new one | `test_moth_flutter.gd` | **Exit 1**, 2 failed, on both moths |
@@ -124,11 +128,17 @@ Each mutation was made in its own git worktree from `d2a306b`, then thrown away 
 
 The new moth's mutations (22 Nov 2026, `logs/a7-mutations-moth/`) ran the same way. Each worktree was HEAD plus the uncommitted new moth, imported from an empty cache, and a control with no change passed 22/22.
 
+The bone-track mutation (22 Nov 2026, `logs/a7-mutations-bone/`) ran in a git worktree at `160c0eb`, removed afterwards. Step 6's subname mutations had broken property tracks only, the moth's and a balloon's, so the read-back's branch for bone tracks hadn't been shown to catch anything.
+- **The change:** an import script, `zz_mutate_bone.gd` (kept in the folder as `zz_mutate_bone.gd.txt`), set as `raccoon_v2.glb.import`'s `import_script/path`. On an import from no `.godot/`, it renamed the bone that `jump`'s first track names, `pelvis` to `pelvis_x`, in that clip only. The skeleton's bone kept its name.
+- **The result:** the rig's read-back exited 1, 50 passed and 1 failed: "jump track 0: no bone pelvis_x on Skeleton3D".
+- **The control:** the same worktree, imported from no `.godot/` before the change, passed 51/51.
+
 Every mutation failed its test. Mutation 4 passes as it should, since the loop modes are in the importer's settings. Its contrast shows the read-back catches it when they aren't.
 
 ### Fresh cache
 
 - **22 Nov 2026, at `c14faf9`:** the "after" baseline's worktree had no `.godot/`, and `--import` exited 0 (`logs/a7-baseline-after/00_import.log`). The rig's read-back then passed 51/51, with the seven loops reading `LOOP_LINEAR` and `jump` and `jump_land` reading `LOOP_NONE`. The moth's passed 40/40 on the pixel-art moths. The new moth's passed 22/22 from an empty cache, as the control of its mutations (`logs/a7-mutations-moth/`).
+- **22 Nov 2026, at `160c0eb`:** the final baseline's fresh clone had no `.godot/`, and `--import` exited 0 (`logs/a7-baseline-final/00_import.log`). The rig's read-back passed 51/51 and the moth's 22/22.
 - **Earlier:** at `d2a306b` (mutation 4 above), and first at `16ee0fe` (`logs/a7-fresh-cache/`).
 
 ### State machine
@@ -159,7 +169,7 @@ Every mutation failed its test. Mutation 4 passes as it should, since the loop m
 
 ### Edges
 
-- **`tests/test_jump_edges.gd`, at `c14faf9`:** 239 checks at 30 fps, and 238 at 60 and 144, all passing.
+- **`tests/test_jump_edges.gd`, at `c14faf9`, and again at `160c0eb`:** 239 checks at 30 fps, and 238 at 60 and 144, all passing.
 - **The boundaries:**
   - takeoff (tick 0);
   - the top (tick 15);

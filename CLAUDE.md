@@ -18,8 +18,8 @@
   `signal landed` :13, `JUMP_*`/`AIR_CONTROL`/`LAND_TIME` :96-103; `_physics_process()` :253 sets `model.jumping` and
   `model.landing` :277-278; each takeoff adds one to `model.jump_id`; a tree hop shows as a jump, `_show_tree_hop()` :847).
   Clips picked in `raccoon_model.gd`: `_process_rigged()` :469 → `_rigged_state()` :558 → `_change_animation()` :543,
-  against `assigned_animation` (:485). No `AnimationTree`. Read by `cone_driver.gd:96`, `_on_landed()` (`campsite.gd:559`,
-  `HEAR_STEPS` 6 m) and `tasks_test.gd:267-281`.
+  against `assigned_animation` (:485). No `AnimationTree`. Read by `cone_driver.gd:96`, `_on_landed()` (`campsite.gd:581`,
+  `HEAR_STEPS` 6 m) and `scripts/tasks_test.gd:268-285`.
 
 ### The moth's flutter (the graded sprite clip): `Sprite3D` + `AnimationPlayer` frame track
 - **Sheet:** `assets/sprites/moth_lowpoly/moth_lowpoly.png` (the author's generated image beside it, made the sheet by
@@ -31,7 +31,7 @@
   (`float_away`), clips in `animations/`; chair, knot (E) and release in `scripts/camp_balloons.gd`; task `balloons`.
 
 ### Tests: always `bash scripts/run-test.sh <test> <fps|realtime> [timeout-s]`, from the repo root
-- `--name` runs `main.tscn` with that flag (parsed in `scripts/main.gd:407-480`): `--x-test` runs `scripts/x_test.gd`
+- `--name` runs `main.tscn` with that flag (parsed in `scripts/main.gd:410-483`): `--x-test` runs `scripts/x_test.gd`
   (`--bearbag-test` `bear_bag_test.gd`; `--leaf-burst-test`, `--smoke-test`, `--smoke-load-test` and `--cone-shader-test`
   `tests/leaf_burst_state_test.gd`, `campfire_smoke_state_test.gd`, `cone_shader_test.gd`). Anything else runs
   `res://tests/<file>` with `--script`. Headless; `<fps>` adds `--fixed-fps <fps>`, `realtime` omits it (audio, the
@@ -46,8 +46,8 @@ bash scripts/run-test.sh cost_effects.gd 60 300   # also --tent-test and --bearb
 bash scripts/run-test.sh --cones-test 30          # and 60, 144; so too --cone-shader-test and test_jump_edges.gd
 bash scripts/run-test.sh --waves-test realtime    # and --title-test; under --fixed-fps each fails one check: expected
 ```
-- **Baseline** (22 Nov 2026, `logs/a7-baseline-*`): earlier tests at their 11 Nov counts but `cost_effects.gd` 3/4 (fire
-  out; open). A7: rig 51, pins 26, states 89, edges 239/238/238, moth 22, moths 15, guide 9, balloons 35, 69, now 71.
+- **Baseline** (22 Nov, `logs/a7-baseline-final/`, `160c0eb`): earlier tests at 11 Nov counts but waves 15, `cost_effects`
+  3/4 (fire out; open). A7: rig 51, pins 26, states 89, edges 239/238/238, moth 22, moths 15, guide 9, balloons 35, 71.
 ## Headless facts
 - Headless is a dummy renderer: no GPU particle process (a GPU effect's CPU price is near zero), and on 4.7.2 a one-shot
   `GPUParticles3D` never emits `finished` (7 Nov 2026): free a burst on a timer.
@@ -87,7 +87,7 @@ Exactly one node writes to each animated node. Never add a second writer to one 
 - **Each balloon's:** its own script (`props/party_balloon.gd`). **The bunch's:** `scripts/camp_balloons.gd`
   (`float_away`, once). **The moth's:** `props/moths.gd`: plays `flutter`, seeks it half a frame in, writes no game state.
 - **Not this change's, already two writers:** the dancers' players, played by `scripts/camp_person.gd` (`_play()`
-  :1080) and sought and sped by `scripts/campsite.gd` (:358-359, :643) for the beat. Leave as is; don't copy.
+  :1080) and sought and sped by `scripts/campsite.gd` (:361-362, :665) for the beat. Leave as is; don't copy.
 
 ## Godot 4 names
 Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `playback_process_mode`, `AnimatedSprite`,
@@ -95,7 +95,7 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
 - **Seen working in this repo:** `AnimationPlayer` `play(name, blend)`, `seek(t, true)`, `speed_scale`,
   `current_animation`, `assigned_animation`, `current_animation_position`, `current_animation_length`,
   `get_animation_list()`, `get_animation()`; `Animation.loop_mode`, `LOOP_LINEAR` (`raccoon_model.gd`); `Sprite3D`
-  `pixel_size`, `billboard`, `alpha_cut` (`SpriteBase3D.ALPHA_CUT_*`), `texture_filter` (`main.gd:1294-1303`).
+  `pixel_size`, `billboard`, `alpha_cut` (`SpriteBase3D.ALPHA_CUT_*`), `texture_filter` (`main.gd:1297-1306`).
 - **Read back on 4.7.2** (ClassDB, scratch checks, 21 Nov 2026): the rig's `callback_mode_process` 1 (`..._PROCESS_IDLE`)
   and `step` 1/24; `LOOP_NONE`/`LOOP_LINEAR`/`LOOP_PINGPONG`, `length`, `TYPE_VALUE`, `TYPE_POSITION_3D`,
   `value_track_set_update_mode()`/`get`, `UPDATE_DISCRETE`, `track_get_path()`, `track_get_key_time()`,
@@ -115,5 +115,5 @@ Godot 4 only. Never Godot 3's: `Animation.loop` (a bool), `playback_speed`, `pla
 
 ## Unconfirmed
 - Both clips against the darkest and lightest ground, and the new moth's registration by eye: the author's, still to do.
-- `--jump-test` (`scripts/main.gd:420,794-798`) only presses jump for a screenshot; it checks nothing.
+- `--jump-test` (`scripts/main.gd:423,797-800`) only presses jump for a screenshot; it checks nothing.
 - `run-test.sh`'s third argument is only the timeout, so `--*-shots=<folder>` options can't go through it.

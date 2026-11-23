@@ -138,6 +138,17 @@ A dated log of Assignment 7's work as it happened: what I tried and expected, wh
 - **The task sounds:** "use the sound effect when u complete a task replace it with the current vesrion", with two Pixabay sounds I picked. After listening: "Sounds good, commit" (`1d8d479`).
 - **The chair by the table:** "can u move the chair near the table we have at camp ? and make the girl dance and come and sit on the chair for some time", "so we can use the ballons". Claude Code keyed her a `sit` clip in Blender, moved the chair, knot and balloons, and changed the balloon task's test to match. Kept: "Keep and commit".
 
+### 22 Nov 2026: a grader's read, and the small gaps it found
+
+- **Asked:** "acting as the grader grade the work submited", with the assignment pasted. Then, for the small gaps it named: "Yes, fix them".
+- **Came back** (Claude Code's read against the rubric, not the course's grade): every Assignment 7 test passed in a fresh clone of `160c0eb`, imported from an empty cache. Still to do: the film; the branch and the `a7` tag on GitHub, with the tag moved off `dc8ff17`; and three of my checks (the seam on the new moth, its registration by eye, both clips over the darkest and lightest ground).
+- **Fixed by Claude Code, uncommitted:**
+  - **CLAUDE.md's line references** that later commits had moved (`_on_landed()`, the dancers' seeks, `--jump-test`, the flag loop, the `Sprite3D` lines, `scripts/tasks_test.gd`).
+  - **The bone-track mutation,** which Step 6 hadn't run: its subname mutations broke the moth's and a balloon's property tracks, not a bone. In a git worktree, an import script renamed `jump`'s first bone track `pelvis` to `pelvis_x`, in the clip only, and the rig's read-back failed 1 ("no bone pelvis_x on Skeleton3D"); its control passed 51 of 51 (`logs/a7-mutations-bone/`).
+  - **The baseline, rerun at the branch tip,** `160c0eb`, in a fresh clone from an empty cache (`logs/a7-baseline-final/`): every count as at `c14faf9`, but waves, 15 since its brief revision. `cost_effects.gd` still fails 1 of 4.
+  - **SUBMISSION.md's balloon task count:** 71, not 69.
+- **The agent sessions' last result events,** read by Claude Code on 22 Nov 2026, after the fact: every `claude -p` session in `design/a7/` ended `success`, and none stopped at `--max-turns`. Most had a few permission denials (11 in session 6, mostly Godot run directly rather than through `scripts/run-test.sh`): the scoped permissions refusing, as meant. `git diff --stat a6 HEAD -- shaders/` prints nothing.
+
 ### What I accepted, changed or turned down
 
 From the record of what I chose in the chat; each brief revision says the same in its own line.

@@ -1,108 +1,122 @@
-# SUBMISSION: Assignment 6
+# SUBMISSION: Assignment 7
 
-> The SHA that `a6` points at and the source ZIP's checksum are in the note sent to Canvas with `submission.zip`: a commit can't contain its own SHA, and the ZIP is made from the tagged commit. The Assignment 5 version of this file is at the `a5` tag.
+> The SHA that `a7` points at, and the source ZIP's checksum, are in the note sent to Canvas with `submission.zip`. A commit can't contain its own SHA, and the ZIP is made from the tagged commit. The Assignment 6 version of this file is at the `a6` tag.
+>
+> **Still to fill before tagging:**
+> - the film's URL, filename, SHA-256 and the game-source revision it shows (marked **[to fill]** below);
+> - my two checks still to do: both clips over the darkest and lightest ground, and the new moth's registration by eye (TEST-REPORT.md). Then this note goes.
 
-**Assignment:** Assignment 6 - Creating Particle Effects with Godot and Claude
+**Assignment:** Assignment 7 - Doing Animation with Claude and Godot
 
 **Student:** Abhinav Gangurde (GitHub: Abhinow1997)
 
 **Project name:** The Noise Next Door
 
-**GitHub repository URL:** https://github.com/Abhinow1997/the-noise-next-door (branch `assignment-6`)
+**GitHub repository URL:** https://github.com/Abhinow1997/the-noise-next-door (branch `assignment-7`)
 
-**Git tag and submitted commit SHA:** `a6`. Its SHA is in the Canvas note.
+**Git tag and submitted commit SHA:** `a7`. Its SHA is in the Canvas note.
 
-**Game-source revision shown in the films:** the game source as at `502dc4e`, for both videos. No later commit changes it: the later commits add only docs, logs, Godot's `.uid` files, `captures/.gdignore` and the generated process shader, which nothing in the game uses.
+**Game-source revision shown in the film:** **[to fill]**, the commit the film is rendered from. Any later commit adds only docs and logs, and the Canvas note confirms that it changes no game source.
 
-**Godot version, renderer, and operating system:** Godot 4.7.2 stable (official build `ed1daf0bf`), Forward+ (`project.godot`, `config/features`), Windows 11 Home (build 26300). The checks run in Git Bash through `scripts/run-test.sh`. The GPU price was taken on an NVIDIA GeForce RTX 4050 Laptop GPU at 1280 × 720.
+**Godot version, renderer, and operating system:** Godot 4.7.2 stable (official build `ed1daf0bf`), Forward+ (`project.godot`, `config/features`), Windows 11 Home (build 26300). The checks run in Git Bash through `scripts/run-test.sh`. The captures are windowed Movie Maker runs at 1280 × 720.
 
-**The two effects:**
-- **Effect A, the leaf burst** (`effects/leaf_burst.tscn`): a one-shot on a repeating gameplay event. Leaves and a puff of flecks burst out of the camp's bush when the raccoon dives in to hide, and a half-size burst (`amount_ratio` 0.5) when he hops out. It tells the player they're hidden, out of sight of whoever's chasing them, and then that they can be seen again.
-  - Two `GPUParticles3D`, Leaves and Puff, under one `Node3D`.
-  - **Its event:** the bush's `hiding_changed(inside)` signal, emitted at the end of `dived()` (`scripts/hide_spot.gd`). `scripts/leaf_bursts.gd` puts a fresh copy at the bush per event and frees it on a timer.
-  - **Its retrigger rule is overlap:** in and straight out gives two bursts alive at once.
-- **Effect B, the campfire smoke** (`effects/campfire_smoke.tscn`): a feedback loop. Every frame, `scripts/campfire_smoke.gd` sets the smoke's `amount_ratio` to the fire's `strength` (0 out, 1 burning well; `scripts/camp_fire.gd`), and `emitting` to whether it burns. `amount` never changes. Its job, in my words: the smoke is the signal that the fire is up, so near the camp the raccoon has to crouch or be detected more quickly.
-  - **What Effect A doesn't use:** the value-driven `amount_ratio`, turbulence, a scale curve, a box emission shape, `preprocess` and a soft round texture.
-  - **Start, stop, pause and hidden:** it starts when the fire's lit and stops when it's out, letting the air clear. Paused, it freezes. Hidden, `amount_ratio` keeps following the fire.
+**Sprite clip: route, node, scene, frame rate:**
+- **Route:** a `Sprite3D` with an `AnimationPlayer` frame track. The clip is the value track on the sprite's `frame`, with discrete updates, saved as `animations/moth_flutter.tres`.
+- **Node:** `Moths/Pivot0/Moth`, a `Sprite3D` on `assets/sprites/moth_lowpoly/moth_lowpoly.png`, sliced `hframes` 2 × `vframes` 2. Its own `AnimationPlayer` is on `callback_mode_process` IDLE.
+- **Scene:** `props/moths.tscn`, added to the level (`main.tscn`) by `scripts/main.gd`.
+- **Frame rate:** 24 fps, `step` 1/24 s. Six keys over four cells, out and back: 0, 1, 2, 3, 2, 1, one frame each, so the loop is 6/24 s.
 
-**Texture sources and licences:** none sourced and none generated. The leaves and flecks are untextured quads. The smoke's soft disc is a `GradientTexture2D` written in its scene file.
+**Rig clip: route, rig source, node, scene, frame rate:**
+- **Route:** an imported 3D rig. The clips are `jump` and `jump_land`, as actions in the `.glb`.
+- **Rig source:** `assets/characters/raccoon_v2.blend`, exported by `assets/characters/export_raccoon_v2.py` to `assets/characters/raccoon_v2.glb`. The actions are keyed in Blender 5.2.3 by `design/character/raccoon_v2/anim.py`.
+- **Node:** the `AnimationPlayer` inside the instanced rig, found and played by `scripts/raccoon_model.gd`.
+- **Scene:** `raccoon_model.tscn`, the player's model in `main.tscn`.
+- **Frame rate:** 24 fps (`animation/fps=24`, `step` 1/24 s):
+  - `jump`: 10 frames, keys at 0, 3, 6 and 10;
+  - `jump_land`: 4 frames.
 
-**Final film URL and filename:**
-- **My film:** https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQCrT_wDa6QiSq6EOe5F_I_PAVkvaVZz3eDnikzc0rKSncM?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=8I0K9d
-  - Filename: `VideoRecording - Assignement -6.mp4`
-- **An AI explainer,** a NotebookLM Video Overview made from this repo's Assignment 6 docs (SOURCES.md): https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQAPL5_3NROUQp7Ey6fqwVn9AUuZi7FF5uODsgNRKoH9g7g?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=4aeAqc
-  - Filename: `AI_Explainer_Assignment_6_Godot_Particles.mp4`
+**Which clip loops and which commits:** the moth's flutter loops (`LOOP_LINEAR`). The jump commits: `jump` and `jump_land`, both `LOOP_NONE`.
 
-**Final film SHA-256:**
-- My film: `1a0a98ca86b2e313624359217b4399927eaf2d963d70372cf7e01f03ce0355b0`
-- The AI explainer: `a39f2b765137ca57953be0062e1673dbdecd648e01b6584b4836910ec8af823c`
+**The one authority over each animated node:**
+- **The rig's `AnimationPlayer`:** `scripts/raccoon_model.gd` only. `scripts/player.gd` writes the model's inputs, never the player.
+- **The moth's `AnimationPlayer`:** `props/moths.gd` only. It plays `flutter` and seeks it half a frame in.
+- **Not graded:** each balloon's player is written by its own script (`props/party_balloon.gd`), and the bunch's by `scripts/camp_balloons.gd`.
+
+**Sprite sheet source and licence (or model, version, and terms):**
+- **Generated by me** with Google Gemini (its version wasn't recorded), under Google's Terms of Service, from Claude Code's prompt `design/a7/moth-prompt.txt`, which I used word for word.
+- **As generated:** `moth_lowpoly_generated.webp`, SHA-256 `369695c8c84b4be32013d3c452414a8cb7ca95078253297973242a08b0fe7d1c`.
+- **As used:** `moth_lowpoly.png`, SHA-256 `48da1c9c5f4a261ddf210567ded705234a970a4019b807eac7b40a508cfccc7d`, made from it by `tools/make_moth_sheet.gd` (the green keyed out and the cell lines cleared; nothing moved or resampled).
+- **Credits:** `assets/sprites/moth_lowpoly/ATTRIBUTION.md`.
+- **The sheets used and then replaced** (in history, credited in SOURCES.md, Assignment 7):
+  - madameberry's CC0 "Ambient Pixel Art Insects" moth (at `c14faf9`);
+  - metalx1000's CC-BY-SA 4.0 balloons (at `d878213`);
+  - my Gemini balloon sheet (at `7bd4aea`).
+
+**Final film URL and filename:** **[to fill]**
+
+**Final film SHA-256:** **[to fill]**
 
 **Summary of my work:**
-- **My specification** (CHANGE-BRIEF.md), committed before the first prompt (`f24df97`), with dated revisions: the preview's retrigger frame, the signal and wiring, Effect B, its wiring, and each tuning change.
-  - **Mine:** both effects' jobs, in my own words; Effect A's fade-only look; my picks for every choice.
-  - **Claude Code's options, used at my word:** the settings' numbers, the frame readings, the price predictions, and the drafts of the short answers, which I checked. Each revision says which.
-- **CLAUDE.md:** the `claude -p` agent's draft (`da111e2`), then the review (`f9c94ca`), kept under 120 lines.
-- **The effects, built by `claude -p` sessions** and committed unedited before each review:
-  - Effect A's scene, configuration test and preview (`b0ca8d0`);
-  - its wiring and state test (`271687d`);
-  - Effect B's scene, configuration test and preview (`9e81f79`);
-  - its driver and state tests (`0286ea2`);
-  - the cost script (`fb47194`).
+- **My specification** (CHANGE-BRIEF.md), committed before the first prompt (`599da06`), with a dated revision for every change since, each kept by me.
+  - **Mine:** the choice of clips; both jobs, in my own words (the jump, "airborne, to reach things not generally reachable"; the moth, "he helps user navigate to the main area"); the jump going back to the game's own jump; the balloons' redesigns; the new moth and its guide; and my pick for every option.
+  - **Claude Code's, kept at my word:** the numbers in the phase table and cycle specs, the tests, tools and previews, and the drafts of the brief and the short answers. Each revision says which.
+- **CLAUDE.md:** the `claude -p` agent's draft (`f87aaf1`), then my review (`21867cb`), later updates, and trimmed to 119 lines (`9e5fd21`).
+- **The pins:** committed before the change (`1232706`), and re-pinned in their own commit as the brief predicted (`1c858ed`).
+- **The clips and the wiring,** built by `claude -p` sessions and committed unedited before each review:
+  - the jump (`ce74242`);
+  - Step 5's steps (`16ee0fe` to `94bb565`);
+  - the jump as before (`4044bf3`);
+  - every raccoon loop's requirements (`d2a306b`);
+  - the edge tests (`5c06182`).
 
-  The prompts and transcripts are in `design/a6/`.
-- **Tuning:** one revision each, with Claude's prediction, my strips before and after, Claude's comparison and my verdict in the running game (TUNING.md):
-  - Effect A, the leaves' gravity −3.5 → −6.0 (`872ed53`);
-  - Effect B, the smoke's peak alpha 0.45 → 0.25 (`9cd79df`).
+  The prompts and transcripts are in `design/a7/`.
+- **Tuning:** one revision, driven by what I saw in play ("The hind legs don't particularly move"). It has Claude's prediction, my strips r0 and r1, Claude's comparison and my verdict in the running game, "Yes, keep r1" (`ab5de2b`, TUNING.md).
+- **The raccoon's seven loops:** a strip of each and my verdict on each, all kept (`74297f9`, TUNING.md).
+- **The moth:** I generated its sheet with Gemini and asked for one moth over the fire (`b1736e3`). Then I asked for it to guide him to the camp, played it, and kept it (`b1865bf`).
+- **My checks in play** (TEST-REPORT.md): the cycle seam, the jump in play with interrupts, the strips' verdicts, and where I disagreed with Claude's readings.
+- **Claude Code's other work:** the reviews; the game work at my requests ("Let the balloons go", the waves' bursts, `--dev-unseen`); the clean before-and-after baseline; and the write-ups. SOURCES.md and FRICTIONAL.md say who did what.
 
-  I captured every strip and kept both changes.
-- **The process shader:** I converted a copy of the smoke's `ParticleProcessMaterial` in the editor (`shaders/particles_generated.gdshader`, `7bde16d`). My line references and my answer on process versus draw are in TEST-REPORT.md, "The process shader" (`49be553`). Copilot helped me verify them, as that section says. No agent session changed `shaders/`.
-- **My checks in play:** effects, backgrounds, screen edge and the overall feel (TEST-REPORT.md, "Assignment 6: Use It"). Also the Visual Profiler on the RTX 4050 (`74dde66`).
-- **The films:** my film, and an AI explainer that NotebookLM made from this repo's Assignment 6 docs.
-- **Claude Code's other work:**
-  - the reviews;
-  - the GPU-timer script (`tools/gpu_time_effects.gd`);
-  - the game work at my requests (the campfire's life, the developer menu, the tent, the firelight and the fire's circle of sight, the tutorial's changes);
-  - the write-ups.
+**Checks run (command and result):** from the repo root in Git Bash, all through `bash scripts/run-test.sh`, with the mode stated:
+- **Read-backs:**
+  - `test_raccoon_rig.gd 60`: 51 of 51. Every bone track resolves; `step` is exactly 1/24; the seven loops are `LOOP_LINEAR` and the jump's two `LOOP_NONE`; the jump's keys sit at its phase frames; each loop's seam holds.
+  - `test_moth_flutter.gd 60`: 22 of 22. One value track on `frame`, discrete; every key is a cell of the sheet; the key times; `step`; `LOOP_LINEAR`; the seam.
+- **Pins:** `jump_pins.gd 60`, 26 of 26.
+- **State machine:** `test_jump_states.gd 60`, 89 of 89 (the structure test against the rig's clips, plus real input through `Input.parse_input_event`).
+- **Edges:** `test_jump_edges.gd` at 30, 60 and 144: 239, 238 and 238.
+- **The moth and the balloons:**
+  - `test_moths_state.gd 60`: 15 of 15;
+  - `test_moth_guide.gd 60`: 9 of 9;
+  - `test_balloon_3d.gd 60`: 35 of 35;
+  - `test_balloon_task.gd 60`: 71 of 71.
+- **Mutations, each in its own git worktree, each exiting 1:**
+  - a broken subname: the moth's `frame` property, and a bone of the rig's `jump` (`pelvis_x`, renamed in the clip only by an import script);
+  - the cycle's loop flipped (the moth's, and each raccoon loop's in the importer);
+  - a key on a cell the sheet doesn't have.
 
-  SOURCES.md and FRICTIONAL.md say who did what.
+  The empty-cache reimport passes, which shows the loop modes survived; its contrast, with them taken out of the importer, fails 7. The logs are in `logs/a7-mutations/`, `logs/a7-mutations-moth/` and `logs/a7-mutations-bone/`.
+- **Fresh cache:** the rig's read-back passes 51 of 51 after `--import` from no `.godot/`, last at `160c0eb`.
+- **The baseline,** each side run in a clean worktree from an empty cache (`logs/a7-baseline-before/` and `logs/a7-baseline-after/`), and the after side again at `160c0eb` in a fresh clone (`logs/a7-baseline-final/`):
+  - every earlier test gives the same count before and after this change;
+  - waves (15 of 15, its timing changed with the brief) and title (53 of 53) pass in realtime;
+  - `cost_effects.gd` fails 1 of 4 on both sides.
+- **No current test log contains `SHADER ERROR`, `SCRIPT ERROR` or `Failed loading resource`.**
 
-**Checks run (command and result):** from the repo root in Git Bash, all through `bash scripts/run-test.sh`, with the mode stated ([logs/a6-caught-sync/](logs/a6-caught-sync/), the game source as at `502dc4e`):
-- **Effect A:**
-  - configuration (`test_leaf_burst_config.gd 60`): 110 of 110;
-  - state (`--leaf-burst-test 60`): 37 of 37, including two events inside one lifetime.
-- **Effect B:**
-  - configuration (`test_campfire_smoke_config.gd 60`): 73 of 73;
-  - state from cold (`--smoke-test 60`): 20 of 20;
-  - burning at load (`--smoke-load-test 60`): 8 of 8.
-- **The mutations:**
-  - **Effect A's configuration test:** a Godot 3 name (`initial_velocity` for `initial_velocity_min`) and `amount` 18 → 24 each exit 1. With the Godot 3 name, the state test still passes 37 of 37.
-  - **Effect A's state test:** four listener mutations each fail it (a reused node, a burst at load, no half burst, never freed).
-  - **Effect B's state test:** the driver writing `amount` instead of `amount_ratio` fails 13 of 20.
-- **The price:**
-  - **Headless CPU** (`cost_effects.gd 60 300`), per frame: the empty-scene control 0.005 ms, the game with both effects off 1.016, Effect A at its peak 1.018, Effect B at its heaviest 1.008.
-  - **GPU on the RTX 4050:** Effect A +0.05 ms (budget 0.2) and Effect B +0.03 ms (budget 0.3), by the GPU-timer script.
-  - **In the Visual Profiler:** one frame at 2.96 ms, of which "Update GPUParticles" took 0.01 ms.
-- **The earlier checks**, at their baseline counts: A3 assets 20, sound 30, bubbles 87, camp 31, tasks 43, plan 19, tutorial 29, materials 137; cones 43 and cone shader 93 at 30, 60 and 144 fps; fire 23, tent 16. Waves (13 of 13) and title pass in realtime. Under `--fixed-fps` they fail the one check each that they failed before this assignment began.
-- No `SHADER ERROR` or `SCRIPT ERROR` in any log.
-
-**My fresh-clone check of the `a6` tag:** in the Canvas note, since it can only be run once the tag exists.
+**My fresh-clone check of the `a7` tag:** in the Canvas note, since it can only be run once the tag exists.
 
 **Known limitations:**
-- **Effect B needs more work, in my view:** "I don't think the second effects has been created or designed well. I will need to rework on the same for some time." Since its tuning, the column's top half is too faint to see, so it reads about half as tall as the brief's 2 m.
-- **The GPU price, effect by effect, came from a script** that reads the Visual Profiler's GPU timer, not from per-state Visual Profiler readings. From the Visual Profiler I read one frame, and its effect state wasn't recorded. FPS with vsync off and the AMD Radeon 740M weren't measured.
-- **My notes on the smoke at scene load, paused and hidden** say I checked them, but not what I saw.
-- **The course's Brutalist godot-gamedev skill** wasn't installed in this checkout (Claude Code checked the plugin catalog on 8 Nov 2026).
-- **The AI explainer is NotebookLM's summary of my docs.** It may simplify or misstate details; the repo is the record.
-- **No headless run shows the look.** How each effect reads is checked only by the strips and my eyes. These remain unconfirmed on this build:
-  - how many particles `amount_ratio` 0.5 gives a one-shot burst;
-  - whether a hidden `GPUParticles3D` keeps simulating.
-- **Two earlier checks fail under `--fixed-fps`:** waves (12 of 13) and title (51 of 52), as recorded before this assignment.
+- **`tests/cost_effects.gd` fails 1 of its 4 checks:** its smoke case finds the fire out. It failed the same way before this assignment's first change, and it's still open.
+- **Climb needs more work, in my view:** "Maybe we'll need to work on climb in the future".
+- **The jump's distance:** maybe a little more, not decided ("Or maybe keep it. I will let you know.").
+- **The sleep clip holds one pose,** with no breathing. I kept it.
+- **At an exact wrap Godot shows the moth's last cell,** an engine quirk. The moth starts half a frame in, which avoids it at 24, 30 and 60 fps. At 144 fps it still drops one frame of the wings-raised pose in 48.
+- **No headless run shows the look.** How the clips read is checked only by the strips and my eyes.
+- **Two earlier checks fail under `--fixed-fps`,** as before this assignment: waves and title. Both pass in realtime.
 
 **Changed games since Assignment 2:** No. It's still The Noise Next Door.
 
 ---
 
 **Source ZIP:** `submission.zip`
-- Made with `git archive --format=zip --prefix=the-noise-next-door/ -o submission.zip a6`.
+- Made with `git archive --format=zip --prefix=the-noise-next-door/ -o submission.zip a7`.
 - Its size, number of files and SHA-256 are in the Canvas note.
-- If `a6` moves, the ZIP is made again and the Canvas note updated.
+- If `a7` moves, the ZIP is made again and the Canvas note is updated.

@@ -1,0 +1,87 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PASS the rig res://assets/characters/raccoon_v2.glb loads
+PASS the rig has an AnimationPlayer
+FAIL every track in every clip resolves to a real node and property, bone or blend shape: jump track 0: no bone pelvis_x on Skeleton3D
+PASS all nine clips exist (idle, walk, run, sneak, bored, sleep, climb, jump, jump_land)
+  idle: 26 tracks, length 4.0000000000 s, step 0.0416666679 s, loop_mode 1
+PASS idle: step is 1/24 s
+PASS idle: loop_mode is Animation.LOOP_LINEAR
+  idle: no value tracks, so no update mode to ask
+PASS idle: update mode asked only of value tracks (0)
+  walk: 26 tracks, length 1.0000000000 s, step 0.0416666679 s, loop_mode 1
+PASS walk: step is 1/24 s
+PASS walk: loop_mode is Animation.LOOP_LINEAR
+  walk: no value tracks, so no update mode to ask
+PASS walk: update mode asked only of value tracks (0)
+  run: 26 tracks, length 0.6666666865 s, step 0.0416666679 s, loop_mode 1
+PASS run: step is 1/24 s
+PASS run: loop_mode is Animation.LOOP_LINEAR
+  run: no value tracks, so no update mode to ask
+PASS run: update mode asked only of value tracks (0)
+  sneak: 26 tracks, length 2.0000000000 s, step 0.0416666679 s, loop_mode 1
+PASS sneak: step is 1/24 s
+PASS sneak: loop_mode is Animation.LOOP_LINEAR
+  sneak: no value tracks, so no update mode to ask
+PASS sneak: update mode asked only of value tracks (0)
+  bored: 26 tracks, length 4.0000000000 s, step 0.0416666679 s, loop_mode 1
+PASS bored: step is 1/24 s
+PASS bored: loop_mode is Animation.LOOP_LINEAR
+  bored: no value tracks, so no update mode to ask
+PASS bored: update mode asked only of value tracks (0)
+  sleep: 26 tracks, length 4.0000000000 s, step 0.0416666679 s, loop_mode 1
+PASS sleep: step is 1/24 s
+PASS sleep: loop_mode is Animation.LOOP_LINEAR
+  sleep: no value tracks, so no update mode to ask
+PASS sleep: update mode asked only of value tracks (0)
+  climb: 26 tracks, length 1.0000000000 s, step 0.0416666679 s, loop_mode 1
+PASS climb: step is 1/24 s
+PASS climb: loop_mode is Animation.LOOP_LINEAR
+  climb: no value tracks, so no update mode to ask
+PASS climb: update mode asked only of value tracks (0)
+  jump: 26 tracks, length 0.4166666567 s, step 0.0416666679 s, loop_mode 0
+PASS jump: step is 1/24 s
+PASS jump: loop_mode is Animation.LOOP_NONE
+  jump: no value tracks, so no update mode to ask
+PASS jump: update mode asked only of value tracks (0)
+  jump_land: 26 tracks, length 0.1666666716 s, step 0.0416666679 s, loop_mode 0
+PASS jump_land: step is 1/24 s
+PASS jump_land: loop_mode is Animation.LOOP_NONE
+  jump_land: no value tracks, so no update mode to ask
+PASS jump_land: update mode asked only of value tracks (0)
+PASS jump: length is 10/24 s (0.4167 s, within 1/48 s)
+  jump keys on track 0 (RaccoonRig/Skeleton3D:pelvis_x): frame 0 at 0.0000000000 s, frame 1 at 0.0416666679 s, frame 2 at 0.0833333358 s, frame 3 at 0.1250000000 s, frame 4 at 0.1666666716 s, frame 5 at 0.2083333284 s, frame 6 at 0.2500000000 s, frame 7 at 0.2916666567 s, frame 8 at 0.3333333433 s, frame 9 at 0.3750000000 s, frame 10 at 0.4166666567 s
+  jump frame 0 (0.0000000000 s): key at 0.0000000000 s on 26 of 26 tracks
+  jump frame 3 (0.1250000000 s): key at 0.1250000000 s on 22 of 26 tracks, held through it on eye.L, eye.R, shin.L, shin.R
+  jump frame 6 (0.2500000000 s): key at 0.2500000000 s on 24 of 26 tracks, held through it on eye.L, eye.R
+  jump frame 10 (0.4166666667 s): key at 0.4166666567 s on 24 of 26 tracks, held through it on eye.L, eye.R
+PASS jump: keys at frames [0, 3, 6, 10] (within 1/48 s) on every track that isn't held through them
+PASS jump: its last pose is its own, not a copy of its first (24 of 26 tracks differ)
+PASS jump_land: length is 4/24 s (0.1667 s, within 1/48 s)
+  jump_land keys on track 0 (RaccoonRig/Skeleton3D:pelvis): frame 0 at 0.0000000000 s, frame 1 at 0.0416666679 s, frame 2 at 0.0833333358 s, frame 3 at 0.1250000000 s, frame 4 at 0.1666666716 s
+  jump_land frame 0 (0.0000000000 s): key at 0.0000000000 s on 26 of 26 tracks
+  jump_land frame 4 (0.1666666667 s): key at 0.1666666716 s on 26 of 26 tracks
+PASS jump_land: keys at frames [0, 4] (within 1/48 s) on every track that isn't held through them
+PASS jump_land: its last pose is its own, not a copy of its first (26 of 26 tracks differ)
+PASS idle: length is its cycle spec's 96/24 s (4.0000 s, within 1/48 s)
+  idle seam: 22 tracks keyed at the length, 4 held to it from an earlier key; largest rotation gap 0.000000 rad, largest position or scale gap 0.0000 mm
+PASS idle: the seam: every track's value at 0 matches its value at the length (26 tracks)
+PASS walk: length is its cycle spec's 24/24 s (1.0000 s, within 1/48 s)
+  walk seam: 22 tracks keyed at the length, 4 held to it from an earlier key; largest rotation gap 0.000000 rad, largest position or scale gap 0.0000 mm
+PASS walk: the seam: every track's value at 0 matches its value at the length (26 tracks)
+PASS run: length is its cycle spec's 16/24 s (0.6667 s, within 1/48 s)
+  run seam: 22 tracks keyed at the length, 4 held to it from an earlier key; largest rotation gap 0.000000 rad, largest position or scale gap 0.0000 mm
+PASS run: the seam: every track's value at 0 matches its value at the length (26 tracks)
+PASS sneak: length is its cycle spec's 48/24 s (2.0000 s, within 1/48 s)
+  sneak seam: 19 tracks keyed at the length, 7 held to it from an earlier key; largest rotation gap 0.000691 rad, largest position or scale gap 0.0000 mm
+PASS sneak: the seam: every track's value at 0 matches its value at the length (26 tracks)
+PASS bored: length is its cycle spec's 96/24 s (4.0000 s, within 1/48 s)
+  bored seam: 11 tracks keyed at the length, 15 held to it from an earlier key; largest rotation gap 0.000691 rad, largest position or scale gap 0.0000 mm
+PASS bored: the seam: every track's value at 0 matches its value at the length (26 tracks)
+PASS sleep: length is its cycle spec's 96/24 s (4.0000 s, within 1/48 s)
+  sleep seam: 0 tracks keyed at the length, 26 held to it from an earlier key; largest rotation gap 0.000691 rad, largest position or scale gap 0.0000 mm
+PASS sleep: the seam: every track's value at 0 matches its value at the length (26 tracks)
+PASS climb: length is its cycle spec's 24/24 s (1.0000 s, within 1/48 s)
+  climb seam: 18 tracks keyed at the length, 8 held to it from an earlier key; largest rotation gap 0.000000 rad, largest position or scale gap 0.0000 mm
+PASS climb: the seam: every track's value at 0 matches its value at the length (26 tracks)
+50 passed, 1 failed
