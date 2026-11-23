@@ -170,6 +170,10 @@ def animate(rig, body, only=None, log=print):
     return L["animate"](rig, body, only=only, log=log)
 
 
+# Her .glb (23 Nov 2026) is exported with her modifiers applied: the Subdivision Surface that prepare_simple_girl.py
+# puts ahead of her Armature, so the game gets her smoothed mesh. The exporter leaves the Armature modifier out of it
+# and exports her skin as before. The men's export (in their own copies of animate_chubby.py) is unchanged.
+L["EXPORT"] = dict(L["EXPORT"], export_apply=True)
 export_glb = L["export_glb"]
 
 

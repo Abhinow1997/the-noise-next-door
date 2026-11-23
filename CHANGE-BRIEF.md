@@ -928,3 +928,37 @@ During my seam check: "We need a dev flag to disable the human NPCs, 'cause they
 - the README's balloon lines, SOURCES.md (her new clip) and CLAUDE.md's campers line.
 
 (Drafted by Claude Code on 22 Nov 2026 from my words above. The chair's spot and turn, the knot, the balloons' fan, the sit's length and the clip are Claude Code's. Kept by me the same day: "Keep and commit".)
+
+---
+
+### Revised 23 Nov 2026: the girl's edges smoothed (after the a7 tag)
+
+"The humans model we need to work on can we use blender and make the edges on them smother for the models take the girl 1st lets work on it and then we can move to others", then "Smooth twice".
+
+This comes after the `a7` tag (`e21bb3a`) and isn't part of Assignment 7's submission. It's a named change to one camper's look, the girl's. The two men stay as they are until a revision of their own.
+
+**What was rough** (measured on 23 Nov 2026 in `simple_girl.blend`):
+- She was already smooth-shaded all over (1,283 faces, no sharp edges), so it wasn't her shading.
+- It was her outline. She had 2,132 triangles, and the typical bend between two neighbouring faces was 23°, so her hair, her fringe and her arms showed corners.
+
+**The change:**
+- `tools/blender/prepare_simple_girl.py` puts a Subdivision Surface modifier (Catmull-Clark, two levels, `SMOOTH_LEVELS`) ahead of her Armature, so the rig bends the smoothed mesh. Her texture's UVs keep their boundaries, and her hair's open edges are rounded too.
+- `tools/blender/animate_simple_girl.py` exports her `.glb` with modifiers applied. The exporter leaves the Armature out and exports her skin as before. The men's export is unchanged.
+- She goes from 2,132 triangles to 37,584 (23,021 vertices), and `simple_girl.glb` from 1.69 MB to 3.03 MB.
+- One level gave 9,396 triangles and looked almost the same; two is my pick.
+
+**What doesn't change:**
+- Her mesh in the `.blend`. Her clips are measured on it, so their keys are unchanged: all nine (`walk` … `sit`) are byte for byte the old `.glb`'s. So are her skin's 20 binds, her bones and their rest poses.
+- Her `.glb.import`, her routine, and every test's expected value.
+- Rebuilding: from the download, or by re-keying the saved `.blend`, both give the same `.glb` (SHA-256 `f9bfb26c2f15fab354fbb5567158bcd3fa8e1d57a1aad6b10815d14c8069a4fe`).
+
+**What the rounding moves:** the top of her hair is 7 mm lower (1.673 m), her soles 2 mm higher, and her front 12 mm in. Her nose's tip comes out a little more pointed.
+
+**The checks:**
+- The new `.glb` posed in `dance`, `sit`, `run` and `cower`: it bends without tearing (`design/girl_smooth_poses.png`, old above, new below). The levels compared: `design/girl_smooth_compare.png`.
+- Godot imports her with 3 surfaces, every vertex weighted, 20 binds and the nine clips at their loop modes.
+- **The tests:** the A7 baseline's whole list, run on 23 Nov 2026, matches it check for check (camp 31, tasks 48, cones 43 at 30, 60 and 144 fps, tutorial 34, balloon task 71, and the rest). `cost_effects` fails as at the baseline (the fire out), and nothing else does.
+- **Headless frame cost:** run back to back with the old girl and the new, twice each, the camp's frame costs the same (+1.31 and +1.28 ms over an empty scene with the old, +1.31 and +1.27 with the new). Headless draws nothing, so what her extra triangles cost the GPU isn't measured.
+- **My eyes:** her look in play, at the game's camera, by the fire at night.
+
+(Drafted by Claude Code on 23 Nov 2026 from my words above and "Smooth twice". The modifier's settings and the measurements are Claude Code's. Kept by me the same day: "Keep and commit".)
