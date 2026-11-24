@@ -44,8 +44,10 @@ extends Node3D
 ## walked out along, the bag's drop and its thump, opening it, a treat home to the stash,
 ## and the camper hanging it up again (scripts/bear_bag_test.gd, camp_bear_bag.gd).
 ## `-- --dev-start=<point>` starts at a point of the developer menu (F1, dev_menu.gd):
-## den, camp, roast, free (the fire out) or fire (burning); F9 turns vsync off and on.
-## `-- --dev-unseen`, with `--dev-start=free` or `fire`, in a debug run: the campers can't see
+## den, camp, roast, free (the fire out) or fire (burning); F9 turns vsync off and on. Since 23 Nov
+## 2026, also cake: free play with the fire burning and five of the camp's tasks done, the camper
+## going straight for his cake (camp_finale.gd).
+## `-- --dev-unseen`, with `--dev-start=free`, `fire` or `cake`, in a debug run: the campers can't see
 ## him (campsite.gd `cones_on` off, as the tests and previews have it), so their reactions
 ## don't break off a check (the author, 22 Nov 2026). It changes nothing in normal play.
 
@@ -88,6 +90,10 @@ const Campsite := preload("res://scripts/campsite.gd")
 const CampTasks := preload("res://scripts/camp_tasks.gd")
 const PlanNote := preload("res://scripts/plan_note.gd")
 const CampTutorial := preload("res://scripts/camp_tutorial.gd")
+## The cake, and how level 1 ends at the camp (camp_finale.gd, 23 Nov 2026).
+const CampFinale := preload("res://scripts/camp_finale.gd")
+## The developer menu's cake start (23 Nov 2026): these five of the camp's tasks done.
+const CAKE_START_TASKS := ["marshmallows", "music", "cooler", "tent", "bearbag"]
 ## Effect A, the leaves bursting out of the bush as he dives in or out (leaf_bursts.gd).
 const LeafBursts := preload("res://scripts/leaf_bursts.gd")
 ## Effect B, the smoke over the campfire, following its strength (campfire_smoke.gd).
@@ -97,7 +103,7 @@ const MothsScene := preload("res://props/moths.tscn")
 ## The developer menu (F1) and its start points (dev_menu.gd), and where each puts him.
 const DevMenu := preload("res://scripts/dev_menu.gd")
 const DEV_STARTS := {"camp": Vector3(26.0, 0.02, 6.0), "roast": Vector3(35.0, 0.02, 5.0),
-	"free": Vector3(33.5, 0.02, 4.8), "fire": Vector3(33.5, 0.02, 4.8)}
+	"free": Vector3(33.5, 0.02, 4.8), "fire": Vector3(33.5, 0.02, 4.8), "cake": Vector3(33.5, 0.02, 4.8)}
 ## The level is at night, as the title screen is: the author asked for the game to be at
 ## night too on 21 Oct 2026. Off, it's the daylight it had before.
 const NIGHT := true
@@ -282,6 +288,8 @@ var naps := 0
 var _plan: PlanNote
 ## The tutorial at the camp (camp_tutorial.gd), or null in the tests that skip it.
 var _tutorial: CampTutorial
+## The cake and the end of level 1 at the camp (camp_finale.gd).
+var finale: CampFinale
 ## The layer the UI is drawn on (THE PLAN, now TO DO, and its scraps): the tutorial's
 ## dark layer goes in it, under them.
 var _ui_layer: CanvasLayer
@@ -521,16 +529,19 @@ func _ready() -> void:
 		leaf_bursts.bush = campsite.bush
 		add_child(leaf_bursts)
 		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test or tent_test or bearbag_test \
-				or dev_point in ["free", "fire"]:
+				or dev_point in ["free", "fire", "cake"]:
 			# These skip the tutorial at the camp: everything's as it is after it.
 			tasks.reveal()
 			campsite.cones_on = true
 	tasks.ticked.connect(_on_task_ticked)
-	if campsite and dev_point in ["roast", "free", "fire"]:
+	if campsite and dev_point in ["roast", "free", "fire", "cake"]:
 		tasks.done("investigate")
-	if campsite and dev_point in ["free", "fire"]:
+	if campsite and dev_point in ["free", "fire", "cake"]:
 		# The open world: the fire cold, as after the tutorial, or burning (camp_fire.gd).
 		campsite.campfire.start_cycle(dev_point == "free")
+	if campsite and dev_point == "cake":
+		for id: String in CAKE_START_TASKS:
+			tasks.done(id)
 	if campsite:
 		# The smoke reads the fire; it writes no game state. After the start points, so a
 		# cold start preprocesses no column (CHANGE-BRIEF.md, revised 8 Nov 2026: Effect B's
@@ -636,14 +647,26 @@ func _ready() -> void:
 		campsite.campfire.start_out()
 		if dev_point == "roast":
 			_tutorial.dev_roast()
+	# The cake, and how level 1 ends at the camp (camp_finale.gd, 23 Nov 2026): after the campers, the
+	# raccoon and the moth, which it uses.
+	if campsite:
+		finale = CampFinale.new()
+		finale.level = self
+		finale.camp = campsite
+		finale.tasks = tasks
+		finale.player = player
+		finale.moths = moths
+		add_child(finale)
+		if dev_point == "cake":
+			finale.fetch_now()
 	# `--dev-unseen`: after the tutorial's check just above, which reads cones_on to decide
 	# whether the tutorial is still to come.
 	if dev_unseen:
-		if OS.is_debug_build() and campsite and dev_point in ["free", "fire"]:
+		if OS.is_debug_build() and campsite and dev_point in ["free", "fire", "cake"]:
 			campsite.cones_on = false
 			print("Dev: the campers can't see him (--dev-unseen)")
 		else:
-			push_warning("--dev-unseen works only in a debug run started with --dev-start=free or fire")
+			push_warning("--dev-unseen works only in a debug run started with --dev-start=free, fire or cake")
 	if OS.is_debug_build():
 		var dev := DevMenu.new()
 		dev.level = self
@@ -1133,6 +1156,13 @@ func _check_tasks(delta: float) -> void:
 func _on_task_ticked(id: String) -> void:
 	if id != "investigate":
 		_ticked += 1
+
+
+## Away with the camper's beanie, past "To be continued" (camp_finale.gd): back to the title, as the
+## developer menu restarts the level.
+func finale_over() -> void:
+	Engine.time_scale = 1.0
+	get_tree().reload_current_scene()
 
 
 ## The den is the ground round the roots of the home pine.

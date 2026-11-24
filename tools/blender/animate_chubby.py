@@ -415,8 +415,11 @@ def keyed_pose(body, keys, f):
     turn("chest", X, g("chest_p")); turn("neck", X, g("neck_p"))
     pose["head_world"] = [(Y, g("head_r")), (X, g("head_p")), (Z, g("head_y"))]
     pose["knee_out"] = g("knee_out")
+    # l_fy and r_fy (23 Nov 2026, for the camper's trip and get_up) move a shoe forward or back along the ground as
+    # well; only clips whose keys name them have them, so every earlier clip is keyed exactly as before.
+    fy = "l_fy" in keys.vals[0]
     for k, sd in body.side.items():
-        pose["feet"][k] = body.foot(k, g(k + "_toe"), "heel", Vector((0, 0, g(k + "_lift"))))
+        pose["feet"][k] = body.foot(k, g(k + "_toe"), "heel", Vector((0, g(k + "_fy") if fy else 0, g(k + "_lift"))))
         turn("arm_" + k, Z, -sd["s"] * g(k + "_twist"))
         turn("arm_" + k, Y, -sd["s"] * g(k + "_out"))
         turn("arm_" + k, X, g(k + "_sw"))
@@ -753,8 +756,107 @@ CLIPS = [("walk", WALK["frames"], True), ("run", RUN["frames"], True), ("bend", 
          ("dance", DANCE["frames"], True), ("hammer", HAMMER_FRAMES, True)] + REACT_CLIPS
 
 
-# Extra key-posed clips, from a character's own script (see animate()); none for him.
-EXTRA_CLIPS = {}
+# --- carry, trip and get_up: the cake (23 Nov 2026) -------------------------------------------------------------------
+# Asked for on 23 Nov 2026, the author: "maybe the fat guy can like go in the tent, maybe bring out a cake ... put it on
+# the table, and he's like standing alongside the cake, and then we come up and tie his lace ... and then eventually
+# when he walks away, he falls, and the cake falls on him, and the beanie sort of slips out" (scripts/camp_finale.gd).
+# Three more clips for him alone, in place like the rest:
+#   carry   28 frames, looping: his walk, with both forearms out in front of his belly, the hands steady and a palm's
+#           width apart under the cake's board; the game puts the cake at CAKE_HELD (cake_points prints it)
+#   trip    45 frames: his laces tied together, he steps back and they yank: he teeters on his heels, windmilling, grabs
+#           forward (for the cake), and goes over backwards, flat on his back with his legs kicked up; then they come
+#           down, knees up, and he lies there, arms out (he ends there; the game decides what comes next). His face is
+#           where the cake lands (CAKE_FACE, cake_points)
+#   get_up  60 frames: from lying as trip ends: sits up, dazed, his left hand to the top of his head where the beanie
+#           was, looks one way and the other, then pulls his feet under him, pushes up through a squat and stands
+CARRY = dict(WALK, arm_swing=1.5, arm_bias=-26.0, arm_lag=0.0, arm_in=0.0, arm_out=1.0,
+             elbow=78.0, elbow_fwd=0.0, elbow_back=0.0, wrist=0.0, hinge_flat=1.0, twist=1.5, chest=-2.0)
+TRIP_FRAMES, GET_UP_FRAMES = 45, 60
+TRIP_LANDS = 26                                  # the frame he hits the ground: the cake lands on his face then
+
+
+def _lying():
+    """trip's last pose and get_up's first: flat on his back, knees up, his arms out on the ground."""
+    return dict(pel=Vector((0, 0.58, -0.70)), hips_p=-80.0, tum_p=-85.0, chest_p=2.0, neck_p=4.0, head_p=-80.0,
+                head_r=0.0, head_y=-6.0, knee_out=14.0, l_toe=28.0, r_toe=34.0, l_fy=-0.06, r_fy=-0.02,
+                l_lift=0.12, r_lift=0.16, l_sw=-40.0, r_sw=-48.0, l_out=78.0, r_out=82.0, l_el=12.0, r_el=18.0,
+                l_twist=0.0, r_twist=0.0)
+
+
+def trip_clip(body):
+    """trip (see above), as Keys."""
+    V = Vector
+    first = dict(REST, l_fy=0.0, r_fy=0.0)
+    return Keys(first, [
+        (0, {}),
+        (5, dict(pel=V((0, 0.04, -0.02)), tum_p=-4.0, r_lift=0.05, r_fy=0.04, l_sw=-25.0, r_sw=-25.0,
+                 l_el=20.0, r_el=20.0)),                                              # a step back: it won't go
+        (10, dict(pel=V((0, 0.10, -0.04)), hips_p=-8.0, tum_p=-14.0, chest_p=-4.0, head_p=-10.0, l_toe=18.0,
+                  r_toe=20.0, r_lift=0.0, r_fy=0.02, l_sw=-140.0, l_out=30.0, l_el=20.0, r_sw=-60.0, r_out=40.0,
+                  r_el=30.0)),                                                        # on his heels, windmilling
+        (14, dict(pel=V((0, 0.14, -0.06)), tum_p=-18.0, l_toe=25.0, r_toe=26.0, l_sw=-70.0, l_out=40.0,
+                  r_sw=-150.0, r_out=30.0)),
+        (18, dict(pel=V((0, 0.20, -0.10)), hips_p=-14.0, tum_p=-24.0, head_p=-16.0, l_toe=32.0, r_toe=33.0,
+                  l_sw=-150.0, l_out=30.0, r_sw=-80.0, r_out=38.0)),
+        (21, dict(pel=V((0, 0.27, -0.17)), hips_p=-24.0, tum_p=-32.0, chest_p=-6.0, head_p=-20.0, l_toe=40.0,
+                  r_toe=42.0, l_sw=-100.0, r_sw=-96.0, l_out=12.0, r_out=12.0, l_el=4.0, r_el=4.0)),  # grabs forward
+        (TRIP_LANDS - 3, dict(pel=V((0, 0.42, -0.42)), hips_p=-52.0, tum_p=-58.0, head_p=-46.0, l_toe=55.0,
+                              r_toe=60.0, l_lift=0.10, r_lift=0.18, l_fy=-0.02, r_fy=-0.04, l_sw=-125.0,
+                              r_sw=-120.0, l_out=40.0, r_out=44.0)),                  # going over
+        (TRIP_LANDS, dict(pel=V((0, 0.56, -0.71)), hips_p=-80.0, tum_p=-86.0, chest_p=2.0, neck_p=6.0, head_p=-78.0,
+                          l_toe=70.0, r_toe=78.0, l_lift=0.32, r_lift=0.42, l_fy=-0.05, r_fy=-0.10, l_sw=-70.0,
+                          r_sw=-80.0, l_out=76.0, r_out=80.0, l_el=10.0, r_el=14.0, knee_out=10.0)),  # flat on his back
+        (TRIP_LANDS + 3, dict(pel=V((0, 0.57, -0.65)), head_p=-72.0, l_lift=0.36, r_lift=0.46)),      # a bounce
+        (TRIP_LANDS + 8, dict(_lying(), l_toe=40.0, r_toe=46.0, l_lift=0.20, r_lift=0.24)),            # legs coming down
+        (TRIP_FRAMES, dict(_lying())),
+    ])
+
+
+def get_up_clip(body):
+    """get_up (see above), as Keys."""
+    V = Vector
+    sit = dict(pel=V((0, 0.50, -0.66)), hips_p=-36.0, tum_p=-14.0, chest_p=8.0, neck_p=2.0, head_p=4.0,
+               knee_out=18.0, l_toe=8.0, r_toe=10.0, l_fy=-0.12, r_fy=-0.08, l_lift=0.0, r_lift=0.0,
+               r_sw=30.0, r_out=24.0, r_el=6.0,                                 # his right arm props him behind
+               l_sw=-165.0, l_out=26.0, l_el=118.0, l_twist=-20.0)              # his left hand on his head
+    first = dict(REST, l_fy=0.0, r_fy=0.0)
+    return Keys(first, [
+        (0, dict(_lying())),
+        (12, dict(sit, head_y=0.0)),                                             # sits up
+        (20, dict(head_y=18.0, head_r=-6.0)),                                    # where's it gone?
+        (28, dict(head_y=-16.0, head_r=5.0)),
+        (34, dict(head_y=0.0, head_r=0.0)),
+        (42, dict(pel=V((0, 0.24, -0.42)), hips_p=12.0, tum_p=38.0, chest_p=6.0, neck_p=-8.0, head_p=10.0,
+                  knee_out=24.0, l_toe=0.0, r_toe=0.0, l_fy=0.0, r_fy=0.0, l_sw=-40.0, l_out=20.0, l_el=30.0,
+                  l_twist=0.0, r_sw=-40.0, r_out=20.0, r_el=30.0)),               # feet under him, leaning in
+        (50, dict(pel=V((0, 0.08, -0.22)), hips_p=12.0, tum_p=26.0, chest_p=4.0, neck_p=-4.0, head_p=6.0,
+                  knee_out=14.0, l_sw=-20.0, r_sw=-20.0, l_el=20.0, r_el=20.0)),  # pushing up
+        (GET_UP_FRAMES, dict(first)),
+    ])
+
+
+def cake_points(body, log=print):
+    """Where the game puts the cake (23 Nov 2026): held, at the middle of his two palms on carry's frame 0, in his
+    chest bone's (schiena's) space; and on his face as trip lands, a little above his nose, in his head bone's (testa's)
+    space, and in his own (rig) space."""
+    P, _ = body.solve(cycle_pose(body, 0.0, CARRY))
+    palms = [body.delta(P, sd["hand"]) @ sd["palm"] for sd in body.side.values()]
+    held = P["schiena"].inverted() @ ((palms[0] + palms[1]) / 2)
+    keys = trip_clip(body)
+    P, _ = body.solve(keyed_pose(body, keys, TRIP_LANDS))
+    face_rest = Vector((0.0, body.front(0.0, 1.56) - 0.06, 1.56))            # a little in front of his nose, at rest
+    face = body.delta(P, "testa") @ face_rest
+    face_bone = P["testa"].inverted() @ face
+    log("cake: held in schiena (%.4f, %.4f, %.4f); face in testa (%.4f, %.4f, %.4f), in rig (%.4f, %.4f, %.4f); "
+        "palms %.3f apart" % (tuple(held) + tuple(face_bone) + tuple(face) + ((palms[0] - palms[1]).length,)))
+    return held, face_bone, face
+
+
+# Extra key-posed clips, from a character's own script (see animate()). For him (23 Nov 2026): the cake's trip and
+# get_up, and carry, a gait (EXTRA_GAITS). The low-poly man and the girl set their own CLIPS, so they key none of these.
+EXTRA_CLIPS = {"trip": trip_clip, "get_up": get_up_clip}
+EXTRA_GAITS = {"carry": CARRY}
+CLIPS += [("carry", CARRY["frames"], True), ("trip", TRIP_FRAMES, False), ("get_up", GET_UP_FRAMES, False)]
 
 
 def animate(rig, body, only=None, log=print):
@@ -774,6 +876,11 @@ def animate(rig, body, only=None, log=print):
     for name, make in EXTRA_CLIPS.items():
         keys = make(b)
         poses[name] = lambda f, n, keys=keys: keyed_pose(b, keys, f)
+    # Extra gaits (EXTRA_GAITS, name -> a gait like WALK), looping as walk does: his carry (23 Nov 2026).
+    for name, g in EXTRA_GAITS.items():
+        poses[name] = lambda f, n, g=g: cycle_pose(b, f / n, g)
+    if any(name == "trip" for name, _, _ in CLIPS) and (not only or "trip" in only or "carry" in only):
+        cake_points(b, log)
     if any(name == "hammer" for name, _, _ in CLIPS) and (not only or "hammer" in only):
         hammer = hammer_clip(b)
         poses["hammer"] = lambda f, n: keyed_pose(b, hammer, f)
@@ -857,7 +964,10 @@ if __name__ == "__main__":
     src = open(__file__, encoding="utf-8").read()
     t = bpy.data.texts.get("chubby_animate") or bpy.data.texts.new("chubby_animate")
     t.clear(); t.write(src)
-    animate(rig, body)
+    # CHUBBY_ONLY (names, comma-separated; 23 Nov 2026, as the girl's SIMPLE_GIRL_ONLY) re-keys only those actions,
+    # leaving the rest as they are.
+    only = os.environ.get("CHUBBY_ONLY")
+    animate(rig, body, only=only.split(",") if only else None)
     bpy.ops.wm.save_as_mainfile(filepath=OUT + ".blend", compress=True)
     export_glb(rig, OUT + ".glb")
     print("SAVED", OUT + ".blend", "| EXPORTED", OUT + ".glb", os.path.getsize(OUT + ".glb"), "bytes")

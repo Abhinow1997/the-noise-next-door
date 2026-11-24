@@ -22,6 +22,9 @@ extends RefCounted
 ## it should be just tasks", then "Remove it from code"; CHANGE-BRIEF.md's revision of that day):
 ## the camp's tasks are a plain list, each marked `camp`, which the tutorial reveals together
 ## (`revealed`). There's no main task to tick: all_done() says when every task is done.
+## Since 23 Nov 2026 there's an ending (camp_finale.gd): once five of the camp's tasks are done, the
+## camper's cake, his laces, his beanie and the chase out of the camp, each with a key task added to the
+## list as it comes up (`add_finale`). all_done() doesn't count those.
 
 ## On 7 Nov 2026 each task got a hint, how it's done, which the TO DO list writes under
 ## itself while the mouse is on that task (plan_note.gd). Claude Code's words.
@@ -95,5 +98,23 @@ func key_task() -> Dictionary:
 	return {}
 
 
+## Every task done. The cake's (camp_finale.gd, 23 Nov 2026) aren't counted: they come after.
 func all_done() -> bool:
-	return list.all(func(t: Dictionary) -> bool: return t.done)
+	return list.all(func(t: Dictionary) -> bool: return t.done or t.get("finale", false))
+
+
+## Since 23 Nov 2026 (camp_finale.gd): puts the cake's task `task` on the list, at its end, if it
+## isn't there already. Each is a key task, the one to follow now (THE PLAN keeps it at the bottom
+## of the screen), marked `finale`.
+func add_finale(task: Dictionary) -> void:
+	for t: Dictionary in list:
+		if t.id == task.id:
+			return
+	var t := task.duplicate()
+	t.merge({"done": false, "key": true, "finale": true}, true)
+	list.append(t)
+
+
+## How many of the camp's tasks are done.
+func camp_done() -> int:
+	return list.filter(func(t: Dictionary) -> bool: return t.get("camp", false) and t.done).size()

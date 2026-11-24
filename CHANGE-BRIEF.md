@@ -1000,3 +1000,81 @@ This comes after the `a7` tag (`e21bb3a`) and isn't part of Assignment 7's submi
 - **My eyes:** the three campers and the fire keeper in play, at the game's camera, by the fire at night.
 
 (Drafted by Claude Code on 23 Nov 2026 from my words above, "Yes, both men" and "Smooth it too". The settings, the one-thread finding and the measurements are Claude Code's. Kept by me the same day: "Keep and commit".)
+
+---
+
+### Revised 23 Nov 2026: the cake, his laces, his beanie, and the chase out of the camp
+
+"after some time maybe the fat guy can like go in the tent, maybe bring out a cake or something, put it on the ... table, and he's like standing alongside the cake, and then we come up and tie his lace, something of that sort of a task, and then eventually when the he walks away, he falls, and he the cake falls on him, and the beanie sort of slips out, and we will grab it. As soon as we grab the [red] beanie, like the next is we'll start a cutscene ... a quick like 10 seconds or 20 seconds cutscene, and then eventually we'll start a chase that will lead on to a new location." Earlier the same evening: "after 4 or 5 tasks".
+
+As the girl's smoothing above, this comes after the `a7` tag and isn't part of Assignment 7's submission. It's the next phase the GDD gives level 1 (its game flow, step 4, and the storyboard's panel 8): he leaves the camp with the camper's red beanie and the campers chase him. **It was built before this revision, at my word ("Let's build that right now"),** and this revision records what's in the game.
+
+**The unlock.**
+- Once **5 of the camp's tasks** are done (the tutorial's marshmallows count), the camper goes for a cake **6 s later**, the next time he's at his routine.
+- The camp has 8 tasks now, counting Eat the pizza and Scare a camper, which are still being built.
+
+**The cake** (`scripts/camp_finale.gd`, and the camper's new states in `scripts/camp_person.gd`):
+- He walks to his tent's door and bends in at it (1.8 s). He comes out with a cake in both hands, carrying it (his new `carry` clip).
+- He takes it to a little folding table of his own, out behind his tent at the camp's east edge. He sets it down (1.2 s).
+- **His routine gains a step:** standing at the table facing the cake, for 20–30 s, each time his routine comes round to it.
+- The table stands clear of the camp's walkways. Those are worked out before it's built, so in its first place, by the tent, it blocked his way to the door.
+- **The cake:** two round tiers in white frosting on a board, with cherries round the top and three lit candles. It's built in code like the camp's props.
+
+**Tie his laces**, a new key task, shown at the bottom of the screen like "Investigate the music":
+- **Its hint** is "Sneak behind him, hold E." (5 words).
+- While he stands at the cake, E held at his heels for **2.5 s** ties his laces together.
+- He then moves on within **2.5 s**. Anything that sets him moving trips him too, such as a fright.
+
+**The fall:**
+- His first step, he falls (his new `trip` clip): back onto his heels, windmilling. He grabs at the table and the cake goes with him, and he lands flat on his back.
+- The cake flies off the table as he grabs and lands upside down on his face as he hits the ground. Its candles go out.
+- His beanie slips off. The one on his head is hidden, and a loose one, thrown off by his head, lies on the ground.
+- **The loose beanie** is the worn beanie's own smoothed mesh, so it matches him. The A3 dropped beanie (`assets/props/beanie_dropped.glb`, still faceted) isn't used.
+- **Swipe his red beanie** becomes the key task, with the hint "Grab it, quick!".
+- He stays down until the beanie's taken.
+
+**The cutscene** (10.2 s): E takes the beanie, and the cutscene starts.
+- Black bars come on and the keys are held. The camera goes to the camper.
+- **At 2 s** he gets up (his new `get_up` clip): he sits up dazed with a hand on his bare head, looks one way and the other, and stands. The cake slides off.
+- **At 4.4 s** he stamps at the raccoon. The girl takes fright, and the other two men go after him.
+- **At 6.6 s** the raccoon runs off on his own toward the trees, north-east (`player.gd`'s `run_off`), with the men after him.
+- He can't be caught while the cutscene holds him.
+
+**The chase:**
+- "RUN!" flashes, the bars go, and the keys are his. **Get away with it** becomes the key task ("Follow the moth, run!").
+- **The pursuers:** the camper, the low-poly man and the fire keeper. They chase him out of the camp and on through the forest, and never give up (`camp_person.gd` PURSUE).
+- **Caught,** he's shooed, drops the beanie and leaps away, as in the camp.
+- **The moth** flies ahead of him, leading the way, as it leads him to the camp (`props/moths.gd`'s new `guide_along`). It heads for a warm glow past the forest's north-east edge.
+- **The end:** reaching that edge with the beanie, the screen fades to "To be continued", and the game goes back to the title. **The new location isn't built yet.**
+
+**The camper's three new clips** (`tools/blender/animate_chubby.py`, at his 25 fps):
+- **`carry`:** 28 frames, looping, set in `chubby_boy.glb.import`'s per-animation settings as his other loops are.
+- **`trip`:** 45 frames. He hits the ground on frame 26.
+- **`get_up`:** 60 frames.
+- **How they're built:** re-keyed alone (`CHUBBY_ONLY`, as the girl's `SIMPLE_GIRL_ONLY`) on one thread (`-t 1`).
+- **His other ten clips, his mesh and his skin** are byte for byte the old `.glb`'s (compared clip by clip).
+- **`chubby_boy.glb`:** SHA-256 `cf37c419cdf6f0663a7ab683fe0b9340ddcf517326391475f3f225f9232ea202`.
+- **Played only by `camp_person.gd`,** his `AnimationPlayer`'s one authority. The cake and the beanie are props moved in code by `camp_finale.gd`.
+
+**Named changes:**
+- **The camper's routine:** the cake step.
+- **His reactions:** fetching the cake, falling with his laces tied, getting up.
+- **The others' reaction:** to the beanie taken (the girl's fright, the men's chase).
+- **The moth's job:** it now leads the getaway too.
+- **The task list:** the cake's three tasks are added to the list only when each comes up. `all_done()` doesn't count them, so every test that reads the list or `all_done()` reads what it read before.
+- **A developer start:** "cake" (F1, or `--dev-start=cake`), with five tasks done and the camper going straight for his cake. `--dev-unseen` works with it.
+
+**The tests:** `tests/test_cake_finale.gd`, 19 checks, through real input, passing at 30, 60 and 144 fps:
+- the clips' loop modes;
+- the fetch, the carry and the table;
+- the laces;
+- the fall, the cake and the beanie;
+- the grab and the cutscene's beats and length (between 10 and 20 s);
+- the chase out of the camp, and a catch;
+- the end.
+
+**In play:** I played it the same day, from the developer menu's cake start: "yea feels good for now".
+
+**Still to come:** what the new location is.
+
+(Drafted by Claude Code on 23 Nov 2026 from my words above, after the build I asked for and played. The cake, its table's place, the timings, the hints, the cutscene's beats, the chase's route and the moth leading it are Claude Code's.)

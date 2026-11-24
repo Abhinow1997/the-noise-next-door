@@ -17,6 +17,8 @@ const POINTS := [
 	["roast", "The tutorial: the roasting"],
 	["free", "Free play: the fire out"],
 	["fire", "Free play: the fire burning"],
+	# 23 Nov 2026: five tasks done, the camper bringing out his cake (camp_finale.gd).
+	["cake", "The cake: five tasks done"],
 ]
 
 ## The point the level restarts at, kept across the reload.

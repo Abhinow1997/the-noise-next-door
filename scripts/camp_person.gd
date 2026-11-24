@@ -80,8 +80,14 @@ signal state_changed(state: int)
 const VisionCone := preload("res://scripts/vision_cone.gd")
 const Player := preload("res://scripts/player.gd")
 
+## Since 23 Nov 2026 (the cake, camp_finale.gd), the camper's: CAKE (fetching it from his tent and
+## putting it on its table), FALLEN (his laces tied, he's gone over backwards and lies there), RISE
+## (getting up) and PURSUE (after him wherever he goes: the chase out of the camp).
 enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX, SEARCH, TEND, PITCH,
-	HANG }
+	HANG, CAKE, FALLEN, RISE, PURSUE }
+
+## His laces tied, he's started to fall (camp_finale.gd).
+signal fell
 
 ## How far they see while calm (times SNEAK_SIGHT while he sneaks), while wondering
 ## about a noise, and once alarmed, and how wide; where their eyes are.
@@ -144,6 +150,14 @@ const WALK := 1.1
 const FLEE_SPEED := 2.4
 ## Walking to a place, this near is there (m): near enough not to be seen settling in.
 const ARRIVE := 0.08
+## The cake (camp_finale.gd, 23 Nov 2026): how long he's bent in at his tent's door fetching it, and
+## bent over its table setting it down; the clips he carries it in, falls in and gets up in
+## (tools/blender/animate_chubby.py).
+const CAKE_FETCH := 1.8
+const CAKE_SET := 1.2
+const CARRY := "carry"
+const TRIP := "trip"
+const GET_UP := "get_up"
 
 ## Set before it's added (campsite.gd).
 var role := "guy"
@@ -169,6 +183,8 @@ var state := State.WORK
 ## standing guard (the tutorial sets it as he steals a roasted marshmallow:
 ## camp_tutorial.gd). Used up by that flinch.
 var chase_next := false
+## The camper's laces, tied together (camp_finale.gd): the next step he takes, he falls (`_go`).
+var laces_tied := false
 var player: Player
 var anim: AnimationPlayer
 var eyes: VisionCone
@@ -218,6 +234,11 @@ var _peg := -1
 ## Hanging the bear bag up again: the bag (camp_bear_bag.gd), and where he's got to.
 var _bear_bag
 var _hang_stage := 0
+## The cake (camp_finale.gd): who has it, how far he's got fetching it, and in the chase, how long
+## he stamps before he runs (on catching him, too).
+var _finale
+var _cake_stage := 0
+var _pursue_pause := 0.0
 var _hand: BoneAttachment3D
 ## Their skeleton and its head bone, for where the head looks while confused.
 var _skeleton: Skeleton3D
@@ -292,8 +313,9 @@ func _physics_process(delta: float) -> void:
 		if player == null:
 			return
 	_t += delta
-	eyes.blind = not camp.cones_on
-	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG]
+	# Flat on his back, or getting up, he sees nothing (the cake, 23 Nov 2026).
+	eyes.blind = not camp.cones_on or state in [State.FALLEN, State.RISE]
+	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG, State.CAKE]
 	if calm:
 		eyes.reach = SIGHT * (SNEAK_SIGHT if player.sneaking else 1.0)
 		if anim and anim.current_animation == "dance":
@@ -371,6 +393,17 @@ func _physics_process(delta: float) -> void:
 			_hang(delta)
 		State.SEARCH:
 			_search(delta)
+		State.CAKE:
+			_cake(delta)
+		State.FALLEN:
+			# Down, as trip ends (a one-shot, held at its last frame), till he's told to get up.
+			pass
+		State.RISE:
+			if _t >= anim_length(GET_UP):
+				laces_tied = false
+				_to_state(State.GUARD)
+		State.PURSUE:
+			_pursue(delta)
 	var meant := velocity.length()
 	move_and_slide()
 	# Sliding along something's slanted side shouldn't lift them off the ground.
@@ -669,6 +702,127 @@ func _hang(delta: float) -> void:
 		_to_state(State.RETURN)
 
 
+## The camper goes for the cake (camp_finale.gd, 23 Nov 2026), if he's at his routine: into his tent
+## for it, then out to its table. True if he's going.
+func fetch_cake(finale) -> bool:
+	if state != State.WORK:
+		return false
+	_finale = finale
+	_cake_stage = 0
+	_fix_t = 0.0
+	_to_state(State.CAKE)
+	return true
+
+
+## Fetching it: to his tent's door and bent in at it (CAKE_FETCH), the cake in his hands
+## (camp_finale.gd puts it there); to the table with it, carrying it (`carry`); bent over the
+## table to set it down (CAKE_SET). Then back at his routine, which camp_finale.gd has given a
+## step by the cake, and he's at it.
+func _cake(delta: float) -> void:
+	if eyes.seeing and not camp.let_be():
+		_startle(true)
+		return
+	if _cake_stage == 0 or _cake_stage == 2:
+		var to: Vector3 = _finale.door_spot() if _cake_stage == 0 else _finale.stand_spot()
+		if _flat(to - global_position).length() > 0.3:
+			if _cake_stage == 0:
+				_go(to, WALK * 1.2, delta, "walk", WALK * 1.2 / walk_natural)
+			else:
+				_go(to, WALK, delta, CARRY, WALK / walk_natural)
+			return
+		_cake_stage += 1
+		_fix_t = 0.0
+		return
+	_play("bend", 1.0, 0.15)
+	_face(_finale.door_at() if _cake_stage == 1 else _finale.table_at(), delta)
+	_fix_t += delta
+	if _cake_stage == 1 and _fix_t >= CAKE_FETCH:
+		_finale.cake_in_hands(self)
+		_cake_stage = 2
+	elif _cake_stage == 3 and _fix_t >= CAKE_SET:
+		_finale.cake_on_table()
+		_cake_stage = 4
+		_step = _finale.cake_step(self)
+		_step_left = _rng.randf_range(routine[_step].time.x, routine[_step].time.y)
+		_to_state(State.WORK)
+		_arrived = true
+
+
+## By the cake with his laces tied (camp_finale.gd): he goes on to the next step of his routine
+## within `seconds`, and falls as he does.
+func leave_soon(seconds: float) -> void:
+	_step_left = minf(_step_left, seconds)
+
+
+## His laces tied, the first step he takes (`_go`): over he goes (`trip`), and lies there.
+func _fall() -> void:
+	_to_state(State.FALLEN)
+	if anim and anim.has_animation(TRIP):
+		anim.play(TRIP, 0.1)
+		anim.speed_scale = 1.0
+	fell.emit()
+
+
+## Flat on his back after his fall (camp_finale.gd): up he gets (`get_up`); then stands guard,
+## facing the raccoon, his laces kicked loose.
+func get_up() -> void:
+	if state != State.FALLEN:
+		return
+	_to_state(State.RISE)
+	if anim and anim.has_animation(GET_UP):
+		anim.play(GET_UP, 0.1)
+		anim.speed_scale = 1.0
+
+
+## The length of clip `clip` (s), or 0 if they haven't got it.
+func anim_length(clip: String) -> float:
+	return anim.get_animation(clip).length if anim and anim.has_animation(clip) else 0.0
+
+
+## After him, wherever he goes (camp_finale.gd's chase out of the camp, 23 Nov 2026): first a stamp
+## at him for `stamp` seconds, then running straight at him at their chase speed. Catching him,
+## they shoo him, he drops what he has and leaps away (as in the camp), and they're after him again.
+## Only `stand_down` ends it.
+func pursue(stamp := 0.0) -> void:
+	if player == null:
+		return
+	chase_next = false
+	_fright_at = INF
+	_fright_seen = camp.clock
+	_alarmed_at = camp.clock
+	_to_state(State.PURSUE)
+	_pursue_pause = stamp
+
+
+## The chase is over (camp_finale.gd): back to their routine.
+func stand_down() -> void:
+	if state == State.PURSUE:
+		_to_state(State.RETURN)
+
+
+func _pursue(delta: float) -> void:
+	var him := player.global_position
+	if _pursue_pause > 0.0:
+		_pursue_pause -= delta
+		_play("shoo")
+		_face(him, delta)
+		return
+	var to := _flat(him - global_position)
+	# While the cutscene holds him (camp_finale.gd), he can't be caught.
+	if to.length() < REACH and not player.is_hopping() and not player.resting and not VisionCone.hidden(player) 			and not player.input_locked:
+		if player.held:
+			player._drop()
+		player.startle(global_position)
+		_pursue_pause = SHOO_TIME
+		return
+	var dir := to.normalized()
+	if _side != 0.0:
+		dir = (dir + dir.cross(Vector3.UP) * _side).normalized()
+	velocity = dir * chase_speed
+	rotation.y = rotate_toward(rotation.y, atan2(dir.x, dir.z), TURN * delta)
+	_play("run", chase_speed / run_natural)
+
+
 ## A log from the woodpile, in his right hand.
 func _take_log() -> void:
 	if _hand == null:
@@ -731,6 +885,8 @@ func _work(delta: float) -> void:
 
 ## A fright: from seeing him themselves (`spotted`), or caught from someone else's.
 func _startle(spotted := false) -> void:
+	if state in [State.FALLEN, State.RISE]:
+		return
 	_fright_at = INF
 	_fright_seen = camp.clock
 	_alarmed_at = camp.clock
@@ -945,6 +1101,13 @@ func _return(delta: float) -> void:
 
 
 func _to_state(to: State) -> void:
+	# Down after his fall, he only gets up (`get_up`); getting up, he ends on his feet, on guard, or
+	# goes after him (camp_finale.gd). Nothing else moves him on meanwhile.
+	if state == State.FALLEN and to != State.RISE or state == State.RISE and to not in [State.GUARD, State.PURSUE]:
+		return
+	if state == State.CAKE and to != State.CAKE and _finale and _cake_stage in [2, 3]:
+		# Frightened with the cake in his hands: he puts it down on its table (camp_finale.gd).
+		_finale.cake_on_table()
 	if to == State.GUARD and state == State.STARTLED:
 		_linger = 0.0
 	if to == State.FLEE:
@@ -1046,6 +1209,10 @@ func _stand() -> String:
 ## Heads for `to` at `speed`, round whatever's in the way, playing `clip` at `rate`,
 ## facing the way they go.
 func _go(to: Vector3, speed: float, delta: float, clip: String, rate: float) -> void:
+	# The camper's laces tied together (camp_finale.gd): his first step trips him.
+	if laces_tied and state != State.FALLEN:
+		_fall()
+		return
 	var left := _flat(to - global_position).length()
 	if left < 0.05:
 		return
@@ -1079,6 +1246,9 @@ func _face(point: Vector3, delta: float) -> void:
 
 func _play(clip: String, rate := 1.0, blend := 0.25) -> void:
 	if anim == null or not anim.has_animation(clip):
+		return
+	# Falling and getting up play their own one-shots (`_fall`, `get_up`), held to the end.
+	if state in [State.FALLEN, State.RISE]:
 		return
 	if anim.current_animation != clip:
 		anim.play(clip, blend)

@@ -29,6 +29,9 @@ extends Node3D
 ##     the camp, LEAD metres on from where he is, never more than LEASH from him.
 ##   - Once he's reached the camp, it flies to the fire and is the fire's moth from then on: over
 ##     the flames while it burns, gone while it's out.
+## Since 23 Nov 2026 (scripts/camp_finale.gd, the chase out of the camp with the camper's beanie),
+## guide_along() leads him the same way along another path, till it's told he's there; then it goes
+## back to the fire.
 ## Built on 21 Nov 2026 by Claude Code; one moth on the new sheet, and the guide, since 22 Nov 2026.
 
 const Forest := preload("res://scripts/forest.gd")
@@ -77,6 +80,8 @@ var _mode := Mode.FIRE
 var _player: Node3D
 var _tasks: Object
 var _way := PackedVector2Array()
+## True once he's where it's leading him (guide: the camp reached; guide_along: what it's given).
+var _done := Callable()
 var _out := false
 var _pos := Vector3.ZERO
 var _vel := Vector3.ZERO
@@ -132,9 +137,22 @@ func guide(player: Node3D, tasks: Object) -> void:
 	_way = PackedVector2Array([WAY_START])
 	for p: Vector2 in Forest.TRAIL_POINTS:
 		_way.append(p)
+	_done = func() -> bool: return bool(tasks.call("is_done", "investigate"))
 	_mode = Mode.GUIDE
 	_out = false
 	visible = false
+
+
+## Since 23 Nov 2026 (camp_finale.gd): guides him as guide() does, along `way` (points on the ground,
+## x and z) instead of the trail, till `done` says he's there.
+func guide_along(player: Node3D, way: PackedVector2Array, done: Callable) -> void:
+	_player = player
+	_way = way
+	_done = done
+	_mode = Mode.GUIDE
+	_out = false
+	_moving = false
+	_speed = 0.0
 
 
 ## True while it's guiding him (waiting for him to leave the hollow, or out with him).
@@ -144,7 +162,7 @@ func guiding() -> bool:
 
 func _guide(delta: float) -> void:
 	_t += delta
-	if _tasks.call("is_done", "investigate"):
+	if _done.call():
 		_mode = Mode.TO_FIRE
 		return
 	var at := _player.global_position
