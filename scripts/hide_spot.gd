@@ -22,9 +22,6 @@ signal hiding_changed(inside: bool)
 ## How far from its middle, straight toward the camera, his eyes peek out (m): just
 ## outside its leaves on the side the player sees.
 @export var peek_out := 0.9
-## How far a move key hops him out of it (m); 0 for the usual (player.gd DIVE_OUT). Since 23 Nov
-## 2026, for the keeper's box inside the green tent (camp_supplies.gd).
-@export var hop_out := 0.0
 ## For the keeper's box (keeper_box.gd, 23 Nov 2026, after play: "the eyes look off when he is in
 ## it"), whose eyes peek out of the gap under its lifted edge:
 ##   - `own_eyes`: what it belongs to places his eyes (`eyes()`), not this;
@@ -91,8 +88,7 @@ func _ready() -> void:
 func covers(body: Node3D) -> bool:
 	if closed or not monitoring or not body is PhysicsBody3D:
 		return false
-	# Hiding in it, he's in it, whether or not his collider's on (it's off while he rides in the keeper's
-	# box, carried: player.gd `riding`, 23 Nov 2026).
+	# Hiding in it, he's in it, whether or not his collider's on (23 Nov 2026).
 	if body.get("hiding_in") == self:
 		return true
 	return overlaps_body(body) and (not needs_sneak or body.get("sneaking") == true)
@@ -146,6 +142,11 @@ func dived(inside: bool) -> void:
 		_eyes.visible = inside and not hold_eyes
 		_blink = _rng.randf_range(BLINK_EVERY.x, BLINK_EVERY.y)
 	hiding_changed.emit(inside)
+
+
+## It shakes, as when he dives in (the keeper's box, with him in it: keeper_box.gd `rustle`).
+func rustle() -> void:
+	_rustle_t = 0.0
 
 
 ## True while his eyes are peeking out of it (for the tests).

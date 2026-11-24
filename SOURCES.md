@@ -315,3 +315,15 @@ The reference pictures made or shared after Assignment 3, in the same columns as
 - **My film:** `VideoRecording - Assignement -7.mp4`, 2 min 56 s, made by the author on 22 Nov 2026 from the game as at `8bf28c9`. Claude Code drafted a 3-minute script and a list of what to show, at the author's request; what's in the film is the author's.
 - **The AI explainer:** `AI Explainer - Assignement - 7.mp4`, 8 min 15 s, a NotebookLM Video Overview made by the author from this repo's Assignment 7 docs (22 Nov 2026). Claude Code drafted its sources and prompt, in [design/a7/notebooklm/](design/a7/notebooklm/) (as at `160c0eb`), and a corrected prompt the same day, after NotebookLM's first producer notes. It's NotebookLM's summary, and it may simplify or misstate details.
 - Both are kept out of GitHub, as MP4s are, in the author's Northeastern OneDrive: [my film](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQDh3g9v5CjdSoc_wf69fjn1AfPQL-eozaA0xLDam-3FWho?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=5xesxV) and [the AI explainer](https://northeastern-my.sharepoint.com/:v:/g/personal/gangurde_a_northeastern_edu/IQC4lwa9p-i1QrWaftKZpkMzAeOxTeK8lDKBQIsIRVsB0tc?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=7TudRp). Their SHA-256s are in SUBMISSION.md.
+
+## After Assignment 7
+
+After the `a7` tag (`e21bb3a`); not part of Assignment 7's submission.
+
+### Third-party assets in use
+
+- **The fire keeper's box** (23 Nov 2026): "[CC0] Free Cardboard Boxes" by Viktor Sano, https://viktorsano.itch.io/cc0-free-cardboard-boxes.
+  - **Licence:** CC0, checked 23 Nov 2026. The page says "License: CC0. No need for attribution"; it's credited here all the same.
+  - **Downloaded** by Claude Code through the in-app browser, at the author's word ("Download the CC0 pack"): `CC0CardboardBoxes.zip`, 7,322,442 bytes, SHA-256 `666379ba092038aba0fb1f26f2b33478ba306424635e302412fbd24619301b5c`. The zip isn't kept. Its three files are, unchanged, in [assets/props/cardboard_box/](assets/props/cardboard_box/), with [ATTRIBUTION.md](assets/props/cardboard_box/ATTRIBUTION.md).
+  - **Used:** `Box1` and its tape alone (0.75 × 0.59 m, 0.47 m tall; shown at three-quarters of that, after play: "reduce its size"), picked by the author ("Use the closed cube"), in `scripts/keeper_box.gd`: the box the fire keeper takes the tripod and pot out of, and the raccoon's hiding place: he drags it about, and rustles it and bursts out of it to scare a camper (`scripts/camp_box.gd`). The files aren't edited. In the game its top is rebuilt in code as two flaps, split down the tape, so one can open a crack while he's inside.
+  - Human-made, not a generated asset.

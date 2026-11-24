@@ -6,6 +6,8 @@ extends CanvasLayer
 ## It also draws, in the thought bubbles' ink (scribbles.gd):
 ##   - a chalk E over the nearest thing he can use, and a ring round it filling while he
 ##     holds E at it (and running back while he doesn't);
+##   - since 23 Nov 2026, while he's in the keeper's box, its two keys over it, each a chalk key in a
+##     ring with what it does beside it (camp_box.gd `prompts`): F to make a noise, E to jump out;
 ##   - over the campers' heads (camp_person.gd): a "?" while one is wondering about a
 ##     noise or confused after he's got away (it was "??" for that till 10 Nov 2026: the
 ##     author, "with the '?' sign over the head"), and the "!" when one has just spotted
@@ -14,6 +16,7 @@ extends CanvasLayer
 const Scribbles := preload("res://scripts/scribbles.gd")
 const Interactable := preload("res://scripts/interactable.gd")
 const CampPerson := preload("res://scripts/camp_person.gd")
+const KeeperBox := preload("res://scripts/keeper_box.gd")
 const Player := preload("res://scripts/player.gd")
 const FONT := preload("res://assets/fonts/PatrickHand-Regular.ttf")
 
@@ -23,6 +26,12 @@ const MARK := 0.03
 ## How high over their feet the marks float (m), and how long the "!" stays after a fright.
 const OVER_HEAD := 2.05
 const ALERT_FOR := 1.6
+## The keeper's box's keys: how high over its top they show (m), how far apart their rows are (in
+## rings), how big their words are against the key, and how faint a key is till it can be used again.
+const BOX_KEYS_UP := 0.35
+const BOX_KEY_ROWS := 2.7
+const BOX_KEY_WORDS := 1.05
+const BOX_KEY_DIM := 0.4
 
 ## Set before it's added.
 var camp: Node
@@ -106,6 +115,7 @@ func _draw_on(canvas: Control) -> void:
 				Scribbles.WHITE)
 	if camp == null:
 		return
+	_draw_box_keys(canvas, camera, unit)
 	for person: CampPerson in camp.people:
 		var head := person.global_position + Vector3.UP * OVER_HEAD
 		if camera.is_position_behind(head):
@@ -122,3 +132,36 @@ func _draw_on(canvas: Control) -> void:
 			canvas.draw_string(FONT, at, mark, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Scribbles.WHITE)
 		elif person.alarmed_for() < ALERT_FOR or person.state == CampPerson.State.CHASE:
 			Scribbles.draw(canvas, Scribbles.strokes("alert", int(_t * 8.0) % 3, 0), p, unit * MARK * 1.6)
+
+
+## While he's in the keeper's box (camp_box.gd `prompts`): its keys over it, a row each, centred on
+## it: the key in its ring as the E's, and what it does beside it.
+func _draw_box_keys(canvas: Control, camera: Camera3D, unit: float) -> void:
+	var task = camp.get("box_task")
+	if task == null:
+		return
+	var rows: Array = task.prompts()
+	if rows.is_empty():
+		return
+	var at: Vector3 = task.box.global_position + Vector3.UP * (KeeperBox.SIZE.y + BOX_KEYS_UP)
+	if camera.is_position_behind(at):
+		return
+	var r := unit * RING
+	var key_size := int(r * 1.4)
+	var word_size := int(key_size * BOX_KEY_WORDS)
+	var top := camera.unproject_position(at) - Vector2(0.0, r * BOX_KEY_ROWS * (rows.size() - 1))
+	for i in rows.size():
+		var row: Dictionary = rows[i]
+		var fade: float = 1.0 if row.ready else BOX_KEY_DIM
+		var words := FONT.get_string_size(row.text, HORIZONTAL_ALIGNMENT_LEFT, -1, word_size)
+		var width := r * 2.0 + r * 0.6 + words.x
+		var p := top + Vector2(-width * 0.5 + r, r * BOX_KEY_ROWS * i)
+		canvas.draw_circle(p, r * 1.15, Color(Scribbles.SHADOW, Scribbles.SHADOW.a * fade))
+		canvas.draw_circle(p, r, Color(Scribbles.DARK, 0.75 * fade))
+		var key := FONT.get_string_size(row.key, HORIZONTAL_ALIGNMENT_CENTER, -1, key_size)
+		canvas.draw_string(FONT, p + Vector2(-key.x * 0.5, key_size * 0.33), row.key, HORIZONTAL_ALIGNMENT_LEFT, -1,
+			key_size, Color(Scribbles.WHITE, fade))
+		var word_at := p + Vector2(r * 1.6, word_size * 0.33)
+		canvas.draw_string_outline(FONT, word_at, row.text, HORIZONTAL_ALIGNMENT_LEFT, -1, word_size,
+			int(word_size * 0.18), Color(Scribbles.DARK, fade))
+		canvas.draw_string(FONT, word_at, row.text, HORIZONTAL_ALIGNMENT_LEFT, -1, word_size, Color(Scribbles.WHITE, fade))

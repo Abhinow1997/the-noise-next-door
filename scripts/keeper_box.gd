@@ -2,40 +2,44 @@ extends Node3D
 ## The fire keeper's box (23 Nov 2026), the author: "the guy will carry the box, and in that he'll
 ## have ... a pot ... We will replace the bucket which we are using to douse ... the fire ... there
 ## are like three sticks ... and the pot will be inside the box which he'll bring ... he keeps the
-## box a little far away, gets the pot, and then starts to fix the pot". Their picks: he brings it
-## at the tutorial's end, as the girl brings the pizza (camp_tutorial.gd); a free CC0 model, the
-## closed cube as it comes ("Use the closed cube").
+## box a little far away, gets the pot, and then starts to fix the pot". Their picks: the pot comes
+## at the tutorial's end (camp_tutorial.gd); a free CC0 model, the closed cube as it comes ("Use the
+## closed cube").
 ##   - The model: Viktor Sano's "[CC0] Free Cardboard Boxes", Box1 with its tape
-##     (assets/props/cardboard_box/, ATTRIBUTION.md there): 0.75 × 0.59 m, 0.47 m tall, closed.
-##   - `carry`: held in front of him at his middle, level, turned his way, as he walks (there's no
-##     carrying clip; his arms swing as ever).
-##   - `put_down`: on the ground, at AT (from the fire) between the fire and the green tent, or
-##     inside the green tent (camp_supplies.gd).
-##   - Since stage 2 the same day ("we can hide into the box, and then it can be carried inside
-##     ... tent"): a hiding spot like the bush (`hide_spot`, dive on), which camp_supplies.gd
-##     opens and closes. Its solid shape is only there for the campers' walkways to be baked round
-##     it (`unsolid` after that), so he can dive in.
+##     (assets/props/cardboard_box/, ATTRIBUTION.md there): 0.75 × 0.59 m, 0.47 m tall, closed. Shown
+##     at SCALE of that (after play: "reduce its size"), 0.56 × 0.44 m, 0.35 m tall.
+##   - `put_down`: on the ground, at AT (from the fire) near the camp's edge. It stands there from the
+##     start, and the keeper takes the tripod and pot out of it at the tutorial's end. At first he
+##     carried it in, and into the green tent and out on his rounds; after play ("everything beyond
+##     hiding in the box looks wrong the animation of the guy carying it messed up"), nobody carries
+##     it. The raccoon drags it about (camp_box.gd).
+##   - A hiding spot like the bush (`hide_spot`, dive on), which camp_box.gd opens and closes. Its
+##     solid shape is only there for the campers' walkways to be baked round it (`unsolid` after
+##     that), so he can dive in.
+##   - `rustle`: it shakes, as it does when he dives in (F in it: camp_box.gd).
 ##   - With him in it, on the ground, the top's flap on the far side from the camera opens a crack
 ##     and his eyes peek out from under it, blinking, out of the dark inside (after play: "the eyes
 ##     look off when he is in it", then "maybe the upper flap peaking from there not from the
 ##     botttom ... we are basicially inside the box"). The model's top is one face, so it's made
 ##     into two flaps, split down the tape (each flap takes its half of the tape), with the box dark
-##     inside under them. Carried, both are shut in the keeper's arms and his eyes stay in.
+##     inside under them.
 ## Presentation and a hiding place: it writes nothing in the game.
 
 const HideSpot := preload("res://scripts/hide_spot.gd")
 const MODEL := "res://assets/props/cardboard_box/CardboardBoxes.fbx"
-## Where it's put down, from the fire (x, z), and which way it's turned (degrees).
-const AT := Vector2(1.9, 3.0)
+## Where it's put down, from the fire (x, z), and which way it's turned (degrees). Near the camp's edge,
+## 8.5 m south-east of its middle, behind the green tent from the fire, where the trees begin 2.5 m on
+## (forest.gd CAMP_RADIUS): out of the camp's middle (23 Nov 2026, after play: "the box needs to be kept
+## away from the campsite its literally in the middle", then "somewhere near the edge of the camp").
+## It was 1.9, 3.0, between the fire and the green tent.
+const AT := Vector2(6.5, 8.3)
 const TURN := 20.0
-## Its size (m), from the model's Box1.
-const SIZE := Vector3(0.747, 0.472, 0.588)
-## Carried: how far in front of his middle, and how high its bottom is (m).
-const HOLD_OUT := 0.42
-const HOLD_UP := 0.62
+## How big it's shown against the model, and its size (m): the model's Box1 at that.
+const SCALE := 0.75
+const SIZE := Vector3(0.747, 0.472, 0.588) * SCALE
 ## As a hiding spot: how far round it he dives in (m, just over its own size, so it's walking into it
 ## that dives him in).
-const HIDE := Vector3(0.8, 0.5, 0.66)
+const HIDE := SIZE + Vector3(0.05, 0.03, 0.07)
 ## With him in it: how far the far flap opens (degrees, on its hinge at the box's far top edge), and how
 ## long it takes to open or shut (s).
 const FLAP_OPEN := 18.0
@@ -43,9 +47,9 @@ const OPEN_TIME := 0.3
 ## His eyes under it: how far back from the middle of the top (m, toward the hinge), how high their
 ## middles are over the top, and how big against the bush's (hide_spot.gd), to fit under the flap.
 ## They show once it's this far open (0–1).
-const EYES_IN := 0.045
-const EYES_UP := 0.025
-const EYES_SCALE := 0.75
+const EYES_IN := 0.04
+const EYES_UP := 0.022
+const EYES_SCALE := 0.65
 const EYES_FROM := 0.6
 ## The dark inside, seen under the open flap: just under the top (under the flaps' undersides), and
 ## just in from the sides, so it shows none of the ground through the box.
@@ -59,10 +63,9 @@ const FLAP_THICK := 0.002
 ## The tape on the flaps: how far over the flap (m), so it doesn't flicker into it.
 const TAPE_UP := 0.0005
 
-## The hiding spot in it (hide_spot.gd), shut till camp_supplies.gd opens it.
+## The hiding spot in it (hide_spot.gd), shut till camp_box.gd opens it.
 var hide_spot: HideSpot
 
-var _carrier: Node3D
 var _body: StaticBody3D
 var _box: Node3D
 ## How far the far flap is open (0–1), and which flap that is: the one hinged at the box's +Z top edge
@@ -93,6 +96,7 @@ func _ready() -> void:
 			(part as Node).owner = null
 		_box.get_parent().remove_child(_box)
 		_box.position = Vector3.ZERO
+		_box.transform.basis = _box.transform.basis.scaled(Vector3.ONE * SCALE)
 		holder.add_child(_box)
 		_make_flaps(holder)
 	scene.free()
@@ -122,7 +126,7 @@ func _ready() -> void:
 	add_child(hide_spot)
 
 
-## Where it's put down by the fire, in the camp's space: from the fire at `fire` (x, z).
+## Where it's put down out of the tent, in the camp's space: AT from the fire at `fire` (x, z).
 static func spot_by_fire(fire: Vector2) -> Vector3:
 	return Vector3(fire.x + AT.x, 0.0, fire.y + AT.y)
 
@@ -137,39 +141,14 @@ func unsolid() -> void:
 	_body.process_mode = Node.PROCESS_MODE_DISABLED
 
 
-## Held in front of `carrier` as they go, till `put_down`.
-func carry(carrier: Node3D) -> void:
-	visible = true
-	_carrier = carrier
-	_follow()
-	# Shut at once in his arms.
-	_open = 0.0
-	_show_open()
-
-
 ## On the ground at `at` (the camp's space), turned `yaw`.
 func put_down(at: Vector3, yaw: float) -> void:
-	_carrier = null
-	visible = true
 	global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(at.x, 0.0, at.z))
 
 
-## Out of sight, not solid and no hiding place, till it's carried in (the tutorial: camp_tutorial.gd).
-func put_away() -> void:
-	_carrier = null
-	visible = false
-	hide_spot.monitoring = false
-	_body.process_mode = Node.PROCESS_MODE_DISABLED
-
-
-## True while someone's carrying it.
-func carried() -> bool:
-	return _carrier != null
-
-
-## Who's carrying it, or null.
-func carrier() -> Node3D:
-	return _carrier
+## It shakes, as when he dives in (hide_spot.gd), with him in it (F: camp_box.gd).
+func rustle() -> void:
+	hide_spot.rustle()
 
 
 ## How far the far flap is open (0–1), and which it is (the side of its hinge, 1 or −1, along the box's
@@ -188,15 +167,13 @@ func flap(side: float) -> Node3D:
 
 
 func _process(delta: float) -> void:
-	if _carrier:
-		_follow()
 	_peek(delta)
 
 
-## With him in it and on the ground, the flap away from the camera opens a crack; his eyes peek out
-## from under it once it's open far enough.
+## With him in it, the flap away from the camera opens a crack; his eyes peek out from under it once
+## it's open far enough.
 func _peek(delta: float) -> void:
-	var want := hide_spot.occupied and _carrier == null
+	var want := hide_spot.occupied
 	var camera := get_viewport().get_camera_3d()
 	if _open == 0.0 and camera:
 		var to_cam := global_transform.basis.inverse() * (camera.global_position - global_position)
@@ -354,15 +331,3 @@ func _tri(st: SurfaceTool, face: Dictionary, a: Vector3, b: Vector3, c: Vector3,
 		st.set_uv(face.uv0 + face.du * s.x + face.dv * s.y)
 		st.add_vertex(p + offset)
 
-
-## In front of the carrier as they're drawn, level, its long side across them.
-func _follow() -> void:
-	if not is_instance_valid(_carrier):
-		_carrier = null
-		return
-	var body := _carrier.get_global_transform_interpolated()
-	var ahead := body.basis.z
-	ahead.y = 0.0
-	ahead = ahead.normalized() if ahead.length() > 0.01 else Vector3.FORWARD
-	global_transform = Transform3D(Basis(Vector3.UP, atan2(ahead.x, ahead.z)),
-		body.origin + ahead * HOLD_OUT + Vector3.UP * HOLD_UP)

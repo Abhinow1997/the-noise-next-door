@@ -110,7 +110,7 @@ var bucket_tipped := false
 var bucket: StaticBody3D
 var woodpile: StaticBody3D
 ## The tripod and the pot are up over the pit (23 Nov 2026). They are from the start, except in
-## the tutorial, where the keeper brings them in his box and puts them up (camp_tutorial.gd).
+## the tutorial, where the keeper takes them out of his box and puts them up (camp_tutorial.gd).
 var pot_up := true
 
 var _dousing := false

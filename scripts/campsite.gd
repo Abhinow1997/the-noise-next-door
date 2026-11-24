@@ -52,7 +52,7 @@ const CampBearBag := preload("res://scripts/camp_bear_bag.gd")
 const CampBalloons := preload("res://scripts/camp_balloons.gd")
 const CampPizza := preload("res://scripts/camp_pizza.gd")
 const KeeperBox := preload("res://scripts/keeper_box.gd")
-const CampSupplies := preload("res://scripts/camp_supplies.gd")
+const CampBox := preload("res://scripts/camp_box.gd")
 const CampInput := preload("res://scripts/camp_input.gd")
 const SoundWaves := preload("res://scripts/sound_waves.gd")
 const ConeDriver := preload("res://scripts/cone_driver.gd")
@@ -274,13 +274,11 @@ var bush: Area3D
 var table_pizza: Node3D
 ## Eat the pizza (camp_pizza.gd, 23 Nov 2026): the cloth on the table, the pizza's boxes on it.
 var pizza: CampPizza
-## The fire keeper's box (keeper_box.gd, 23 Nov 2026), that brought the tripod and pot: by the fire.
+## The fire keeper's box (keeper_box.gd, 23 Nov 2026), that the tripod and pot come out of: near the
+## camp's edge.
 var keeper_box: KeeperBox
-## Raid the supply tent (camp_supplies.gd, 23 Nov 2026): the green tent, walled, the keeper's box
-## going in and out of it, and the stash inside.
-var supplies: CampSupplies
-## The green tent (OTHER_TENT).
-var other_tent: StaticBody3D
+## The box as a hiding place he drags about, and Scare a camper (camp_box.gd, 23 Nov 2026).
+var box_task: CampBox
 var people: Array[CampPerson] = []
 ## What the people know between them: the clock (s), when and where he was last seen,
 ## and when someone last took fright.
@@ -343,9 +341,7 @@ func _ready() -> void:
 		_build_log(seat[0], seat[1], seat[2])
 	var tent := _prop(TENT, CAMPER_TENT, Vector3(2.3, 1.2, 2.1))
 	_add_pegs(tent)
-	# Since 23 Nov 2026 not a solid block: camp_supplies.gd walls it, so there's an inside.
-	var other := _prop(TENT, OTHER_TENT, Vector3.ZERO)
-	other_tent = other
+	var other := _prop(TENT, OTHER_TENT, Vector3(2.3, 1.2, 2.1))
 	_add_pegs(other)
 	_recolor(other, TENT_WALLS, OTHER_TENT_COLOR)
 	var table := _prop(TABLE_WITH_LAPTOP, TABLE, Vector3.ZERO)
@@ -425,18 +421,17 @@ func _ready() -> void:
 	pizza.table = table
 	pizza.slices = table_pizza
 	add_child(pizza)
-	# The fire keeper's box (23 Nov 2026), put down between the fire and the green tent, before the
-	# walkways are baked so they go round it. In the tutorial he carries it in (camp_tutorial.gd).
+	# The fire keeper's box (23 Nov 2026), standing near the camp's edge (keeper_box.gd AT), before the
+	# walkways are baked so they go round it. In the tutorial he takes the tripod and pot out of it
+	# (camp_tutorial.gd).
 	keeper_box = KeeperBox.new()
 	add_child(keeper_box)
 	keeper_box.put_down(KeeperBox.spot(FIRE), deg_to_rad(KeeperBox.TURN))
-	# Raid the supply tent (23 Nov 2026): the green tent's walls go up before the walkways are baked.
-	supplies = CampSupplies.new()
-	supplies.camp = self
-	supplies.tent = other
-	supplies.box = keeper_box
-	supplies.box_home = KeeperBox.spot(FIRE)
-	add_child(supplies)
+	# Scare a camper, and dragging the box about (23 Nov 2026).
+	box_task = CampBox.new()
+	box_task.camp = self
+	box_task.box = keeper_box
+	add_child(box_task)
 	# Sets the people's cones' shader from the above (cone_driver.gd).
 	var driver := ConeDriver.new()
 	driver.camp = self
@@ -487,28 +482,9 @@ func _routines(peg: Vector3, cooler: Node3D) -> Array:
 			_activity("warm", _v3(FIRE + WARM), toward_fire.call(FIRE + WARM), "idle", 1.0, WARM_TIME, "dance", 0.4),
 			_activity("balloons", _v3(minding), atan2(to_balloons.x, to_balloons.y), "idle", 1.0, GIRL_DANCE_TIME, "dance", 0.4),
 			_activity("sit", _v3(seat), facing, "sit", 1.0, GIRL_SIT_TIME, "idle")],
-		_keeper_routine(toward_fire),
+		[_activity("eat", _v3(FIRE + KEEPER_EAT), 0.0, "idle", 1.0, KEEPER_EAT_TIME, "dance", 0.4),
+			_activity("stoke", _v3(FIRE + STOKE), toward_fire.call(FIRE + STOKE), "bend", 1.0, STOKE_TIME)],
 	]
-
-
-## The fire keeper's routine: he eats at the table, then stokes the fire. Since 23 Nov 2026 (Raid the
-## supply tent, camp_supplies.gd) his box goes with it: once round, after stoking he takes it from by
-## the fire into the green tent; the next time round he fetches it out and sets it by the fire again.
-func _keeper_routine(toward_fire: Callable) -> Array:
-	var eat := _activity("eat", _v3(FIRE + KEEPER_EAT), 0.0, "idle", 1.0, KEEPER_EAT_TIME, "dance", 0.4)
-	var stoke := _activity("stoke", _v3(FIRE + STOKE), toward_fire.call(FIRE + STOKE), "bend", 1.0, STOKE_TIME)
-	var by_box: Vector3 = CampSupplies.box_stand(FIRE)
-	var to_box: Vector3 = KeeperBox.spot(FIRE) - by_box
-	var tent := Transform3D(Basis(Vector3.UP, deg_to_rad(OTHER_TENT[1])), _v3(OTHER_TENT[0]))
-	var at_door: Vector3 = CampSupplies.door_spot(tent)
-	var to_door: Vector3 = tent.origin - at_door
-	var bend := Vector2(CampSupplies.BEND, CampSupplies.BEND)
-	var at_box := func(name: String) -> Dictionary:
-		return _activity(name, Vector3(by_box.x, 0, by_box.z), atan2(to_box.x, to_box.z), "bend", 1.0, bend)
-	var at_tent := func(name: String) -> Dictionary:
-		return _activity(name, Vector3(at_door.x, 0, at_door.z), atan2(to_door.x, to_door.z), "bend", 1.0, bend)
-	return [eat, stoke, at_box.call("take_box"), at_tent.call("store_box"),
-		eat.duplicate(), stoke.duplicate(), at_tent.call("fetch_box"), at_box.call("set_box")]
 
 
 ## The way the balloons' chair faces (its -Z, camp_balloons.gd), as a yaw: toward the fire.

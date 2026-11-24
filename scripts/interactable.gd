@@ -61,6 +61,9 @@ func usable_by(player: Player) -> bool:
 		return false
 	if player.resting or player.is_hopping():
 		return false
+	# Hidden (since 23 Nov 2026), E is his to burst out of the keeper's box with (camp_box.gd).
+	if player.hiding_in:
+		return false
 	# Up a tree, only an up_tree job; and that only out on a limb.
 	if player.climbing != up_tree or (up_tree and not player.on_limb):
 		return false

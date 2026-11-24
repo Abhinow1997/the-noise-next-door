@@ -122,13 +122,6 @@ var model: RaccoonModel
 var held: RigidBody3D
 ## Since 23 Nov 2026: something he's dragging in his jaws (`grip`), or null.
 var gripping: Node = null
-## Since 23 Nov 2026: riding hidden in the keeper's box while it's carried (camp_supplies.gd): his
-## collider's off, so whoever carries it doesn't walk into him.
-var riding := false:
-	set(on):
-		riding = on
-		if _shape:
-			_shape.disabled = on
 ## A snack in his mouth that isn't a body he holds (the tutorial's stolen roasted
 ## marshmallow, roast_plate.gd): while he has it, E doesn't grab or drop; holding E
 ## eats it there (an Interactable), once it's allowed.
@@ -314,7 +307,9 @@ func _loop(sfx: AudioStreamPlayer, on: bool, id: String, delta: float) -> void:
 ## faces it and moves only along its pull axis, away from it or back toward it, at DRAG_SPEED,
 ## playing his `drag` clip (_drag_process). `thing` gives `pull_axis()` (level, pointing away
 ## from it) and `face_point()`, and is told `released(player)` when he lets go. E or F lets go,
-## and so does a fright.
+## and so does a fright. Since 23 Nov 2026 a thing can be dragged free (the keeper's box, camp_box.gd:
+## "the box seems difficult to move around its should be free object it feels heavy"): with
+## `drag_free()` true he moves any way the move keys point, still facing it, at its `drag_speed()`.
 func grip(thing: Node) -> void:
 	if held:
 		_drop()
@@ -335,18 +330,26 @@ func let_go() -> void:
 
 
 ## Dragging: facing the thing, backing away from it or easing toward it along its pull axis, as
-## the move keys point; no turning, running, sneaking or jumping.
+## the move keys point (or, dragged free, any way they point); no turning, running, sneaking or
+## jumping.
 func _drag_process(delta: float) -> void:
 	if not is_instance_valid(gripping):
 		gripping = null
 		return
 	var dir := _input_dir(_move_input())
-	var axis: Vector3 = gripping.call("pull_axis")
-	var amount := clampf(dir.dot(axis), -1.0, 1.0) if dir.length_squared() > 0.01 else 0.0
-	var along := Vector3(velocity.x, 0.0, velocity.z).dot(axis)
-	along = move_toward(along, DRAG_SPEED * amount, ACCEL * delta)
-	velocity.x = axis.x * along
-	velocity.z = axis.z * along
+	var free: bool = gripping.has_method("drag_free") and gripping.call("drag_free")
+	var speed: float = gripping.call("drag_speed") if gripping.has_method("drag_speed") else DRAG_SPEED
+	if free:
+		var want := Vector3(dir.x, 0.0, dir.z).limit_length(1.0) * speed
+		velocity.x = move_toward(velocity.x, want.x, ACCEL * delta)
+		velocity.z = move_toward(velocity.z, want.z, ACCEL * delta)
+	else:
+		var axis: Vector3 = gripping.call("pull_axis")
+		var amount := clampf(dir.dot(axis), -1.0, 1.0) if dir.length_squared() > 0.01 else 0.0
+		var along := Vector3(velocity.x, 0.0, velocity.z).dot(axis)
+		along = move_toward(along, speed * amount, ACCEL * delta)
+		velocity.x = axis.x * along
+		velocity.z = axis.z * along
 	velocity.y = 0.0 if is_on_floor() else velocity.y - _gravity * delta
 	var at: Vector3 = gripping.call("face_point")
 	var want := atan2(-(at.x - global_position.x), -(at.z - global_position.z))
@@ -354,8 +357,8 @@ func _drag_process(delta: float) -> void:
 	_yaw_rate = 0.0
 	sneaking = false
 	move_and_slide()
-	_speed = absf(along)
-	model.speed = Vector2(velocity.x, velocity.z).length()
+	_speed = Vector2(velocity.x, velocity.z).length()
+	model.speed = _speed
 	model.walk_amount = 0.0
 	model.crouch = move_toward(model.crouch, 0.0, delta * 5.0)
 
@@ -682,27 +685,20 @@ func _hide_process(_delta: float) -> void:
 		var dir := Vector3(input.x, 0.0, input.y)
 		if camera:
 			dir = dir.rotated(Vector3.UP, camera.global_rotation.y)
-		dir = dir.normalized()
-		var spot := hiding_in
-		_stop_hiding()
-		_dive_wait = DIVE_AGAIN
-		# A spot can ask for a shorter hop out (hide_spot.gd `hop_out`: the keeper's box inside the
-		# green tent, where DIVE_OUT would take him through its wall).
-		var out: float = spot.get("hop_out") if spot.get("hop_out") != null and spot.get("hop_out") > 0.0 else DIVE_OUT
-		_hop(global_transform, Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.z)),
-			spot.global_position + dir * out + Vector3(0, 0.02, 0)), DIVE_TIME, DIVE_HEIGHT, _end_startle)
+		hop_out(dir.normalized())
 
 
-## Hops him to `at`, landing facing `face` (23 Nov 2026: out of the green tent by its flap,
-## camp_supplies.gd), as he hops out of a hiding spot.
-func hop_to(at: Vector3, face: Vector3) -> void:
-	if _hop_t >= 0.0 or hiding_in or resting or climbing:
+## Out of the hiding spot he's in: a hop `out` metres from its middle along `dir` (level), landing
+## facing that way. A move key hops him out DIVE_OUT; since 23 Nov 2026 E bursts him out of the
+## keeper's box a shorter way, at whoever's by it (camp_box.gd).
+func hop_out(dir: Vector3, out := DIVE_OUT) -> void:
+	if hiding_in == null or _hop_t >= 0.0:
 		return
-	let_go()
-	var d := face - at
+	var spot := hiding_in
+	_stop_hiding()
 	_dive_wait = DIVE_AGAIN
-	_hop(global_transform, Transform3D(Basis(Vector3.UP, atan2(-d.x, -d.z)), at + Vector3(0, 0.02, 0)),
-		DIVE_TIME * 1.6, DIVE_HEIGHT, _end_startle)
+	_hop(global_transform, Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.z)),
+		spot.global_position + dir * out + Vector3(0, 0.02, 0)), DIVE_TIME, DIVE_HEIGHT, _end_startle)
 
 
 ## Out of the hiding spot where he is: seen again, with whatever he carries.

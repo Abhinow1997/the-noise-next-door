@@ -110,6 +110,11 @@ const HUH := 0.6
 const STOP_SHORT := 1.3
 const LOOK_TIME := 3.0
 const LOOK_SWING := 50.0
+## Since 23 Nov 2026, a rustle in the keeper's box (`check`, camp_box.gd): how far from its middle
+## they stand to look at it, how long they bend over it, and how long they may take to get there.
+const CHECK_NEAR := 1.25
+const CHECK_TIME := 3.5
+const CHECK_WALK := 15.0
 ## Confused once he's got away: how long they look about before they go back, and the
 ## clip they do it in (it loops; 3 s, one look each way).
 const SEARCH_TIME := 3.0
@@ -214,6 +219,8 @@ var _fright_seen := -INF
 var _fright_at := INF
 var _goal := Vector3.ZERO
 var _noise_at := Vector3.ZERO
+## Going to look at the keeper's box close up (`check`), not just wondering about a noise.
+var _checking := false
 var _look_t := -1.0
 var _huh := HUH
 var _frozen := false
@@ -447,6 +454,41 @@ func hear(at: Vector3, freeze := 0.0, sharp := false) -> void:
 		_huh = freeze if _frozen else HUH
 		_noise_at = at
 		_to_state(State.INVESTIGATE)
+
+
+## Since 23 Nov 2026: a rustle in the keeper's box at `at` (camp_box.gd; the author: "If anybody
+## whoever is around that box ... when they come to check the box, we can jump out to scare them").
+## Going about their routine or wondering, whoever they are, they come right up to it (CHECK_NEAR)
+## and bend over it a while (CHECK_TIME), then go back. True if they're coming.
+func check(at: Vector3) -> bool:
+	if camp.let_be():
+		return false
+	if state not in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG,
+			State.INVESTIGATE, State.SEARCH]:
+		return false
+	_frozen = false
+	_huh = HUH
+	_noise_at = at
+	_to_state(State.INVESTIGATE)
+	_checking = true
+	return true
+
+
+## Since 23 Nov 2026: he bursts out of the keeper's box right by them (camp_box.gd). Unless they're
+## alarmed already, it's a fright, as on seeing him (`alert`). True if it frightened them.
+func scare() -> bool:
+	if not scareable():
+		return false
+	alert()
+	return true
+
+
+## True if bursting out at them now would frighten them (`scare`): they aren't alarmed already.
+func scareable() -> bool:
+	if player == null or camp.let_be():
+		return false
+	return state not in [State.STARTLED, State.GUARD, State.CHASE, State.SHOO, State.FLEE, State.COWER, State.TAKE,
+		State.CAKE, State.FALLEN, State.RISE, State.PURSUE]
 
 
 ## The tutorial (camp_tutorial.gd): they see him take a roasted marshmallow off the
@@ -912,6 +954,19 @@ func _investigate(delta: float) -> void:
 			_play(_stand())
 			_face(_noise_at, delta)
 		return
+	if _checking:
+		# The keeper's box (`check`): right up to it, whoever they are, then bent over it.
+		if _look_t < 0.0 and to.length() > CHECK_NEAR + 0.15 and _t < _huh + CHECK_WALK:
+			_go(_noise_at - to.normalized() * CHECK_NEAR, WALK * 1.1, delta, "walk", WALK * 1.1 / walk_natural)
+			return
+		if _look_t < 0.0:
+			_look_t = 0.0
+		_look_t += delta
+		_play("bend")
+		_face(_noise_at, delta)
+		if _look_t > CHECK_TIME:
+			_to_state(State.RETURN)
+		return
 	if _look_t < 0.0 and role == "guy" and to.length() > STOP_SHORT + 0.2 and _t < _huh + 8.0:
 		_go(_noise_at - to.normalized() * STOP_SHORT, WALK * 1.1, delta, "walk", WALK * 1.1 / walk_natural)
 		return
@@ -1105,6 +1160,7 @@ func _to_state(to: State) -> void:
 	# goes after him (camp_finale.gd). Nothing else moves him on meanwhile.
 	if state == State.FALLEN and to != State.RISE or state == State.RISE and to not in [State.GUARD, State.PURSUE]:
 		return
+	_checking = false
 	if state == State.CAKE and to != State.CAKE and _finale and _cake_stage in [2, 3]:
 		# Frightened with the cake in his hands: he puts it down on its table (camp_finale.gd).
 		_finale.cake_on_table()
