@@ -40,6 +40,13 @@ const NOISE_EVERY := 0.5
 ## Since 23 Nov 2026: a job he drags at, jaws gripping (the tablecloth, camp_pizza.gd). While he
 ## holds E at it, the raccoon plays his `drag` clip (player.gd sets raccoon_model.gd `dragging`).
 @export var drag := false
+## Since 24 Nov 2026: a job he shoves at, up on his hind legs with his front paws on it (the pot's post,
+## camp_fire.gd; the author: "the raccon should have trying animation standing on its hind legs and
+## hold E to tip"). While he holds E at it he plays his `push` clip, and player.gd turns and moves him
+## so it's at his front paws (player.gd PUSH_AT). Once he's at it, only letting go of E (or the job
+## closing) stops him: how far and which way it is from his mouth no longer count, since rearing up
+## moves his head.
+@export var push := false
 
 var enabled := Callable()
 var camp
@@ -72,6 +79,8 @@ func usable_by(player: Player) -> bool:
 		return false
 	if needs != "" and (held == null or not held.is_in_group(needs)):
 		return false
+	if pushed_by(player):
+		return true
 	var mouth: Vector3 = player.model.mouth.global_position
 	var to := global_position - mouth
 	to.y = 0.0
@@ -79,12 +88,23 @@ func usable_by(player: Player) -> bool:
 		return false
 	var nose := -player.global_basis.z
 	nose.y = 0.0
+	if push or drag:
+		# A job he shoves or tugs at (24 Nov 2026): which way it is is judged from his middle, not his
+		# mouth. Right up at it his snout is past it, so from his mouth it's behind him.
+		var from_body := global_position - player.global_position
+		from_body.y = 0.0
+		return from_body.length() < 0.15 or rad_to_deg(nose.angle_to(from_body)) <= facing
 	return to.length() < 0.15 or rad_to_deg(nose.angle_to(to)) <= facing
 
 
 ## True while `player` is holding E at it and it's a job he drags at (`drag`).
 func dragged_by(player: Player) -> bool:
 	return drag and working and _player == player
+
+
+## True while `player` is holding E at it and it's a job he shoves at (`push`).
+func pushed_by(player: Player) -> bool:
+	return push and working and _player == player
 
 
 ## E pressed at it (camp_input.gd).

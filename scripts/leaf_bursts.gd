@@ -21,19 +21,24 @@ const OUT_RATIO := 0.5
 ## as the preview does (previews/leaf_burst_preview.gd).
 const FREE_AFTER := 0.1
 
-## The hiding spot it follows (campsite.gd `bush`). Set before it's added.
+## The hiding spot it follows (campsite.gd `bush`), and since 24 Nov 2026 any more it follows the same way
+## (campsite.gd `back_bush`), each burst at the bush it came from. One listener for them all, so there's
+## one effect node in the level, as tests/cost_effects.gd finds it. Set before it's added.
 var bush: Node3D
+var more_bushes: Array[Node3D] = []
 
 
 func _ready() -> void:
 	if bush:
 		bush.hiding_changed.connect(_on_hiding_changed)
+	for other in more_bushes:
+		other.hiding_changed.connect(_on_hiding_changed.bind(other))
 
 
-func _on_hiding_changed(inside: bool) -> void:
+func _on_hiding_changed(inside: bool, from: Node3D = null) -> void:
 	var burst := LeafBurst.instantiate() as Node3D
 	add_child(burst)
-	burst.global_position = bush.global_position
+	burst.global_position = (from if from else bush).global_position
 	var longest := 0.0
 	for p: GPUParticles3D in burst.get_children():
 		if not inside:

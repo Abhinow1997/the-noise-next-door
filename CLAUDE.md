@@ -42,7 +42,7 @@ bash scripts/run-test.sh <test> 60  # each: a3_asset_check.gd normal_map_calibra
   # test_leaf_burst_config.gd test_campfire_smoke_config.gd jump_pins.gd test_jump_states.gd test_moth_flutter.gd
   # test_moths_state.gd test_moth_guide.gd test_balloon_3d.gd test_balloon_task.gd --sound-test --bubble-test --camp-test
   # --tasks-test --plan-test --tutorial-test --fire-test --leaf-burst-test --smoke-test --smoke-load-test
-  # test_pizza_task.gd test_box_scare.gd (after the a7 tag); test_cake_finale.gd also at 30 and 144
+  # test_pizza_task.gd test_box_scare.gd test_camper_huh.gd (after the a7 tag); test_cake_finale.gd also at 30 and 144
 bash scripts/run-test.sh cost_effects.gd 60 300   # also --tent-test and --bearbag-test, with 300
 bash scripts/run-test.sh --cones-test 30          # and 60, 144; so too --cone-shader-test and test_jump_edges.gd
 bash scripts/run-test.sh --waves-test realtime    # and --title-test; under --fixed-fps each fails one check: expected

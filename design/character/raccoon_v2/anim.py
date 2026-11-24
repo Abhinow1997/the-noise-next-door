@@ -1,5 +1,5 @@
 # Keyframes the raccoon's looping actions on RaccoonRig: idle, walk, run, sneak, bored,
-# sleep, climb, and (since 23 Nov 2026) drag. Each is a function of the loop phase u in [0, 1), sampled every frame, so
+# sleep, climb, and (since 23 Nov 2026) drag and (since 24 Nov 2026) push. Each is a function of the loop phase u in [0, 1), sampled every frame, so
 # the last frame matches the first. Also two one-shots, jump and jump_land (make_oneshot):
 # key poses on the phase table's frames (CHANGE-BRIEF.md), eased between, not cyclic.
 # Run inside Blender: exec(open(path).read()).
@@ -570,6 +570,73 @@ def drag(u, pose):
 # the game lifts him, so the airborne poses leave the paws where the legs hang.
 # Positive X turns tip the front down; negative tip it (and the snout) up.
 
+# --- Push: up on his hind legs, front paws on a post, shoving (24 Nov 2026) -------------------
+# The author: "the raccon should have trying animation standing on its hind legs and hold E to tip".
+# First for the pot's stand at the campfire (scripts/camp_fire.gd): played while he holds E at
+# anything marked `push` (interactable.gd). In place, a loop of two shoves, as drag's two tugs: he's
+# reared up on his hind legs, braced on his tail, his front paws planted on the post ahead at chest
+# height (they stay put on it). Each shove (fast, the first 30% of it) drives him forward into the
+# post off his hind legs, his back flattening and his head ducking with the effort; then he eases
+# back to take another (the rest). Ears flat, eyes squeezed shut on each shove, tail braced behind.
+
+P_PUSH = globals().get("P_PUSH", {})
+# The post's middle, from his origin (x, y), on the ground: ahead, and off to his right.
+POST = (-0.11, -0.19)
+
+
+def push_shove(w):
+    """0 eased back, 1 at the height of a shove, for shove phase w in [0, 1): fast in, slow back."""
+    w %= 1.0
+    return ease(w / 0.3) if w < 0.3 else 1.0 - ease((w - 0.3) / 0.7)
+
+
+def push(u, pose):
+    g = P_PUSH.get
+    w = (2.0 * u) % 1.0
+    shove = push_shove(w)
+    sway = math.sin(TAU * u)
+    rear = g("rear", 1.15) - g("lean", 0.16) * shove
+    pose.turn("pelvis", X, -rear)                      # reared up, leaning into the post as he shoves
+    pose.turn("pelvis", Y, 0.03 * sway)
+    seat = Vector(g("seat", (0.0, -0.02, -0.2)))
+    pose.pelvis = seat + Vector((0.0, -g("drive", 0.045) * shove, -0.01 * shove))
+    pose.turn("spine", X, g("spine", -0.06) + 0.05 * shove)   # straight up; flatter on a shove
+    pose.turn("chest", X, g("chest", -0.04) + 0.04 * shove)
+    # The head brought back near level, turned aside (`aside`, to his left) so his cheek is by the
+    # post and he looks up past it, ducking a little into the shove.
+    pose.turn("neck", X, g("neck", 0.55) + g("duck", 0.04) * shove)
+    pose.turn("head", X, g("chin", 0.45) + g("duck", 0.04) * 1.5 * shove)
+    pose.turn("head", Z, g("aside", 0.45) + 0.04 * sway)
+    # Front paws planted on the post, which is ahead of his right shoulder (POST, x and y: off his
+    # middle, so his head clears it), one each side of it on its near face, the left a little higher;
+    # palms flat against it. They stay put. scripts/player.gd PUSH_AT is this place, in the game.
+    post = Vector(g("post", POST))
+    near = post.y + 0.04
+    pose.paw["hand_ik.L"] = Vector((post.x + 0.045, near, g("grip", 0.68))) - PAW["hand_ik.L"]
+    pose.paw["hand_ik.R"] = Vector((post.x - 0.045, near, g("grip", 0.68) - 0.04)) - PAW["hand_ik.R"]
+    for k in ("hand_ik.L", "hand_ik.R"):
+        pose.paw_pitch[k] = g("palms", -1.2)
+    # Hind paws planted under him, heels down, digging in.
+    foot = Vector(g("feet", (0.0, -0.05, 0.0)))
+    for k in ("foot_ik.L", "foot_ik.R"):
+        pose.paw[k] = foot
+        pose.paw_pitch[k] = g("toes", -0.15)
+    for e in ("ear.L", "ear.R"):
+        pose.turn(e, X, -0.3 - 0.15 * shove)           # flattened with the effort
+    eyes(pose, 1.0 - 0.6 * shove)
+    # The tail braced on the ground behind him: down from his rump (`droop`, radians below level),
+    # the rest lying level, swaying a little. Worked out from the segments' rest slopes, after the
+    # body's rear-up, as bored's is.
+    droop = g("droop", 0.9)
+    want = [-droop, -0.25, 0.0, 0.05]
+    turned = -rear
+    for i, b in enumerate(["tail1", "tail2", "tail3", "tail4"]):
+        turn = want[i] - (TAIL_REST[i] + turned)
+        pose.turn(b, X, turn)
+        pose.turn(b, Z, -0.05 * sway * (i + 1) / 4)
+        turned += turn
+
+
 def stance(pose):
     """His stance: idle's first frame."""
     idle(0.0, pose)
@@ -674,6 +741,8 @@ make("sleep", 96, sleep)
 make("climb", 24, climb)
 # Since 23 Nov 2026: drag, 24 frames (1 s), two tugs; rebuilt alone by anim_drag.py.
 make("drag", 24, drag)
+# Since 24 Nov 2026: push, 24 frames (1 s), two shoves; rebuilt alone by anim_push.py.
+make("push", 24, push)
 # The one-shots. jump (revision of 21 Nov 2026), 10 frames at 24 fps; each key's time:
 #   frame 0  = 0.0 s     the push-off
 #   frame 3  = 0.125 s   stretched up, snout first
@@ -692,7 +761,7 @@ ad = rig.animation_data
 ad.action = None
 for t in list(ad.nla_tracks):
     ad.nla_tracks.remove(t)
-for name in ("idle", "walk", "run", "sneak", "bored", "sleep", "climb", "drag", "jump", "jump_land"):
+for name in ("idle", "walk", "run", "sneak", "bored", "sleep", "climb", "drag", "push", "jump", "jump_land"):
     act = bpy.data.actions.get(name)
     if act:
         tr = ad.nla_tracks.new()

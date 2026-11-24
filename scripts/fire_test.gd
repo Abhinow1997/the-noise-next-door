@@ -61,7 +61,8 @@ func _run() -> void:
 	_check("Start: the cycle on, the fire out", "true 0.00", "%s %.2f" % [_fire.cycle, _fire.strength])
 	_check("Start: no flames, no light", "false 0.00", "%s %.2f" % [_flames_showing(), _camp._fire_light.light_energy])
 	_check("Start: the bucket doesn't twinkle with the fire out", true, _fire._glint.get_meta("found"))
-	_check("Start: no circle of sight with the fire out", false, _fire.eyes.showing())
+	# The fire's circle of sight came out on 24 Nov 2026 (CHANGE-BRIEF.md): none, lit or out.
+	_check("Start: no circle of sight round the fire", true, _fire.get("eyes") == null)
 	await _until(func() -> bool: return _keeper.state == S.TEND, 2.0)
 	_check("The keeper sets off to tend it on his own", "TEND", S.keys()[_keeper.state])
 
@@ -121,32 +122,33 @@ func _run() -> void:
 	_camp.cones_on = true
 	await _wait(0.2)
 
-	# The circle of sight (camp_fire.gd `_watch`). The campers are frozen, their nodes
-	# stopped as the tutorial does, so only the circle can spot him.
+	# In the firelight with the campers frozen, their nodes stopped as the tutorial does. Until 24 Nov
+	# 2026 the fire's circle of sight (camp_fire.gd) spotted him there moving upright and alerted the
+	# nearest camper; it came out then (CHANGE-BRIEF.md, "the fire pit's circle of sight comes out"),
+	# so nothing spots him there now, however he moves.
 	for person in _camp.people:
 		person.process_mode = Node.PROCESS_MODE_DISABLED
 	await _wait(0.1)
-	_check("Burning: the circle shows, as far as the firelight", "true true", "%s %s" % [_fire.eyes.showing(),
-		absf(_fire.eyes.reach - _camp._fire_light.omni_range * _camp.FIRELIGHT) < 0.01])
+	_check("Burning: still no circle of sight round the fire", true, _fire.get("eyes") == null)
 	var inside := _fire.global_position + Vector3(-0.2, 0.02, 2.6)
-	var unspotted := _fire.spotted_at
+	var unspotted: float = _camp.last_seen
 	_player.place(inside)
 	Input.action_press("sneak")
 	Input.action_press("move_left")
 	await _wait(0.6)
-	# Stopped before standing up: still sliding upright would count as moving.
 	Input.action_release("move_left")
 	await _wait(0.4)
 	Input.action_release("sneak")
-	_check("In the circle, crouching and moving: not spotted", true, _fire.spotted_at == unspotted)
+	_check("In the firelight, crouching and moving: not spotted", true, _camp.last_seen == unspotted)
 	_player.place(inside)
 	await _wait(0.6)
-	_check("In the circle, standing still: not spotted", true, _fire.spotted_at == unspotted)
+	_check("In the firelight, standing still: not spotted", true, _camp.last_seen == unspotted)
 	Input.action_press("move_left")
-	await _until(func() -> bool: return _fire.spotted_at > unspotted, 2.0)
+	# Half a second, about as long as the circle used to take to spot him.
+	await _wait(0.5)
 	Input.action_release("move_left")
-	_check("In the circle, walking upright: spotted, the nearest camper alerted", "true true",
-		"%s %s" % [_fire.spotted_at > unspotted, _camp.people.any(func(p) -> bool: return p.state == S.STARTLED)])
+	_check("In the firelight, walking upright: not spotted either, nobody alerted", "false false",
+		"%s %s" % [_camp.last_seen > unspotted, _camp.people.any(func(p) -> bool: return p.state == S.STARTLED)])
 	for person in _camp.people:
 		person.process_mode = Node.PROCESS_MODE_INHERIT
 	_player.place(Vector3(20.0, 0.02, 6.5))

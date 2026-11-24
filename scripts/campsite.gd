@@ -83,8 +83,11 @@ const FIRE := Forest.CAMP + Vector2(-2.5, -0.8)
 const CAMPER_TENT := [FIRE + Vector2(8.2, -0.6), -90.0]
 const OTHER_TENT := [FIRE + Vector2(3.6, 5.8), -148.0]
 const TABLE := [FIRE + Vector2(-1.95, -4.2), 0.0]
-## Beside the table, as before (1.2 m east of its middle and 0.1 m north).
-const SPEAKER := [FIRE + Vector2(-0.75, -4.3), 10.0]
+## Since 24 Nov 2026 out on the dance floor's north side, between the table and the girl, facing the
+## fire (the author marked the place on a screenshot: "update the postion of the music syatem where i
+## have inidcated along with the same the wire"). Its cord runs to the power strip under the table
+## (camp_puzzles.gd), and since 24 Nov 2026 the plug he pulls is in its side. Before: beside the table, (-0.75, -4.3), turned 10 degrees.
+const SPEAKER := [FIRE + Vector2(1.0, -3.45), -15.0]
 ## By the table, facing the fire.
 const COOLER_AT := [FIRE + Vector2(-4.5, -2.2), 64.0]
 ## The logs round the fire: middle, which way they lie (degrees), length.
@@ -150,10 +153,12 @@ const TABLE_TOP := 0.74
 const TABLE_LEGS := Vector2(0.59, 0.36)
 ## Ground the forest keeps clear of rocks and tufts (x, z, radius): the fire and the
 ## party's corner, each tent, the camper's peg, the cooler and (since 10 Nov 2026) the foot
-## of the bear bag's tree (camp_bear_bag.gd TREE).
+## of the bear bag's tree (camp_bear_bag.gd TREE), and (since 24 Nov 2026) under the balloons' chair
+## (camp_balloons.gd PLACE: its middle 1.3 m west and 4.3 m south of the fire).
 const CLEARINGS: Array[Vector3] = [Vector3(FIRE.x - 0.5, FIRE.y - 1.5, 4.8), Vector3(FIRE.x + 8.2, FIRE.y - 0.6, 1.6),
 	Vector3(FIRE.x + 3.6, FIRE.y + 5.8, 1.6), Vector3(FIRE.x + 8.6, FIRE.y + 1.5, 0.7),
-	Vector3(FIRE.x - 4.5, FIRE.y - 2.2, 1.0), Vector3(FIRE.x + 5.4, FIRE.y - 2.0, 0.8)]
+	Vector3(FIRE.x - 4.5, FIRE.y - 2.2, 1.0), Vector3(FIRE.x + 5.4, FIRE.y - 2.0, 0.8),
+	Vector3(FIRE.x - 1.3, FIRE.y + 4.3, 0.9)]
 ## The fire keeper, the camp's fourth person (added 7 Nov 2026: "Maybe you can add in one
 ## more guy or girl in"; the author picked a guy, "update the colours of clothes of the
 ## new guy"): a second low-poly man in a mustard shirt and brown trousers
@@ -175,6 +180,10 @@ const STOKE_TIME := Vector2(10, 15)
 const BUSH := Vector2(-3.5, 3.0)
 const BUSH_HIDE := 0.8
 const BUSH_HEIGHT := 1.2
+## A second bush to hide in (24 Nov 2026, the author marked the place on a screenshot: "update a hiding
+## bush here"): at the camp's north edge, past the string lights behind the table, by the trail, 1.3 m
+## west of a tree. It's like the first, without the tutorial's part in it.
+const BACK_BUSH := Vector2(-2.45, -9.9)
 
 ## The tent's guy ropes reach the ground here, in its own space (measured in
 ## assets/props/tent.blend); each gets a peg. The camper pegs out the one on its +X
@@ -237,8 +246,9 @@ const FIRELIGHT := 0.8
 ## the fire pit with the fire fully up"): in the open world, with the fire burning at
 ## FIRE_UP or more, a camper within FIRE_NEAR of its middle (roasting, warming their hands,
 ## stoking; not the dancers) has no cone drawn: cone_driver.gd fades it out, and back as
-## they leave or the fire burns lower. The fire's own circle of sight (camp_fire.gd) shows
-## the danger there. They see as ever, and a spotting still shows red.
+## they leave or the fire burns lower. The fire's own circle of sight (camp_fire.gd) showed
+## the danger there until it came out on 24 Nov 2026. They see as ever, and a spotting still
+## shows red.
 const FIRE_NEAR := 2.2
 const FIRE_UP := 0.75
 const WIRE := Color("2a2a2c")
@@ -269,12 +279,14 @@ var dancers: Array[CampPerson] = []
 var keeper: CampPerson
 ## The bush he can hide in (BUSH): a hiding spot (hide_spot.gd).
 var bush: Area3D
+## The second bush (BACK_BUSH, 24 Nov 2026), the same kind of hiding spot.
+var back_bush: Area3D
 ## The table's pizza, its five slices (_set_table). Since 23 Nov 2026 the tutorial has the girl bring
 ## it in, in its boxes, as the others come back (camp_tutorial.gd, pizza_boxes.gd).
 var table_pizza: Node3D
 ## Eat the pizza (camp_pizza.gd, 23 Nov 2026): the cloth on the table, the pizza's boxes on it.
 var pizza: CampPizza
-## The fire keeper's box (keeper_box.gd, 23 Nov 2026), that the tripod and pot come out of: near the
+## The fire keeper's box (keeper_box.gd, 23 Nov 2026), that the pot and its stand come out of: near the
 ## camp's edge.
 var keeper_box: KeeperBox
 ## The box as a hiding place he drags about, and Scare a camper (camp_box.gd, 23 Nov 2026).
@@ -286,6 +298,9 @@ var clock := 0.0
 var last_seen := -INF
 var last_seen_at := Vector3.ZERO
 var frightened := -INF
+## When any of them last said "huh?" (camp_person.gd `_say_huh`): only one says it for several
+## wondering at once (24 Nov 2026).
+var huh_at := -INF
 ## Set when the men have given up shooing him down from a tree: they let him be while
 ## he stays up it.
 var gave_up_on_tree := false
@@ -358,7 +373,7 @@ func _ready() -> void:
 		smore.rotation.y = 0.7 * i
 		smore.add_to_group("food")
 	_build_string_lights()
-	_build_bush()
+	_build_bushes()
 
 	var rope_end: Vector3 = tent.transform * TENT_ROPE_ENDS[1]
 	var facing := Basis(Vector3.UP, deg_to_rad(CAMPER_FACING))
@@ -422,7 +437,7 @@ func _ready() -> void:
 	pizza.slices = table_pizza
 	add_child(pizza)
 	# The fire keeper's box (23 Nov 2026), standing near the camp's edge (keeper_box.gd AT), before the
-	# walkways are baked so they go round it. In the tutorial he takes the tripod and pot out of it
+	# walkways are baked so they go round it. In the tutorial he takes the pot and its stand out of it
 	# (camp_tutorial.gd).
 	keeper_box = KeeperBox.new()
 	add_child(keeper_box)
@@ -881,33 +896,41 @@ func _recolor(node: Node, material: String, c: Color) -> void:
 				mi.set_surface_override_material(s, copy)
 
 
-## The bush to hide in: one of the forest's bushes, see-through round him like theirs,
-## with a hiding spot (hide_spot.gd) its size. Nothing solid: he walks into it.
-func _build_bush() -> void:
-	var at := _v3(FIRE + BUSH)
-	bush = HideSpot.new()
-	bush.position = at
-	bush.height = BUSH_HEIGHT
+## The bushes to hide in (BUSH, and since 24 Nov 2026 BACK_BUSH).
+func _build_bushes() -> void:
+	bush = _build_bush(BUSH, 401, 0.7)
+	back_bush = _build_bush(BACK_BUSH, 402, 2.3)
+
+
+## A bush to hide in at `place` (from the fire): one of the forest's bushes (its seed `kind`, turned `turn`
+## radians), see-through round him like theirs, with a hiding spot (hide_spot.gd) its size. Nothing
+## solid: he walks into it.
+func _build_bush(place: Vector2, kind: int, turn: float) -> HideSpot:
+	var at := _v3(FIRE + place)
+	var spot := HideSpot.new()
+	spot.position = at
+	spot.height = BUSH_HEIGHT
 	# He dives right into it, and it rustles; his eyes peek out (since 7 Nov 2026, when
 	# the author found hiding "clunky").
-	bush.dive = true
+	spot.dive = true
 	if forest:
 		var leaves := MeshInstance3D.new()
-		leaves.mesh = forest.night_mesh(forest._bush_mesh(401))
+		leaves.mesh = forest.night_mesh(forest._bush_mesh(kind))
 		leaves.material_override = forest.see_through
 		leaves.position = at
-		leaves.rotation.y = 0.7
+		leaves.rotation.y = turn
 		leaves.scale = Vector3.ONE * 1.2
 		add_child(leaves)
-		bush.leaves = leaves
+		spot.leaves = leaves
 	var col := CollisionShape3D.new()
 	var shape := CylinderShape3D.new()
 	shape.radius = BUSH_HIDE
 	shape.height = BUSH_HEIGHT
 	col.shape = shape
 	col.position.y = BUSH_HEIGHT * 0.5
-	bush.add_child(col)
-	add_child(bush)
+	spot.add_child(col)
+	add_child(spot)
+	return spot
 
 
 ## Gives every surface of `node` whose material is called `material` the texture
@@ -1042,8 +1065,8 @@ func _give_mallet(person: Node3D) -> void:
 
 # --- The music corner and the lights --------------------------------------------
 
-## The speaker beside the table, its woofer thumping on the beat. (Its cord to the
-## socket under the table is camp_puzzles.gd's, as it can be pulled.)
+## The speaker (SPEAKER), its woofer thumping on the beat. (Its cord to the
+## power strip under the table, and the plug in its side he pulls, are camp_puzzles.gd's.)
 func _build_speaker() -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.position = _v3(SPEAKER[0])

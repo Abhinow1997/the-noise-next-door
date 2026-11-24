@@ -527,6 +527,9 @@ func _ready() -> void:
 		# revised 7 Nov 2026: the wiring Step 3 needs).
 		var leaf_bursts := LeafBursts.new()
 		leaf_bursts.bush = campsite.bush
+		# And the camp's second bush (24 Nov 2026, campsite.gd BACK_BUSH), the same listener: the same
+		# effect, its settings as they are (effects/leaf_burst.tscn).
+		leaf_bursts.more_bushes.append(campsite.back_bush)
 		add_child(leaf_bursts)
 		if sound_test or camp_test or tasks_test or waves_test or plan_test or leaf_burst_test or tent_test or bearbag_test \
 				or dev_point in ["free", "fire", "cake"]:
@@ -582,6 +585,10 @@ func _ready() -> void:
 		player.trees.append(campsite.bear_bag.tree)
 	add_child(player)
 	player.sound_started.connect(_count_sound)
+	if campsite:
+		# The campers' "huh?" (camp_person.gd `_say_huh`).
+		for person in campsite.people:
+			person.sound_started.connect(_count_sound)
 	if title_mode:
 		# Under the title he's asleep in the hollow, and stays so until it has gone.
 		_first_nap = true
@@ -618,6 +625,9 @@ func _ready() -> void:
 	bubbles = ThoughtBubbles.new()
 	bubbles.player = player
 	bubbles.camera = camera
+	# No food thought from facing food, anywhere in the game (24 Nov 2026, the author: "remove the food
+	# notation for the raccon"); only the bubble demo's yard, which checks it, still has it.
+	bubbles.food_thoughts = bubble_demo
 	add_child(bubbles)
 	_anchor = _drawn() + PIVOT
 	_place_camera()

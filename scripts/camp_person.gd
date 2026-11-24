@@ -89,6 +89,8 @@ enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGAT
 
 ## His laces tied, he's started to fall (camp_finale.gd).
 signal fell
+## A sound effect started (their "huh?": `_say_huh`); `id` is its asset ID (SOURCES.md). Counted by the level.
+signal sound_started(id: String)
 
 ## How far they see while calm (times SNEAK_SIGHT while he sneaks), while wondering
 ## about a noise, and once alarmed, and how wide; where their eyes are.
@@ -125,6 +127,26 @@ const CHECK_WALK := 15.0
 ## clip they do it in (it loops; 3 s, one look each way).
 const SEARCH_TIME := 3.0
 const CONFUSED := "confused"
+## Since 24 Nov 2026 the "?" over their heads (camp_input.gd) comes with a "huh?" (SFX-HUH): "Huh SFX"
+## by mrstokes302 (Pixabay 418238), made by tools/make_task_sounds.gd. The author: "whenever the NPCs
+## are confused, human NPCs specifically ... we can use that". It plays as the "?" comes up, wondering
+## (INVESTIGATE) or confused (SEARCH), not again while it stays up, nor within HUH_AGAIN of their last.
+## It's heard from their head through his ear (main.gd): full within HUH_NEAR, fainter further off,
+## not at all past HUH_FAR. Each says it a moment after the cause (HUH_DELAY), in a voice a little
+## their own (HUH_PITCH, the girl's HUH_GIRL higher), so several at once don't land as one.
+const HUH_SOUND := "res://assets/audio/sfx/camper-huh.wav"
+const HUH_DB := 0.0
+const HUH_NEAR := 4.0
+const HUH_FAR := 22.0
+const HUH_AGAIN := 4.0
+## Since 24 Nov 2026: after one of them says it, nobody else does for this long (s), so several
+## wondering at once make one "huh?".
+const HUH_TOGETHER := 2.0
+const HUH_DELAY := Vector2(0.05, 0.3)
+const HUH_PITCH := Vector2(0.92, 1.04)
+const HUH_GIRL := 1.12
+## The states with the "?" over them (camp_input.gd).
+const PUZZLED := [State.INVESTIGATE, State.SEARCH]
 ## Called to look somewhere (call_out): how far from it they stand to search.
 const CALL_NEAR := 1.3
 ## How long the flinch lasts, and how long the others take to catch the fright.
@@ -270,6 +292,11 @@ var _side := 0.0
 var _side_left := 0.0
 var _floor_y := 0.0
 var _rng := RandomNumberGenerator.new()
+## Their "huh?" (HUH_SOUND): its player, when they last said it (camp.clock), and its own random
+## numbers, so saying it never moves on `_rng`, which times their routine.
+var _huh_sfx: AudioStreamPlayer3D
+var _huh_at := -INF
+var _huh_rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -289,6 +316,19 @@ func _ready() -> void:
 	eyes.rotation.y = PI
 	eyes.ignore.append(get_rid())
 	add_child(eyes)
+	_huh_rng.seed = hash(name + "huh")
+	if ResourceLoader.exists(HUH_SOUND):
+		_huh_sfx = AudioStreamPlayer3D.new()
+		_huh_sfx.stream = load(HUH_SOUND)
+		_huh_sfx.bus = "SFX"
+		_huh_sfx.volume_db = HUH_DB
+		_huh_sfx.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+		_huh_sfx.unit_size = HUH_NEAR
+		_huh_sfx.max_distance = HUH_FAR
+		_huh_sfx.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_DISABLED
+		_huh_sfx.pitch_scale = _huh_rng.randf_range(HUH_PITCH.x, HUH_PITCH.y) * (HUH_GIRL if role == "girl" else 1.0)
+		_huh_sfx.position = Vector3(0, EYES.y, 0)
+		add_child(_huh_sfx)
 	if not routine.is_empty():
 		_step_left = _rng.randf_range(routine[0].time.x, routine[0].time.y)
 		_arrived = true
@@ -1250,9 +1290,26 @@ func _to_state(to: State) -> void:
 		camp.put_down(item, global_position + global_basis.z * 0.4)
 	# Their eyes look straight ahead again (confused, they follow the head: `_search`).
 	eyes.rotation.y = PI
+	if to in PUZZLED and state not in PUZZLED:
+		_say_huh()
 	state = to
 	_t = 0.0
 	state_changed.emit(to)
+
+
+## "Huh?" (HUH_SOUND), a moment after the "?" comes up, if it's still up then; not within HUH_AGAIN
+## of the last. Since 24 Nov 2026 only one of them says it when several wonder at once (the author:
+## "one hhuh sound is fine ven if multiple npcs see u"): whoever's comes first, and nobody else within
+## HUH_TOGETHER of it (campsite.gd `huh_at`). Presentation only: it changes nothing they do.
+func _say_huh() -> void:
+	if _huh_sfx == null or camp.clock - _huh_at < HUH_AGAIN:
+		return
+	_huh_at = camp.clock
+	get_tree().create_timer(_huh_rng.randf_range(HUH_DELAY.x, HUH_DELAY.y), false).timeout.connect(func() -> void:
+		if is_inside_tree() and state in PUZZLED and camp.clock - camp.huh_at >= HUH_TOGETHER:
+			camp.huh_at = camp.clock
+			_huh_sfx.play()
+			sound_started.emit("SFX-HUH"))
 
 
 ## Takes `item` in their right hand.

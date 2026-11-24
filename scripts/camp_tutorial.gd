@@ -85,6 +85,7 @@ signal finished
 
 const CampPerson := preload("res://scripts/camp_person.gd")
 const Campsite := preload("res://scripts/campsite.gd")
+const CampFire := preload("res://scripts/camp_fire.gd")
 const Forest := preload("res://scripts/forest.gd")
 const Spotlight := preload("res://scripts/spotlight.gd")
 const HideSpot := preload("res://scripts/hide_spot.gd")
@@ -134,8 +135,8 @@ const AWAY := [Vector2(-1.4, -14.0), Vector2(-0.4, -13.3), Vector2(-2.4, -13.3)]
 const PIZZA_AT := Vector2(-1.0, 0.12)
 const PIZZA_BEND := 1.7
 const PIZZA_PUT := 0.9
-## The keeper's box (23 Nov 2026): how far from it, on the fire's side, he stands to take the tripod
-## and pot out (m). He bends there, and at the pit, as she does at the table (PIZZA_BEND, PIZZA_PUT).
+## The keeper's box (23 Nov 2026): how far from it, on the fire's side, he stands to take the pot's
+## stand out, piece by piece (m). He bends there, and at the pit, as she does at the table (PIZZA_BEND, PIZZA_PUT).
 const BOX_STAND := 0.75
 ## The first roasted marshmallow on the plate: how wide it's lit, and how long the
 ## raccoon's hungry thought stays up at most (it goes as he takes it).
@@ -216,9 +217,11 @@ var _fire_held := false
 ## she takes it to the table. The boxes are the camp's (campsite.gd `pizza`, camp_pizza.gd).
 var _pizza := ""
 var _pizza_kept := {}
-## The tripod and pot from the keeper's box: "" not fetched yet, "fetching" (on his way to the box),
-## "got" (out of it, on his way to the pit), then "pot" once they're up; and his own routine meanwhile.
+## The stand's parts from the keeper's box (camp_fire.gd PARTS), one at a time: "" not fetched yet,
+## "fetching" (on his way to the box for the next), "got" (carrying it to the pit), then "pot" once
+## they're all up; how many are up; and his own routine meanwhile.
 var _box := ""
+var _box_up := 0
 var _box_kept := {}
 
 
@@ -238,7 +241,7 @@ func _ready() -> void:
 	# No pizza on the table till the girl brings it in (_bring_pizza); with no intro, it's put back.
 	if campsite and campsite.pizza:
 		campsite.pizza.boxes.visible = false
-	# Nor the tripod and pot over the fire, till the keeper fetches them from his box (_fetch_pot).
+	# Nor the posts, the bar and the pot over the fire, till the keeper fetches them from his box (_fetch_pot).
 	if campsite and campsite.campfire:
 		campsite.campfire.set_pot_up(false)
 
@@ -293,10 +296,11 @@ func _process(delta: float) -> void:
 	_keep_box()
 	if player:
 		player.input_locked = running()
-	# No food thought from facing food till it's done: none as he gets to the camp (the
-	# author, 8 Nov 2026), and the plate's, which it pops itself, is the one he has.
+	# No food thought from facing food: none as he gets to the camp (the author, 8 Nov 2026), and the
+	# plate's, which it pops itself, is the one he has. Since 24 Nov 2026 not after it either (the
+	# author: "remove the food notation for the raccon"; main.gd keeps it off in the game).
 	if level and level.get("bubbles"):
-		level.bubbles.food_thoughts = not intro or step == Step.DONE
+		level.bubbles.food_thoughts = false
 
 
 func _input(event: InputEvent) -> void:
@@ -641,38 +645,43 @@ func _bring_back() -> void:
 			person._step = 0
 			person._step_left = 1.0e6
 	_away.clear()
-	# She comes back with the pizza, and he goes for the tripod and the pot in his box.
+	# She comes back with the pizza, and he goes to his box for the posts, the bar and the pot.
 	if girl_was_away:
 		_bring_pizza(girl)
 	if keeper_was_away:
 		_fetch_pot(campsite.keeper)
 
 
-# --- The keeper's box: the tripod and the pot -----------------------------------------
+# --- The keeper's box: the posts, the bar and the pot --------------------------------
 
-## As he comes back from AWAY: two steps first in his routine. He goes to his box at the camp's edge
-## (keeper_box.gd) and bends to take the tripod and pot out of it, then at the pit he puts up the
-## tripod and hangs the pot from it (camp_fire.gd `set_pot_up`). His own routine is kept for after.
-## The box stands there from the start: he carried it in at first, and after play ("the animation of
-## the guy carrying it messed up", 23 Nov 2026) nobody carries it.
+## As he comes back from AWAY: two steps first in his routine for each of the stand's parts
+## (camp_fire.gd PARTS: the far post, the near post, the bar, the pot), one at a time. He goes to his
+## box at the camp's edge (keeper_box.gd) and bends to take the part out of it, carries it to the pit,
+## and bends there to put it up (camp_fire.gd `part_spot`, `put_up`); then back to the box for the
+## next. Since 24 Nov 2026 (the author: "something the human sets up slowly taking things from the box
+## one by one eventually for the raccon to tip over the pot"); he took the tripod and pot in one trip
+## before. His own routine is kept for after. The box stands there from the start: he carried it in at
+## first, and after play ("the animation of the guy carrying it messed up", 23 Nov 2026) nobody
+## carries it.
 func _fetch_pot(keeper) -> void:
 	var box = campsite.keeper_box
 	if _box != "" or box == null:
 		return
 	_box = "fetching"
+	_box_up = 0
 	_box_kept = {"routine": keeper.routine.duplicate(), "step": keeper._step, "left": keeper._step_left}
+	var fire = campsite.campfire
 	var at: Vector3 = box.global_position
-	var fire: Vector3 = campsite.campfire.global_position
-	var toward: Vector3 = ((fire - at) * Vector3(1, 0, 1)).normalized()
+	var toward: Vector3 = ((fire.global_position - at) * Vector3(1, 0, 1)).normalized()
 	var stand: Vector3 = at + toward * BOX_STAND
-	var by_pit: Vector3 = campsite.campfire.bucket_spot()
-	var to_pit: Vector3 = fire - by_pit
-	var routine: Array = [
-		campsite._activity("take_pot", Vector3(stand.x, 0.0, stand.z), atan2(-toward.x, -toward.z), "bend", 1.0,
-			Vector2(PIZZA_BEND, PIZZA_BEND)),
-		campsite._activity("set_pot", Vector3(by_pit.x, 0.0, by_pit.z), atan2(to_pit.x, to_pit.z), "bend", 1.0,
-			Vector2(PIZZA_BEND, PIZZA_BEND)),
-	]
+	var routine: Array = []
+	for i in CampFire.PARTS.size():
+		var by_pit: Vector3 = fire.part_spot(i)
+		var look: Vector3 = fire.part_look(i) - by_pit
+		routine.append(campsite._activity("take_" + CampFire.PARTS[i], Vector3(stand.x, 0.0, stand.z),
+			atan2(-toward.x, -toward.z), "bend", 1.0, Vector2(PIZZA_BEND, PIZZA_BEND)))
+		routine.append(campsite._activity("set_" + CampFire.PARTS[i], Vector3(by_pit.x, 0.0, by_pit.z),
+			atan2(look.x, look.z), "bend", 1.0, Vector2(PIZZA_BEND, PIZZA_BEND)))
 	routine.append_array(_box_kept.routine)
 	keeper.routine.assign(routine)
 	keeper._step = 0
@@ -680,20 +689,38 @@ func _fetch_pot(keeper) -> void:
 	keeper._arrived = false
 
 
-## Each frame: halfway through his bend by the box, he has the tripod and pot; halfway through his
-## bend at the pit, they go up. Done there, his own routine comes back where it was.
+## Each frame: halfway through his bend by the box, he has the next part, in his right hand; halfway
+## through his bend at the pit, it goes up. It shows in his hand while he's at his routine or on his way
+## back to it, not while he tends the fire or is alarmed. Done with the last, his own routine comes
+## back where it was.
 func _keep_box() -> void:
 	var keeper = campsite.keeper
-	if _box == "" or keeper == null:
+	var fire = campsite.campfire
+	if _box == "" or keeper == null or fire == null:
 		return
 	var bending: bool = keeper.at_activity() and keeper._step_left <= PIZZA_PUT
-	if _box == "fetching" and keeper.activity() == "take_pot" and bending:
-		_box = "got"
-	if _box == "got" and keeper.activity() == "set_pot" and bending:
-		campsite.campfire.set_pot_up(true)
-		_box = "pot"
-	if _box == "pot" and not _box_kept.is_empty() and keeper.activity() not in ["take_pot", "set_pot"]:
+	var doing: String = keeper.activity()
+	if _box_up < CampFire.PARTS.size():
+		var part: String = CampFire.PARTS[_box_up]
+		if _box == "fetching" and doing == "take_" + part and bending:
+			fire.carry_part(_box_up, keeper)
+			_box = "got"
+		elif _box == "got" and doing == "set_" + part and bending:
+			fire.drop_carried()
+			fire.put_up(_box_up)
+			_box_up += 1
+			_box = "fetching" if _box_up < CampFire.PARTS.size() else "pot"
+	fire.show_carried(keeper.state in [S.WORK, S.RETURN])
+	if _box == "pot" and not _box_kept.is_empty() and not _fetching(doing):
 		_give_back_box_routine(keeper)
+
+
+## True if `doing` is one of the steps of fetching the stand's parts.
+func _fetching(doing: String) -> bool:
+	for part: String in CampFire.PARTS:
+		if doing == "take_" + part or doing == "set_" + part:
+			return true
+	return false
 
 
 func _give_back_box_routine(keeper) -> void:
@@ -708,14 +735,15 @@ func _give_back_box_routine(keeper) -> void:
 	_box_kept = {}
 
 
-## The tutorial's done: the pot up for the open world, whether or not he's got to it yet.
+## The tutorial's done: if he hasn't started on the stand (or there was no intro), it's all up for the
+## open world, as in free play. If he has, he goes on putting it up there, part by part; the pot can't be
+## tipped till it hangs (camp_fire.gd `can_tip`). It was all put up here, whether or not he'd got to it,
+## till 24 Nov 2026, when fetching it took one trip.
 func _finish_box() -> void:
-	if campsite.campfire == null:
+	if campsite.campfire == null or _box != "":
 		return
 	campsite.campfire.set_pot_up(true)
 	_box = "pot"
-	if not _box_kept.is_empty():
-		_give_back_box_routine(campsite.keeper)
 
 
 # --- The pizza: the girl brings it in -------------------------------------------------

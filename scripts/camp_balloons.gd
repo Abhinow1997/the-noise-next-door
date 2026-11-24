@@ -35,10 +35,13 @@ const Interactable := preload("res://scripts/interactable.gd")
 const LowPoly := preload("res://scripts/lowpoly.gd")
 const CampPerson := preload("res://scripts/camp_person.gd")
 
-## Where they're tied, from the camp's middle (Forest.CAMP, x, z): by the table, in the party's
-## corner (campsite.gd FIRE + (0.8, -4.3): 1.55 m east of the speaker, 2.75 m east of the table,
-## 2.4 m from where she dances). Until 22 Nov 2026 it was (-6.5, 12.0), outside the camp.
-const PLACE := Vector2(-1.7, -5.1)
+## Where they're tied, from the camp's middle (Forest.CAMP, x, z): since 24 Nov 2026 south-west of the
+## fire, on the camera's side of it, between it and the first bush (the author, on a screenshot: "chair
+## where the raccon is sittong", "facing the fire ofc"): campsite.gd FIRE + (-1.25, 4.05), so the chair's
+## middle (CHAIR, 0.3 m further from the fire) is where he stood, 1.3 m west and 4.3 m south of the fire,
+## facing the fire as ever. Earlier the same day, for a while, at the table's far (west) end; from 22 Nov
+## 2026, FIRE + (0.8, -4.3), east of the table; until then (-6.5, 12.0), outside the camp.
+const PLACE := Vector2(-3.75, 3.25)
 ## Where the girl stands minding them, from PLACE: 1.1 m on the camp's side.
 const MINDER := Vector2(0.0, -1.1)
 ## The chair, from PLACE: where its middle stands (x, z), facing her (-Z); its seat's height,

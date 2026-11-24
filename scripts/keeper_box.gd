@@ -9,7 +9,7 @@ extends Node3D
 ##     (assets/props/cardboard_box/, ATTRIBUTION.md there): 0.75 × 0.59 m, 0.47 m tall, closed. Shown
 ##     at SCALE of that (after play: "reduce its size"), 0.56 × 0.44 m, 0.35 m tall.
 ##   - `put_down`: on the ground, at AT (from the fire) near the camp's edge. It stands there from the
-##     start, and the keeper takes the tripod and pot out of it at the tutorial's end. At first he
+##     start, and the keeper takes the pot's stand out of it, piece by piece, at the tutorial's end. At first he
 ##     carried it in, and into the green tent and out on his rounds; after play ("everything beyond
 ##     hiding in the box looks wrong the animation of the guy carying it messed up"), nobody carries
 ##     it. The raccoon drags it about (camp_box.gd).

@@ -17,11 +17,13 @@ extends SceneTree
 ##     else plays or seeks; no other game script uses the balloon or the bunch;
 ##   - the girl blows them up: her routine dance, warm, the balloons, then sitting on the chair
 ##     (since 22 Nov 2026, the revision "the chair by the table, and the girl sits on it"); from
-##     warming her hands she walks over to the table; there she sets out the chair, then blows up
+##     warming her hands she walks over to the chair's place (by the table until 24 Nov 2026, now south-
+##     west of the fire); there she sets out the chair, then blows up
 ##     red, yellow and blue one by one (each shown as a small bud, playing `inflate`, INFLATE
 ##     apart and GAP between), tying each to the chair; with the third tied she goes on to sit;
 ##   - then the balloons: tinted low-poly meshes, 0.3 m across, their middles about 0.7 m up,
-##     by the table, inside the camp, clear of colliders, no collision, each playing `bob`, not
+##     by the fire on its south-west side (by the table until 24 Nov 2026), inside the camp, clear of
+##     colliders, no collision, each playing `bob`, not
 ##     in step; their strings all end on one knot, low on the chair;
 ##   - later visits: she doesn't stay to mind them, but goes straight on to the chair and sits
 ##     (her `sit` clip, her hips on the seat, facing the chair's way) for her drawn
@@ -353,9 +355,11 @@ func _girl_blows_them_up() -> void:
 	var there := await _until(func() -> bool: return girl.call("at_activity"), 3600)
 	var arrived := _tick
 	var at := Vector2(girl.global_position.x, girl.global_position.z)
-	var table: Vector2 = CampsiteScript.TABLE[0]
-	_check("from warming her hands she walks over to the table: on her spot, %.2f m from the table, %.2f m from the camp's middle"
-		% [at.distance_to(table), at.distance_to(ForestScript.CAMP)],
+	# Since 24 Nov 2026 the chair's place is south-west of the fire, not by the table (CHANGE-BRIEF.md,
+	# "the balloons' chair where he stood").
+	var fire_at: Vector2 = CampsiteScript.FIRE
+	_check("from warming her hands she walks over to the chair's place: on her spot, %.2f m from the fire, %.2f m from the camp's middle"
+		% [at.distance_to(fire_at), at.distance_to(ForestScript.CAMP)],
 		there and at.distance_to(minding) < ON_SPOT and at.distance_to(ForestScript.CAMP) < CampsiteScript.CAMP_ZONE,
 		"%.2f m from her spot" % at.distance_to(minding))
 	await _wait(5)
@@ -393,7 +397,9 @@ func _balloons_up() -> void:
 		real.map(func(b) -> String: return b.get("colour")))
 	var camp_at: Vector3 = (camp as Node3D).global_position
 	var middle: Vector2 = ForestScript.CAMP
-	var table: Vector2 = CampsiteScript.TABLE[0]
+	# By the fire, on its south-west side, since 24 Nov 2026 (CHANGE-BRIEF.md, "the balloons' chair where he
+	# stood"); by the table, within 3.5 m of it, before.
+	var fire: Vector2 = CampsiteScript.FIRE
 	var space := (camp as Node3D).get_world_3d().direct_space_state
 	var probe := PhysicsShapeQueryParameters3D.new()
 	var ball := SphereShape3D.new()
@@ -420,9 +426,11 @@ func _balloons_up() -> void:
 		_check("%s: its middle about 0.7 m up (%.3f m)" % [c, up], absf(up - 0.7) < 0.05, "%.3f m up" % up)
 		var flat := Vector2(b.global_position.x, b.global_position.z)
 		var out := flat.distance_to(middle)
-		var by := flat.distance_to(table)
-		_check("%s: by the table, %.2f m from it, inside the camp, %.2f m from its middle (CAMP_ZONE %.1f)"
-			% [c, by, out, CampsiteScript.CAMP_ZONE], by < 3.5 and out < CampsiteScript.CAMP_ZONE, "%.2f m, %.2f m" % [by, out])
+		var by := flat.distance_to(fire)
+		var south_west := flat.x < fire.x and flat.y > fire.y
+		_check("%s: by the fire on its south-west side, %.2f m from it, inside the camp, %.2f m from its middle (CAMP_ZONE %.1f)"
+			% [c, by, out, CampsiteScript.CAMP_ZONE], by < 5.5 and south_west and out < CampsiteScript.CAMP_ZONE,
+			"%.2f m, %.2f m" % [by, out])
 		probe.transform = Transform3D(Basis(), Vector3(b.global_position.x, camp_at.y + 0.9, b.global_position.z))
 		var hits := space.intersect_shape(probe, 4)
 		_check("%s: clear of the camp's things and colliders (nothing within %.1f m)" % [c, CLEAR], hits.is_empty(),

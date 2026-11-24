@@ -83,6 +83,15 @@ const RUN_TURN := 0.7
 const ACCEL := 10.0
 ## How fast he backs away dragging something in his jaws, or eases back toward it (m/s; `grip`).
 const DRAG_SPEED := 0.45
+## Since 24 Nov 2026: holding E at a job he shoves at (interactable.gd `push`, the pot's post), he's
+## turned and moved so it's here, in his own space at model scale 1: at his front paws, ahead of his
+## right shoulder, as his `push` clip has them (design/character/raccoon_v2/anim.py POST). He gets
+## there PUSH_PULL of the way a second, at up to PUSH_SPEED (m/s), walking.
+const PUSH_AT := Vector3(0.11, 0.0, -0.19)
+const PUSH_PULL := 12.0
+const PUSH_SPEED := 2.0
+## He rears up to shove once he's this close to where he shoves from (m); short of it, he walks up.
+const PUSH_THERE := 0.08
 const DECEL := 14.0
 const GRIP := 30.0
 const SLIP := 0.44
@@ -122,6 +131,9 @@ var model: RaccoonModel
 var held: RigidBody3D
 ## Since 23 Nov 2026: something he's dragging in his jaws (`grip`), or null.
 var gripping: Node = null
+## Since 24 Nov 2026: holding E at a job he shoves at, he's at it (PUSH_THERE) and shoving, not still
+## walking up to it (_push_process).
+var _push_ready := false
 ## A snack in his mouth that isn't a body he holds (the tutorial's stolen roasted
 ## marshmallow, roast_plate.gd): while he has it, E doesn't grab or drop; holding E
 ## eats it there (an Interactable), once it's allowed.
@@ -277,6 +289,8 @@ func _physics_process(delta: float) -> void:
 		_climb_process(delta)
 	elif gripping:
 		_drag_process(delta)
+	elif _pushing():
+		_push_process(delta, _pushing())
 	else:
 		_walk_process(delta)
 	# After walking, which may have just taken off, so the model knows it the same tick.
@@ -285,6 +299,14 @@ func _physics_process(delta: float) -> void:
 	# Since 23 Nov 2026: dragging something in his jaws (`gripping`), or at something with E held
 	# (interactable.gd `drag`).
 	model.dragging = _dragging()
+	# Since 24 Nov 2026: tugging at a job with E held (interactable.gd `drag`, the speaker's plug), he turns
+	# to face it, so his tug pulls it toward him.
+	var tug := _tugging()
+	if tug and gripping == null:
+		var to := tug.global_position - global_position
+		rotation.y = rotate_toward(rotation.y, atan2(-to.x, -to.z), turn_speed * delta)
+	# Since 24 Nov 2026: shoving at something with E held (interactable.gd `push`).
+	model.pushing = _pushing() != null and _push_ready
 	_loop(_run_sfx, running, "SFX-RUN", delta)
 	_loop(_climb_sfx, climb_moving, "SFX-CLIMB", delta)
 
@@ -366,12 +388,48 @@ func _drag_process(delta: float) -> void:
 ## True while he's dragging something in his jaws (`gripping`) or holding E at a job he drags at
 ## (interactable.gd `drag`).
 func _dragging() -> bool:
-	if gripping != null:
-		return true
+	return gripping != null or _tugging() != null
+
+
+## The job he's holding E at and tugging (interactable.gd `drag`), or null.
+func _tugging() -> Node3D:
 	for spot: Node in get_tree().get_nodes_in_group("interactable"):
 		if spot.has_method("dragged_by") and spot.dragged_by(self):
-			return true
-	return false
+			return spot as Node3D
+	return null
+
+
+## The job he's holding E at and shoving (interactable.gd `push`), or null.
+func _pushing() -> Node3D:
+	for spot: Node in get_tree().get_nodes_in_group("interactable"):
+		if spot.has_method("pushed_by") and spot.pushed_by(self):
+			return spot as Node3D
+	return null
+
+
+## Shoving at `spot` with E held (24 Nov 2026): up on his hind legs (his `push` clip), turned and moved
+## so it's at his front paws (PUSH_AT, at his size), on the side of it he came to it from. The move keys
+## and F do nothing; letting go of E ends it.
+func _push_process(delta: float, spot: Node3D) -> void:
+	var at := spot.global_position
+	var to := Vector3(at.x - global_position.x, 0.0, at.z - global_position.z)
+	var paws := PUSH_AT * size
+	# Facing so the spot lies where his paws are: as far round to his right as PUSH_AT is.
+	var want := atan2(-to.x, -to.z) + atan2(paws.x, -paws.z)
+	rotation.y = rotate_toward(rotation.y, want, turn_speed * delta)
+	var stand := Vector3(at.x, global_position.y, at.z) - Basis(Vector3.UP, want) * paws
+	var gap := Vector3(stand.x - global_position.x, 0.0, stand.z - global_position.z)
+	var step := (gap * PUSH_PULL).limit_length(PUSH_SPEED)
+	velocity = Vector3(step.x, 0.0 if is_on_floor() else velocity.y - _gravity * delta, step.z)
+	_yaw_rate = 0.0
+	sneaking = false
+	move_and_slide()
+	# He walks up to it, and rears up to shove once he's there (`_push_ready`, read for model.pushing).
+	_push_ready = gap.length() < PUSH_THERE
+	_speed = 0.0 if _push_ready else Vector2(velocity.x, velocity.z).length()
+	model.speed = _speed
+	model.walk_amount = clampf(_speed / walk_speed, 0.0, 1.0)
+	model.crouch = move_toward(model.crouch, 0.0, delta * 5.0)
 
 
 func is_hopping() -> bool:

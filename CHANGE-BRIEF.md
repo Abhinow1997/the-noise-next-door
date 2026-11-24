@@ -1117,3 +1117,215 @@ As the girl's smoothing above, this comes after the `a7` tag and isn't part of A
 - **Its fall check** now also asks that they're all round him.
 
 (Drafted by Claude Code on 23 Nov 2026 from my words above. Where they stand, what they do there, how far they see and when they go are Claude Code's.)
+
+---
+
+### Revised 24 Nov 2026: the campers say "huh?"
+
+"I have added sound like a sound effect. So whenever the NPCs are confused, human NPCs specifically ... we can use that." The sound is "Huh SFX @MRSTOKES302" by Mrstokes302 from Pixabay, under the Pixabay Content License, checked the same day. As the cake above, this comes after the `a7` tag.
+
+**When they say it:** as the "?" comes up over a camper's head (`camp_input.gd`). That's both times the "?" shows:
+- wondering about a noise (INVESTIGATE): his laugh, his running, his landing, a rustle in the keeper's box;
+- confused after losing him (SEARCH), and when the girl calls them to look where the balloons were.
+
+**How often:** once each time the "?" comes up. Not again while it stays up (from wondering into confused, say), and not again within 4 s of their last (`HUH_AGAIN`).
+
+**How it sounds:**
+- **Where it's heard from:** their head, through his ear (`main.gd`). It's at full volume within 4 m (`HUH_NEAR`), fainter further off, and silent past 22 m (`HUH_FAR`).
+- **When it plays:** 0.05–0.3 s after the "?" (`HUH_DELAY`), and only if the "?" is still up then.
+- **Each a little different:** each camper's pitch is their own (0.92–1.04), and the girl's is 1.12 times higher. So several at once don't land as one.
+
+**What doesn't change:** what they do, any timing, any test's expected value. It's presentation only: its random numbers are its own, so their routines draw the same numbers as before.
+
+**How it's made:** `tools/make_task_sounds.gd` gains a job (`-- huh` makes only that one):
+- it's raised 3 times (the MP3 peaks at -12.4 dB);
+- it's trimmed to `assets/audio/sfx/camper-huh.wav`, 0.26 s;
+- it's imported as mono.
+- The MP3 is in `design/sfx/`, out of GitHub; SOURCES.md has its hash.
+
+**The test:** `tests/test_camper_huh.gd`, 6 checks, passing at 30, 60 and 144 fps:
+- each camper's sound;
+- a laugh beside them: one "huh?" each, after the "?";
+- no second one while they still wonder, or once they're confused;
+- called to look once calm again: one more.
+- **Every other test passes unchanged:** camp 31, tasks 48, cones 43 at 30, 60 and 144 fps, tutorial 34, plan 22, sound, bubble 87, balloon task 71, balloon 3D 35, cake 23 at 30, 60 and 144 fps, box 16, pizza 21, moth guide 9, tent 16, bear bag 41, title.
+
+(Drafted by Claude Code on 24 Nov 2026 from my words above. Using it for the noise's "?" as well as the confusion's was Claude Code's suggestion, kept by me the same day: "yes for noises too". The distances, the delay and the pitches are Claude Code's.)
+
+---
+
+### Revised 24 Nov 2026: the pot hangs from a crossbar, put up one piece at a time
+
+"take the reference of this fir space and recretae our fire place simiar to this", with a low-poly picture of a campfire. Then: "u know waht no need for a complete rebuild the tripod we have in this img looks good we can use that something the human sets up slowly taking things from the box one by one eventually for the raccon to tip over the pot". As with the cake above, this comes after the `a7` tag.
+
+**The reference:**
+- It's kept as `design/reference/campfire-lowpoly.webp`: 1920 × 1080, 40,100 bytes, SHA-256 `93b27970fe7d68017ac77413b4a7fdd4b253441168477d4eb4e151ad1d4142cb`.
+- Only the pot's stand is taken from it. The ring of stones and the logs stay as they are. The picture's shovel, stump and axe, standing logs and grill aren't built, at my word ("no need for a complete rebuild").
+
+**The stand** (`scripts/camp_fire.gd`), in place of the three-stick tripod:
+- **Two posts:** squared sticks forked at the top, stood 0.82 m out from the pit's middle, just outside its stones. The near one is where the tripod's leg was (south-west, the camera's left); the far one is across the pit from it.
+- **The crossbar:** squared too, laid in their forks, 0.92 m up at its middle, running 0.13 m past each post.
+- **The pot:** a faceted black cauldron, 0.44 m across and 0.28 m deep, with water in it. It hangs from the bar's middle by a wire bail that runs along the bar, as the picture's does. Its bottom is 0.47 m up, in the flames' tips.
+- Matte and low-poly, built in code like the camp's other props. No colliders, as the tripod had none, so the campers' walkways are baked as before.
+
+**Tipping it:** E held at the near post, with the twinkle on its foot, as before, but for **5 s, not 1 s** (after play: "have the push be on for 5 seconds it seems too easy currently"; `camp_fire.gd` `TIP_TIME`). Holding it, he makes the same scrabbling noise as before, heard 2 m round, every 0.5 s, so ten times where it was twice.
+- The keeper sets it back up from where he did at the tripod's leg (`bucket_spot`, 1.22 m out from the pit's middle).
+- **E from further off** (after play: "the E for tipping it over is very specific position"): his mouth may be up to 0.95 m from the post's foot, and up to 120° from facing it (`camp_fire.gd` `TIP_REACH`, `TIP_FACING`). It was 0.6 m and 75°. Which way the post is from him is judged from his middle, not his mouth (`interactable.gd`, for a `push` job only): right up at the post his snout is past it, and from his mouth it was behind him, so E was refused there.
+- **He shoves at it on his hind legs** (after play: "the raccon should have trying animation standing on its hind legs and hold E to tip"):
+  - **While E is held,** he walks up to the post (in about 0.3 s from 0.75 m off), rears up and shoves at it for the rest of the 5 s, playing his new `push` clip. The pot rocks just after each shove, more as the hold fills.
+  - **He's brought to it:** turned and moved so the post is at his front paws, ahead of his right shoulder (`player.gd` `PUSH_AT`, `_push_process`), on whichever side he came to it from. The move keys and F do nothing meanwhile; letting go of E ends it. Once he's at it, only letting go of E (or the pot closing to him) stops the hold, since rearing up moves his head (`interactable.gd` `push`). This is a named change to his movement, while E is held at the post only.
+  - **As it tips,** he drops back onto all fours and watches it go.
+- **The `push` clip** (a named change to the raccoon's clips; not graded): keyed by `design/character/raccoon_v2/anim.py` (`push`), built alone by `anim_push.py`, as `drag` is by `anim_drag.py`, and exported by `assets/characters/export_raccoon_v2.py`:
+  - 24 frames at 24 fps (1 s), `step` 1/24, looping, `LOOP_LINEAR` in `raccoon_v2.glb.import`'s per-animation settings, as the other loops are. Its seam: every track's first key matches its last;
+  - two shoves a second. He's reared up on his hind legs, braced on his tail, his front paws planted on the post on either side of it, his head turned aside so his cheek is by it. Each shove drives him into the post off his hind legs, fast (the first 30% of it), then he eases back. His ears are flat and his eyes squeezed on each shove;
+  - the other ten clips are unchanged key for key (compared clip by clip in Godot, old `.glb` against new);
+  - `raccoon_v2.glb`: SHA-256 `91cf1e74cded8bebf961ecfc20df47bf9073900ec21ab703a157f10a955123bd` (832,616 bytes); `raccoon_v2.blend` `428348e7d6384baa666332cff9c9b46e65fb72684607e2dcabd7e04e0655cf20`;
+  - played only by `raccoon_model.gd`, the rig's one authority, from `pushing`, which `player.gd` sets, as `dragging` is.
+- **`tests/test_raccoon_rig.gd`** gains `push` among its loops: its length, `step`, `LOOP_LINEAR` and seam, and "all eleven clips exist". So 56 checks become 61, as `drag` made 51 into 56.
+- **The pot turns 80° on its lugs,** onto its side toward the camera, so its empty inside shows. On the tripod it turned 115°, away from him. Its lugs are under the bar, so past about 82° its rim would swing through the bar.
+- **It moves smoothly** (after play: "the animation for the tipping over needs to be smother"; it snapped over and back). This is presentation only, in `camp_fire.gd`, and the game reads none of it:
+  - while E is held at the post, the pot rocks on its lugs, up to 7° either way, just after each of his shoves, more as the hold fills;
+  - tipped, it swings over in 0.55 s, easing in and out, then rocks back about 4° and settles, never past 80°;
+  - its water drains as it passes 12° to 50°, and pours from its rim into the pit for 0.8 s, while the wet spreads over the pit;
+  - set back up by the keeper, it swings upright in 0.7 s, wobbles a little and fills again over 0.5 s, while the wet dries.
+- The douse, the hiss, the fire going out (in 0.5 s, as before) and the keeper's tending are unchanged.
+
+**The keeper puts it up one piece at a time** (`scripts/camp_tutorial.gd` `_fetch_pot`):
+- **When:** as he comes back at the tutorial's end, as before.
+- **The trips:** he goes to his box for the far post, carries it to the pit and bends to stand it up. Then the near post, then the bar (from the pit's far side), and last the pot, each a trip of its own. Before, he took the tripod and pot out in one trip.
+- **In his hand:** each piece shows in his right hand while he carries it. The posts and the bar are held level along the way he walks, and the pot hangs from its bail. Each piece is up as he bends at the pit.
+- **How long:** each trip takes about 22 s, so about 90 s in all. Then his own routine (eating, stoking) comes back where it was.
+- **A named change:** at the tutorial's end the stand used to go up at once, whether or not he'd got to it. Now, if he's started, he goes on putting it up in the open world, and the pot can't be tipped till it hangs. If he never started (no intro, or he wasn't away), it's up from the start, as in free play.
+- **Interrupted:** if he takes fright or goes to tend the fire on the way, the piece leaves his hand, and it's back once he's at it again.
+
+**What doesn't change:**
+- the fire's life, the keeper's tending, the smoke and the other effects;
+- the moth: it circles 1.2 m up, over the bar;
+- every test's expected value, except the rig read-back's new `push` checks (above).
+
+**The checks:**
+- **The tests:** the whole list, run on 24 Nov 2026 with the push in, passes at its counts. That's rig 61 (56 with the `drag` clip since `7adb941`, and the 5 `push` checks), pins 26, states 89, edges 239, 238 and 238, moth 22, moths 15, guide 9, balloon 3D 35, balloon task 71, camp 31, tasks 48, cones 43 and the cone shader 93 at 30, 60 and 144 fps, tutorial 34, plan 22, sound, bubble 87, fire 25, leaf burst 37, smoke 20 and 8, pizza 21, box 16, huh 6 at 30, 60 and 144 fps, cake 23 at 30, 60 and 144 (but see below), tent 16, bear bag 41, waves 15, title, and the asset, material and config checks.
+  - `cost_effects` fails as at the baseline (3 of 4, the fire out).
+  - **With the 5 s hold,** run again: fire 25, smoke 20 and 8, moths 15. The two tests that tip the pot hold E for `TIP_TIME` and a little more, so they follow it; no expected value changes.
+  - The cake test's check "they chase him out of the camp and on" failed in 2 of its 12 runs this session, once at 30 fps and once at 60: both times the camper closed 3.4 m of the 4 m it needs in 3 s. The other ten runs passed it, at 30, 60 and 144 fps. That chase is out in the forest, away from the stand, and the stand adds nothing to the walkways.
+- **Shots at the game camera at night:** taken in the campfire preview (`previews/campfire_smoke_preview.tscn`), driven by a scratch script that isn't kept. They show the stand burning, tipped, with two posts up, and the keeper carrying each piece through his real fetch. The smoothed tip was read frame by frame at 30 fps, from the hold through the swing, the pour and the settle to the pot set back up and full. The push was read frame by frame at 30 fps in free play with the fire burning, at the game camera: E held from 0.75 m off and turned 80° away from the post, he walks up, rears up and shoves, the post at his paws by 0.6 s, and the pot tips at 1 s. With the 5 s hold, the same run had him shoving for the whole hold, the pot rocking more and more, and the pot tipping at 5.0 s.
+- **My eyes:** in play.
+
+(Drafted by Claude Code on 24 Nov 2026 from my words above, and after play: "the animation for the tipping over needs to be smother", then "the E for tipping it over is very specific position and the raccon should have trying animation standing on its hind legs and hold E to tip". The stand's sizes and places, the order of the pieces, the tip's angle and the trips, the smoothing's timings, the reach, and the `push` clip's pose and timing are Claude Code's.)
+
+---
+
+### Revised 24 Nov 2026: no food thought over the raccoon
+
+"remove the food notation for the raccon". This comes after the `a7` tag, as the cake does.
+
+**What goes:** the apple thought over his head as he faces food up close (`thought_bubbles.gd` `food_thoughts`).
+- Since 8 Nov 2026 it was off during the tutorial ("remove the food bubble when the raccoon reaches the campsite") and came back on at its end.
+- Now it's off everywhere in the game (`scripts/main.gd`), and the tutorial no longer turns it back on at its end (`scripts/camp_tutorial.gd`).
+
+**What stays:**
+- **The tutorial's served marshmallow:** the plate is lit with no words, and his hungry thought shows over him. The tutorial pops that thought itself, and `scripts/tutorial_test.gd` checks it.
+- **The bubble demo's yard** (`--bubble-demo`), where `scripts/bubble_test.gd` checks the thought itself, with its expected values unchanged.
+- **Every other thought:** the sparkles over loot, the "!" when he's seen, the bulb, the bored face, the laugh and the z's.
+
+**The tests:** every expected value is unchanged. Run on 24 Nov 2026 after the change: bubble 87, tutorial 34, cones 43, tasks 48, camp 31, plan 22, sound, and the cake test twice at 60 fps, 23 each.
+
+(Drafted by Claude Code on 24 Nov 2026 from my words above. Keeping the tutorial's marshmallow beat is Claude Code's reading, for me to confirm.)
+
+---
+
+### Revised 24 Nov 2026: the fire pit's circle of sight comes out; one "huh?" for several
+
+"also remove the vision cone of the firepit its making it almost impossible to push over cause its alerting the npcs also one hhuh sound is fine ven if multiple npcs see u". As with the cake above, this comes after the `a7` tag.
+
+**The fire pit's circle of sight comes out** (`scripts/camp_fire.gd`):
+- **What it was:** since 8 Nov 2026 ("the firepit and the surrounding campsite when the fire is lit should have the vision cone in circle"), a vision cone all the way round the burning fire, drawn on the ground as far as its light. Moving upright in it, he was spotted, and the nearest calm camper was alerted to him. So shoving at the pot for 5 s, he was nearly always caught.
+- **Now:** there's no circle, and nothing is drawn round the fire. Nothing but the campers' own eyes spots him there.
+- **What stays:**
+  - in the firelight, the campers see him half as far again (`campsite.gd` `in_firelight`), as since 11 Nov 2026;
+  - campers by the fire burning high still have no cone drawn (`campsite.gd` `FIRE_NEAR`, since 11 Nov 2026: "remove the vision cones for npcs when they are closer to the fire pit with the fire fully up"). The circle showed the danger there; now nothing does. They still see as ever, and a spotting still shows red.
+- **`scripts/fire_test.gd`** changes with it: five checks, with the count staying at 25.
+  - "no circle of sight with the fire out" and "the circle shows, as far as the firelight" become: there's no circle, out or burning;
+  - "in the circle, crouching and moving" and "standing still: not spotted" keep their expected values, read from the camp's own record of when he was last seen (`last_seen`);
+  - "walking upright: spotted, the nearest camper alerted" becomes "not spotted either, nobody alerted", with the campers frozen as before. He walks for 0.5 s, about as long as the circle used to take to spot him.
+
+**One "huh?" for several** (`scripts/camp_person.gd`, `scripts/campsite.gd`):
+- **Before:** each camper whose "?" came up said "huh?" in a voice of their own, so several wondering at once made several.
+- **Now:** whoever's "huh?" comes first plays, and nobody else's plays within 2 s of it (`camp_person.gd` `HUH_TOGETHER`, `campsite.gd` `huh_at`). Each camper's own 4 s between theirs (`HUH_AGAIN`) is as before, and so is when the "?" shows.
+- **`tests/test_camper_huh.gd`** changes with it, in one check, with its count staying at 6: "each who wonders says 'huh?' once" becomes "one 'huh?' for all who wonder, said by one of them". Its timing check (a moment after the "?" comes up) is as before.
+
+**The tests:** the whole list, run on 24 Nov 2026 after this change, passes at its counts: fire 25 and huh 6 (at 30, 60 and 144 fps) with the checks above, rig 61, cake 23 at 30, 60 and 144, tutorial 34, tasks 48, camp 31, cones 43 and the cone shader 93 at all three rates, and the rest as in the campfire revision. `cost_effects` fails as at the baseline (3 of 4, the fire out).
+
+(Drafted by Claude Code on 24 Nov 2026 from my words above. The 2 s for "at once" is Claude Code's, for me to confirm. Keeping the campers' cones hidden by the fire is mine, asked the same day: "Keep them hidden".)
+
+---
+
+### Revised 24 Nov 2026: tugging the plug out
+
+"Pull the plug under the table (hold E) so Turn the music off is crossed off", then "this tasks seems soo cluncky". As with the cake above, this comes after the `a7` tag.
+
+**What was clunky,** seen in play at the game camera (free play, the campers unseeing):
+- **He stood still** for the 0.8 s hold, and then the plug jumped from its socket into his mouth.
+- **E took a tight spot:** his mouth within 0.6 m of the socket, and facing it within 75°. Coming in from the camera's side, the table's front-right leg stops him just short of it.
+
+**Now** (`scripts/camp_puzzles.gd`, `scripts/player.gd`, `scripts/interactable.gd`):
+- **He tugs at it:** while E is held he turns to face the plug and tugs at it in his jaws, playing his `drag` clip (the one made on 23 Nov 2026 "we might use for other things as well"). The socket is the first job marked `drag` (`interactable.gd`); the tablecloth and the keeper's box are dragged by his grip, as before.
+- **The plug comes out:** it jerks 2 cm toward him in its socket with each tug, two a second in time with the clip. Over the last third of the hold it slides out into his jaws, so it's in his mouth as the hold's done, as before. Let go early, and it slides back in as the hold runs back. This is presentation only: it's out when the hold is done, as before.
+- **E from further off:** his mouth may be up to 0.85 m from the socket, and up to 110° from facing it (`PLUG_REACH`, `PLUG_FACING`). Which way it is is judged from his middle, as for the pot's post, since up close his snout is past it.
+- **What doesn't change:** the 0.8 s hold and its noise, the music stopping, the dancers freezing, the low-poly man putting it back, dragging it off on its cord, and the task.
+
+**The tests:** every expected value is unchanged. The whole list, run on 24 Nov 2026 after this change, passes at its counts: tasks 48 (it tugs the plug out through real input, with its 0.8 s hold, and the low-poly man puts it back), sound, cones 43 and the cone shader 93 at 30, 60 and 144 fps, tutorial 34, camp 31, cake 23 at 30, 60 and 144, and the rest as in the revisions above. `cost_effects` fails as at the baseline (3 of 4, the fire out).
+
+(Drafted by Claude Code on 24 Nov 2026 from my words above and Claude Code's look at it in play. The tug, the plug's jerks and slide, and the reach are Claude Code's.)
+
+---
+
+### Revised 24 Nov 2026: the speaker moved, and a second bush
+
+"update a hiding bush here update the postion of the music syatem where i have inidcated along with the same the wire to music system", on a screenshot of the camp from the game, with a bush's place and the speaker's place drawn on it. As with the cake above, this comes after the `a7` tag.
+
+**Where the marks are:** worked out from the game camera, not guessed.
+- The raccoon was in the middle of the screenshot, by the socket, so the camera was centred on him there. Placed so the string lights' poles and the cooler land where they do in the screenshot (to about 15 px, 0.1 m), the camera's rays through the two marks meet the ground at the places below.
+- Markers there, seen at the same camera, sat in the drawn circle and the drawn box.
+
+**The speaker** (`scripts/campsite.gd` `SPEAKER`):
+- Now 1.0 m east and 3.45 m north of the fire, out on the dance floor's north side between the table and the girl, turned to face the fire. Before: beside the table, 0.75 m west and 4.3 m north of the fire, turned 10°.
+- **Its cord** follows it: it still runs along the ground to the socket under the table, now 2.7 m long, within its 4 m (`camp_puzzles.gd` `CORD_LEN`). The socket and Turn the music off are where they were.
+- **What follows it, as before:** the party's music and the level's music play from it, the sound waves keep to it once he's at the camp, and "Investigate the music" ticks once it's well on the screen. It's solid, as before, so the campers' walkways are baked round it.
+
+**A second bush to hide in** (`campsite.gd` `BACK_BUSH`):
+- At the camp's north edge, 2.45 m west and 9.9 m north of the fire, past the string lights behind the table, by the trail, 1.3 m west of a tree (nudged 0.15 m west of the mark, to keep its leaves off the trunk).
+- It's like the first: one of the forest's bushes, see-through round him, dived into, rustling, his eyes peeking out (`hide_spot.gd`). The leaf burst bursts from it too: the one listener now follows both bushes, each burst at the bush it came from (`scripts/leaf_bursts.gd` `more_bushes`, set in `scripts/main.gd`), with the effect's settings as they are (`effects/leaf_burst.tscn`). A second listener made `tests/cost_effects.gd` hang: it takes the level's one listener to measure, and found the wrong one.
+- The tutorial's bush is still the first; the second has no part in the tutorial.
+
+**The tests:** every expected value is unchanged. The whole list, run on 24 Nov 2026 after this change, passes at its counts: waves 15 (the waves keep to the speaker where it stands now), sound, tasks 48, balloon task 71 (the girl's walk to her chair, round the speaker), tutorial 34, moth guide 9, title, leaf burst 37, cones 43 at 30, 60 and 144 fps, and the rest as in the revisions above. `cost_effects` fails as at the baseline (3 of 4, the fire out).
+
+(Drafted by Claude Code on 24 Nov 2026 from my words and marks above. The exact places, the speaker's turn and the bush's nudge are Claude Code's, from the marks.)
+
+---
+
+### Revised 24 Nov 2026: the plug is pulled from the speaker; the balloons' chair where he stood
+
+"the music system should be the one to interact to switch it off rather than the adaptor under the table also update the position of the chair for ballons diagonally opposite to what it is right now on the other side edge of the table". Then, on a screenshot from the game: "chair where the raccon is sittong", "facing the fire ofc". As with the cake above, this comes after the `a7` tag.
+
+**Turn the music off, at the speaker** (`scripts/camp_puzzles.gd`):
+- **The cord is the other way round:** its far end is plugged into the power strip under the table for good, and its plug goes into the speaker's side, low on its left (toward the table), near its back (`SPEAKER_SOCKET`). Before, the plug was in the strip and the cord came from the speaker.
+- **He pulls it out at the speaker:** E there, held, tugs it out in his jaws as before (the `drag` clip, the plug jerking and coming out into his mouth, the 0.8 s hold, its noise). The strip under the table is no longer anything to use.
+- **On its cord:** he can still drag the plug off, now up to 4 m from the strip (`CORD_LEN`), as it was from the speaker.
+- **The low-poly man** puts it back into the speaker, standing 0.55 m out from its socket side (`FIX_STAND`).
+- **What doesn't change:** the task and its hint ("Pull the plug, get away."), the music stopping, the dancers freezing, everyone wondering, and the man going to fix it.
+
+**The balloons' chair where he stood** (`scripts/camp_balloons.gd` `PLACE`):
+- **Now** south-west of the fire, on the camera's side of it, between the fire and the first bush: the chair's middle is 1.3 m west and 4.3 m south of the fire, where he stood in my screenshot, facing the fire as ever. The balloons' place, 0.3 m nearer the fire than the chair's middle, is 1.25 m west and 4.05 m south of it.
+- **How the spot was found:** from the screenshot, not guessed. A mapping from its pixels to the ground was fitted to seven things whose places are known (the fire, the woodpile, the table, the cooler, the speaker, the backpack and the first bush), and it puts each within 0.11 m of where it is. Through it, the ground under him is the spot above.
+- **The ground under it** is kept clear of rocks and tufts, as the camp's other places are (`campsite.gd` `CLEARINGS`, 0.9 m round). There was a small rock right by his paws.
+- **Before** (since 22 Nov 2026), east of the table, behind where the speaker now stands: 0.8 m east and 4.3 m north of the fire.
+- **On the way,** the same day: moved first to the table's far (west) end, diagonally across the table. There the balloon test's "then she flees and cowers, further from him" failed: the test puts him 2.5 m in front of her, toward the fire, and from there that was right by the low-poly man, 2.3 m from her. So she ran to hide behind him, as she does when her protector is within 6 m (`camp_person.gd` `_hiding_place`, unchanged), past the raccoon. The build stopped on it, and I chose where he stood instead. From there the man is more than 6 m off, so she backs away from the raccoon, and the check passes as it is.
+- **What moves with it:** the knot, the balloons, where the girl minds them and sits, and where she sees them from. Her routine, the task and her call are as before.
+- **`tests/test_balloon_task.gd`** changes with it, with the count staying at 71:
+  - its three checks "by the table, within 3.5 m of it" become "by the fire on its south-west side, within 5.5 m of it", each still inside the camp;
+  - "from warming her hands she walks over to the table" is renamed "… to the chair's place". It only printed how far the table was, and its expected value is as before.
+
+**The tests:** the whole list, run on 24 Nov 2026 after this change, passes at its counts: tasks 48 (he tugs the plug out of the speaker, and the man puts it back), balloon task 71 (with the checks above), sound, cones 43 at 30, 60 and 144 fps, tutorial 34, camp 31, and the rest as in the revisions above. `cost_effects` fails as at the baseline (3 of 4, the fire out).
+
+(Drafted by Claude Code on 24 Nov 2026 from my words above. The socket's place on the speaker, which way the cord runs, and the chair's exact place from my screenshot are Claude Code's.)

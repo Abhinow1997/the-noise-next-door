@@ -7,7 +7,8 @@ extends Node3D
 ##     roasts. Hold E to unzip it tooth by tooth (ZIP_TIME; a little noise); the bag of
 ##     marshmallows tumbles out. Get it home to his tree, his stash: that's the task.
 ##     Running with the bag, it crinkles (CRINKLE).
-##   - Music off: the speaker's cord runs to a plug in a socket under the table. Hold E
+##   - Music off: the speaker's cord runs from a power strip under the table to a plug in the speaker's
+##     side (since 24 Nov 2026; the plug was in the strip before). At the speaker, hold E
 ##     to tug the plug out with his teeth (PULL_TIME): the music stops, which is the
 ##     task. He can drag the plug away on its cord (CORD_LEN). The dancers stop dead
 ##     mid-move (FREEZE), which is his moment to get away; then everyone wonders where
@@ -30,9 +31,17 @@ const ThoughtBubbles := preload("res://scripts/thought_bubbles.gd")
 ## Where things are, from the fire (x, z), and which way their fronts face (degrees).
 const BACKPACK := Vector2(-2.05, 0.5)
 const BACKPACK_FACING := -90.0
-## Under the table, 0.45 m east of its middle and 0.18 m north, wherever it stands
-## (it was (-0.75, -2.78) before the camp grew on 7 Nov 2026).
+## The power strip under the table, 0.45 m east of its middle and 0.18 m north, wherever it stands
+## (it was (-0.75, -2.78) before the camp grew on 7 Nov 2026). Until 24 Nov 2026 the plug was in it;
+## since then the cord's other end is plugged in there for good, and the plug he pulls is in the
+## speaker's side (SPEAKER_SOCKET).
 const SOCKET := Vector2(-1.5, -4.38)
+## Since 24 Nov 2026 (the author: "the music system should be the one to interact to switch it off
+## rather than the adaptor under the table"): where the plug goes into the speaker, in its own space: low
+## on its left side (toward the table), near its back. The plug's prongs point into it.
+const SPEAKER_SOCKET := Vector3(-0.2, 0.14, -0.06)
+## Where the low-poly man stands to plug it back in: this far out from the speaker's socket side (m).
+const FIX_STAND := 0.55
 ## The backpack: how long the zip takes, and how far the zipping is heard (m).
 const ZIP_TIME := 3.0
 const ZIP_NOISE := 1.5
@@ -45,6 +54,16 @@ const PULL_TIME := 0.8
 const PULL_NOISE := 1.0
 const CORD_LEN := 4.0
 const PLUG_OUT := 0.25
+## Since 24 Nov 2026 (the author: "this tasks seems soo cluncky"; he stood still while E filled, then
+## the plug jumped into his mouth): E at it from this far (his mouth, m) and this far round from facing
+## it (degrees), which way judged from his middle (it was 0.6 m and 75 degrees, from his mouth). Holding
+## E, he turns to it and tugs at it in his jaws (his `drag` clip: interactable.gd `drag`, player.gd), and
+## the plug jerks in its socket with each tug, PLUG_JERK toward him, then comes out into his mouth over
+## the end of the hold (from PLUG_COMES of it). Let go early, it slides back in as the hold runs back.
+const PLUG_REACH := 0.85
+const PLUG_FACING := 110.0
+const PLUG_JERK := 0.02
+const PLUG_COMES := 0.65
 ## How long after the music stops the low-poly man goes to put it back, how far the
 ## music stopping is noticed, and how long the dancers stand frozen mid-move first.
 const FIX_AFTER := 2.5
@@ -92,8 +111,12 @@ var _pull: Node3D
 var _flap: Node3D
 var _unzipped := false
 var _socket: Vector3
+## The plug's turn in the socket: its prongs into the speaker's side.
+var _plug_basis := Basis(Vector3.UP, PI * 0.5)
 var _socket_pull: Interactable
 var _plugged := true
+## How long he's tugged at the plug this hold (s), for when it jerks (_show_pull).
+var _pull_clock := 0.0
 var _cut_at := -INF
 var _cord: MeshInstance3D
 var _cord_from := Vector3.ZERO
@@ -293,7 +316,9 @@ func _reset_backpack() -> void:
 # --- Music off -------------------------------------------------------------------
 
 func _build_plug() -> void:
-	_socket = _at(SOCKET, 0.03)
+	# The plug goes into the speaker's side; the strip under the table holds the cord's other end.
+	_socket = speaker.global_transform * SPEAKER_SOCKET
+	_plug_basis = Basis.looking_at(speaker.global_basis.x, Vector3.UP)
 	var strip := Node3D.new()
 	strip.position = _at(SOCKET)
 	camp.add_child(strip)
@@ -323,7 +348,7 @@ func _build_plug() -> void:
 	plug = _loot(LowPoly.commit(st), Vector3(0.05, 0.03, 0.05), "", Callable(), Vector3(0, -0.02, -0.03))
 	plug.set_meta("reset", plug_in.bind(plug))
 	plug.mass = 0.1
-	_cord_from = speaker.global_transform * Vector3(-0.1, 0.02, -0.15)
+	_cord_from = _at(SOCKET, 0.04) + Vector3(0.1, 0, 0)
 	_cord = MeshInstance3D.new()
 	_cord.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	camp.add_child(_cord)
@@ -331,7 +356,9 @@ func _build_plug() -> void:
 	_socket_pull.hold_time = PULL_TIME
 	_socket_pull.noise = PULL_NOISE
 	_socket_pull.camp = camp
-	_socket_pull.reach = 0.6
+	_socket_pull.reach = PLUG_REACH
+	_socket_pull.facing = PLUG_FACING
+	_socket_pull.drag = true
 	_socket_pull.prompt_height = 0.25
 	_socket_pull.position = _socket
 	_socket_pull.enabled = func() -> bool: return _plugged
@@ -345,7 +372,7 @@ func plug_in(item: RigidBody3D) -> void:
 	if item.get_parent() != camp:
 		item.reparent(camp, true)
 	lift(item)
-	item.global_transform = Transform3D(Basis(Vector3.UP, PI * 0.5), _socket)
+	item.global_transform = Transform3D(_plug_basis, _socket)
 	item.reset_physics_interpolation()
 	_plugged = true
 	_socket_pull.reset()
@@ -384,20 +411,25 @@ func _music_off() -> void:
 	camp.noise(speaker.global_position, SILENCE_HEARD, FREEZE)
 
 
-## Where the low-poly man stands to plug it back in, and the socket itself.
+## Where the low-poly man stands to plug it back in (out from the speaker's socket side, on the ground),
+## and the socket itself.
 func socket_spot() -> Vector3:
-	return _socket + Vector3(0.35, 0, 0.55)
+	var out := -speaker.global_basis.x
+	out.y = 0.0
+	return Vector3(_socket.x, 0.0, _socket.z) + out.normalized() * FIX_STAND
 
 
 func socket_at() -> Vector3:
 	return _socket
 
 
-func _music(_delta: float) -> void:
-	# Out of the socket some other way (dropped, carried off): the music's off.
-	if _plugged and plug.global_position.distance_to(_socket) > PLUG_OUT:
+func _music(delta: float) -> void:
+	# Out of the socket some other way (dropped, carried off): the music's off. Not while he's tugging
+	# at it, or a tug he let go of is running back: it's drawn coming out then (_show_pull).
+	if _plugged and _socket_pull.progress <= 0.0 and plug.global_position.distance_to(_socket) > PLUG_OUT:
 		_plugged = false
 		_music_off()
+	_show_pull(delta)
 	# The cord only reaches so far: pulled taut, it's out of his mouth.
 	var reach := plug.global_position - _cord_from
 	reach.y = 0.0
@@ -414,6 +446,28 @@ func _music(_delta: float) -> void:
 	if plug.global_position.distance_to(_cord_to) > 0.01:
 		_cord_to = plug.global_position
 		_draw_cord()
+
+
+## The plug as he tugs at it (24 Nov 2026), presentation only: it jerks in its socket with each tug of his
+## `drag` clip (anim.py `drag_heave`'s timing: two tugs a second, each heaving back over its first 35%),
+## and comes out toward his mouth over the end of the hold, so it's in his jaws as the hold's done
+## (`_unplug`). A hold he lets go of runs back, and the plug slides back in with it.
+func _show_pull(delta: float) -> void:
+	if not _plugged or _player == null:
+		return
+	var p: float = _socket_pull.progress
+	if p <= 0.0:
+		_pull_clock = 0.0
+		return
+	if _socket_pull.working:
+		_pull_clock += delta
+	var mouth: Vector3 = _player.model.mouth.global_position
+	var way := (mouth - _socket).normalized()
+	var w := fmod(2.0 * _pull_clock, 1.0)
+	var heave := smoothstep(0.0, 1.0, w / 0.35) if w < 0.35 else 1.0 - smoothstep(0.0, 1.0, (w - 0.35) / 0.65)
+	var out := smoothstep(PLUG_COMES, 1.0, p)
+	var at := _socket.lerp(mouth, out) + way * PLUG_JERK * heave * (1.0 - out)
+	plug.global_transform = Transform3D(_plug_basis, at)
 
 
 ## The cord from the back of the speaker along the ground to the plug, rising to it
