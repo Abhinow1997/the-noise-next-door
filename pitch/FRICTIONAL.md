@@ -195,9 +195,24 @@ A dated log of making the pitch film: what I asked for, what came back, what was
 - **Also found:** `remotion_scenes.py` writes the beat sheet back from the copy it read at its start. So a change made to the sheet while it renders is lost, as B06's declaration was once. B06's declaration now lives in `tools/set_timing.py`, which runs before it, and the gameplay beats' in `tools/cut_clips.py`, which runs after.
 - **The toolkit patch** has two more changes, the heading and the footer, so it's renamed `tools/brutalist-local.patch`.
 
-- **The final** then passed, and its receipt says "ready". It's `exports/the-noise-next-door-pitch.mp4`, 3 min 0.8 s, SHA-256 `3f792689…`. Its gates:
+- **The final** then passed, and its receipt says "ready". It was 3 min 0.8 s, SHA-256 `3f792689…` (replaced below). Its gates:
   - `art final` ran Gate T, the compiler's beat lint and shape gates, and Gate V on the candidate (0 blockers, 0 major);
   - run beside it: the fact-check gate (clean, 39 rows), the godot-gdd check before and after (PASS), and the loudness gate, which `art final` doesn't run (PASS, −24.7 LUFS, true peak −2.9 dBTP).
+
+
+### 24 Nov 2026: the earlier assignments' names out of the film
+
+- **Asked,** after "Looks good, commit" (`d9f2403`, tagged `a8` but not pushed): "remove the previous assignement names if u see them".
+- **Found** in the film: two boards and two lines named earlier assignments.
+  - **B01's board:** "tag a7", twice.
+  - **B06's board:** "built by tag a7", "Tagged: a5 shaders · a6 particles · a7 animation" and "(tag a7)".
+  - **B06's narration:** "…each have a tagged assignment". **B09's:** "…each has its own tagged assignment".
+- **Came back:**
+  - **The boards** name the commits and dates instead: "Built · e21bb3a, 22 Nov", "built by 22 Nov (e21bb3a)", "Built and tested: shaders · particles · animation".
+  - **B06** now says "…are each built and tested, with headless tests a stranger can rerun", and **B09** "…and I've used every one of them in this game". Both were re-voiced, and B01 and B06 re-rendered.
+  - **The final** was rebuilt: 3 min 0.7 s, SHA-256 `087666b3…`. Every gate passed again: T, V (0 blockers), loudness (−24.7 LUFS), the fact check and godot-gdd.
+  - **PROJECT-BRIEF.md's** line that matched B09 changed with it.
+- **Kept:** the tags in the records (PROJECT-BRIEF.md's "exists today", FACTCHECK.md), as the assignment asks for "the tag or commit where each thing can be seen". The end card's course line stays.
 
 ---
 

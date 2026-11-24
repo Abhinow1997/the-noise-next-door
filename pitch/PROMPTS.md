@@ -62,3 +62,6 @@ Quoted as I typed them, in order. Claude Code's drafts in between are summarized
     The takes aren't needed there. A link to the finished film may be, beside the Canvas ZIP.
 21. "Looks good, commit", after watching the final
     B02's new line and the film are kept. Claude Code committed `pitch/` and the A8 records, and tagged it `a8`.
+22. "Yes, push then", for pushing `main` and `a8` once the film's link is in the README
+23. "remove the previous assignement names if u see them"
+    The film's boards name commits and dates in place of the tags `a5`–`a7`, and B06's and B09's lines no longer say "tagged assignment". Re-voiced, re-rendered and rebuilt; the records keep the tags the assignment asks for.

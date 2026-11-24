@@ -60,7 +60,7 @@ Every claim the film makes, where it comes from, and its verdict. The course's h
 | 23 | B05 | "A lead can also rerun every test, one command each" | PASS | CLAUDE.md: `bash scripts/run-test.sh <test> <fps>` | |
 | 24 | B06 | "In October my design document said the game had no humans yet" | PASS | GDD line 315 | |
 | 25 | B06 | "Now it has four, with routines and sight" | PASS | README: the camper, the low-poly man, the girl and the fire keeper (tag `a7`) | |
-| 26 | B06 | Shaders `a5`, particles `a6`, the jump's animation `a7` | PASS | The tags, and each one's TEST-REPORT.md | |
+| 26 | B06 | "Shaders, particles, and the jump's animation are each built and tested" | PASS | The tags `a5` (`62ee5fb`), `a6` (`1578035`) and `a7` (`e21bb3a`), and each one's TEST-REPORT.md | The film names the commits and dates, not the assignments |
 | 27 | B06 | "Effects' cost measured on my RTX 4050 laptop" | PASS | TEST-REPORT.md at `a6`: Windows 11 Home, RTX 4050 Laptop GPU, 16 GB | On the board |
 | 28 | B06 | "26 pins, edge tests at 30, 60 and 144 fps" | PASS | `evidence/jump_pins_60fps.log`, `evidence/test_jump_edges_60fps.log`, `evidence/a7-baseline-SUMMARY.txt` | On the board |
 | 29 | B06 | "31 headless test scripts, all rerun from a fresh clone on 22 Nov" | PASS | `evidence/a7-baseline-SUMMARY.txt`: 31 scripts, a fresh clone of `160c0eb` with an empty import cache. All pass except `cost_effects.gd` (1 of 4 checks), which has failed since before Assignment 7 | The card says "rerun", not "all pass" |
@@ -73,6 +73,7 @@ Every claim the film makes, where it comes from, and its verdict. The course's h
 | 36 | B08 | The town's cast "doesn't exist yet: three dogs, an animal-control officer, the neighbours" | PASS | GDD §4: "Planned" | |
 | 37 | B08 | The storyboard panel | PASS | `design/storyboard/11-barking-up-the-wrong-tree.svg`, drawn in code by Claude Code | Labelled CONSTRUCTED on the board |
 | 38 | B09 | "Mostly to learn"; the skills "were all new to me this term" | EXEMPT | My answers, 23 Nov 2026 | The footage is run-03's getaway, 96.0–111.47 s |
+| 38b | B09 | "I've used every one of them in this game" | PASS | The raccoon, modelled and rigged in Blender (`assets/characters/raccoon_v2.blend`); the campers' sight cones' shaders (`a5`); the fire's particles (`a6`); the jump's animation and its tests (`a7`); all in Godot (README) | |
 | 39 | B10 | The end card's credits and revisions | PASS | SOURCES.md; the takes' revisions and dates above | |
 
 ## Fixed while drafting

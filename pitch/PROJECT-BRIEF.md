@@ -95,7 +95,7 @@ Mostly to learn. Every skill this course covers was new to me this term:
 - shaders and particles;
 - game animation and its tests.
 
-Each has its own tagged assignment, from `a2` to `a7`. Finishing the whole game is how I'll find out whether I can carry them all through to the end.
+I've used every one of them in this game; the list below has the tag or commit where each can be seen. Finishing the whole game is how I'll find out whether I can carry them all through to the end.
 
 ---
 
