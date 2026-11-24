@@ -1078,3 +1078,42 @@ As the girl's smoothing above, this comes after the `a7` tag and isn't part of A
 **Still to come:** what the new location is.
 
 (Drafted by Claude Code on 23 Nov 2026 from my words above, after the build I asked for and played. The cake, its table's place, the timings, the hints, the cutscene's beats, the chase's route and the moth leading it are Claude Code's.)
+
+---
+
+### Revised 23 Nov 2026: everyone round the cake
+
+"when the cake comes he is doing it all alone everyone should be there when it is happening". The cake was the camper's alone: the others carried on with their routines while he brought it out, stood at it and fell. Now it's the camp's moment.
+
+**When they come:**
+- As he carries the cake out of his tent, the low-poly man, the girl and the fire keeper come round its table.
+- They come again each time his routine brings him back to it, and they stay as long as he's at it.
+- Once his laces are tied, and while he's down after his fall, they stay too. So he falls in front of all of them, and they're right there for the cutscene: the girl's fright, and the men's chase.
+- **Each comes once they're at their routine,** as for any interruption. If one is tending the fire or putting the plug back, they finish first.
+- **When he leaves the cake** (his time at it up, his laces untied), they go back to where their routines had got to.
+
+**Where they stand** (`camp_finale.gd` GATHER_AT), facing the cake:
+- the low-poly man to its north;
+- the girl to its south, the camera's side;
+- the fire keeper to its north-east.
+- Each place is reached from the camp without passing the table. The camp's walkways are worked out before the table is built, so a place on its far side left the keeper walking into it.
+
+**What they do there:** they lean in to look at the cake (`bend`, again and again).
+- **The camper, at his cake step, does the same,** in place of the `guard` stance he had there. The campers have no plain standing clip, so standing still they fell back on `guard` (the girl on `cower`), which read as "stay back".
+- No clip is new or changed.
+
+**What they see, watching it:** only 0.35 of their sight (`camp_person.gd` CAKE_SIGHT), 2.45 m, or 1.35 m while he sneaks.
+- Each stands 1.4 m or more from the camper's heels. So sneaking up behind him to tie his laces, he isn't seen; walking up, he is.
+- It's the same idea as the dancers seeing less, lost in the music.
+- **Seeing him is a fright,** as anywhere, and the others catch it, as ever.
+
+**Named changes:** the others' routines gain this interruption (`camp_person.gd` GATHER, `gather()` and `end_gather()`). The camper's cake step plays `bend`.
+
+**The tests:** `tests/test_cake_finale.gd` gains 4 checks (19 become 23), passing at 30, 60 and 144 fps:
+- the others come round the table, each at their place, facing the cake;
+- watching it, they see 2.45 m;
+- he leaves the cake, and they go back to their routines;
+- back at it, they come again.
+- **Its fall check** now also asks that they're all round him.
+
+(Drafted by Claude Code on 23 Nov 2026 from my words above. Where they stand, what they do there, how far they see and when they go are Claude Code's.)

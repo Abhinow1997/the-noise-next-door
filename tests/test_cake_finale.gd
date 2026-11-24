@@ -10,8 +10,11 @@ extends SceneTree
 ##   - the camper's three new clips: carry looping, trip and get_up one-shots;
 ##   - with five tasks done, he goes into his tent for the cake and carries it out in both hands
 ##     (`carry`) to its table, sets it down, and stands at it, facing it;
+##   - (23 Nov 2026) everyone's there: the others come round the table, facing the cake, watching it
+##     (their sight CAKE_SIGHT); they go back to their routines when he leaves it, and come again when he's
+##     back at it;
 ##   - "Tie his laces" is the key task, its hint 5 words at most; E held at his heels ties them;
-##   - he moves on, and falls (`trip`); the cake lands on his face; his beanie is hidden on his head and
+##   - he moves on, and falls (`trip`), the others round him; the cake lands on his face; his beanie is hidden on his head and
 ##     a loose one lies behind him; "Swipe his red beanie" is the key task;
 ##   - E takes the beanie: the cutscene (the keys held, between 10 and 20 s): he gets up (`get_up`),
 ##     stamps and goes after him; the girl takes fright; the men go after him; the raccoon runs off on
@@ -157,6 +160,36 @@ func _hint_ok(t: Dictionary) -> bool:
 	return hint != "" and hint.split(" ", false).size() <= 5
 
 
+## The campers other than the camper, in the camp's order.
+func _others() -> Array:
+	return camp.people.filter(func(p: CampPerson) -> bool: return p != camper)
+
+
+## Every one of the others round the cake, at their place, facing it.
+func _all_gathered() -> bool:
+	var i := 0
+	for person: CampPerson in _others():
+		var place: Vector3 = finale.gather_spot(i)
+		var to := finale.table_at() - person.global_position
+		var off := rad_to_deg(absf(angle_difference(person.rotation.y, atan2(to.x, to.z))))
+		if not person.gathered() or _flat(person.global_position, place) > 0.35 or off > 20.0:
+			return false
+		i += 1
+	return true
+
+
+func _gather_text() -> String:
+	var bits := []
+	var i := 0
+	for person: CampPerson in _others():
+		var to := finale.table_at() - person.global_position
+		bits.append("%s state %d, %.2f m from place, %.0f degrees off" % [person.name, person.state,
+			_flat(person.global_position, finale.gather_spot(i)),
+			rad_to_deg(absf(angle_difference(person.rotation.y, atan2(to.x, to.z))))])
+		i += 1
+	return "; ".join(bits)
+
+
 func _clip() -> String:
 	return camper.anim.assigned_animation if camper.anim else ""
 
@@ -202,6 +235,33 @@ func _run() -> void:
 		level.tasks.all_done() == level.tasks.list.all(func(t: Dictionary) -> bool: return t.done \
 			or t.get("finale", false)), level.tasks.all_done())
 
+	# Everyone's there (23 Nov 2026). He's kept at the cake while the others come (they come once they're at
+	# their routine: the keeper may be tending the fire).
+	camper.set("_step_left", 240.0)
+	var round := await _until(_all_gathered, _secs(60.0))
+	_check("the cake out, the others come round its table, each at their place, facing it", round,
+		_gather_text())
+	var reach_ok := true
+	for person: CampPerson in _others():
+		if absf(person.eyes.reach - CampPerson.SIGHT * CampPerson.CAKE_SIGHT) > 0.01:
+			reach_ok = false
+	_check("watching it, they see only %.2f m (CAKE_SIGHT of their sight)" % (CampPerson.SIGHT
+		* CampPerson.CAKE_SIGHT), reach_ok, ", ".join(_others().map(func(p: CampPerson) -> String:
+			return "%.2f" % p.eyes.reach)))
+	# He leaves the cake (his time at it up): they go back to their routines; back at it, they come again.
+	var cake_step: int = camper.get("_step")
+	camper.set("_step_left", 0.01)
+	var left := await _until(func() -> bool: return _others().all(func(p: CampPerson) -> bool:
+		return p.state != S.GATHER), _secs(3.0))
+	_check("he leaves the cake: they go back to their routines", left and camper.activity() != "cake",
+		"camper at %s; %s" % [camper.activity(), _gather_text()])
+	camper.set("_step", cake_step)
+	camper.set("_step_left", 240.0)
+	camper.set("_arrived", false)
+	await _until(func() -> bool: return camper.at_activity() and camper.activity() == "cake", _secs(15.0))
+	var again := await _until(_all_gathered, _secs(60.0))
+	_check("back at it, they come round again", again and camper.at_activity(), _gather_text())
+
 	# Tie his laces: behind him, facing his heels, E held.
 	var back := -camper.global_basis.z
 	back.y = 0.0
@@ -220,7 +280,8 @@ func _run() -> void:
 
 	# He falls.
 	var fell := await _until(func() -> bool: return camper.state == S.FALLEN, _secs(CampFinale.LEAVE_AFTER + 1.5))
-	_check("he moves on, and falls (trip)", fell and _clip() == "trip", "state %d, clip %s" % [camper.state, _clip()])
+	_check("he moves on, and falls (trip), the others round him", fell and _clip() == "trip" and _all_gathered(),
+		"state %d, clip %s; %s" % [camper.state, _clip(), _gather_text()])
 	await _wait(_secs(CampFinale.TRIP_LANDS + 0.15))
 	var worn: MeshInstance3D = finale.get("_worn")
 	var beanie: RigidBody3D = finale.beanie
@@ -289,13 +350,16 @@ func _run() -> void:
 	var dropped := await _until(func() -> bool: return player.get("held") == null, _secs(1.5))
 	_check("caught, he drops the beanie (and leaps away)", dropped and beanie.is_in_group("grabbable"),
 		"held %s" % player.get("held"))
-	# Got back: the beanie in his mouth again, near the edge, and on to it (once he's down from his leap).
-	await _until(func() -> bool: return not player.call("is_hopping"), _secs(3.0))
-	await _wait(_secs(0.3))
+	# Got back: away from the chasers, near the edge, once he's down from his leap; the beanie in his mouth
+	# again, and on to the edge.
 	var near_exit := Vector3(CampFinale.EXIT.x - 4.0, 0.0, CampFinale.EXIT.y + 3.0)
-	beanie.global_position = near_exit + Vector3(0, 0.1, -0.35)
+	_stand(near_exit, near_exit + Vector3(0, 0, -1))
+	await _until(func() -> bool: return not player.call("is_hopping"), _secs(3.0))
+	_stand(near_exit, near_exit + Vector3(0, 0, -1))
+	await _wait(_secs(0.3))
+	beanie.global_transform = Transform3D(Basis(), near_exit + Vector3(0, 0.1, -0.35))
 	beanie.linear_velocity = Vector3.ZERO
-	_stand(near_exit, beanie.global_position)
+	beanie.angular_velocity = Vector3.ZERO
 	await _wait(10)
 	await _tap(KEY_E)
 	var regrabbed: bool = player.get("held") == beanie

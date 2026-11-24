@@ -82,9 +82,10 @@ const Player := preload("res://scripts/player.gd")
 
 ## Since 23 Nov 2026 (the cake, camp_finale.gd), the camper's: CAKE (fetching it from his tent and
 ## putting it on its table), FALLEN (his laces tied, he's gone over backwards and lies there), RISE
-## (getting up) and PURSUE (after him wherever he goes: the chase out of the camp).
+## (getting up) and PURSUE (after him wherever he goes: the chase out of the camp). Since 23 Nov 2026,
+## everyone's GATHER: round the cake while the camper's at it, watching it.
 enum State { WORK, STARTLED, GUARD, CHASE, SHOO, RETURN, FLEE, COWER, INVESTIGATE, TAKE, FIX, SEARCH, TEND, PITCH,
-	HANG, CAKE, FALLEN, RISE, PURSUE }
+	HANG, CAKE, FALLEN, RISE, PURSUE, GATHER }
 
 ## His laces tied, he's started to fall (camp_finale.gd).
 signal fell
@@ -99,6 +100,11 @@ const SIGHT_ANGLE := 110.0
 const EYES := Vector3(0, 1.55, 0.12)
 ## Dancing, they're lost in the music and see only this much as far.
 const DANCE_SIGHT := 0.6
+## Gathered round the cake (camp_finale.gd, 23 Nov 2026), their eyes on it, they see only this much as far:
+## sneaking up behind the camper, the raccoon isn't seen; walking up, he is.
+const CAKE_SIGHT := 0.35
+## The clip they look at the cake in, the camper too (camp_finale.gd).
+const ADMIRE := "bend"
 ## Standing in the lit fire's light in the open world (campsite.gd `in_firelight`), he's
 ## seen this much further; crouching, he isn't. The author, 8 Nov 2026: "when the fire is
 ## lit, the ... raccoon has to always ... crouch, or else he'll be detected more quickly
@@ -246,6 +252,10 @@ var _hang_stage := 0
 var _finale
 var _cake_stage := 0
 var _pursue_pause := 0.0
+## Round the cake (GATHER): where they stand, what they face, and whether they're there yet.
+var _gather_at := Vector3.ZERO
+var _gather_face := Vector3.ZERO
+var _gathered := false
 var _hand: BoneAttachment3D
 ## Their skeleton and its head bone, for where the head looks while confused.
 var _skeleton: Skeleton3D
@@ -322,10 +332,13 @@ func _physics_process(delta: float) -> void:
 	_t += delta
 	# Flat on his back, or getting up, he sees nothing (the cake, 23 Nov 2026).
 	eyes.blind = not camp.cones_on or state in [State.FALLEN, State.RISE]
-	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG, State.CAKE]
+	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG, State.CAKE,
+		State.GATHER]
 	if calm:
 		eyes.reach = SIGHT * (SNEAK_SIGHT if player.sneaking else 1.0)
-		if anim and anim.current_animation == "dance":
+		if state == State.GATHER and _gathered:
+			eyes.reach *= CAKE_SIGHT
+		elif anim and anim.current_animation == "dance":
 			eyes.reach *= DANCE_SIGHT
 		if not player.sneaking and camp.in_firelight(player.global_position):
 			eyes.reach *= FIRELIT_SIGHT
@@ -411,6 +424,8 @@ func _physics_process(delta: float) -> void:
 				_to_state(State.GUARD)
 		State.PURSUE:
 			_pursue(delta)
+		State.GATHER:
+			_gather(delta)
 	var meant := velocity.length()
 	move_and_slide()
 	# Sliding along something's slanted side shouldn't lift them off the ground.
@@ -448,7 +463,7 @@ func hear(at: Vector3, freeze := 0.0, sharp := false) -> void:
 			_t = _huh
 			_look_t = -1.0
 		return
-	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG]
+	var calm := state in [State.WORK, State.RETURN, State.FIX, State.TEND, State.PITCH, State.HANG, State.GATHER]
 	if calm or sharp and state == State.SEARCH:
 		_frozen = freeze > 0.0 and anim != null and anim.current_animation == "dance"
 		_huh = freeze if _frozen else HUH
@@ -834,6 +849,51 @@ func pursue(stamp := 0.0) -> void:
 	_alarmed_at = camp.clock
 	_to_state(State.PURSUE)
 	_pursue_pause = stamp
+
+
+## The cake's out (camp_finale.gd, 23 Nov 2026): if they're at their routine, they come and stand at
+## `at` round its table, facing `face` (the cake), till `end_gather`. True if they're coming.
+func gather(at: Vector3, face: Vector3) -> bool:
+	if state not in [State.WORK, State.RETURN]:
+		return false
+	_gather_at = at
+	_gather_face = face
+	_gathered = false
+	_to_state(State.GATHER)
+	return true
+
+
+## The camper's left the cake (camp_finale.gd): back to their routine.
+func end_gather() -> void:
+	if state == State.GATHER:
+		_to_state(State.RETURN)
+
+
+## True while they're round the cake, there.
+func gathered() -> bool:
+	return state == State.GATHER and _gathered
+
+
+## Round the cake: to their place, then leaning in to look at it (`bend`, again and again). Seeing him is a
+## fright, as ever.
+func _gather(delta: float) -> void:
+	if eyes.seeing and not camp.let_be():
+		_startle(true)
+		return
+	if not _gathered and _flat(_gather_at - global_position).length() > ARRIVE:
+		_go(_gather_at, WALK, delta, "walk", WALK / walk_natural)
+		return
+	_gathered = true
+	_play(ADMIRE, 1.0, 0.3)
+	_face(_gather_face, delta)
+	if eyes.seeing:
+		return
+	if camp.frightened > _fright_seen and camp.clock - camp.frightened < 1.0:
+		# Someone else has just taken fright: so do they, a moment later.
+		_fright_seen = camp.frightened
+		_fright_at = camp.clock + _rng.randf_range(CATCH_FRIGHT.x, CATCH_FRIGHT.y)
+	elif camp.clock >= _fright_at:
+		_startle()
 
 
 ## The chase is over (camp_finale.gd): back to their routine.

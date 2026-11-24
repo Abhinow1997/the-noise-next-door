@@ -12,6 +12,9 @@ extends Node3D
 ##      cake (camp_person.gd CAKE): bent in at its door, then out with it in both hands (his `carry`
 ##      clip) to a little folding table of his own by the tent (TABLE_AT), and sets it down. From then
 ##      his routine has a step by the cake (ADMIRE_TIME), standing at the table, facing it.
+##      Since 23 Nov 2026 everyone's there for it (`_gather_others`): as he carries it out, and whenever he's
+##      at it, the others come round the table (GATHER_AT), leaning in to look at it (camp_person.gd GATHER);
+##      they go back to their routines once he leaves it. Watching it, they see only CAKE_SIGHT as far.
 ##   2. Tie his laces (a key task, at the bottom of the screen): while he stands at the cake, holding E
 ##      at his heels for LACE_TIME (interactable.gd) ties his laces together. Then he moves on within
 ##      LEAVE_AFTER, or sooner if anything sets him moving (a fright: seeing the raccoon, his laugh).
@@ -54,6 +57,12 @@ const STAND_AT := Vector2(11.0, -0.6)
 const DOOR_AT := Vector2(6.7, -0.6)
 ## How long he stands by the cake each time his routine comes round to it (s).
 const ADMIRE_TIME := Vector2(20, 30)
+## Everyone round the cake while he's at it (23 Nov 2026): where the others stand, from the table's middle
+## (x, z), facing it: the low-poly man to the north, the girl to the south (the camera's side), the fire
+## keeper to the north-east. Each is reached from the camp without passing the table (the walkways are
+## worked out before it's built), and is far enough from his heels (1.4 m and more) that, watching the
+## cake (camp_person.gd CAKE_SIGHT), they don't see the raccoon sneak up to them.
+const GATHER_AT := [Vector2(0.18, -1.05), Vector2(0.18, 1.05), Vector2(0.88, -0.8)]
 ## Tying his laces: how long E is held (s), how far from his heels the raccoon's mouth may be (m); and,
 ## tied, how soon he moves on (s).
 const LACE_TIME := 2.5
@@ -135,6 +144,7 @@ var _toss_v := Vector3.ZERO
 var _toss_t := 0.0
 var _landed := false
 var _cake_off := false
+var _carrying := false
 var _flames: Array[Node3D] = []
 var _beats := {}
 var _bars_top: ColorRect
@@ -213,6 +223,7 @@ func cake_in_hands(_who) -> void:
 	cake.reparent(_chest, false)
 	cake.transform = Transform3D(Basis(), CAKE_HELD)
 	cake.visible = true
+	_carrying = true
 
 
 ## Set down on its table (or put down there in a hurry, frightened on the way).
@@ -222,6 +233,7 @@ func cake_on_table() -> void:
 	cake.reparent(table, false)
 	cake.transform = Transform3D(Basis(), Vector3(0, TABLE_HIGH, 0))
 	cake.visible = true
+	_carrying = false
 	if phase == Phase.FETCHING:
 		_out()
 
@@ -232,7 +244,7 @@ func cake_step(who) -> int:
 		if who.routine[i].name == "cake":
 			return i
 	var facing := atan2(table_at().x - stand_spot().x, table_at().z - stand_spot().z)
-	who.routine.append(camp._activity("cake", stand_spot(), facing, "idle", 1.0, ADMIRE_TIME))
+	who.routine.append(camp._activity("cake", stand_spot(), facing, CampPerson.ADMIRE, 1.0, ADMIRE_TIME))
 	return who.routine.size() - 1
 
 
@@ -264,6 +276,38 @@ func _physics_process(delta: float) -> void:
 			_cutscene()
 		Phase.CHASE:
 			_chase()
+	_gather_others()
+
+
+## Where the `i`th of the others stands round the cake.
+func gather_spot(i: int) -> Vector3:
+	var at: Vector2 = TABLE_AT + GATHER_AT[i % GATHER_AT.size()]
+	return spot(at)
+
+
+## The cake's moment: carried out to its table, the camper at it in his routine, his laces tied (his next
+## step trips him), or down after his fall.
+func cake_time() -> bool:
+	return phase == Phase.FETCHING and _carrying 		or phase == Phase.OUT and (_camper.laces_tied or _camper.state == S.WORK and _camper.activity() == "cake") 		or phase == Phase.DOWN
+
+
+## Everyone's there for it (the author, 23 Nov 2026: "when the cake comes he is doing it all alone
+## everyone should be there when it is happening"): through the cake's moment the others come round the
+## table, each as soon as they're at their routine, and go back to it once he leaves the cake. Down after
+## his fall, he has them all round him; the cutscene takes them from there.
+func _gather_others() -> void:
+	if phase in [Phase.WAIT, Phase.CUTSCENE, Phase.CHASE, Phase.DONE]:
+		return
+	var want := cake_time()
+	var i := 0
+	for person: CampPerson in camp.people:
+		if person == _camper:
+			continue
+		if want and person.state != S.GATHER:
+			person.gather(gather_spot(i), table_at())
+		elif not want and person.state == S.GATHER:
+			person.end_gather()
+		i += 1
 
 
 ## Enough of the camp's tasks done: the camper's cake is next.
