@@ -1,0 +1,50 @@
+The whole test list (CLAUDE.md) on 370f62d, the pitch's recording revision: a clean worktree, Godot 4.7.2 headless, 23 Nov 2026.
+Run by Claude Code with scripts/run-test.sh. The one log with an error line is logs/mutation-semicolon_60fps.log, an Assignment 5 mutation log committed in the repo, not this run's.
+
+worktree: 370f62d, the recording revision, clean
+--import exit 0
+  a3_asset_check.gd 60           exit 0      1s  
+  normal_map_calibration.gd 60   exit 0      1s  
+  test_materials.gd 60           exit 0      4s  
+  test_raccoon_rig.gd 60         exit 0      1s  56 passed, 0 failed
+  test_leaf_burst_config.gd 60   exit 0      3s  
+  test_campfire_smoke_config.gd 60  exit 0      1s  
+  jump_pins.gd 60                exit 0      4s  RESULT: all checks passed (26 checks)
+  test_jump_states.gd 60         exit 0      4s  RESULT: all checks passed (89 checks, 0 failed)
+  test_moth_flutter.gd 60        exit 0      1s  22 passed, 0 failed
+  test_moths_state.gd 60         exit 0      6s  RESULT: all checks passed (15 checks, 0 failed)
+  test_moth_guide.gd 60          exit 0      4s  RESULT: all checks passed (9 checks, 0 failed)
+  test_balloon_3d.gd 60          exit 0      2s  35 passed, 0 failed
+  test_balloon_task.gd 60        exit 0     16s  RESULT: all checks passed (71 checks, 0 failed)
+  --sound-test 60                exit 0      5s  RESULT: all checks passed
+  --bubble-test 60               exit 0      4s  RESULT: all checks passed (87 checks)
+  --camp-test 60                 exit 0      9s  RESULT: all checks passed (31 checks)
+  --tasks-test 60                exit 0     18s  RESULT: all checks passed (48 checks)
+  --plan-test 60                 exit 0      3s  RESULT: all checks passed (22 checks)
+  --tutorial-test 60             exit 0      8s  RESULT: all checks passed (34 checks)
+  --fire-test 60                 exit 0     10s  RESULT: all checks passed (25 checks)
+  --leaf-burst-test 60           exit 0      3s  RESULT: all checks passed (37 checks)
+  --smoke-test 60                exit 0      9s  RESULT: all checks passed (20 checks)
+  --smoke-load-test 60           exit 0      2s  RESULT: all checks passed (8 checks)
+  test_pizza_task.gd 60          exit 0      3s  RESULT: all checks passed (21 checks, 0 failed)
+  test_box_scare.gd 60           exit 0      4s  RESULT: all checks passed (16 checks, 0 failed)
+  test_cake_finale.gd 60         exit 0      6s  RESULT: all checks passed (23 checks, 0 failed)
+  test_cake_finale.gd 30         exit 0      4s  RESULT: all checks passed (23 checks, 0 failed)
+  test_cake_finale.gd 144        exit 0     10s  RESULT: all checks passed (23 checks, 0 failed)
+  cost_effects.gd 60 300         exit 1     19s  
+  --tent-test 60 300             exit 0      7s  RESULT: all checks passed (16 checks)
+  --bearbag-test 60 300          exit 0      4s  RESULT: all checks passed (41 checks)
+  --cones-test 30                exit 0      5s  RESULT: all checks passed (43 checks)
+  --cone-shader-test 30          exit 0      6s  RESULT: all checks passed (93 of 93 checks passed)
+  test_jump_edges.gd 30          exit 0      7s  RESULT: all checks passed (239 checks, 0 failed)
+  --cones-test 60                exit 0      7s  RESULT: all checks passed (43 checks)
+  --cone-shader-test 60          exit 0      6s  RESULT: all checks passed (93 of 93 checks passed)
+  test_jump_edges.gd 60          exit 0      9s  RESULT: all checks passed (238 checks, 0 failed)
+  --cones-test 144               exit 0     10s  RESULT: all checks passed (43 checks)
+  --cone-shader-test 144         exit 0      8s  RESULT: all checks passed (93 of 93 checks passed)
+  test_jump_edges.gd 144         exit 0      9s  RESULT: all checks passed (238 checks, 0 failed)
+  --waves-test realtime          exit 0     21s  RESULT: all checks passed (15 checks)
+  --title-test realtime          exit 0     12s  RESULT: all checks passed
+logs with SHADER ERROR, SCRIPT ERROR or Failed loading resource: 1
+
+[exited with code 0]

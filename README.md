@@ -8,7 +8,8 @@ Made for CSYE 7270 (Fall 2026): one game, built up one assignment at a time.
 
 | Assignment | What it added | Submitted as |
 |---|---|---|
-| [Assignment 7: Doing Animation with Claude and Godot](#assignment-7-animation) | In progress: the raccoon's jump on his rig and the moth's sprite flutter, the moth guiding him to the camp, his seven loops brought up to the same standard, and the balloon task | branch `assignment-7`, to be tagged `a7` |
+| [Assignment 8: Final Project Pitch Film](pitch/README.md) | In progress: a short film pitching the whole game, made with Brutalist's godot-gdd route, in [pitch/](pitch/) | `pitch/`, to be tagged `a8` |
+| [Assignment 7: Doing Animation with Claude and Godot](#assignment-7-animation) | The raccoon's jump on his rig and the moth's sprite flutter, the moth guiding him to the camp, his seven loops brought up to the same standard, and the balloon task | tag `a7` |
 | [Assignment 6: Creating Particle Effects with Godot and Claude](#assignment-6-particle-effects) | Two particle effects, the leaves bursting out of the bush and the campfire's smoke, and the campfire's life that drives the smoke | tag `a6` |
 | [Assignment 5: Shaders, Materials, and the Godot Shading Language](#assignment-5-shaders-and-materials) | Hand-written shaders and materials, for the campers' vision cones and a textured 3D object | tag `a5` |
 | [Assignment 3: Your First 3D Game Assets with Claude, the Blender MCP, and Blender](#assignment-3-the-three-blender-assets) | Three props built in Blender through the Blender MCP, a Godot asset room and a headless check | tag `a3` |
@@ -81,9 +82,9 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 | [CHARACTER-SHEET.md](CHARACTER-SHEET.md) | The cast: the raccoon and the camper (the two main characters) and the town's dogs, with looks, palettes, poses and the Gemini prompts |
 | [CHANGE-BRIEF.md](CHANGE-BRIEF.md) | The plan for each assignment's change, written before the work, one section per assignment |
 | [SOURCES.md](SOURCES.md) | The generative models, every generation, other people's assets and the tools, one section per assignment |
-| [TEST-REPORT.md](TEST-REPORT.md) | How Assignment 7's work is tested and what happened; each earlier report is at its assignment's tag |
-| [TUNING.md](TUNING.md) | Assignment 7's tuning: my first verdict on each strip, Claude's readings, and each revision with its prediction, strips and my verdict (Assignment 6's is at tag `a6`) |
-| [FRICTIONAL.md](FRICTIONAL.md) | The dated log for Assignment 7: what was asked for, what came back and what was decided; each earlier log is at its assignment's tag |
+| [TEST-REPORT.md](TEST-REPORT.md) | How Assignment 8's work is tested (the pitch film, and the game since `a7`) and what happened; each earlier report is at its assignment's tag |
+| [TUNING.md](TUNING.md) | Assignment 8's tuning (none yet); Assignment 7's (the jump's r1, the loops' strips) is at tag `a7`, Assignment 6's at `a6` |
+| [FRICTIONAL.md](FRICTIONAL.md) | The dated log for Assignment 8 (the game since `a7`; the pitch film's own log is [pitch/FRICTIONAL.md](pitch/FRICTIONAL.md)); each earlier log is at its assignment's tag |
 | [design/storyboard/](design/storyboard/) | The storyboard thumbnails, and `make_thumbnails.py`, which draws them |
 | [design/test-report/](design/test-report/) | The test report's screenshots and comparison sheets |
 | [design/character/](design/character/) | The character sheet's images: the silhouette test, the labelled pose sheet, the collision overlay and the cut-out poses, made from the generated poses by `make_character_sheet.gd` |
@@ -140,13 +141,13 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - [previews/jump_preview.tscn](previews/jump_preview.tscn), 30 fps, with its strips `captures/jump/r0/` and `r1/`;
   - [previews/raccoon_loops_preview.tscn](previews/raccoon_loops_preview.tscn), 24 fps, cut by [tools/crop_loop_strips.gd](tools/crop_loop_strips.gd) into `captures/loops/r0/`;
   - [previews/moth_preview.tscn](previews/moth_preview.tscn), the moth close up.
-- **Tuning:** one revision, kept after play ([TUNING.md](TUNING.md)). From my play, "the hind legs don't particularly move", so the jump's push-off key now starts with the hind legs bunched under his hips.
+- **Tuning:** one revision, kept after play ([TUNING.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a7/TUNING.md)). From my play, "the hind legs don't particularly move", so the jump's push-off key now starts with the hind legs bunched under his hips.
 - **The checks:**
   - **Read-backs:** [tests/test_raccoon_rig.gd](tests/test_raccoon_rig.gd) (every bone track, step, loop mode, the jump's keys, the loops' seams) and [tests/test_moth_flutter.gd](tests/test_moth_flutter.gd) (the frame track: discrete, every key a cell of the sheet, its seam).
   - **Pins:** [tests/jump_pins.gd](tests/jump_pins.gd), committed before the change and re-pinned in its own commit.
   - **State and edges:** [tests/test_jump_states.gd](tests/test_jump_states.gd) and [tests/test_jump_edges.gd](tests/test_jump_edges.gd), driven by real input. The edges run at 30, 60 and 144 fps.
   - **The moth and the balloons:** [tests/test_moths_state.gd](tests/test_moths_state.gd), [tests/test_moth_guide.gd](tests/test_moth_guide.gd), [tests/test_balloon_3d.gd](tests/test_balloon_3d.gd) and [tests/test_balloon_task.gd](tests/test_balloon_task.gd).
-  - **Mutations and baseline:** the course's four mutations, each in its own git worktree; every one makes its test fail. The baseline was rerun before and after the change, from empty import caches. All of it is in [TEST-REPORT.md](TEST-REPORT.md).
+  - **Mutations and baseline:** the course's four mutations, each in its own git worktree; every one makes its test fail. The baseline was rerun before and after the change, from empty import caches. All of it is in [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a7/TEST-REPORT.md).
 
 ### For the grader: seeing it
 
@@ -167,7 +168,7 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
   - `bash scripts/run-test.sh test_moth_guide.gd 60`
   - `bash scripts/run-test.sh test_balloon_task.gd 60`
 
-  Every test, with its count, is in [CLAUDE.md](CLAUDE.md) and [TEST-REPORT.md](TEST-REPORT.md).
+  Every test, with its count, is in [CLAUDE.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a7/CLAUDE.md) and [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a7/TEST-REPORT.md).
 
 ### Known limitations (Assignment 7)
 
@@ -181,9 +182,9 @@ To redraw the storyboard after editing it, run `python design/storyboard/make_th
 
 The docs, each with its Assignment 7 work:
 - the plan and its dated revisions, [CHANGE-BRIEF.md](CHANGE-BRIEF.md);
-- the tuning and the strips' readings, [TUNING.md](TUNING.md);
-- the checks and my checks in play, [TEST-REPORT.md](TEST-REPORT.md);
-- the log, [FRICTIONAL.md](FRICTIONAL.md);
+- the tuning and the strips' readings, [TUNING.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a7/TUNING.md);
+- the checks and my checks in play, [TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a7/TEST-REPORT.md);
+- the log, [FRICTIONAL.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a7/FRICTIONAL.md);
 - the provenance, [SOURCES.md](SOURCES.md#assignment-7-animation).
 
 The `claude -p` prompts and transcripts are in [design/a7/](design/a7/).
@@ -223,7 +224,7 @@ The `claude -p` prompts and transcripts are in [design/a7/](design/a7/).
   - **Price:** [tests/cost_effects.gd](tests/cost_effects.gd), the headless CPU price against an empty-scene control.
 - **The price:**
   - **Headless CPU:** 0.005 ms a frame for the empty scene, 1.016 for the game with both effects off, 1.018 with Effect A at its peak and 1.008 with Effect B at its heaviest. The two effects can't be told apart from "off", as predicted: a headless run draws nothing and runs no GPU particle process.
-  - **GPU, on an NVIDIA GeForce RTX 4050 Laptop GPU at 1280 × 720:** Effect A added +0.05 ms (budget 0.2 ms) and Effect B +0.03 ms (budget 0.3 ms), both within the noise. These were read with [tools/gpu_time_effects.gd](tools/gpu_time_effects.gd), a windowed script that reads the GPU timer the Visual Profiler shows. In the Visual Profiler itself, one frame I read shows 2.96 ms of GPU time in all, with 0.01 ms for "Update GPUParticles", the particles' process step ([TEST-REPORT.md](TEST-REPORT.md#the-gpu-price-8-nov-2026)).
+  - **GPU, on an NVIDIA GeForce RTX 4050 Laptop GPU at 1280 × 720:** Effect A added +0.05 ms (budget 0.2 ms) and Effect B +0.03 ms (budget 0.3 ms), both within the noise. These were read with [tools/gpu_time_effects.gd](tools/gpu_time_effects.gd), a windowed script that reads the GPU timer the Visual Profiler shows. In the Visual Profiler itself, one frame I read shows 2.96 ms of GPU time in all, with 0.01 ms for "Update GPUParticles", the particles' process step ([TEST-REPORT.md](https://github.com/Abhinow1997/the-noise-next-door/blob/a6/TEST-REPORT.md#the-gpu-price-8-nov-2026)).
 - **The shader Godot generates for a `ParticleProcessMaterial`:** [shaders/particles_generated.gdshader](shaders/particles_generated.gdshader), converted in the editor from a copy of the smoke's process material. Nothing in the game uses it.
 
 ### For the grader: seeing it

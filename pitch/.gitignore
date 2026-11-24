@@ -1,0 +1,18 @@
+# The pitch film's reel (Brutalist's godot-gdd). Only its text records, gate reports and small
+# stills go to GitHub; the film, the captures and every rendered or generated media file stay on
+# disk and in the course media storage (the root .gitignore already keeps *.mp4 and *.mp3 out).
+capture/*.avi
+capture/*.wav
+*.wav
+mp3/
+mp4/
+media/
+clips/
+manim/
+images/
+pantry/
+exports/
+_stale/
+_qc/frames/
+_qc/preflight/
+.remotion-*/

@@ -1,0 +1,71 @@
+diff --git a/runtime/remotion/src/scenes/GodotDesignBoard.tsx b/runtime/remotion/src/scenes/GodotDesignBoard.tsx
+index 901049e..8899a43 100644
+--- a/runtime/remotion/src/scenes/GodotDesignBoard.tsx
++++ b/runtime/remotion/src/scenes/GodotDesignBoard.tsx
+@@ -15,6 +15,9 @@ export const godotDesignBoardSchema=z.object({
+  image:z.string().default(''),
+  jump:z.object({speed:z.number().positive(),launch:z.number().positive(),gravity:z.number().positive()}).optional(),
+  durationSeconds:z.number().positive().default(20),
++ // The corner credit. Defaults to the channel's handle; a reel made under another
++ // name passes its own (or '' for none).
++ handle:z.string().default('@NikBearBrown'),
+ });
+ export const GodotDesignBoard:React.FC<z.infer<typeof godotDesignBoardSchema>>=(p)=>{
+  const {width,height,fps}=useVideoConfig(),frame=useCurrentFrame(),portrait=height>width;
+@@ -47,7 +50,7 @@ export const GodotDesignBoard:React.FC<z.infer<typeof godotDesignBoardSchema>>=(
+   <div style={{position:'absolute',left:pad,right:pad,top:height*.14,bottom:height*.12,display:'grid',gridTemplateColumns:portrait?'1fr':'0.84fr 1.16fr',gridTemplateRows:portrait?'auto 1fr':'1fr',gap:25}}>
+    <div style={{background:'#fffdf8',border:'2px solid #cfc6b5',borderRadius:15,padding:32,display:'flex',flexDirection:'column',minWidth:0}}>
+     <div style={{fontSize:24,fontWeight:700,color:'#665546',marginBottom:22}}>GDD · DOCUMENT EXCERPT</div>
+-    <div style={{fontFamily:F.serif,fontSize:portrait?36:40,lineHeight:1.15,marginBottom:25}}>{p.section}</div>
++    <div style={{fontFamily:F.serif,fontSize:portrait?36:46,lineHeight:1.15,marginBottom:25}}>{p.section}</div>
+     <div style={{borderLeft:'5px solid #985039',paddingLeft:22,fontSize:portrait?29:31,lineHeight:1.4,whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{p.excerpt}</div>
+     <div style={{marginTop:'auto',paddingTop:24,fontSize:24,lineHeight:1.35,color:'#564739'}}>Reconstructed reading view.<br/>Exact excerpt; interpretation at right.</div>
+    </div>
+@@ -57,7 +60,7 @@ export const GodotDesignBoard:React.FC<z.infer<typeof godotDesignBoardSchema>>=(
+     {visual}{cards}
+    </div>
+   </div>
+-  <div style={{position:'absolute',left:pad,bottom:height*.045+(portrait?45:0),maxWidth:portrait?width*.88:width*.74,fontSize:23,color:'#564739',lineHeight:1.25}}>{p.source}</div>
+-  <div style={{position:'absolute',right:pad,bottom:height*.04,fontSize:28,fontFamily:F.serif}}>@NikBearBrown</div>
++  <div style={{position:'absolute',left:pad,bottom:height*.058+(portrait?45:0),maxWidth:portrait?width*.88:width*.74,fontSize:23,color:'#564739',lineHeight:1.25}}>{p.source}</div>
++  {p.handle&&<div style={{position:'absolute',right:pad,bottom:height*.058,fontSize:28,fontFamily:F.serif}}>{p.handle}</div>}
+  </AbsoluteFill>;
+ };
+diff --git a/runtime/scripts/compile.py b/runtime/scripts/compile.py
+index 80ed0eb..d8f8756 100644
+--- a/runtime/scripts/compile.py
++++ b/runtime/scripts/compile.py
+@@ -792,7 +792,10 @@ def compile_reel(a):
+                       f":enable='between(t,0,{first_beat_dur:.3f})'[vtitle]")
+             prev = "vtitle"
+         if a.review and drawtext:
+-            fc.append(f"[{prev}]drawtext=fontfile={font}:text='%{{pts\\:hms}}'"
++            # Windows: a filter option can't hold a raw "C:\..." path (the drive
++            # colon and backslashes split it); forward slashes, colon escaped.
++            ff_font = str(font).replace("\\", "/").replace(":", "\\:")
++            fc.append(f"[{prev}]drawtext=fontfile='{ff_font}':text='%{{pts\\:hms}}'"
+                       f":fontcolor=white:fontsize={int(h*0.04)}:box=1"
+                       f":boxcolor=black@0.55:boxborderw=8:x=w-text_w-16:y=16[vout]")
+         else:
+diff --git a/runtime/scripts/remotion_scenes.py b/runtime/scripts/remotion_scenes.py
+index 3a4d472..bb42de2 100644
+--- a/runtime/scripts/remotion_scenes.py
++++ b/runtime/scripts/remotion_scenes.py
+@@ -24,6 +24,8 @@ PROJECT = HERE / "remotion"        # the Remotion project
+ ENTRY = "src/index.ts"
+ CONSUMERS = HERE / "remotion" / "_bench" / "consumers.json"
+ FFMPEG = os.environ.get("FFMPEG", "ffmpeg")
++# Windows: npx is npx.cmd, which subprocess can't launch by its bare name.
++NPX = shutil.which("npx") or "npx"
+ 
+ 
+ def load(p):
+@@ -97,7 +99,7 @@ def render_beat(folder: Path, beat: dict, force: bool) -> str:
+             candidate = Path(scratch) / 'render.mp4'
+             props_path = Path(scratch) / 'props.json'
+             atomic_json(props_path, rem.get('props', {}))
+-            cmd = ["npx", "remotion", "render", ENTRY, pattern, str(candidate),
++            cmd = [NPX, "remotion", "render", ENTRY, pattern, str(candidate),
+                    f"--props={props_path}", "--concurrency=1",
+                    "--scale=2", "--image-format=png", "--crf=16"] + browser_flags()
+             r = subprocess.run(cmd, cwd=PROJECT, capture_output=True, text=True)

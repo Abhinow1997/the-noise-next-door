@@ -1,0 +1,142 @@
+{
+ "schema_version": 1,
+ "document": {
+  "path": "../GDD.md",
+  "version": "1.0, 19 Oct 2026",
+  "sha256": "8dcc1ba00fbd180bf4f581c81a129eeb6417dfc17eb59b21bb67c85e78081737"
+ },
+ "sections": [
+  {
+   "heading": "1. Name of the game",
+   "beat_ids": [
+    "B00",
+    "B01"
+   ]
+  },
+  {
+   "heading": "2. Concept",
+   "beat_ids": [
+    "B01",
+    "B04"
+   ]
+  },
+  {
+   "heading": "3. Game flow",
+   "beat_ids": [
+    "B01",
+    "B01E",
+    "B07"
+   ]
+  },
+  {
+   "heading": "4. Game elements and assets",
+   "beat_ids": [
+    "B08"
+   ]
+  },
+  {
+   "heading": "5. Main character",
+   "beat_ids": [
+    "B02"
+   ]
+  },
+  {
+   "heading": "6. Story",
+   "beat_ids": [
+    "B01",
+    "B01E"
+   ]
+  },
+  {
+   "heading": "7. Gameplay",
+   "beat_ids": [
+    "B02",
+    "B03",
+    "B08"
+   ]
+  },
+  {
+   "heading": "8. Graphics and styling",
+   "exclusion": "Shown, not explained. Every gameplay beat shows the low-poly night look and the fixed three-quarter camera, but the pitch's seven questions don't ask about style, so no beat narrates section 8."
+  },
+  {
+   "heading": "9. Music and sound effects",
+   "exclusion": "Left out. The film is narrated and the game's sound is muted under the voice. The music and effects are credited in SOURCES.md, not pitched."
+  },
+  {
+   "heading": "10. Technical description",
+   "beat_ids": [
+    "B05",
+    "B06"
+   ]
+  },
+  {
+   "heading": "Provenance",
+   "exclusion": "Not narrated. Who made what is credited on the end card and in pitch/SOURCES.md."
+  }
+ ],
+ "excerpts": [
+  {
+   "beat_id": "B01",
+   "start_line": 15,
+   "end_line": 15,
+   "text": "The Noise Next Door is a story-driven slapstick comedy puzzle game. You play a raccoon who is forced to deal with the humans around him and complete specific tasks in a human world that is alien to him."
+  },
+  {
+   "beat_id": "B04",
+   "start_line": 30,
+   "end_line": 30,
+   "text": "| **Inspirations** | Overcooked, Stray, Cuphead, Untitled Goose Game |"
+  },
+  {
+   "beat_id": "B06",
+   "start_line": 315,
+   "end_line": 315,
+   "text": "The prototype is a single forest level with a to-do list and no humans. These systems from this GDD are still to come:"
+  },
+  {
+   "beat_id": "B07",
+   "start_line": 44,
+   "end_line": 44,
+   "text": "**Saving.** The game has save states. The player can't select a stage: the levels are played in order."
+  },
+  {
+   "beat_id": "B08",
+   "start_line": 172,
+   "end_line": 172,
+   "text": "The game has three levels. The world is interconnected: it isn't all open at once, but the game connects the areas for the player. The city is divided into two parts, the city and the block."
+  }
+ ],
+ "evidence": [
+  {
+   "path": "evidence/a7-baseline-SUMMARY.txt",
+   "sha256": "595a68d7d33bb6856d377176cbb8a9147d2b667017c5feec08c44ee13c8d69ca",
+   "method": "Copied unchanged from logs/a7-baseline-final/SUMMARY.txt: every test through scripts/run-test.sh in a fresh clone of 160c0eb with no .godot, headless, Godot 4.7.2, 22 Nov 2026",
+   "supports": "B06: the tests rerun from a fresh clone. All passed except cost_effects.gd (1 of 4 checks fails, as it has since before Assignment 7)"
+  },
+  {
+   "path": "evidence/jump_pins_60fps.log",
+   "sha256": "6f4fee36ecd5e97067114aff8315be6df426879a1348bb058503de38f4d31fe3",
+   "method": "Copied unchanged from logs/a7-baseline-final/jump_pins_60fps.log",
+   "supports": "B06: the jump's 26 pins passed"
+  },
+  {
+   "path": "evidence/test_jump_edges_60fps.log",
+   "sha256": "0e98aa567083cde76d3383a5f013dfcdff22d3181a73552b6355639ed166de1c",
+   "method": "Copied unchanged from logs/a7-baseline-final/test_jump_edges_60fps.log (30 and 144 fps are in the summary)",
+   "supports": "B06: the jump's edge tests, 238 checks at 60 fps"
+  },
+  {
+   "path": "stage/jump-r1.png",
+   "sha256": "b7887c8b68d01d3a236f58291373f773de12ee10da15a8ff89387a630bed7b4f",
+   "method": "Copied unchanged from captures/sheets/jump-r1.png: tools/make_strip_sheets.gd's sheet of a windowed Movie Maker capture of previews/jump_preview.tscn at 30 fps, 1280 x 720 (a fixture, tag a7)",
+   "supports": "B06's image: the jump on the rig, frame by frame"
+  },
+  {
+   "path": "stage/11-barking-up-the-wrong-tree.svg",
+   "sha256": "6c5996d7a2ac6e9a8802227a29c78e3eab82b48960bef98a6e756e9b8e4c1391",
+   "method": "Copied unchanged from design/storyboard/: a storyboard thumbnail drawn in code by Claude Code (make_thumbnails.py), Oct 2026",
+   "supports": "B08's image, labelled CONSTRUCTED: the town's dogs, which don't exist in the game"
+  }
+ ]
+}

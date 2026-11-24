@@ -1,0 +1,1064 @@
+{
+ "metadata": {
+  "title": "The Noise Next Door: Final Project Pitch",
+  "slug": "the-noise-next-door-pitch",
+  "skill": "godot-gdd",
+  "author": "Abhinav Gangurde",
+  "engine": "kokoro",
+  "voice_kokoro": "am_onyx",
+  "aspect": "16:9",
+  "status": "v3, 24 Nov 2026: the final built from the takes as recorded, B02 rewritten for Scare a camper and B09's footage changed (\"Use what's recorded\"); kept by the author after watching it: \"Looks good, commit\"",
+  "narration_note": "An AI voice (Kokoro am_onyx, local) reads the author's script, in the first person, as the author. It is not the instructor's persona: no 'Liam, in for Bear', no @NikBearBrown handle or outro.",
+  "gdd": {
+   "path": "../GDD.md",
+   "version": "1.0, 19 Oct 2026",
+   "sha256": "8dcc1ba00fbd180bf4f581c81a129eeb6417dfc17eb59b21bb67c85e78081737"
+  },
+  "footage": {
+   "revision": "run-01 at 370f62d (23 Nov 2026): the title screen to the tutorial's end; run-02 and run-03 at 263ac50 (24 Nov 2026): Scare a camper, and level 1's ending to the chase",
+   "method": "human-input: the game run normally at real speed, its window recorded by the author with Windows' Snipping Tool (SHOTLIST.md)",
+   "window": "the game's 1280 x 720 window as recorded, fitted into 1920 x 1080 without stretching"
+  },
+  "final_height": 1080,
+  "build": {
+   "at": "2026-11-24T18:32:10",
+   "cut": "master",
+   "filled": 12,
+   "of": 12,
+   "slates": [],
+   "skin_warnings": []
+  }
+ },
+ "beats": [
+  {
+   "beat_id": "B00",
+   "act": "COLD OPEN",
+   "design_status": "observed",
+   "narration_text": "A raccoon just wants a quiet night in his tree. Then a party starts right underneath it. I'm Abhinav, and this is The Noise Next Door, the game I'm finishing as my final project. Everything you see playing is real play. When something isn't built yet, I'll say so.",
+   "estimated_duration_s": 19,
+   "gdd_sections": [
+    "1. Name of the game"
+   ],
+   "shot": {
+    "type": "CAPTURE",
+    "capture": {
+     "take": "run-01",
+     "window": "0.0 s to the narration's length",
+     "shows": "the title screen, New Game, the glide down to him asleep, waking, the leap down and the first steps on the trail"
+    },
+    "label": "REAL PLAY · screen recording by the author · human input",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The title screen over the game's own world at night"
+     },
+     {
+      "at": "Then a party starts",
+      "event": "New Game: the camera glides down to the hollow"
+     },
+     {
+      "at": "I'm Abhinav",
+      "event": "He's asleep, curled up; the party's waves pulse at the screen's edge"
+     },
+     {
+      "at": "real play",
+      "event": "A move key wakes him"
+     }
+    ]
+   },
+   "actual_duration_s": 14.36,
+   "audio_file": "mp3/beat-B00.mp3",
+   "render_duration_s": 14.375,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B00.mp4",
+    "filled_by": "media",
+    "at": "2026-11-24T18:32:10"
+   },
+   "qc": {
+    "typography_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8391,
+       0.9074
+      ]
+     }
+    ],
+    "typography_fill": "#0b0d10",
+    "typography_reason": "The picture is the game as played, at 80 % inside the title-safe box, and its HUD is the game's own text at its own size. The film's own type on this beat is the label in the matte under the picture: these are its lines, measured from the font and size tools/cut_clips.py draws them with.",
+    "contrast_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8391,
+       0.9074
+      ]
+     }
+    ],
+    "contrast_reason": "The picture is the game's night scene, dark by design; the text a viewer must read here is the burned-in label, white on the matte, measured there."
+   }
+  },
+  {
+   "beat_id": "B01",
+   "act": "BODY",
+   "design_status": "comparison",
+   "narration_text": "It's a slapstick stealth-puzzle game for desktop. You pester the campers under your tree, get chased into town in a camper's red beanie, and get driven home by that same camper. Level one now runs end to end, from the title screen to the chase out of the camp. The city, the block and the ride home are still to build. Finished, it's a game you play from title screen to end screen, on Windows or a Mac.",
+   "estimated_duration_s": 26,
+   "gdd_sections": [
+    "1. Name of the game",
+    "2. Concept",
+    "3. Game flow",
+    "6. Story"
+   ],
+   "gdd_excerpt_lines": [
+    15,
+    15
+   ],
+   "shot": {
+    "type": "REMOTION",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The GDD's own one-line description, exact, on the left"
+     },
+     {
+      "at": "Level one now runs",
+      "event": "The first 'Built' card lights"
+     },
+     {
+      "at": "the chase out of the camp",
+      "event": "The ending's 'Built' card lights"
+     },
+     {
+      "at": "The city, the block",
+      "event": "The two 'Proposed' cards light in order"
+     }
+    ],
+    "remotion": {
+     "pattern": "GodotDesignBoard",
+     "props": {
+      "title": "What it is",
+      "section": "2. Concept · What the game is",
+      "excerpt": "The Noise Next Door is a story-driven slapstick comedy puzzle game. You play a raccoon who is forced to deal with the humans around him and complete specific tasks in a human world that is alien to him.",
+      "source": "GDD.md v1.0, 19 Oct 2026, line 15",
+      "status": "COMPARISON · BUILT: the title and level 1 to its end (tag a7, c92a53d) · PROPOSED: the rest",
+      "visualLabel": "The game's flow, from GDD section 3",
+      "layout": "flow",
+      "cards": [
+       {
+        "label": "Built · tag a7",
+        "text": "The title screen, his tree, level 1's campsite"
+       },
+       {
+        "label": "Built · c92a53d, 23 Nov",
+        "text": "Level 1's ending: the cake, the beanie, the chase out"
+       },
+       {
+        "label": "Proposed",
+        "text": "Level 2, the city · level 3, the block"
+       },
+       {
+        "label": "Proposed",
+        "text": "The ride home, the epilogue, an end screen, on Windows and macOS"
+       }
+      ],
+      "cues": [
+       {
+        "at": 9.01,
+        "card": 0
+       },
+       {
+        "at": 11.85,
+        "card": 1
+       },
+       {
+        "at": 13.21,
+        "card": 2
+       },
+       {
+        "at": 14.43,
+        "card": 3
+       }
+      ],
+      "durationSeconds": 20.4,
+      "handle": "Abhinav Gangurde"
+     },
+     "rendered": {
+      "out": "media/B01.mp4",
+      "at": "2026-11-24T23:21:19.153751+00:00"
+     }
+    }
+   },
+   "actual_duration_s": 20.4,
+   "audio_file": "mp3/beat-B01.mp3",
+   "render_duration_s": 20.416666666666668,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B01.mp4",
+    "filled_by": "remotion:GodotDesignBoard",
+    "at": "2026-11-24T18:32:10"
+   }
+  },
+  {
+   "beat_id": "B01E",
+   "act": "BODY",
+   "design_status": "observed",
+   "narration_text": "Level one ends like this. Five jobs in, the camper brings out a cake, and the whole camp gathers round. I tie his laces, he trips, the cake lands on his face, and I grab his red beanie. Then the men chase me out, and the moth leads the way.",
+   "estimated_duration_s": 15,
+   "gdd_sections": [
+    "3. Game flow",
+    "6. Story"
+   ],
+   "shot": {
+    "type": "CAPTURE",
+    "capture": {
+     "take": "run-03",
+     "window": "PENDING",
+     "shows": "the camp round the cake, E held at the camper's heels, the trip and the cake on his face, the beanie grabbed, then \"RUN!\" with the moth ahead and the men behind"
+    },
+    "label": "REAL PLAY · screen recording by the author · human input · STAGED START: the developer menu's cake point",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The camper at his cake on the folding table, the others round it, leaning in"
+     },
+     {
+      "at": "I tie his laces",
+      "event": "E held at his heels; the laces tied"
+     },
+     {
+      "at": "he trips",
+      "event": "He trips; the cake lands on his face; the beanie slips off"
+     },
+     {
+      "at": "I grab his red beanie",
+      "event": "E on the beanie, as he's spotted"
+     },
+     {
+      "at": "Then the men chase me out",
+      "event": "\"RUN!\": the men right behind him, the moth ahead"
+     }
+    ]
+   },
+   "actual_duration_s": 13.12,
+   "audio_file": "mp3/beat-B01E.mp3",
+   "render_duration_s": 13.125,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B01E.mp4",
+    "filled_by": "media",
+    "at": "2026-11-24T18:32:10"
+   },
+   "qc": {
+    "typography_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8438,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.5734,
+       0.9556
+      ]
+     }
+    ],
+    "typography_fill": "#0b0d10",
+    "typography_reason": "The picture is the game as played, at 80 % inside the title-safe box, and its HUD is the game's own text at its own size. The film's own type on this beat is the label in the matte under the picture: these are its lines, measured from the font and size tools/cut_clips.py draws them with.",
+    "contrast_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8438,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.5734,
+       0.9556
+      ]
+     }
+    ],
+    "contrast_reason": "The picture is the game's night scene, dark by design; the text a viewer must read here is the burned-in label, white on the matte, measured there."
+   }
+  },
+  {
+   "beat_id": "B02",
+   "act": "BODY",
+   "design_status": "observed",
+   "narration_text": "Why would anyone care? You're the pest, not the hero, and every job comes from reading the campers. Spotted, I hop into the keeper's box, and they lose me. They search right round it, so I burst out and scare them. The worst they can do is shoo me off: no health, no lives, no game over.",
+   "estimated_duration_s": 20,
+   "gdd_sections": [
+    "5. Main character",
+    "7. Gameplay"
+   ],
+   "shot": {
+    "type": "CAPTURE",
+    "capture": {
+     "take": "run-02",
+     "window": "PENDING",
+     "shows": "spotted, he hops into the keeper's box by the green tent; the campers search round it, wondering; he bursts out at them, and Scare a camper is crossed off"
+    },
+    "label": "REAL PLAY · screen recording by the author · human input",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "Spotted, he runs past the green tent to the keeper's box"
+     },
+     {
+      "at": "I hop into the keeper's box",
+      "event": "He hops in; the men run up"
+     },
+     {
+      "at": "They search right round it",
+      "event": "The campers round the box, a \"?\" over each"
+     },
+     {
+      "at": "so I burst out and scare them",
+      "event": "He bursts out; the cones flash red; Scare a camper crossed off"
+     },
+     {
+      "at": "The worst they can do",
+      "event": "He runs off"
+     }
+    ]
+   },
+   "actual_duration_s": 14.42,
+   "audio_file": "mp3/beat-B02.mp3",
+   "render_duration_s": 14.458333333333334,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B02.mp4",
+    "filled_by": "media",
+    "at": "2026-11-24T18:32:10"
+   },
+   "qc": {
+    "typography_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8438,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.5036,
+       0.9556
+      ]
+     }
+    ],
+    "typography_fill": "#0b0d10",
+    "typography_reason": "The picture is the game as played, at 80 % inside the title-safe box, and its HUD is the game's own text at its own size. The film's own type on this beat is the label in the matte under the picture: these are its lines, measured from the font and size tools/cut_clips.py draws them with.",
+    "contrast_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8438,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.5036,
+       0.9556
+      ]
+     }
+    ],
+    "contrast_reason": "The picture is the game's night scene, dark by design; the text a viewer must read here is the burned-in label, white on the matte, measured there."
+   }
+  },
+  {
+   "beat_id": "B03",
+   "act": "BODY",
+   "design_status": "observed",
+   "narration_text": "What does the player get? The sneaky fun of a heist at night. When a camper spots me, I dive into a bush and they lose me. Their sight is drawn on the ground, and it shrinks while I sneak. And when a job lands, it's crossed off the list.",
+   "estimated_duration_s": 18,
+   "gdd_sections": [
+    "7. Gameplay"
+   ],
+   "shot": {
+    "type": "CAPTURE",
+    "capture": {
+     "take": "run-01",
+     "window": "three cuts: 37.5-42.5 s, 54.5-58.5 s, 98.0-101.4 s (set to the narration)",
+     "shows": "spotted (red cones, 'Hide!'), the dive into the bush and 'He lost you'; sneaking out under the cones; 'Steal the marshmallows' crossed off"
+    },
+    "label": "REAL PLAY · screen recording by the author · human input",
+    "show": [
+     {
+      "at": "When a camper spots me",
+      "event": "Spotted: the cones turn red, 'Hide!'; he dives into the bush, his eyes peek out, 'He lost you'"
+     },
+     {
+      "at": "Their sight is drawn",
+      "event": "Sneaking out of the bush under the campers' cones"
+     },
+     {
+      "at": "crossed off the list",
+      "event": "'Steal the marshmallows' comes up crossed off"
+     }
+    ]
+   },
+   "actual_duration_s": 12.05,
+   "audio_file": "mp3/beat-B03.mp3",
+   "render_duration_s": 12.083333333333334,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B03.mp4",
+    "filled_by": "media",
+    "at": "2026-11-24T18:32:10"
+   },
+   "qc": {
+    "typography_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8391,
+       0.9074
+      ]
+     }
+    ],
+    "typography_fill": "#0b0d10",
+    "typography_reason": "The picture is the game as played, at 80 % inside the title-safe box, and its HUD is the game's own text at its own size. The film's own type on this beat is the label in the matte under the picture: these are its lines, measured from the font and size tools/cut_clips.py draws them with.",
+    "contrast_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8391,
+       0.9074
+      ]
+     }
+    ],
+    "contrast_reason": "The picture is the game's night scene, dark by design; the text a viewer must read here is the burned-in label, white on the matte, measured there."
+   }
+  },
+  {
+   "beat_id": "B04",
+   "act": "BODY",
+   "design_status": "comparison",
+   "narration_text": "What's different? I've played Untitled Goose Game and Stray. Goose Game makes you the pest too, working down a to-do list, but you can't see who's watching. Here you can, so you plan the job around it. Stray puts a cat in a city whose people are gone. Here, the people are the puzzle.",
+   "estimated_duration_s": 20,
+   "gdd_sections": [
+    "2. Concept"
+   ],
+   "gdd_excerpt_lines": [
+    30,
+    30
+   ],
+   "shot": {
+    "type": "REMOTION",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The GDD's inspirations row, exact"
+     },
+     {
+      "at": "Goose Game",
+      "event": "Its card lights, then 'Mine adds'"
+     },
+     {
+      "at": "Stray",
+      "event": "Its card lights, then 'Mine'"
+     }
+    ],
+    "remotion": {
+     "pattern": "GodotDesignBoard",
+     "props": {
+      "title": "What's different",
+      "section": "2. Concept · At a glance",
+      "excerpt": "| **Inspirations** | Overcooked, Stray, Cuphead, Untitled Goose Game |",
+      "source": "GDD.md v1.0, 19 Oct 2026, line 30 · games the author has played",
+      "status": "COMPARISON · named games, as the author played them",
+      "visualLabel": "What each one does, and what mine adds",
+      "layout": "cards",
+      "cards": [
+       {
+        "label": "Untitled Goose Game",
+        "text": "You're the pest, working down a to-do list"
+       },
+       {
+        "label": "Mine adds",
+        "text": "Every camper's sight drawn on the ground, shorter while you sneak"
+       },
+       {
+        "label": "Stray",
+        "text": "A cat in a city whose people are gone"
+       },
+       {
+        "label": "Mine",
+        "text": "The people are the puzzle: their routines set the jobs"
+       }
+      ],
+      "cues": [
+       {
+        "at": 3.04,
+        "card": 0
+       },
+       {
+        "at": 7.83,
+        "card": 1
+       },
+       {
+        "at": 10.08,
+        "card": 2
+       },
+       {
+        "at": 12.57,
+        "card": 3
+       }
+      ],
+      "durationSeconds": 14.17,
+      "handle": "Abhinav Gangurde"
+     },
+     "rendered": {
+      "out": "media/B04.mp4",
+      "at": "2026-11-24T23:23:08.099828+00:00"
+     }
+    }
+   },
+   "actual_duration_s": 14.17,
+   "audio_file": "mp3/beat-B04.mp3",
+   "render_duration_s": 14.208333333333334,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B04.mp4",
+    "filled_by": "remotion:GodotDesignBoard",
+    "at": "2026-11-24T18:32:10"
+   },
+   "narration_confirmed": "23 Nov 2026, by the author"
+  },
+  {
+   "beat_id": "B05",
+   "act": "BODY",
+   "design_status": "comparison",
+   "narration_text": "Who opens it? I'm aiming at gameplay programmer roles, so it's for a hiring manager or a lead. They'll open the build on Windows or a Mac. This is what they'd get today, from New Game: a moth flies ahead of him down the trail to the party, with one task on screen. A lead can also rerun every test, one command each.",
+   "estimated_duration_s": 23,
+   "gdd_sections": [
+    "10. Technical description"
+   ],
+   "shot": {
+    "type": "CAPTURE",
+    "capture": {
+     "take": "run-01",
+     "window": "from 13.0 s (set to the narration)",
+     "shows": "the trail from his tree: the moth flying ahead of him, 'Investigate the music' at the bottom, the waves at the screen's edge, then the camp"
+    },
+    "label": "REAL PLAY · screen recording by the author · human input · run from Godot 4.7.2 on Windows; no export exists yet · the moth: a sprite sheet the author generated with Gemini",
+    "show": [
+     {
+      "at": "from New Game",
+      "event": "On the trail from his tree, the moth just ahead of him"
+     },
+     {
+      "at": "down the trail to the party",
+      "event": "The moth leads; the waves pulse at the screen's edge"
+     },
+     {
+      "at": "one task on screen",
+      "event": "'Investigate the music' at the bottom, ticked as he reaches the camp"
+     }
+    ]
+   },
+   "actual_duration_s": 16.81,
+   "audio_file": "mp3/beat-B05.mp3",
+   "render_duration_s": 16.833333333333332,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B05.mp4",
+    "filled_by": "media",
+    "at": "2026-11-24T18:32:10"
+   },
+   "qc": {
+    "typography_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8391,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.6453,
+       0.9556
+      ]
+     }
+    ],
+    "typography_fill": "#0b0d10",
+    "typography_reason": "The picture is the game as played, at 80 % inside the title-safe box, and its HUD is the game's own text at its own size. The film's own type on this beat is the label in the matte under the picture: these are its lines, measured from the font and size tools/cut_clips.py draws them with.",
+    "contrast_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8391,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.6453,
+       0.9556
+      ]
+     }
+    ],
+    "contrast_reason": "The picture is the game's night scene, dark by design; the text a viewer must read here is the burned-in label, white on the matte, measured there."
+   }
+  },
+  {
+   "beat_id": "B06",
+   "act": "BODY",
+   "design_status": "comparison",
+   "narration_text": "What does it prove? In October my design document said the game had no humans yet. Now it has four, with routines and sight. Shaders, particles, and the jump's animation each have a tagged assignment, with headless tests a stranger can rerun. What it can't prove yet is whether people enjoy it. Nobody outside the project has played it.",
+   "estimated_duration_s": 23,
+   "gdd_sections": [
+    "10. Technical description"
+   ],
+   "gdd_excerpt_lines": [
+    315,
+    315
+   ],
+   "evidence": [
+    "evidence/a7-baseline-SUMMARY.txt",
+    "evidence/jump_pins_60fps.log",
+    "evidence/test_jump_edges_60fps.log",
+    "stage/jump-r1.png"
+   ],
+   "shot": {
+    "type": "REMOTION",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The GDD's 19 Oct line: no humans, systems still to come"
+     },
+     {
+      "at": "Now it has four",
+      "event": "The jump strip from tag a7, frame by frame"
+     },
+     {
+      "at": "Shaders",
+      "event": "The tagged-skills card lights, then the tests'"
+     }
+    ],
+    "remotion": {
+     "pattern": "GodotDesignBoard",
+     "props": {
+      "title": "What it proves",
+      "section": "10. Technical description · Systems still to build",
+      "excerpt": "The prototype is a single forest level with a to-do list and no humans. These systems from this GDD are still to come:",
+      "source": "GDD.md v1.0, 19 Oct 2026, line 315 · strip: captures/sheets/jump-r1.png (tag a7)",
+      "status": "COMPARISON · GDD v1.0 (19 Oct) → built by tag a7 (22 Nov)",
+      "visualLabel": "The jump on his rig, frame by frame (fixture capture, 1280 × 720)",
+      "layout": "image",
+      "image": "the-noise-next-door-pitch/jump-r1.png",
+      "cards": [
+       {
+        "label": "Tagged: a5 shaders · a6 particles · a7 animation",
+        "text": "Effects' cost measured on my RTX 4050 laptop; the jump: 26 pins, edge tests at 30, 60, 144 fps"
+       },
+       {
+        "label": "Verification",
+        "text": "31 headless test scripts, all rerun from a fresh clone on 22 Nov"
+       }
+      ],
+      "cues": [
+       {
+        "at": 6.55,
+        "card": 0
+       },
+       {
+        "at": 10.79,
+        "card": 1
+       }
+      ],
+      "durationSeconds": 17.6,
+      "handle": "Abhinav Gangurde"
+     },
+     "rendered": {
+      "out": "media/B06.mp4",
+      "at": "2026-11-24T23:25:21.006337+00:00"
+     }
+    }
+   },
+   "actual_duration_s": 17.6,
+   "audio_file": "mp3/beat-B06.mp3",
+   "render_duration_s": 17.625,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B06.mp4",
+    "filled_by": "remotion:GodotDesignBoard",
+    "at": "2026-11-24T18:32:10"
+   },
+   "qc": {
+    "typography_regions": [
+     {
+      "label": "above the strip: the title, the left card's top, the status bar, the strip's caption",
+      "box": [
+       0.0,
+       0.0,
+       1.0,
+       0.2894
+      ]
+     },
+     {
+      "label": "below the strip: the cards, the left card's foot, the source line, the name",
+      "box": [
+       0.0,
+       0.5532,
+       1.0,
+       1.0
+      ]
+     },
+     {
+      "label": "left of the strip: the left card",
+      "box": [
+       0.0,
+       0.2894,
+       0.4323,
+       0.5532
+      ]
+     },
+     {
+      "label": "right of the strip: the margin",
+      "box": [
+       0.9479,
+       0.2894,
+       1.0,
+       0.5532
+      ]
+     }
+    ],
+    "typography_fill": "#F2F0E9",
+    "typography_reason": "Everything on the board but the jump strip, stage/jump-r1.png: ten frames of the raccoon's jump from the game, at x 1676-3628, y 653-1176 of the 4K render. The strip has no text; GATE T read his stripes and shadow as low-contrast type. Every word on the board is checked."
+   }
+  },
+  {
+   "beat_id": "B07",
+   "act": "BODY",
+   "design_status": "proposed",
+   "narration_text": "What's in, what's out, and what's first? Out: save states. My design document plans them, and I'm cutting them so the game plays in one sitting. First: level one exported for Windows and macOS, with a headless test that plays it from New Game to the chase out of the camp. That test will show it ran, and so will the Windows build, outside the editor. I don't have a Mac, so the Mac build stays untested.",
+   "estimated_duration_s": 25,
+   "gdd_sections": [
+    "3. Game flow"
+   ],
+   "gdd_excerpt_lines": [
+    44,
+    44
+   ],
+   "shot": {
+    "type": "REMOTION",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The GDD's saving line, exact"
+     },
+     {
+      "at": "Out: save states",
+      "event": "The 'Out' card lights"
+     },
+     {
+      "at": "First:",
+      "event": "The 'First' card lights"
+     },
+     {
+      "at": "That test will show",
+      "event": "The 'How you'd know' card lights"
+     }
+    ],
+    "remotion": {
+     "pattern": "GodotDesignBoard",
+     "props": {
+      "title": "In, out, first",
+      "section": "3. Game flow",
+      "excerpt": "**Saving.** The game has save states. The player can't select a stage: the levels are played in order.",
+      "source": "GDD.md v1.0, 19 Oct 2026, line 44",
+      "status": "PROPOSED · changes the GDD: save states out, macOS in (untested: no Mac)",
+      "visualLabel": "The plan. None of this is built yet.",
+      "layout": "cards",
+      "cards": [
+       {
+        "label": "Out",
+        "text": "Save states: one sitting, start to finish"
+       },
+       {
+        "label": "First",
+        "text": "Level 1 exported for Windows and macOS"
+       },
+       {
+        "label": "How you'd know it ran",
+        "text": "A headless play-through test, and the Windows build run outside the editor. No Mac to test the Mac build"
+       }
+      ],
+      "cues": [
+       {
+        "at": 2.0,
+        "card": 0
+       },
+       {
+        "at": 7.07,
+        "card": 1
+       },
+       {
+        "at": 13.31,
+        "card": 2
+       }
+      ],
+      "durationSeconds": 19.69,
+      "handle": "Abhinav Gangurde"
+     },
+     "rendered": {
+      "out": "media/B07.mp4",
+      "at": "2026-11-24T23:27:38.409831+00:00"
+     }
+    }
+   },
+   "actual_duration_s": 19.69,
+   "audio_file": "mp3/beat-B07.mp3",
+   "render_duration_s": 19.708333333333332,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B07.mp4",
+    "filled_by": "remotion:GodotDesignBoard",
+    "at": "2026-11-24T18:32:10"
+   },
+   "narration_confirmed": "23 Nov 2026, by the author"
+  },
+  {
+   "beat_id": "B08",
+   "act": "BODY",
+   "design_status": "proposed",
+   "narration_text": "What could sink it? Scope. It's three levels for one person, and level one alone has taken about a month. The town needs a cast that doesn't exist yet: three dogs, an animal-control officer, the neighbours. So level one gets finished and exported first, and each new level starts only once the last one exports and passes its tests.",
+   "estimated_duration_s": 23,
+   "gdd_sections": [
+    "4. Game elements and assets",
+    "7. Gameplay"
+   ],
+   "gdd_excerpt_lines": [
+    172,
+    172
+   ],
+   "evidence": [
+    "stage/11-barking-up-the-wrong-tree.svg"
+   ],
+   "shot": {
+    "type": "REMOTION",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The GDD's three-levels line, exact"
+     },
+     {
+      "at": "three dogs",
+      "event": "Storyboard panel 11, labelled CONSTRUCTED"
+     },
+     {
+      "at": "Scope",
+      "event": "The risk card lights"
+     },
+     {
+      "at": "So level one",
+      "event": "The plan card lights"
+     }
+    ],
+    "remotion": {
+     "pattern": "GodotDesignBoard",
+     "props": {
+      "title": "What could sink it",
+      "section": "7.4 Levels and challenges",
+      "excerpt": "The game has three levels. The world is interconnected: it isn't all open at once, but the game connects the areas for the player. The city is divided into two parts, the city and the block.",
+      "source": "GDD.md v1.0, 19 Oct 2026, line 172 · panel: design/storyboard/11-barking-up-the-wrong-tree.svg",
+      "status": "PROPOSED · none of the town exists yet",
+      "visualLabel": "CONSTRUCTED: storyboard panel 11, drawn in code by Claude Code in Oct 2026. Not the game.",
+      "layout": "image",
+      "image": "the-noise-next-door-pitch/11-barking-up-the-wrong-tree.svg",
+      "cards": [
+       {
+        "label": "The risk",
+        "text": "Scope: three levels, one person"
+       },
+       {
+        "label": "What I'll do",
+        "text": "Finish and export level 1 first; each level after, only once the last passes"
+       }
+      ],
+      "cues": [
+       {
+        "at": 1.05,
+        "card": 0
+       },
+       {
+        "at": 10.86,
+        "card": 1
+       }
+      ],
+      "durationSeconds": 17.41,
+      "handle": "Abhinav Gangurde"
+     },
+     "rendered": {
+      "out": "media/B08.mp4",
+      "at": "2026-11-24T23:30:02.663512+00:00"
+     }
+    }
+   },
+   "actual_duration_s": 17.41,
+   "audio_file": "mp3/beat-B08.mp3",
+   "render_duration_s": 17.416666666666668,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B08.mp4",
+    "filled_by": "remotion:GodotDesignBoard",
+    "at": "2026-11-24T18:32:10"
+   }
+  },
+  {
+   "beat_id": "B09",
+   "act": "BODY",
+   "design_status": "observed",
+   "narration_text": "Why this project? Mostly to learn. Godot, Blender modelling and rigging, shaders, particles, and game animation with its tests were all new to me this term, and each has its own tagged assignment. Finishing this game is how I'll find out whether I can carry them all through to the end.",
+   "estimated_duration_s": 20,
+   "gdd_sections": [],
+   "shot": {
+    "type": "CAPTURE",
+    "capture": {
+     "take": "run-03",
+     "window": "PENDING",
+     "shows": "the getaway: out of a bush, over the bridge, past the cabin with two men after him, and on through the forest"
+    },
+    "label": "REAL PLAY · screen recording by the author · human input",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "Out of a bush and over the river's bridge, the men behind"
+     },
+     {
+      "at": "each has its own tagged assignment",
+      "event": "Past the cabin, through the trees"
+     }
+    ]
+   },
+   "actual_duration_s": 15.47,
+   "audio_file": "mp3/beat-B09.mp3",
+   "render_duration_s": 15.5,
+   "build": {
+    "status": "VIDEO",
+    "src": "media\\B09.mp4",
+    "filled_by": "media",
+    "at": "2026-11-24T18:32:10"
+   },
+   "qc": {
+    "typography_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8438,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.5734,
+       0.9556
+      ]
+     }
+    ],
+    "typography_fill": "#0b0d10",
+    "typography_reason": "The picture is the game as played, at 80 % inside the title-safe box, and its HUD is the game's own text at its own size. The film's own type on this beat is the label in the matte under the picture: these are its lines, measured from the font and size tools/cut_clips.py draws them with.",
+    "contrast_regions": [
+     {
+      "label": "REAL PLAY label",
+      "box": [
+       0.0958,
+       0.8602,
+       0.8438,
+       0.9074
+      ]
+     },
+     {
+      "label": "note",
+      "box": [
+       0.0958,
+       0.9083,
+       0.5734,
+       0.9556
+      ]
+     }
+    ],
+    "contrast_reason": "The picture is the game's night scene, dark by design; the text a viewer must read here is the burned-in label, white on the matte, measured there."
+   }
+  },
+  {
+   "beat_id": "B10",
+   "act": "OUTRO",
+   "narration_text": "The Noise Next Door. A final project pitch, by Abhinav.",
+   "estimated_duration_s": 5,
+   "tail_hold_s": 1.0,
+   "shot": {
+    "type": "CARD",
+    "card": "media/B10.png, made by tools/make_end_card.py",
+    "show": [
+     {
+      "at": 0.0,
+      "event": "The end card: title, name, repo, the footage's revision, the AI voice named"
+     }
+    ]
+   },
+   "actual_duration_s": 5.08,
+   "audio_file": "mp3/beat-B10.mp3",
+   "render_duration_s": 5.083333333333333,
+   "build": {
+    "status": "STILL",
+    "src": "media\\B10.png",
+    "filled_by": "still",
+    "at": "2026-11-24T18:32:10"
+   },
+   "tail_applied_s": 5.076083
+  }
+ ]
+}

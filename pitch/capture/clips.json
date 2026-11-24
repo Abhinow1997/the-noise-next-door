@@ -1,0 +1,22 @@
+{"revision": "370f62d", "recorded": "23 Nov 2026",
+ "takes": {
+  "run-01": {"crop": "1280:715:2:39", "source": "Screen Recording 2026-11-23 231646.mp4"},
+  "run-02": {"crop": "1280:720:1:36", "source": "Screen Recording 2026-11-24 171326.mp4",
+             "revision": "263ac50", "recorded": "24 Nov 2026"},
+  "run-03": {"crop": "1280:720:7:48", "source": "Screen Recording 2026-11-24 172900.mp4",
+             "revision": "263ac50", "recorded": "24 Nov 2026"}},
+ "segments": [
+  {"beat": "B00", "take": "run-01", "start": 0.0, "end": 14.36, "note": ""},
+  {"beat": "B01E", "take": "run-03", "start": 7.5, "end": 14.1, "note": "STAGED START: the developer menu's cake point"},
+  {"beat": "B01E", "take": "run-03", "start": 15.2, "end": 17.6, "note": "STAGED START: the developer menu's cake point"},
+  {"beat": "B01E", "take": "run-03", "start": 21.2, "end": 22.5, "note": "STAGED START: the developer menu's cake point"},
+  {"beat": "B01E", "take": "run-03", "start": 32.25, "end": 33.95, "note": "STAGED START: the developer menu's cake point"},
+  {"beat": "B01E", "take": "run-03", "start": 36.4, "end": 37.52, "note": "STAGED START: the developer menu's cake point"},
+  {"beat": "B02", "take": "run-02", "start": 48.6, "end": 54.6, "note": "STAGED START: from the developer menu"},
+  {"beat": "B02", "take": "run-02", "start": 57.0, "end": 60.0, "note": "STAGED START: from the developer menu"},
+  {"beat": "B02", "take": "run-02", "start": 63.0, "end": 68.42, "note": "STAGED START: from the developer menu"},
+  {"beat": "B03", "take": "run-01", "start": 37.5, "end": 42.5, "note": ""},
+  {"beat": "B03", "take": "run-01", "start": 54.5, "end": 58.5, "note": ""},
+  {"beat": "B03", "take": "run-01", "start": 98.0, "end": 101.05, "note": ""},
+  {"beat": "B05", "take": "run-01", "start": 13.0, "end": 29.81, "note": "The moth: a sprite sheet the author generated with Gemini"},
+  {"beat": "B09", "take": "run-03", "start": 96.0, "end": 111.47, "note": "STAGED START: the developer menu's cake point"}]}

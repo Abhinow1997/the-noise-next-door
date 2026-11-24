@@ -1,0 +1,40 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Jump pins: the real level at the developer menu's "free" point, 60 physics ticks a second
+PASS  the camp listens to `landed` (campsite.gd _on_landed)  (got connected)
+PASS  standing still: idle  (got idle)
+PASS  W held: walk  (got walk)
+PASS  W and Shift held: run  (got run)
+PASS  stopped: idle again  (got idle)
+Clips in order: 1:idle, 102:walk, 162:run, 229:walk, 238:idle, -- held jump --, 302:jump, 327:jump_land, 337:, 339:idle, -- tap jump --, 422:jump, 434:jump_land, 444:, 446:idle, -- buffered jump --, 522:jump, 547:jump_land, 548:jump, 573:jump_land, 583:, 585:idle
+Jump 0: { &"press": 300, &"takeoff": 301, &"peak": 0.5114743411541, &"air_clips": { &"jump": true }, &"jumping_through": true, &"leap_unset": true, &"landed": 326, &"land_end": 338 }
+Jump 1: { &"press": 420, &"takeoff": 421, &"peak": 0.22774390503764, &"air_clips": { &"jump": true }, &"jumping_through": true, &"leap_unset": true, &"landed": 433, &"land_end": 445 }
+Jump 2: { &"press": 520, &"takeoff": 521, &"peak": 0.51141274347901, &"air_clips": { &"jump": true }, &"jumping_through": true, &"leap_unset": true, &"landed": 546 }
+Jump 3: { &"press": 541, &"jumping_through": true, &"takeoff": 547, &"peak": 0.51141548529267, &"air_clips": { &"jump": true }, &"leap_unset": true, &"landed": 572, &"land_end": 584 }
+landed on ticks: [326, 433, 546, 572]
+PASS  four jumps taken (held, tap, buffered and the one it kept)  (got 4)
+PASS  held: takes off on the tick after F  (got 1)
+PASS  tap: takes off on the tick after F  (got 1)
+PASS  buffered: takes off on the tick after F  (got 1)
+PASS  held: lands 25 ticks after takeoff  (got 25)
+PASS  held: peaks at 0.51 m (within 0.02)  (got 0.511 m)
+PASS  tap: lands 12 ticks after takeoff  (got 12)
+PASS  tap: peaks at 0.23 m (within 0.02)  (got 0.228 m)
+PASS  buffered: its first jump lands 25 ticks after takeoff too  (got 25)
+PASS  held: the landing pose lasts LAND_TIME, 12 ticks  (got 12)
+PASS  held: `jumping` true from takeoff to landing  (got true)
+PASS  held: posed through `jump` with leap unset (re-pinned; was the run clip with leap set)  (got [&"jump"], leap set on an air tick: false)
+PASS  tap: the landing pose lasts LAND_TIME, 12 ticks  (got 12)
+PASS  tap: `jumping` true from takeoff to landing  (got true)
+PASS  tap: posed through `jump` with leap unset (re-pinned; was the run clip with leap set)  (got [&"jump"], leap set on an air tick: false)
+PASS  buffered: pressed 0.1 s before landing, the kept jump takes off the tick after he lands  (got takeoff 547, landed 546)
+PASS  buffered: the kept jump, F held, peaks at 0.51 m (within 0.02)  (got 0.511 m)
+PASS  `landed` once a jump  (got 4 landed, 4 jumps)
+PASS  the clips in order (re-pinned: jump and jump_land where each jump's run was)  (got idle, walk, run, walk, idle, jump, jump_land, , idle, jump, jump_land, , idle, jump, jump_land, jump, jump_land, , idle)
+PASS  the clip shows the held jump the tick after takeoff (re-pinned: `jump`, was `run`)  (got takeoff 301)
+PASS  the clip is back to idle the tick after the landing pose ends  (got land_end 338)
+RESULT: all checks passed (26 checks)
+WARNING: 4 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
