@@ -214,11 +214,17 @@ A dated log of making the pitch film: what I asked for, what came back, what was
   - **PROJECT-BRIEF.md's** line that matched B09 changed with it.
 - **Kept:** the tags in the records (PROJECT-BRIEF.md's "exists today", FACTCHECK.md), as the assignment asks for "the tag or commit where each thing can be seen". The end card's course line stays.
 
+
+### 24 Nov 2026: the film and the takes on OneDrive
+
+- **Asked:** "what all vids we nned to upload give me all the paths". The film is the one the assignment requires. The three takes are over 25 MB too, and a rebuild needs them, so they went up as well, with the film's receipt.
+- **Uploaded** by me to Northeastern OneDrive, and the five links pasted in.
+- **Tested** by Claude Code without signing in: every link goes to Microsoft's sign-in page. I checked the setting: "People in Northeastern". So a reviewer opens them with a Northeastern account. README.md says so beside the links.
+
 ---
 
 ## Still open (24 Nov 2026)
 
-- **The film's link,** once I've uploaded it, for the README and the Canvas note.
-- **Pushing** `main` and the `a8` tag, then the Canvas ZIP and note, on my word.
+- **Canvas:** `main` and `a8` are pushed with this commit ("Yes, push then"), and Claude Code builds the ZIP from the pushed tag. Uploading it to Canvas is mine.
 
 Kept on 24 Nov 2026, after watching the final: "Looks good, commit". That covers B02's new line and the film.

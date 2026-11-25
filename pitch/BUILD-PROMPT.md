@@ -2,7 +2,7 @@
 
 `pitch/` · Assignment 8 · Draft v0, 23 Nov 2026
 
-The commands that rebuild the film from this folder, and the one Claude Code prompt that runs them. Everything is local and free: no keys, accounts or uploads. The gameplay takes are the one thing a command can't remake. They're real play, recorded by me (SHOTLIST.md), and kept with their SHA-256s in the course media storage (README.md).
+The commands that rebuild the film from this folder, and the one Claude Code prompt that runs them. Everything is local and free: no keys, accounts or uploads. The gameplay takes are the one thing a command can't remake. They're real play, recorded by me (SHOTLIST.md), and kept on Northeastern OneDrive, with their SHA-256s, linked from README.md. Download them into `pitch/capture/` as `run-01.mp4`, `run-02.mp4` and `run-03.mp4` before section 2.
 
 ## 1. The toolkit, once
 
